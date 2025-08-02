@@ -1,0 +1,14 @@
+# ────────────────────────────────────────────────────────────────
+# Новый образ Chroma на базе python:3.13-bookworm
+# ────────────────────────────────────────────────────────────────
+FROM python:3.13-bookworm
+
+RUN pip install --no-cache-dir chromadb==1.0.13
+
+# Открываем стандартный порт HTTP-API Chroma
+EXPOSE 8000
+
+# Папка для persist-данных
+WORKDIR /var/chromadb
+
+ENTRYPOINT ["chroma", "run", "--path", "/var/chromadb", "--host", "0.0.0.0", "--port", "8000"]

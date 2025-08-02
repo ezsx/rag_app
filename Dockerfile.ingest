@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1.6
+ARG CUDA_MAJOR=12
+ARG CUDA_MINOR=9
+ARG UBUNTU_VERSION=22.04
+FROM nvidia/cuda:${CUDA_MAJOR}.${CUDA_MINOR}.0-runtime-ubuntu${UBUNTU_VERSION}
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONUNBUFFERED=1 \
+    TRANSFORMERS_CACHE=/models/.cache \
+    HF_HOME=/models
+
+# ── системные пакеты ─────────────────────────────────────────────
+RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,id=apt-lists,sharing=locked \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3 python3-pip python3-dev git curl netcat-traditional && \
+    rm -rf /var/lib/apt/lists/*
+
+# ── Nightly PyTorch с PTX (работает на Ada) ─────────────────────
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
+    pip install --pre --index-url https://download.pytorch.org/whl/nightly/cu128 \
+        torch torchvision torchaudio
+
+# ── Зависимости инжест-скрипта ──────────────────────────────────
+COPY requirements_ingest.txt /tmp/
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir -r /tmp/requirements_ingest.txt
+
+# ── Исходники и entrypoint ──────────────────────────────────────
+WORKDIR /app
+RUN mkdir -p /models/.cache /app/sessions
+COPY scripts/ /app/scripts/
+COPY src/     /app/src/
+COPY --chmod=755 scripts/wait-for-it.sh /usr/local/bin/wait-for-it.sh
+
+ENTRYPOINT ["/usr/local/bin/wait-for-it.sh","chroma:8000","--timeout=30","--strict","--","python3","-m","scripts.ingest_telegram"]
