@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+chromadb==1.0.13
+telethon
+sentence-transformers
+python-dotenv
+python-dateutil
+huggingface-hub
+tqdm
+numpy==1.26.4
+filelock
+typing_extensions
+pydantic

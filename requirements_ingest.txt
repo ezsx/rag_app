@@ -1,0 +1,8 @@
+telethon
+chromadb==1.0.13
+tqdm
+python-dotenv
+python-dateutil
+sentence-transformers
+huggingface-hub
+numpy==1.26.4

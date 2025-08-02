@@ -1,0 +1,61 @@
+# syntax=docker/dockerfile:1.6
+ARG UBUNTU_VERSION=22.04
+ARG CUDA_VERSION=12.9.0
+
+########################### 1️⃣ builder (llama-cpp) ############################
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_NO_CACHE_DIR=1 \
+    LLAMA_CUBLAS=1 \
+    CMAKE_ARGS="-DCMAKE_CUDA_ARCHITECTURES=89"    
+
+RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,id=apt-lists,sharing=locked \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential cmake git python3 python3-pip && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip scikit-build-core wheel && \
+    pip wheel --wheel-dir=/wheels "llama-cpp-python[server]==0.2.75" --no-deps
+
+########################### 2️⃣ runtime (CUDA) #################################
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION} AS runtime
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,id=apt-lists,sharing=locked \
+    apt-get update && \
+    apt-get install -y --no-install-recommends python3 python3-pip git && \
+    rm -rf /var/lib/apt/lists/*
+
+########################### 3️⃣ final ##########################################
+FROM runtime AS final
+
+ENV PIP_NO_CACHE_DIR=1 \
+    PYTHONUNBUFFERED=1 \
+    TRANSFORMERS_CACHE=/models/.cache \
+    HF_HOME=/models
+
+# ——— 1. устанавливаем nightly-PyTorch с PTX (работает на Ada)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --pre --index-url https://download.pytorch.org/whl/nightly/cu128 \
+        torch torchvision torchaudio
+
+# ——— 2. ставим собранный llama-cpp wheel и прочие зависимости
+COPY --from=builder /wheels /wheels
+COPY requirements_api.txt /tmp/
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install /wheels/llama_cpp_python-*.whl && \
+    pip install --no-cache-dir -r /tmp/requirements_api.txt
+
+# ——— 3. исходники приложения
+WORKDIR /app
+RUN mkdir -p /models/.cache /data/chroma
+COPY src/ /app
+
+EXPOSE 8000
+CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000","--loop","uvloop"]

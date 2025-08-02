@@ -1,0 +1,92 @@
+# ────────────────────────────────────────────────────────────────
+# docker-compose.yml – один сервис API, один сервис ChromaDB
+# ────────────────────────────────────────────────────────────────
+#  ⚠️  Файл предполагает такую иерархию каталога
+#     rag_app/
+#       ├─ docker-compose.yml   ← этот файл
+#       ├─ Dockerfile          ← выше
+#       ├─ src/                ← приложение FastAPI
+#       ├─ models/             ← gguf / hf модели (volume)
+#       └─ chroma-data/        ← persist‑директория Chroma
+# ────────────────────────────────────────────────────────────────
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file:
+      - .env          # поместите в корень repo переменные (OPENAI_API_KEY и пр.)
+    profiles: ["api"]
+    volumes:
+      - ./models:/models          # кэш и gguf‑файлы
+      - ./chroma-data:/data/chroma
+    ports:
+      - "8000:8000"               # host → container
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+
+  chroma:
+    build:
+      context: .
+      dockerfile: Dockerfile.chroma
+    volumes:
+      - ./chroma-data:/var/chromadb
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/heartbeat"]
+      interval: 5s
+      retries: 12
+    profiles: ["api", "ingest"]
+    ports:
+      - "9999:8000"
+  
+  ingest:
+    build:
+      context: .
+      dockerfile: Dockerfile.ingest
+    env_file:
+      - .env
+    profiles: ["ingest"]
+    volumes:
+      - ./scripts:/app/scripts
+      - ./src:/app/src
+      - ./chroma-data:/chroma
+      # Persist Telethon session files so you don't need to re-enter the code
+      - ./sessions:/app/sessions
+      - ./models:/models
+    depends_on:
+      - chroma
+    networks:
+      - default
+    # GPU support для ускорения embedding
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+    environment:
+      # Saves/reads session at /app/sessions/telegram.session inside container
+      - TG_SESSION=/app/sessions/telegram.session
+      # Use service name from docker-compose for DNS resolution
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8000
+      - TRANSFORMERS_CACHE=/models/.cache
+      - HF_HOME=/models
+      # Автоскачивание моделей
+      - AUTO_DOWNLOAD_EMBEDDING=true
+    entrypoint: ["python3", "-m", "scripts.ingest_telegram"]
+    # supply arguments at runtime, e.g.:
+    # docker compose run --rm ingest --channel @channel_name --since 2024-01-01 --until 2024-01-31 --collection news_demo
+
+networks:
+  default:
+    name: rag-net
+
+# ────────────────────────────────────────────────────────────────
+# Конец docker-compose.yml
+# ────────────────────────────────────────────────────────────────

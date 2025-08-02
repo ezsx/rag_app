@@ -1,0 +1,15 @@
+*.session
+/models
+/chroma-data
+/sessions
+.env
+__pycache__/
+__pycache__
+.vscode
+.DS_Store
+.idea
+.pytest_cache
+.ruff_cache
+.venv
+.env.local
+.env.development.local
