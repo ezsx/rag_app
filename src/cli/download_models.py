@@ -43,7 +43,7 @@ def main():
     parser.add_argument(
         "--llm",
         choices=list(RECOMMENDED_MODELS["llm"].keys()),
-        default="vikhr-7b-instruct",
+        default="gpt-oss-20b",
         help="LLM модель для скачивания",
     )
 

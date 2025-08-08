@@ -73,20 +73,74 @@ def download_llm_model_from_hf(
     try:
         logger.info(f"🔄 Скачивание LLM модели {model_repo}/{filename}...")
 
-        # Скачиваем модель через HuggingFace Hub
+        # Попытка скачать конкретный файл
         model_path = hf_hub_download(
             repo_id=model_repo,
             filename=filename,
             local_dir=local_dir,
             cache_dir=cache_dir,
         )
-
         logger.info(f"✅ LLM модель скачана: {model_path}")
         return model_path
 
     except Exception as e:
-        logger.error(f"❌ Ошибка скачивания LLM модели: {e}")
-        return None
+        logger.warning(
+            f"⚠️ Не удалось скачать точный файл '{filename}' из {model_repo}: {e}. Пробуем snapshot_download и автоподбор .gguf"
+        )
+
+        try:
+            # Скачиваем весь репозиторий (только .gguf) и выбираем нужный квант
+            repo_dir = snapshot_download(
+                repo_id=model_repo,
+                cache_dir=cache_dir,
+                allow_patterns=["*.gguf", "**/*.gguf"],
+                local_files_only=False,
+            )
+
+            # Ищем подходящий GGUF (предпочитаем по подстроке из filename)
+            target_hint = None
+            name_lower = filename.lower()
+            if "q6_k" in name_lower:
+                target_hint = "q6_k"
+            elif "q5" in name_lower:
+                target_hint = "q5"
+            elif "q4" in name_lower:
+                target_hint = "q4"
+
+            candidates: list[Path] = []
+            for p in Path(repo_dir).rglob("*.gguf"):
+                candidates.append(p)
+
+            if not candidates:
+                logger.error("❌ В snapshot модели не найдено .gguf файлов")
+                return None
+
+            def score(p: Path) -> tuple[int, int]:
+                s = p.name.lower()
+                # приоритет: совпадение подсказки квантовки, затем размер файла
+                match = 1 if (target_hint and target_hint in s) else 0
+                return (match, p.stat().st_size)
+
+            best = sorted(candidates, key=score, reverse=True)[0]
+
+            # Копировать/ссылаться в локальный каталог
+            os.makedirs(local_dir, exist_ok=True)
+            dest = Path(local_dir) / best.name
+            if str(best.resolve()) != str(dest.resolve()):
+                try:
+                    import shutil
+
+                    shutil.copy2(best, dest)
+                except Exception:
+                    # если копия невозможна (сквозной volume), используем исходный путь
+                    dest = best
+
+            logger.info(f"✅ Выбран GGUF файл: {dest}")
+            return str(dest)
+
+        except Exception as e2:
+            logger.error(f"❌ Ошибка snapshot_download или подбора .gguf: {e2}")
+            return None
 
 
 def download_embedding_model(model_name: str, cache_dir: Optional[str] = None) -> bool:
@@ -124,6 +178,11 @@ def download_embedding_model(model_name: str, cache_dir: Optional[str] = None) -
 # Предопределенные модели для русского языка
 RECOMMENDED_MODELS = {
     "llm": {
+        "gpt-oss-20b": {
+            "repo": "unsloth/gpt-oss-20b-GGUF",
+            "filename": "gpt-oss-20b-Q6_K.gguf",
+            "description": "OpenAI gpt-oss-20b (GGUF, Q6_K) от Unsloth",
+        },
         "vikhr-7b-instruct": {
             "repo": "oblivious/Vikhr-7B-instruct-GGUF",
             "filename": "Vikhr-7B-instruct-Q4_K_M.gguf",
@@ -163,7 +222,7 @@ RECOMMENDED_MODELS = {
 
 
 def auto_download_models(
-    llm_model_key: str = "vikhr-7b-instruct",
+    llm_model_key: str = "gpt-oss-20b",
     embedding_model_key: str = "multilingual-e5-large",
     models_dir: str = "/models",
     cache_dir: Optional[str] = None,
