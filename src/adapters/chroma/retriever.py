@@ -32,7 +32,7 @@ class Retriever:
     def __init__(
         self,
         chroma_client: chromadb.Client,
-        collection_name: str = "tg_test1",
+        collection_name: str = "news_titarovka",
         embedding_model: str = "BAAI/bge-base-en-v1.5",
     ):
         self.client = chroma_client

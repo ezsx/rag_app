@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 ARG UBUNTU_VERSION=22.04
-ARG CUDA_VERSION=12.9.0
+ARG CUDA_VERSION=12.8.0
 
 ########################### 1️⃣ builder (llama-cpp) ############################
 FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS builder
