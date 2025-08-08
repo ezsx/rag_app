@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 ARG CUDA_MAJOR=12
-ARG CUDA_MINOR=9
+ARG CUDA_MINOR=8
 ARG UBUNTU_VERSION=22.04
 FROM nvidia/cuda:${CUDA_MAJOR}.${CUDA_MINOR}.0-runtime-ubuntu${UBUNTU_VERSION}
 
