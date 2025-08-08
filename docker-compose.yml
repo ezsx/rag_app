@@ -21,6 +21,8 @@ services:
     volumes:
       - ./models:/models          # кэш и gguf‑файлы
       - ./chroma-data:/data/chroma
+      - ./scripts:/app/scripts  
+      - ./sessions:/app/sessions
     ports:
       - "8000:8000"               # host → container
     deploy:
@@ -29,6 +31,15 @@ services:
           devices:
             - driver: nvidia
               capabilities: [gpu]
+    environment:
+      # Saves/reads session at /app/sessions/telegram.session inside container
+      - TG_SESSION=/app/sessions/telegram.session
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8000
+      - TRANSFORMERS_CACHE=/models/.cache
+      - HF_HOME=/models
+      # Автоскачивание моделей
+      - AUTO_DOWNLOAD_EMBEDDING=true
 
   chroma:
     build:

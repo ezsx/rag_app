@@ -11,3 +11,9 @@ numpy==1.26.4
 filelock
 typing_extensions
 pydantic
+sse-starlette
+# llama-cpp-python ставится из wheel, собранного в Dockerfile.api
+redis
+httpx
+pytest
+pytest-asyncio

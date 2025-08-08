@@ -2,13 +2,16 @@ import os
 import logging
 from functools import lru_cache
 from pathlib import Path
+from typing import Optional
 from fastapi import Depends, HTTPException
 import chromadb
 from llama_cpp import Llama
 
 from adapters.chroma import Retriever
 from services.qa_service import QAService
+from services.query_planner_service import QueryPlannerService
 from utils.model_downloader import auto_download_models, RECOMMENDED_MODELS
+from core.settings import get_settings, Settings
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +19,31 @@ logger = logging.getLogger(__name__)
 @lru_cache
 def get_chroma_client():
     """Создает и возвращает ChromaDB клиент"""
-    chroma_path = os.getenv("CHROMA_PATH", "/data/chroma")
-    return chromadb.PersistentClient(path=chroma_path)
+    settings = get_settings()
+    try:
+        # Попробуем HTTP клиент (для Docker compose)
+        client = chromadb.HttpClient(
+            host=settings.chroma_host, port=settings.chroma_port
+        )
+        # Проверим подключение
+        client.heartbeat()
+        logger.info(
+            f"Подключение к ChromaDB HTTP: {settings.chroma_host}:{settings.chroma_port}"
+        )
+        return client
+    except Exception as e:
+        logger.warning(f"HTTP подключение не удалось ({e}), пробуем локальный клиент")
+        # Fallback на локальный клиент
+        return chromadb.PersistentClient(path=settings.chroma_path)
 
 
-def get_retriever(client=Depends(get_chroma_client)):
+@lru_cache
+def get_retriever() -> Retriever:
+    settings = get_settings()
+    client = get_chroma_client()
     """Создает и возвращает Retriever для поиска в ChromaDB"""
-    collection_name = os.getenv("CHROMA_COLLECTION", "news_demo4")
-    embedding_model_key = os.getenv("EMBEDDING_MODEL_KEY", "multilingual-e5-large")
+    embedding_model_key = settings.current_embedding_key
+    collection_name = settings.current_collection
 
     # Получаем полное название модели из конфигурации
     if embedding_model_key in RECOMMENDED_MODELS["embedding"]:
@@ -32,7 +52,9 @@ def get_retriever(client=Depends(get_chroma_client)):
         # Fallback на прямое указание модели
         embedding_model = os.getenv("EMBEDDING_MODEL", "intfloat/multilingual-e5-large")
 
-    logger.info(f"Используем embedding модель: {embedding_model}")
+    logger.info(
+        f"Используем embedding модель: {embedding_model} (коллекция: {collection_name})"
+    )
 
     # Автоскачивание embedding модели если необходимо
     auto_download_embedding = (
@@ -42,8 +64,7 @@ def get_retriever(client=Depends(get_chroma_client)):
         try:
             from utils.model_downloader import download_embedding_model
 
-            cache_dir = os.getenv("TRANSFORMERS_CACHE", "/models/.cache")
-            download_embedding_model(embedding_model, cache_dir)
+            download_embedding_model(embedding_model, settings.cache_dir)
         except Exception as e:
             logger.warning(f"Не удалось скачать embedding модель: {e}")
 
@@ -53,14 +74,15 @@ def get_retriever(client=Depends(get_chroma_client)):
 @lru_cache
 def get_llm():
     """Создает и возвращает LLM модель с автоскачиванием"""
-    # Конфигурация модели
-    llm_model_key = os.getenv("LLM_MODEL_KEY", "vikhr-7b-instruct")
-    models_dir = os.getenv("MODELS_DIR", "/models")
-    cache_dir = os.getenv("TRANSFORMERS_CACHE", "/models/.cache")
+    settings = get_settings()
+    # Конфигурация модели из настроек
+    llm_model_key = settings.current_llm_key
+    models_dir = settings.models_dir
+    cache_dir = settings.cache_dir
     auto_download = os.getenv("AUTO_DOWNLOAD_LLM", "true").lower() == "true"
 
     # Параметры модели
-    n_gpu_layers = int(os.getenv("LLM_GPU_LAYERS", "0"))  # CPU по умолчанию
+    n_gpu_layers = int(os.getenv("LLM_GPU_LAYERS", "-1"))
     n_ctx = int(os.getenv("LLM_CONTEXT_SIZE", "4096"))
     n_threads = int(os.getenv("LLM_THREADS", "8"))
 
@@ -72,10 +94,29 @@ def get_llm():
         logger.info(f"Используем LLM модель: {model_config['description']}")
     else:
         # Fallback на прямое указание пути
-        model_path = os.getenv(
-            "LLM_MODEL_PATH", f"{models_dir}/Vikhr-7B-instruct-Q4_K_M.gguf"
-        )
+        model_path = os.getenv("LLM_MODEL_PATH", f"{models_dir}/gpt-oss-20b-Q6_K.gguf")
         logger.info(f"Используем пользовательский путь к модели: {model_path}")
+
+    # Диагностическое логирование окружения и пути
+    try:
+        import llama_cpp as _ll
+
+        logger.info(f"llama_cpp version: {getattr(_ll, '__version__', 'unknown')}")
+    except Exception as _:
+        logger.info("llama_cpp version: <unavailable>")
+    logger.info(
+        f"ENV: CUDA_VISIBLE_DEVICES={os.getenv('CUDA_VISIBLE_DEVICES')}, "
+        f"LLM_GPU_LAYERS={os.getenv('LLM_GPU_LAYERS', str(n_gpu_layers))}, "
+        f"LLM_CONTEXT_SIZE={os.getenv('LLM_CONTEXT_SIZE', str(n_ctx))}, "
+        f"LLM_THREADS={os.getenv('LLM_THREADS', str(n_threads))}"
+    )
+    logger.info(f"Путь к модели: {model_path}")
+    if os.path.exists(model_path):
+        try:
+            sz = Path(model_path).stat().st_size
+            logger.info(f"Размер файла модели: {sz / (1024**3):.2f} GB")
+        except Exception:
+            pass
 
     # Проверяем существование модели
     if not os.path.exists(model_path):
@@ -121,12 +162,58 @@ def get_llm():
 
     except Exception as e:
         logger.error(f"❌ Ошибка загрузки LLM модели: {e}")
+        # Дополнительные подсказки по ошибке
+        if "Failed to load model from file" in str(e):
+            logger.error(
+                "Возможные причины: некорректный путь/имя GGUF, поврежденный файл, несовместимая квантовка."
+            )
+            logger.error(
+                f"Проверьте наличие файла и доступ: ls -lh {models_dir}; и переменную LLM_MODEL_PATH/KEY."
+            )
         raise HTTPException(
             status_code=503, detail=f"Не удалось загрузить LLM модель: {str(e)}"
         )
 
 
-def get_qa_service(retriever=Depends(get_retriever), llm=Depends(get_llm)):
-    """Создает и возвращает QA сервис"""
+@lru_cache
+def get_query_planner() -> QueryPlannerService:
+    settings = get_settings()
+    llm = get_llm()
+    return QueryPlannerService(llm, settings)
+
+
+@lru_cache
+def get_qa_service() -> QAService:
+    settings = get_settings()
+    retriever = get_retriever()
+    llm = get_llm()
     top_k = int(os.getenv("RETRIEVER_TOP_K", "5"))
-    return QAService(retriever, llm, top_k)
+    planner = get_query_planner() if settings.enable_query_planner else None
+    return QAService(retriever, llm, top_k, settings=settings, planner=planner)
+
+
+# === Новые зависимости для кеширования ===
+
+
+@lru_cache
+def get_redis_client(settings: Settings = Depends(get_settings)):
+    """Создает Redis клиент если включено кеширование"""
+    if not settings.redis_enabled:
+        return None
+
+    try:
+        import redis
+
+        client = redis.Redis(
+            host=settings.redis_host,
+            port=settings.redis_port,
+            password=settings.redis_password,
+            decode_responses=True,
+        )
+        # Проверяем подключение
+        client.ping()
+        logger.info(f"Redis подключен: {settings.redis_host}:{settings.redis_port}")
+        return client
+    except Exception as e:
+        logger.warning(f"Redis недоступен: {e}")
+        return None
