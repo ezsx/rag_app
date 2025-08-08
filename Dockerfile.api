@@ -5,22 +5,39 @@ ARG CUDA_VERSION=12.8.0
 ########################### 1️⃣ builder (llama-cpp) ############################
 FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS builder
 
+#    CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=100;89;86"
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
-    LLAMA_CUBLAS=1 \
-    CMAKE_ARGS="-DCMAKE_CUDA_ARCHITECTURES=100;89;86"
+    GGML_CUDA=1 \
+    FORCE_CMAKE=1 \
+    CMAKE_ARGS="-DGGML_CUDA=on \
+    -DLLAMA_BUILD_EXAMPLES=OFF \
+    -DLLAMA_BUILD_TESTS=OFF \
+    -DLLAMA_BUILD_TOOLS=OFF \
+    -DCMAKE_CUDA_ARCHITECTURES=100;89;86"
 
-RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache,sharing=locked \
+
+ RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,id=apt-lists,sharing=locked \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential cmake git python3 python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
+# stub виден линковщику
+RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/libcuda.so \
+ && echo "/usr/local/cuda/lib64/stubs" > /etc/ld.so.conf.d/cuda-stubs.conf \
+ && ldconfig    
+
+ # # # если то что выше про stub не поможет то попробовать раскрыть эти строки
+ # ENV LIBRARY_PATH=/usr/local/cuda/lib64/stubs:$LIBRARY_PATH \
+ # LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs:$LD_LIBRARY_PATH
+
+
 WORKDIR /build
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --upgrade pip scikit-build-core wheel && \
-    pip wheel --wheel-dir=/wheels "llama-cpp-python[server]==0.3.2" --no-deps
+    pip wheel --wheel-dir=/wheels "llama-cpp-python[server]==0.3.15" --no-deps
 
 ########################### 2️⃣ runtime (CUDA) #################################
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION} AS runtime

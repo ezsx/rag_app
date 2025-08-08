@@ -183,6 +183,11 @@ RECOMMENDED_MODELS = {
             "filename": "gpt-oss-20b-Q6_K.gguf",
             "description": "OpenAI gpt-oss-20b (GGUF, Q6_K) от Unsloth",
         },
+        "qwen3-4B-instruct": {
+            "repo": "unsloth/Qwen3-4B-Instruct-2507-GGUF",
+            "filename": "Qwen3-4B-Instruct-2507-Q6_K.gguf",
+            "description": "Qwen3-4B-Instruct-2507 cntx-size 256K! (GGUF, Q6_K) от Unsloth",
+        },
         "vikhr-7b-instruct": {
             "repo": "oblivious/Vikhr-7B-instruct-GGUF",
             "filename": "Vikhr-7B-instruct-Q4_K_M.gguf",
