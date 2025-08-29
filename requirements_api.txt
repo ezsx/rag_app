@@ -7,7 +7,7 @@ python-dotenv
 python-dateutil
 huggingface-hub
 tqdm
-numpy==1.26.4
+numpy
 filelock
 typing_extensions
 pydantic
@@ -17,3 +17,4 @@ redis
 httpx
 pytest
 pytest-asyncio
+tantivy

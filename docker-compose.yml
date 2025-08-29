@@ -21,8 +21,10 @@ services:
     volumes:
       - ./models:/models          # кэш и gguf‑файлы
       - ./chroma-data:/data/chroma
+      - ./bm25-index:/app/bm25-index
       - ./scripts:/app/scripts  
       - ./sessions:/app/sessions
+      - ./src:/app
     ports:
       - "8000:8000"               # host → container
     deploy:
@@ -38,8 +40,14 @@ services:
       - CHROMA_PORT=8000
       - TRANSFORMERS_CACHE=/models/.cache
       - HF_HOME=/models
+      # Производительность llama.cpp (читаются при инициализации, лучше задавать здесь)
+      - GGML_CUDA_USE_GRAPHS=1
+      # Выберите одно ядро и сравните в бенчмарке (оставьте только одно):
+      - GGML_CUDA_FORCE_CUBLAS=1
+      # - GGML_CUDA_FORCE_MMQ=1
       # Автоскачивание моделей
       - AUTO_DOWNLOAD_EMBEDDING=true
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --loop uvloop --reload
 
   chroma:
     build:
@@ -66,6 +74,7 @@ services:
       - ./scripts:/app/scripts
       - ./src:/app/src
       - ./chroma-data:/chroma
+      - ./bm25-index:/app/bm25-index
       # Persist Telethon session files so you don't need to re-enter the code
       - ./sessions:/app/sessions
       - ./models:/models

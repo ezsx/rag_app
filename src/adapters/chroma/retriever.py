@@ -7,6 +7,7 @@ import logging
 
 import numpy as np
 import chromadb
+from core.settings import get_settings
 
 try:
     from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
@@ -37,9 +38,18 @@ class Retriever:
     ):
         self.client = chroma_client
         self.collection_name = collection_name
+        self.embedding_model_name = embedding_model
         self.embedding_function = SentenceTransformerEmbeddingFunction(
             model_name=embedding_model, device="cpu"
         )
+        # Локальный энкодер для fallback-эмбеддинга top-M при необходимости
+        try:
+            from sentence_transformers import SentenceTransformer
+
+            self._encoder = SentenceTransformer(self.embedding_model_name, device="cpu")
+        except Exception as e:
+            logger.warning(f"Не удалось инициализировать локальный энкодер: {e}")
+            self._encoder = None
 
         # Подключаемся к коллекции или создаем новую
         try:
@@ -127,11 +137,11 @@ class Retriever:
 
     def search(
         self, query: str, k: int, filters: Optional[Dict[str, Any]] = None
-    ) -> Tuple[List[str], List[float], List[Dict[str, Any]]]:
+    ) -> List[Dict[str, Any]]:
         """
         Выполняет поиск с поддержкой where-фильтров Chroma.
         Перед эмбеддингом добавляет E5 префикс "query: ".
-        Возвращает кортеж (documents, distances, metadatas)
+        Возвращает список items: {id,text,metadata,distance}
         """
         try:
             # Добавляем e5-префикс
@@ -152,7 +162,56 @@ class Retriever:
             distances = results.get("distances", [[]])[0]
             metadatas = results.get("metadatas", [[]])[0] or [{}] * len(documents)
 
-            return documents, distances, metadatas
+            # Пост-фильтрация по датам (ISO YYYY-MM-DD) на Python-стороне
+            if filters and isinstance(filters, dict):
+                date_from = filters.get("date_from")
+                date_to = filters.get("date_to")
+
+                def _iso_prefix(val: Any) -> Optional[str]:
+                    if not isinstance(val, str) or len(val) < 10:
+                        return None
+                    return val.strip()[:10]
+
+                df = _iso_prefix(date_from)
+                dt = _iso_prefix(date_to)
+
+                if df or dt:
+                    new_docs: List[str] = []
+                    new_dists: List[float] = []
+                    new_metas: List[Dict[str, Any]] = []
+                    for d, dist, m in zip(documents, distances, metadatas):
+                        mdate = _iso_prefix((m or {}).get("date"))
+                        if df and (mdate is None or mdate < df):
+                            continue
+                        if dt and (mdate is None or mdate > dt):
+                            continue
+                        new_docs.append(d)
+                        new_dists.append(dist)
+                        new_metas.append(m)
+                    documents, distances, metadatas = new_docs, new_dists, new_metas
+
+            # Формируем единый формат Item
+            items: List[Dict[str, Any]] = []
+            for d, dist, m in zip(documents, distances, metadatas):
+                # Пытаемся собрать стабильный id из метаданных
+                doc_id = None
+                if isinstance(m, dict):
+                    cid = m.get("channel_id")
+                    mid = m.get("msg_id") or m.get("message_id")
+                    if cid is not None and mid is not None:
+                        doc_id = f"{cid}:{mid}"
+                if not doc_id:
+                    doc_id = f"hash:{hash(d)}"
+                items.append(
+                    {
+                        "id": doc_id,
+                        "text": d,
+                        "metadata": m or {},
+                        "distance": float(dist) if dist is not None else 0.0,
+                    }
+                )
+
+            return items
 
         except TypeError:
             # Версия Chroma без поддержки where
@@ -167,10 +226,28 @@ class Retriever:
             documents = results.get("documents", [[]])[0]
             distances = results.get("distances", [[]])[0]
             metadatas = results.get("metadatas", [[]])[0] or [{}] * len(documents)
-            return documents, distances, metadatas
+            items: List[Dict[str, Any]] = []
+            for d, dist, m in zip(documents, distances, metadatas):
+                doc_id = None
+                if isinstance(m, dict):
+                    cid = m.get("channel_id")
+                    mid = m.get("msg_id") or m.get("message_id")
+                    if cid is not None and mid is not None:
+                        doc_id = f"{cid}:{mid}"
+                if not doc_id:
+                    doc_id = f"hash:{hash(d)}"
+                items.append(
+                    {
+                        "id": doc_id,
+                        "text": d,
+                        "metadata": m or {},
+                        "distance": float(dist) if dist is not None else 0.0,
+                    }
+                )
+            return items
         except Exception as e:
             logger.error(f"Ошибка при поиске с фильтрами: {e}")
-            return [], [], []
+            return []
 
     def _build_where(self, filters: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Строит корректное Chroma where-условие из бизнес-фильтров.
@@ -217,15 +294,28 @@ class Retriever:
             conditions.append({"reply_to": {"$eq": reply_to}})
 
         # date_from/date_to → metadata.date
-        date_from = filters.get("date_from")
-        if isinstance(date_from, str) and date_from.strip():
-            conditions.append({"date": {"$gte": date_from.strip()}})
-        date_to = filters.get("date_to")
-        if isinstance(date_to, str) and date_to.strip():
-            conditions.append({"date": {"$lte": date_to.strip()}})
+        # ВАЖНО: Chroma ожидает число для $gte/$lte; у нас даты строковые ISO.
+        # Не добавляем условия по дате в where. Фильтрацию выполним после запроса.
+        # date_from = filters.get("date_from")
+        # date_to = filters.get("date_to")
+        # if isinstance(date_from, str) and date_from.strip():
+        #     conditions.append({"date": {"$gte": date_from.strip()}})
+        # if isinstance(date_to, str) and date_to.strip():
+        #     conditions.append({"date": {"$lte": date_to.strip()}})
 
         if not conditions:
             return None
         if len(conditions) == 1:
             return conditions[0]
         return {"$and": conditions}
+
+    # Публичный вспомогательный метод для эмбеддинга произвольных текстов
+    def embed_texts(self, texts: List[str]) -> List[np.ndarray]:
+        try:
+            if self._encoder is None:
+                raise RuntimeError("SentenceTransformer encoder is not initialized")
+            arr = self._encoder.encode(texts)
+            return [np.asarray(v, dtype=float) for v in arr]
+        except Exception as e:
+            logger.error(f"Ошибка эмбеддинга текстов: {e}")
+            raise

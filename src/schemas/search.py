@@ -70,3 +70,13 @@ class SearchResponse(BaseModel):
     distances: List[float]
     metadatas: List[Dict]
     plan: Optional[SearchPlan] = None
+
+
+# === Hybrid/BM25 общий формат кандидата ===
+class Candidate(BaseModel):
+    id: str
+    text: str
+    metadata: Dict
+    bm25_score: Optional[float] = None
+    dense_score: Optional[float] = None
+    source: Literal["bm25", "dense", "hybrid"]

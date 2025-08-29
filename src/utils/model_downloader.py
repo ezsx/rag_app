@@ -193,6 +193,11 @@ RECOMMENDED_MODELS = {
             "filename": "qwen2.5-7b-instruct-q4_k_m.gguf",
             "description": "Qwen2.5 7B - отличная модель для русского языка",
         },
+        "qwen2.5-3b-instruct": {
+            "repo": "Qwen/Qwen2.5-3B-Instruct-GGUF",
+            "filename": "qwen2.5-3b-instruct-q4_k_m.gguf",
+            "description": "Qwen2.5 3B Instruct (GGUF, Q4_K_M)",
+        },
         "saiga-mistral-7b": {
             "repo": "IlyaGusev/saiga_mistral_7b_gguf",
             "filename": "model-q4_K.gguf",
@@ -217,6 +222,13 @@ RECOMMENDED_MODELS = {
             "name": "BAAI/bge-m3",
             "description": "BGE M3 - отличная многоязычная модель",
         },
+    },
+    "reranker": {
+        # Ключи можно расширить при необходимости; по умолчанию используем полный repo id
+        "bge-reranker-v2-m3": {
+            "name": "BAAI/bge-reranker-v2-m3",
+            "description": "BAAI bge-reranker-v2-m3 (CrossEncoder, CPU)",
+        }
     },
 }
 
@@ -258,3 +270,27 @@ def auto_download_models(
         )
 
     return llm_path, embedding_success
+
+
+def download_reranker_model(model_name: str, cache_dir: Optional[str] = None) -> bool:
+    """
+    Скачивает CrossEncoder ререйкер из Hugging Face, чтобы избежать загрузки на первом запросе.
+
+    Args:
+        model_name: repo id, например "BAAI/bge-reranker-v2-m3"
+        cache_dir: Директория кэша HF
+
+    Returns:
+        True если скачивание успешно
+    """
+    try:
+        logger.info(f"🔄 Скачивание reranker модели {model_name}...")
+        # Кладем в кэш HF (TRANSFORMERS_CACHE/HF_HOME читаются из окружения на уровне контейнера)
+        snapshot_download(
+            repo_id=model_name, cache_dir=cache_dir, local_files_only=False
+        )
+        logger.info(f"✅ Reranker модель скачана: {model_name}")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Ошибка скачивания reranker модели: {e}")
+        return False

@@ -159,8 +159,12 @@ class IngestJobStatus(str, Enum):
 class TelegramIngestRequest(BaseModel):
     """Запрос для запуска Telegram ingestion"""
 
-    channel: str = Field(
-        ..., description="Telegram канал (@username или ID)", min_length=1
+    # Совместимость: один канал или список каналов
+    channel: Optional[str] = Field(
+        None, description="Один Telegram канал (@username или ID)", min_length=1
+    )
+    channels: Optional[List[str]] = Field(
+        None, description="Список каналов (@username или ID)"
     )
     since: str = Field(..., description="Дата начала в формате ISO (YYYY-MM-DD)")
     until: str = Field(..., description="Дата окончания в формате ISO (YYYY-MM-DD)")
@@ -172,6 +176,9 @@ class TelegramIngestRequest(BaseModel):
     )
     max_messages: Optional[int] = Field(
         None, description="Максимум сообщений (для тестирования)", ge=1
+    )
+    chunk_size: Optional[int] = Field(
+        0, description="Размер чанка для длинных сообщений (0 = без разбиения)", ge=0
     )
 
 

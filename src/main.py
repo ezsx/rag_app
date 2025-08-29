@@ -26,14 +26,15 @@ async def lifespan(app: FastAPI):
 
     # Проверяем доступность зависимостей при старте
     try:
-        # Прогрев LLM для явных логов загрузки и ранней диагностики
-        try:
-            from core.deps import get_llm
+        # Опциональный прогрев LLM. По умолчанию выключен для быстрых рестартов.
+        if os.getenv("LLM_WARMUP", "false").lower() == "true":
+            try:
+                from core.deps import get_llm
 
-            _ = get_llm()
-        except Exception as e:
-            logger.error(f"LLM warmup failed: {e}")
-            # не падаем: пусть API поднимется, но лог останется
+                _ = get_llm()
+            except Exception as e:
+                logger.error(f"LLM warmup failed: {e}")
+                # не падаем: пусть API поднимется, но лог останется
         logger.info("✅ Инициализация завершена успешно")
     except Exception as e:
         logger.error(f"❌ Ошибка инициализации: {e}")

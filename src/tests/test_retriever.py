@@ -1,3 +1,10 @@
+import pytest
+
+
+def test_dummy():
+    assert True
+
+
 """
 Тесты для Retriever класса
 """

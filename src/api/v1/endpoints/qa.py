@@ -85,8 +85,16 @@ async def answer_question(
             retriever = get_retriever()
             llm = qa_service.llm  # Переиспользуем LLM
             planner = get_query_planner() if settings.enable_query_planner else None
+            from core.deps import get_reranker
+
+            reranker = get_reranker() if settings.enable_reranker else None
             qa_service = QAService(
-                retriever, llm, qa_service.top_k, settings=settings, planner=planner
+                retriever,
+                llm,
+                qa_service.top_k,
+                settings=settings,
+                planner=planner,
+                reranker=reranker,
             )
 
         # Подготовка ключа кеша
@@ -218,8 +226,16 @@ async def qa_stream(
                 retriever = get_retriever()
                 llm = qa_service.llm  # Переиспользуем LLM
                 planner = get_query_planner() if settings.enable_query_planner else None
+                from core.deps import get_reranker
+
+                reranker = get_reranker() if settings.enable_reranker else None
                 qa_service_temp = QAService(
-                    retriever, llm, qa_service.top_k, settings=settings, planner=planner
+                    retriever,
+                    llm,
+                    qa_service.top_k,
+                    settings=settings,
+                    planner=planner,
+                    reranker=reranker,
                 )
                 qa_service_to_use = qa_service_temp
             else:
