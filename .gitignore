@@ -13,3 +13,5 @@ __pycache__
 .venv
 .env.local
 .env.development.local
+.promt_editor.md
+/bm25-index

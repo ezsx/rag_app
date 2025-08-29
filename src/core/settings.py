@@ -15,6 +15,11 @@ class Settings:
 
     def __init__(self):
         self.current_llm_key: str = os.getenv("LLM_MODEL_KEY", "gpt-oss-20b")
+        # Отдельная модель для Query Planner (CPU)
+        self.planner_llm_key: str = os.getenv(
+            "PLANNER_LLM_MODEL_KEY", "qwen2.5-3b-instruct"
+        )
+        self.planner_llm_device: str = os.getenv("PLANNER_LLM_DEVICE", "cpu")
         self.current_embedding_key: str = os.getenv(
             "EMBEDDING_MODEL_KEY", "multilingual-e5-large"
         )
@@ -42,9 +47,23 @@ class Settings:
         )
         self.fusion_strategy: str = os.getenv("FUSION_STRATEGY", "rrf").lower()
         self.k_fusion: int = int(os.getenv("K_FUSION", "60"))
+        # MMR параметры
+        self.enable_mmr: bool = os.getenv("ENABLE_MMR", "true").lower() == "true"
+        try:
+            self.mmr_lambda: float = float(os.getenv("MMR_LAMBDA", "0.7"))
+        except Exception:
+            self.mmr_lambda = 0.7
+        self.mmr_top_n: int = int(os.getenv("MMR_TOP_N", "120"))
+        self.mmr_output_k: int = int(os.getenv("MMR_OUTPUT_K", "60"))
+        # Ререйкер (CPU)
         self.enable_reranker: bool = (
-            os.getenv("ENABLE_RERANKER", "false").lower() == "true"
+            os.getenv("ENABLE_RERANKER", "true").lower() == "true"
         )
+        self.reranker_model_key: str = os.getenv(
+            "RERANKER_MODEL_KEY", "BAAI/bge-reranker-v2-m3"
+        )
+        self.reranker_top_n: int = int(os.getenv("RERANKER_TOP_N", "80"))
+        self.reranker_batch_size: int = int(os.getenv("RERANKER_BATCH_SIZE", "16"))
         self.search_k_per_query_default: int = int(
             os.getenv("SEARCH_K_PER_QUERY_DEFAULT", "10")
         )
@@ -52,6 +71,18 @@ class Settings:
 
         # Встроенный in-memory кеш (TTL), отдельный от Redis
         self.enable_cache: bool = os.getenv("ENABLE_CACHE", "true").lower() == "true"
+
+        # === BM25 / Hybrid настройки ===
+        self.bm25_index_root: str = os.getenv("BM25_INDEX_ROOT", "./bm25-index")
+        self.hybrid_enabled: bool = (
+            os.getenv("HYBRID_ENABLED", "true").lower() == "true"
+        )
+        self.hybrid_top_bm25: int = int(os.getenv("HYBRID_TOP_BM25", "100"))
+        self.hybrid_top_dense: int = int(os.getenv("HYBRID_TOP_DENSE", "100"))
+        self.bm25_default_top_k: int = int(os.getenv("BM25_DEFAULT_TOP_K", "100"))
+        self.bm25_reload_min_interval_sec: int = int(
+            os.getenv("BM25_RELOAD_MIN_INTERVAL_SEC", "5")
+        )
 
         logger.info(
             f"Настройки загружены: LLM={self.current_llm_key}, "

@@ -1,58 +1,71 @@
 # syntax=docker/dockerfile:1.6
 ARG UBUNTU_VERSION=22.04
 ARG CUDA_VERSION=12.9.0
+ARG LLAMACPP_TAG=b6129  
+# >= b6121 — поддержка MXFP4 в ggml/gguf
 
-########################### 1️⃣ builder (llama-cpp) ############################
+########################### builder ############################
 FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS builder
-
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
-    LLAMA_CUBLAS=1 \
-    CMAKE_ARGS="-DCMAKE_CUDA_ARCHITECTURES=100;89;86"
+    # важные флаги CMake для CUDA и SM_120 (Blackwell)
+    CMAKE_ARGS="-DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=120 \
+                -DLLAMA_BUILD_EXAMPLES=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF" \
+    # ускорение и диагностика сборки
+    CMAKE_BUILD_PARALLEL_LEVEL=8 \
+    SKBUILD_CMAKE_VERBOSE=1 \
+    VERBOSE=1 \
+    FORCE_CMAKE=1
 
 RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,id=apt-lists,sharing=locked \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential cmake git python3 python3-pip && \
+    apt-get update && apt-get install -y --no-install-recommends \
+      build-essential git python3 python3-pip ninja-build && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /build
+# свежие CMake/складчик, чтобы не залипать на старых версиях
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --upgrade pip scikit-build-core wheel && \
-    pip wheel --wheel-dir=/wheels "llama-cpp-python[server]==0.3.2" --no-deps
+    pip install --upgrade pip && \
+    pip install "cmake>=3.29" "scikit-build-core>=0.10" wheel
 
-########################### 2️⃣ runtime (CUDA) #################################
+WORKDIR /src
+RUN git clone --recurse-submodules https://github.com/abetlen/llama-cpp-python.git
+WORKDIR /src/llama-cpp-python
+
+# Переключаем vendor/llama.cpp на нужный тег с MXFP4 (>= b6121)
+RUN git -C vendor/llama.cpp fetch --tags origin && \
+    git -C vendor/llama.cpp checkout ${LLAMACPP_TAG} && \
+    git -C vendor/llama.cpp rev-parse HEAD
+
+# Опционально: фиксируем генератор Ninja
+ENV CMAKE_GENERATOR=Ninja
+
+# Сборка колеса с CUDA и SM_100
+RUN --mount=type=cache,target=/root/.cache/pip \
+    CMAKE_ARGS="${CMAKE_ARGS}" pip wheel --no-deps -w /wheels ".[server]" -v
+
+
+########################### runtime ############################
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION} AS runtime
 ENV DEBIAN_FRONTEND=noninteractive
-
 RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,id=apt-lists,sharing=locked \
-    apt-get update && \
-    apt-get install -y --no-install-recommends python3 python3-pip git libgomp1 && \
+    apt-get update && apt-get install -y --no-install-recommends \
+      python3 python3-pip git libgomp1 && \
     rm -rf /var/lib/apt/lists/*
 
-########################### 3️⃣ final ##########################################
+########################### final ##############################
 FROM runtime AS final
+ENV PIP_NO_CACHE_DIR=1 PYTHONUNBUFFERED=1 \
+    TRANSFORMERS_CACHE=/models/.cache HF_HOME=/models
 
-ENV PIP_NO_CACHE_DIR=1 \
-    PYTHONUNBUFFERED=1 \
-    TRANSFORMERS_CACHE=/models/.cache \
-    HF_HOME=/models
-
-# ——— 1. устанавливаем nightly-PyTorch с PTX (работает на Ada)
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --pre --index-url https://download.pytorch.org/whl/nightly/cu128 \
-        torch torchvision torchaudio
-
-# ——— 2. ставим собранный llama-cpp wheel и прочие зависимости
+# 1) ставим наш wheel llama-cpp-python и твои зависимости (без пина numpy)
 COPY --from=builder /wheels /wheels
-COPY requirements_api.txt /tmp/
+COPY requirements_api.txt /tmp/requirements_api.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install /wheels/llama_cpp_python-*.whl && \
     pip install --no-cache-dir -r /tmp/requirements_api.txt
 
-# ——— 3. исходники приложения
 WORKDIR /app
 RUN mkdir -p /models/.cache /data/chroma
 COPY src/ /app

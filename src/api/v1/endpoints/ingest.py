@@ -34,8 +34,18 @@ async def start_telegram_ingestion(request: TelegramIngestRequest) -> IngestJobR
     Возвращает job_id для отслеживания прогресса выполнения.
     """
     try:
+        # Собираем итоговый список каналов для логов
+        channels: List[str] = []
+        if request.channel:
+            channels.append(request.channel)
+        if request.channels:
+            channels.extend([c for c in request.channels if c])
+        # Уникализуем, сохраняя порядок
+        seen = set()
+        channels = [c for c in channels if not (c in seen or seen.add(c))]
+
         logger.info(
-            f"Запуск Telegram ingestion: канал={request.channel}, "
+            f"Запуск Telegram ingestion: каналы={channels or [request.channel]}, "
             f"период={request.since} - {request.until}, коллекция={request.collection}"
         )
 

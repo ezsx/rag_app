@@ -67,7 +67,18 @@ class IngestJobManager:
         """Создает новую задачу ingestion"""
         job_id = str(uuid.uuid4())
         job = IngestJob(job_id=job_id, request=request)
-        job.add_log(f"Задача создана для канала {request.channel}")
+        # Список каналов для логов
+        channels: List[str] = []
+        if request.channel:
+            channels.append(request.channel)
+        if request.channels:
+            channels.extend([c for c in request.channels if c])
+        seen = set()
+        channels = [c for c in channels if not (c in seen or seen.add(c))]
+        if channels:
+            job.add_log(f"Задача создана для каналов: {channels}")
+        else:
+            job.add_log("Задача создана: каналы не указаны")
 
         self.jobs[job_id] = job
 
@@ -126,6 +137,7 @@ class IngestJobManager:
                 create_telegram_client,
                 create_chroma_collection,
                 gather_messages,
+                _gather_with_retries,
                 ingest_batches,
                 _to_utc_naive,
                 detect_optimal_device,
@@ -134,6 +146,7 @@ class IngestJobManager:
                 estimate_processing_time,
             )
             from dateutil import parser as date_parser
+            from core.deps import release_llm_vram_temporarily
 
             request = job.request
 
@@ -162,36 +175,74 @@ class IngestJobManager:
             client = await create_telegram_client()
 
             try:
-                # Получаем сообщения
-                job.add_log(f"Получение сообщений из канала {request.channel}...")
-                messages = await gather_messages(
-                    client, request.channel, start_date, end_date, request.max_messages
-                )
+                # Собираем итоговый список каналов
+                chs: List[str] = []
+                if request.channel:
+                    chs.append(request.channel)
+                if request.channels:
+                    chs.extend([c for c in request.channels if c])
+                seen_local = set()
+                chs = [c for c in chs if not (c in seen_local or seen_local.add(c))]
+                if not chs:
+                    raise ValueError("Не указан ни один канал для инжеста")
 
-                if not messages:
-                    job.add_log("Сообщения не найдены")
-                    job.status = IngestJobStatus.COMPLETED
-                    job.completed_at = datetime.now(timezone.utc)
-                    return
-
-                job.total_messages = len(messages)
-                job.add_log(f"Получено {len(messages)} сообщений")
-
-                # Оценка времени
-                estimated_time = estimate_processing_time(
-                    len(messages), batch_size, device
-                )
-                job.add_log(f"Примерное время обработки: {estimated_time}")
-
-                # Подключаемся к ChromaDB
+                # Подключаемся к ChromaDB один раз
                 job.add_log("Подключение к ChromaDB...")
                 collection = create_chroma_collection(
                     request.collection, embed_model, device
                 )
 
-                # Запускаем обработку с прогрессом
-                job.add_log("Начинаем обработку сообщений...")
-                await self._ingest_with_progress(job, collection, messages, batch_size)
+                total_processed_all = 0
+                total_messages_all = 0
+
+                # Временное освобождение VRAM LLM (если он загружен), чтобы не блокировать cuda VRAM
+                async with release_llm_vram_temporarily():
+                    for ch in chs:
+                        job.add_log(
+                            f"▶ Старт канала {ch}: {start_date.date()}→{end_date.date()}"
+                        )
+                        # Сбор сообщений с ретраями
+                        job.add_log("Сбор сообщений (с ретраями)...")
+                        messages = await _gather_with_retries(
+                            client, ch, start_date, end_date, request.max_messages
+                        )
+                        if not messages:
+                            job.add_log(f"Канал {ch}: сообщений не найдено — пропуск")
+                            continue
+                        job.add_log(f"Канал {ch}: получено {len(messages)} сообщений")
+                        total_messages_all += len(messages)
+
+                        # Оценка времени и батчей
+                        estimated_time = estimate_processing_time(
+                            len(messages), batch_size, device
+                        )
+                        est_batches = (len(messages) + batch_size - 1) // batch_size
+                        job.add_log(
+                            f"Оценка: {estimated_time}, батчей ~{est_batches} (batch_size={batch_size})"
+                        )
+
+                        # Инжест с прогрессом и возвратом статистики
+                        stats = await ingest_batches(
+                            request.collection,
+                            collection,
+                            messages,
+                            batch_size,
+                            chunk_size=int(getattr(request, "chunk_size", 0) or 0),
+                            channel_hint=ch,
+                            progress_cb=None,
+                            log_every=200,
+                        )
+                        total_processed_all += int(stats.get("processed_in_channel", 0))
+                        job.messages_processed = total_processed_all
+                        job.total_messages = total_messages_all
+                        job.progress = (
+                            (job.messages_processed / job.total_messages)
+                            if job.total_messages
+                            else 0.0
+                        )
+                        job.add_log(
+                            f"✔ Завершён канал {ch}: read={stats.get('processed_in_channel', 0)} chroma={stats.get('written_chroma', 0)} bm25={stats.get('written_bm25', 0)}"
+                        )
 
                 # Завершаем успешно
                 final_count = collection.count()
