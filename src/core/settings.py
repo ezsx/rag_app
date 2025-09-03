@@ -69,6 +69,11 @@ class Settings:
         )
         self.max_plan_subqueries: int = int(os.getenv("MAX_PLAN_SUBQUERIES", "5"))
 
+        # Планировщик через GBNF (llama.cpp grammar) — можно быстро отключить
+        self.use_gbnf_planner: bool = (
+            os.getenv("USE_GBNF_PLANNER", "true").lower() == "true"
+        )
+
         # Встроенный in-memory кеш (TTL), отдельный от Redis
         self.enable_cache: bool = os.getenv("ENABLE_CACHE", "true").lower() == "true"
 

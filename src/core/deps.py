@@ -342,8 +342,9 @@ def get_planner_llm():
         logger.warning(f"Planner LLM auto-download skipped: {e}")
         model_path = os.getenv("PLANNER_LLM_MODEL_PATH", f"{models_dir}/{key}.gguf")
 
-    # Загружаем на CPU (без VRAM)
-    llm = Llama(
+    # Загружаем на CPU (без VRAM). Для Qwen2.5 используем корректный chat формат.
+    chat_format = os.getenv("PLANNER_CHAT_FORMAT", "auto")
+    kwargs = dict(
         model_path=model_path,
         n_gpu_layers=0,
         n_ctx=int(os.getenv("PLANNER_LLM_CONTEXT_SIZE", "2048")),
@@ -351,6 +352,11 @@ def get_planner_llm():
         n_batch=int(os.getenv("PLANNER_LLM_BATCH", "256")),
         verbose=False,
     )
+    # Если явно указали формат — пробросим, иначе оставим auto (llama.cpp из GGUF)
+    if chat_format and chat_format != "auto":
+        kwargs["chat_format"] = chat_format
+
+    llm = Llama(**kwargs)  # type: ignore[arg-type]
     logger.info(f"✅ Planner LLM загружен на CPU: {os.path.basename(model_path)}")
     return llm
 

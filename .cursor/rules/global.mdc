@@ -1,0 +1,68 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+---
+description: "RAG App — авто-контекст (docs/ai) + дисциплина извлечения (MCP: tree_sitter, workspace-code-search, ripgrep)"
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# Политика контекста
+- Всегда сначала используй статическую доку из `docs/ai/**` (brief, architecture, pipelines, glossary, modules, ADR).
+- Не подтягивай целые файлы. Ссылайся на (path, line-range), минимально достаточный фрагмент.
+- Для «по смыслу» — `workspace-code-search`. Для точных строк/регексов/флагов — `ripgrep`.
+
+# Auto-Context Refresh (выполняй при старте чата и перед крупными правками; авто-run MCP включён)
+1) Зарегистрировать проект (если не зарегистрирован):
+```
+
+tool: tree\_sitter.register\_project\_tool(path="C:/llms/rag/rag\_app", name="rag\_app")
+
+```
+2) Обновить AST/символы:
+```
+
+tool: tree\_sitter.analyze\_project(project="rag\_app")
+
+```
+3) Перегенерировать обзор проекта:
+```
+
+prompt: tree\_sitter.project\_overview(project="rag\_app")
+→ перезапиши docs/ai/project\_brief.md (сохрани блок «Инварианты», если есть)
+
+```
+4) Инкремент по изменённым файлам:
+```
+
+terminal: git diff --name-only HEAD\~1..HEAD
+для каждого изменённого src/\*\*/\*.py:
+tool: tree\_sitter.explain\_code(project="rag\_app", path="<file>")
+tool: tree\_sitter.get\_symbols(project="rag\_app", path="<file>")
+→ обнови docs/ai/modules/<relative-path>.md
+
+```
+5) Если менялись эндпоинты (src/api/v1/**): обнови краткий список в `docs/ai/contracts/openapi.md`:
+- `workspace-code-search` по ключам `APIRouter`, `@router.(get|post|put|delete)`
+- при необходимости точная верификация:
+```
+
+tool: ripgrep.search(pattern="@router\\.(get|post|put|delete)", path="src/api/v1")
+
+```
+
+# Дисциплина извлечения
+- Сначала docs/ai/**, затем:
+  - `workspace-code-search` — семантические кандидаты (быстро найти «куда смотреть»).
+  - `ripgrep.search|advanced-search` — точные строки, флаги, regex, типы файлов.
+- Перед ответом проверяй противоречия между докой и кодом; при расхождении приоритет у кода → обнови доку.
+
+# When to ADR
+- Меняется пайплайн (ingest/index/retrieve/rerank/cache), SLA, протоколы, границы сервисов.
+- Создай `docs/ai/adr/ADR-YYYYMMDD-<slug>.md` (контекст → решение → последствия) и сослись в PR.
+
+# Качество
+- План → diff → тест-план → риски → ссылки на строки. Никаких лишних файлов в контексте.
