@@ -1,0 +1,25 @@
+---
+description: Реализация
+alwaysApply: false
+---
+---
+description: "Implementation — минимальные правки по Context Bundle, обновление docs/ai/modules"
+globs:
+  - "src/**"
+  - "docs/ai/modules/**"
+alwaysApply: false
+---
+
+# Поведение
+- Цель: внести точечные изменения по согласованному плану/Bundle, обновить модульные обзоры и тесты.
+
+# Шаги
+1) Обнови контекст (Auto-Context Refresh).
+2) На каждую правку ссылаться на (path, line-range) из Bundle.
+3) После правок:
+   - перегенерируй docs/ai/modules/<file>.md через `tree_sitter.explain_code/get_symbols`
+   - если менялись роуты — освежи `docs/ai/contracts/openapi.md`
+4) Прогон тестов/линтера (если включён авто-run terminal).
+
+# Ограничения
+- Не трогай несвязанные файлы. Не увеличивай контекст сверх необходимого.

@@ -1,0 +1,35 @@
+# Project rules — RAG App (auto-docs + MCP)
+
+## Global
+- Всегда сначала используй **документацию проекта** из `docs/ai/**` как первичный контекст.
+- Перед планированием/правками обязательно запускай блок **Auto-Context Refresh**.
+- При составлении ответов вставляй ссылки на файлы/строки, а не целые файлы.
+
+## Auto-Context Refresh
+1) Регистрация проекта (если не зарегистрирован):
+   - tool: `tree_sitter.register_project_tool(path="<ABS_PATH_TO_REPO>", name="rag_app")`
+2) Лёгкий анализ проекта (обновить кэш AST/символов):
+   - tool: `tree_sitter.analyze_project(project="rag_app")`
+3) Автообновление обзора:
+   - prompt: `tree_sitter.project_overview(project="rag_app")`
+   - перезапиши `docs/ai/project_brief.md` свежей версией (сохрани раздел «Инварианты», если он есть).
+4) Автообновление модульных обзоров по изменённым файлам:
+   - tool (Terminal): `git diff --name-only HEAD~1..HEAD || echo ""`
+   - для каждого изменённого `src/**/*.py` вызови:
+     - tool: `tree_sitter.get_symbols(project="rag_app", path="<file>")`
+     - prompt: `tree_sitter.explain_code(project="rag_app", path="<file>")`
+     - запиши/обнови `docs/ai/modules/<file>.md` (создать директории при необходимости).
+5) Синхронизация договоров API (если менялись роуты FastAPI):
+   - `workspace-code-search`: найди изменения под `src/api/v1/**`
+   - обнови `docs/ai/contracts/openapi.md` (краткий список эндпоинтов + схемы из кода)
+
+## Retrieval Discipline
+- Для ответа сначала просматривай `docs/ai/project_brief.md`, `docs/ai/architecture.md`, `docs/ai/pipelines.md`, `docs/ai/glossary.md`, затем модули `docs/ai/modules/**`.
+- Для точных совпадений команд/флагов — используй `workspace-code-search` (и `ripgrep` если доступен).
+- Никогда не подтягивай целые файлы, только релевантные фрагменты.
+
+## When to write ADR
+- Если меняется структура пайплайна, SLA, или поведение ретривера/ранкера — создай файл `docs/ai/adr/ADR-<date>-<slug>.md` (шаблон см. ниже) и сослись в PR.
+
+## Output quality gates
+- План → изменения кода → тест-план → список рисков → ссылки на строки. Без «воды».
