@@ -309,6 +309,82 @@ class Retriever:
             return conditions[0]
         return {"$and": conditions}
 
+    # === Batch get по ids (best-effort) ===
+    def get_by_ids(self, ids: List[str]) -> List[Dict[str, Any]]:
+        """Пытается получить документы по списку идентификаторов.
+
+        MVP: Chroma не гарантирует произвольный get по нашим логическим id.
+        Пробуем через where $or по channel_id/msg_id, если id в формате "<cid>:<mid>".
+        Иначе возвращаем заглушки с пустым текстом.
+        """
+        if not ids:
+            return []
+        # Парсим известный формат cid:mid
+        pairs: List[Tuple[Optional[int], Optional[int], str]] = []
+        for _id in ids:
+            try:
+                if ":" in _id:
+                    a, b = _id.split(":", 1)
+                    cid = int(a)
+                    mid = int(b)
+                    pairs.append((cid, mid, _id))
+                else:
+                    pairs.append((None, None, _id))
+            except Exception:
+                pairs.append((None, None, _id))
+
+        # Сформируем where с OR условий (если есть хотя бы одна пара)
+        or_terms: List[Dict[str, Any]] = []
+        for cid, mid, _id in pairs:
+            if cid is not None and mid is not None:
+                or_terms.append({"channel_id": {"$eq": cid}, "msg_id": {"$eq": mid}})
+
+        # Chroma where не поддерживает одновременный матч по двум полям без $and внутри.
+        # Сформируем $or из $and пар.
+        if or_terms:
+            where = {
+                "$or": [
+                    {
+                        "$and": [
+                            {"channel_id": {"$eq": t["channel_id"]["$eq"]}},
+                            {"msg_id": {"$eq": t["msg_id"]["$eq"]}},
+                        ]
+                    }
+                    for t in or_terms
+                ]
+            }
+            try:
+                res = self.collection.query(
+                    query_texts=["*"],  # заглушка — фактический фильтр в where
+                    where=where,
+                    n_results=max(1, len(ids)),
+                    include=["documents", "metadatas"],
+                )
+                docs = res.get("documents", [[]])[0]
+                metas = res.get("metadatas", [[]])[0] or [{}] * len(docs)
+                out: List[Dict[str, Any]] = []
+                for d, m in zip(docs, metas):
+                    # попытка восстановить id
+                    doc_id = None
+                    if isinstance(m, dict):
+                        cid = m.get("channel_id")
+                        mid = m.get("msg_id") or m.get("message_id")
+                        if cid is not None and mid is not None:
+                            doc_id = f"{cid}:{mid}"
+                    out.append(
+                        {
+                            "id": doc_id or f"hash:{hash(d)}",
+                            "text": d,
+                            "metadata": m or {},
+                        }
+                    )
+                return out
+            except Exception:
+                pass
+
+        # Фолбэк: пустые тексты
+        return [{"id": _id, "text": "", "metadata": {}} for _id in ids]
+
     # Публичный вспомогательный метод для эмбеддинга произвольных текстов
     def embed_texts(self, texts: List[str]) -> List[np.ndarray]:
         try:

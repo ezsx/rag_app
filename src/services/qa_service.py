@@ -353,3 +353,260 @@ class QAService:
         else:
             documents = self.retriever.get_context(query, k=self.top_k)
             return documents, []
+
+    # === КОРОТКИЙ ПУТЬ: answer_v2 с tool_runner и трассировкой ===
+    def answer_v2(self, query: str) -> Dict[str, Any]:
+        """Короткий путь ReAct без оркестратора: router_select → plan → retrieval → fusion → (mmr?) → (rerank?) → compose_context → answer.
+
+        Возвращает словарь с ключами: answer, prompt, citations, trace.
+        Не меняет публичные контракты API, используется из тестов/скриптов.
+        """
+        from schemas.agent import ToolRequest
+        from services.tools.tool_runner import ToolRunner
+        from services.tools.router_select import router_select
+        from services.tools.dedup_diversify import dedup_diversify
+        from services.tools.compose_context import compose_context
+
+        settings = self.settings
+        runner = ToolRunner(default_timeout_sec=5.0)
+        runner.register("router_select", lambda **kw: router_select(**kw))
+        runner.register("dedup_diversify", lambda **kw: dedup_diversify(**kw))
+        runner.register("compose_context", lambda **kw: compose_context(**kw))
+
+        # Устойчивый request id без утечек деталей запроса
+        import uuid as _uuid
+
+        req_id = str(_uuid.uuid4())
+        step = 1
+        trace: List[Dict[str, Any]] = []
+
+        # 1) router_select
+        act1 = runner.run(
+            req_id, step, ToolRequest(tool="router_select", input={"query": query})
+        )
+        trace.append(act1.model_dump())
+        route = (act1.output.data or {}).get("route", "dense")
+        step += 1
+
+        # 2) plan (используем существующий планировщик)
+        plan = None
+        if self.settings.enable_query_planner and self.planner is not None:
+            t0 = np.int64(
+                np.round(1000 * np.random.random())
+            )  # псевдо-начало для стабильности формата
+            import time as _t
+
+            start = _t.perf_counter()
+            plan = self.planner.make_plan(query)
+            took_ms = int((_t.perf_counter() - start) * 1000)
+            trace.append(
+                {
+                    "step": step,
+                    "tool": "plan",
+                    "ok": True,
+                    "took_ms": took_ms,
+                    "data": {
+                        "normalized_queries": plan.normalized_queries,
+                        "k_per_query": plan.k_per_query,
+                        "route": route,
+                        "num_queries": len(plan.normalized_queries),
+                    },
+                }
+            )
+            step += 1
+        else:
+            # Фолбэк: план = один запрос
+            from schemas.search import SearchPlan
+
+            plan = SearchPlan(
+                normalized_queries=[query],
+                k_per_query=settings.search_k_per_query_default,
+                fusion="rrf",
+            )
+
+        # 3) retrieval по route
+        items_for_fusion: List[List[Tuple[str, float, Dict[str, Any]]]] = []
+        merged_items: List[Dict[str, Any]] = []
+        items_by_id: Dict[str, Dict[str, Any]] = {}
+
+        if route == "hybrid" and self.hybrid is not None:
+            try:
+                candidates = self.hybrid.search_with_plan(query, plan)
+                merged_items = [
+                    {
+                        "id": c.id,
+                        "text": c.text,
+                        "metadata": c.metadata,
+                        "distance": 0.0,
+                    }
+                    for c in candidates
+                ]
+            except Exception as e:
+                logger.warning(f"Hybrid retriever failed: {e}")
+
+        if not merged_items:
+            # bm25 или dense ветка (через текущий retriever)
+            filters = (
+                plan.metadata_filters.dict(exclude_none=True)
+                if plan.metadata_filters
+                else None
+            )
+            for q in plan.normalized_queries:
+                items = self.retriever.search(q, k=plan.k_per_query, filters=filters)
+                triples: List[Tuple[str, float, Dict[str, Any]]] = []
+                for it in items:
+                    doc = it.get("text", "")
+                    dist = float(it.get("distance", 0.0))
+                    meta = it.get("metadata", {})
+                    triples.append((doc, dist, meta))
+                    iid = _get_item_id(doc, meta)
+                    if iid not in items_by_id:
+                        items_by_id[iid] = it
+                items_for_fusion.append(triples)
+
+        # 4) fusion (RRF)
+        results_for_fusion = items_for_fusion
+        from utils.ranking import rrf_merge
+
+        if not merged_items:
+            import time as _t
+
+            _f0 = _t.perf_counter()
+            fused = rrf_merge(results_for_fusion, k=settings.k_fusion)
+            for doc, dist, meta in fused:
+                iid = _get_item_id(doc, meta)
+                item = items_by_id.get(iid) or {
+                    "id": iid,
+                    "text": doc,
+                    "metadata": meta,
+                    "distance": float(dist),
+                }
+                merged_items.append(item)
+            _took_rrf = int((_t.perf_counter() - _f0) * 1000)
+        else:
+            _took_rrf = 0
+
+        trace.append(
+            {
+                "step": step,
+                "tool": "fusion_rrf",
+                "ok": True,
+                "took_ms": _took_rrf,
+                "data": {"len": len(merged_items)},
+            }
+        )
+        step += 1
+
+        # 5) (опц.) MMR
+        final_items: List[Dict[str, Any]] = merged_items
+        if settings.enable_mmr and merged_items:
+            # обеспечим эмбеддинги для первых N
+            top_n = min(len(merged_items), settings.mmr_top_n)
+            need_indices = [
+                i for i in range(top_n) if "embedding" not in merged_items[i]
+            ]
+            if need_indices:
+                try:
+                    embs = self.retriever.embed_texts(
+                        [merged_items[i]["text"] for i in need_indices]
+                    )
+                    for j, i in enumerate(need_indices):
+                        merged_items[i]["embedding"] = np.asarray(embs[j], dtype=float)
+                except Exception:
+                    pass
+
+            # query embedding
+            try:
+                query_emb = self.retriever.embed_texts([f"query: {query}"])[0]
+            except Exception:
+                query_emb = None
+            if query_emb is not None:
+                act_mmr = runner.run(
+                    req_id,
+                    step,
+                    ToolRequest(
+                        tool="dedup_diversify",
+                        input={
+                            "hits": merged_items[:top_n],
+                            "lambda_": settings.mmr_lambda,
+                            "k": min(settings.mmr_output_k, len(merged_items)),
+                        },
+                    ),
+                )
+                trace.append(act_mmr.model_dump())
+                if act_mmr.output.ok:
+                    final_items = act_mmr.output.data.get("hits", merged_items)
+                    # Нормируем размер до k после MMR
+                    desired_k = min(settings.mmr_output_k, max(1, self.top_k))
+                    if len(final_items) > desired_k:
+                        final_items = final_items[:desired_k]
+                step += 1
+
+        # 6) (опц.) rerank
+        if settings.enable_reranker and self.reranker and final_items:
+            import time as _t
+
+            top_n = min(len(final_items), settings.reranker_top_n, 20)
+            texts = [it["text"] for it in final_items[:top_n]]
+            _r0 = _t.perf_counter()
+            order = self.reranker.rerank(
+                query=query,
+                docs=texts,
+                top_n=top_n,
+                batch_size=settings.reranker_batch_size,
+            )
+            _took_rerank = int((_t.perf_counter() - _r0) * 1000)
+            final_items = [final_items[i] for i in order] + final_items[top_n:]
+            trace.append(
+                {"step": step, "tool": "rerank", "ok": True, "took_ms": _took_rerank}
+            )
+            step += 1
+
+        # 7) compose_context
+        act_ctx = runner.run(
+            req_id,
+            step,
+            ToolRequest(
+                tool="compose_context",
+                input={
+                    "docs": [
+                        {
+                            "id": it.get("id"),
+                            "text": it.get("text"),
+                            "metadata": it.get("metadata", {}),
+                        }
+                        for it in final_items[: max(1, self.top_k)]
+                    ],
+                    "max_tokens_ctx": 1800,
+                    "citation_format": "footnotes",
+                },
+            ),
+        )
+        trace.append(act_ctx.model_dump())
+        step += 1
+
+        # Финальный prompt собираем из исходного вопроса и контекстов
+        # contexts в том же порядке, что citations
+        ctx_docs = (act_ctx.output.data or {}).get("contexts")
+        if not ctx_docs:
+            ctx_docs = [it.get("text", "") for it in final_items[: max(1, self.top_k)]]
+        prompt = build_prompt(query, ctx_docs)
+
+        # 8) финальная генерация (как сейчас)
+        response = self._get_llm()(
+            prompt,
+            max_tokens=512,
+            temperature=0.7,
+            top_p=0.9,
+            stop=["</s>", "\n\nВопрос:", "\n\nUser:", "<s>"],
+            echo=False,
+        )
+        answer = response["choices"][0]["text"].strip()
+        trace.append({"step": step, "tool": "finish", "ok": True, "took_ms": 0})
+
+        return {
+            "answer": answer,
+            "prompt": prompt,
+            "citations": (act_ctx.output.data or {}).get("citations", []),
+            "trace": trace,
+        }
