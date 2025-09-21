@@ -77,6 +77,11 @@ class Settings:
         # Встроенный in-memory кеш (TTL), отдельный от Redis
         self.enable_cache: bool = os.getenv("ENABLE_CACHE", "true").lower() == "true"
 
+        # === ReAct Agent настройки ===
+        self.agent_max_steps: int = int(os.getenv("AGENT_MAX_STEPS", "4"))
+        self.agent_tool_timeout: float = float(os.getenv("AGENT_TOOL_TIMEOUT", "5.0"))
+        self.agent_token_budget: int = int(os.getenv("AGENT_TOKEN_BUDGET", "2000"))
+
         # === BM25 / Hybrid настройки ===
         self.bm25_index_root: str = os.getenv("BM25_INDEX_ROOT", "./bm25-index")
         self.hybrid_enabled: bool = (
@@ -102,6 +107,13 @@ class Settings:
         # Сбрасываем кеш зависимостей для горячей перезагрузки
         from core.deps import get_llm, get_qa_service
 
+        try:
+            from core.deps import get_agent_service
+
+            get_agent_service.cache_clear()
+        except ImportError:
+            pass  # Агент сервис может быть еще не зарегистрирован
+
         get_llm.cache_clear()
         get_qa_service.cache_clear()
 
@@ -115,6 +127,13 @@ class Settings:
         # Сбрасываем кеш зависимостей
         from core.deps import get_retriever, get_qa_service
 
+        try:
+            from core.deps import get_agent_service
+
+            get_agent_service.cache_clear()
+        except ImportError:
+            pass  # Агент сервис может быть еще не зарегистрирован
+
         get_retriever.cache_clear()
         get_qa_service.cache_clear()
 
@@ -125,8 +144,15 @@ class Settings:
         old_collection = self.current_collection
         self.current_collection = collection_name
 
-        # Сбрасываем кеш retriever
+        # Сбрасываем кеш retriever и agent service
         from core.deps import get_retriever, get_qa_service
+
+        try:
+            from core.deps import get_agent_service
+
+            get_agent_service.cache_clear()
+        except ImportError:
+            pass  # Агент сервис может быть еще не зарегистрирован
 
         get_retriever.cache_clear()
         get_qa_service.cache_clear()

@@ -372,11 +372,11 @@ class QueryPlannerService:
                     res = self.llm(
                         prompt,
                         grammar=self._grammar,
-                        temperature=0.0,
-                        top_p=1.0,
+                        temperature=0.2,
+                        top_p=0.9,
                         top_k=40,
-                        repeat_penalty=1.1,
-                        max_tokens=320,
+                        repeat_penalty=1.2,
+                        max_tokens=256,
                         seed=self._seed,
                     )
                     text = (res["choices"][0].get("text") or "").strip()
@@ -408,8 +408,8 @@ class QueryPlannerService:
                         ],
                         temperature=0.2,
                         top_p=0.9,
-                        top_k=50,
-                        repeat_penalty=1.08,
+                        top_k=40,
+                        repeat_penalty=1.2,
                         max_tokens=384,
                         seed=self._seed,
                         response_format={
@@ -444,10 +444,10 @@ class QueryPlannerService:
                                 "content": f"Построй поисковый план (на русском): {query}",
                             },
                         ],
-                        temperature=0.15,
+                        temperature=0.2,
                         top_p=0.9,
-                        top_k=50,
-                        repeat_penalty=1.1,
+                        top_k=40,
+                        repeat_penalty=1.2,
                         max_tokens=384,
                         seed=self._seed,
                         response_format={

@@ -8,9 +8,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.gzip import GZipMiddleware
 
 from api.v1.router import router as v1_router
+from core.rate_limit import RateLimitMiddleware
+from core.security import sanitize_for_logging
 
 # Настройка логирования
 logging.basicConfig(
@@ -53,13 +57,34 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware для разработки
+# Security middleware - порядок важен!
+
+# 1. GZip compression
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# 2. Trusted Host для защиты от Host header injection
+allowed_hosts = os.getenv("ALLOWED_HOSTS", "*").split(",")
+if allowed_hosts != ["*"]:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
+
+# 3. Rate limiting
+app.add_middleware(
+    RateLimitMiddleware,
+    requests_per_minute=int(os.getenv("RATE_LIMIT_PER_MINUTE", "60")),
+    requests_per_hour=int(os.getenv("RATE_LIMIT_PER_HOUR", "1000")),
+    burst_size=int(os.getenv("RATE_LIMIT_BURST", "10")),
+    enable_exponential_backoff=True,
+)
+
+# 4. CORS middleware для разработки
+cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # В продакшене ограничить конкретными доменами
+    allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
 )
 
 # Подключаем API v1 роутер
@@ -99,12 +124,20 @@ async def health_check_legacy():
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """Глобальный обработчик исключений"""
-    logger.error(f"Необработанная ошибка: {exc}")
+    # Безопасное логирование без чувствительных данных
+    sanitized_path = sanitize_for_logging(str(request.url.path))
+    sanitized_error = sanitize_for_logging(str(exc))
+    logger.error(f"Необработанная ошибка на {sanitized_path}: {sanitized_error}")
+
+    # В продакшене не показываем детали ошибок
+    debug_mode = os.getenv("DEBUG", "false").lower() == "true"
+
     return JSONResponse(
         status_code=500,
         content={
             "detail": "Внутренняя ошибка сервера",
-            "message": str(exc) if os.getenv("DEBUG") else "Что-то пошло не так",
+            "message": str(exc) if debug_mode else "Что-то пошло не так",
+            "request_id": getattr(request.state, "request_id", None),
         },
     )
 

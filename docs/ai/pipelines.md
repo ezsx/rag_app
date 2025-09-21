@@ -1,6 +1,6 @@
-## Пайплайны: ingest, индексация, поиск, rerank
+## Пайплайны: ingest, индексация, поиск, rerank, agents
 
-Ниже описаны ключевые сценарии обработки данных и запросов в `rag_app`.
+Ниже описаны ключевые сценарии обработки данных и запросов в `rag_app`, включая новые пайплайны ReAct агентов.
 
 ### 1) Ingest (загрузка исходных данных)
 - Источник: внешние каналы/файлы (напр., `scripts/ingest_telegram.py`). См. модульную страницу: `docs/ai/modules/scripts/ingest_telegram.py.md`.
@@ -43,12 +43,26 @@
 - Redis (опционально): подключается через `get_redis_client` для хранения ответов/планов.
 - Fallback’и: Chroma HTTP → локальный Persistent, Planner LLM → основная LLM.
 
-### 6) Конфигурация пайплайнов (основные параметры)
+### 6) ReAct Agent (пошаговое рассуждение)
+- Вход: пользовательский запрос через `/v1/agent/stream`.
+- **ReAct петля** (SSE стриминг):
+  - **Thought**: LLM размышляет о необходимых действиях.
+  - **Action**: парсинг и вызов инструмента через ToolRunner.
+  - **Observation**: результат выполнения инструмента.
+  - **Повтор** до получения FinalAnswer или достижения max_steps.
+- **Инструменты**: router_select, fetch_docs, compose_context, dedup_diversify, verify, math_eval, time_now.
+- **Fallback**: при превышении лимита шагов → использование классического QAService.
+- **Трейсинг**: JSON-логирование всех действий через ToolRunner.
+
+Итог: пошаговое решение сложных задач с полной наблюдаемостью.
+
+### 7) Конфигурация пайплайнов (основные параметры)
 - Коллекция: `CHROMA_COLLECTION` — активная коллекция поиска.
 - Модели: `LLM_MODEL_KEY`/`PATH`, `EMBEDDING_MODEL_KEY`, `RERANKER_MODEL_KEY`.
 - Гибрид/слияние: `HYBRID_ENABLED`, `FUSION_STRATEGY` (rrf/mmr), `K_FUSION`.
 - MMR: `ENABLE_MMR`, `MMR_LAMBDA`, `MMR_TOP_N`, `MMR_OUTPUT_K`.
 - Ререйк: `ENABLE_RERANKER`, `RERANKER_TOP_N`, `RERANKER_BATCH_SIZE`.
 - Query Planner: `ENABLE_QUERY_PLANNER`, `SEARCH_K_PER_QUERY_DEFAULT`, `MAX_PLAN_SUBQUERIES`.
+- **ReAct Agent**: `AGENT_MAX_STEPS`, `AGENT_TOOL_TIMEOUT`, `AGENT_TOKEN_BUDGET`.
 
 

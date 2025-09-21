@@ -12,11 +12,13 @@ from adapters.chroma import Retriever
 from services.qa_service import QAService
 from services.query_planner_service import QueryPlannerService
 from services.reranker_service import RerankerService
+from services.agent_service import AgentService
 from utils.model_downloader import auto_download_models, RECOMMENDED_MODELS
 from core.settings import get_settings, Settings
 from adapters.search.bm25_index import BM25IndexManager
 from adapters.search.bm25_retriever import BM25Retriever
 from adapters.search.hybrid_retriever import HybridRetriever
+from services.tools.tool_runner import ToolRunner
 
 logger = logging.getLogger(__name__)
 
@@ -462,3 +464,94 @@ def get_redis_client(settings: Settings = Depends(get_settings)):
     except Exception as e:
         logger.warning(f"Redis недоступен: {e}")
         return None
+
+
+@lru_cache
+def get_agent_service() -> AgentService:
+    """Создает AgentService с настроенными зависимостями"""
+    settings = get_settings()
+
+    # Создаем ToolRunner с настроенным таймаутом
+    tool_runner = ToolRunner(default_timeout_sec=settings.agent_tool_timeout)
+
+    # Регистрируем ВСЕ инструменты
+    from services.tools.router_select import router_select
+    from services.tools.compose_context import compose_context
+    from services.tools.fetch_docs import fetch_docs
+    from services.tools.dedup_diversify import dedup_diversify
+    from services.tools.verify import verify
+    from services.tools.math_eval import math_eval
+    from services.tools.time_now import time_now
+    from services.tools.multi_query_rewrite import multi_query_rewrite
+    from services.tools.web_search import web_search
+    from services.tools.temporal_normalize import temporal_normalize
+    from services.tools.summarize import summarize
+    from services.tools.extract_entities import extract_entities
+    from services.tools.translate import translate
+    from services.tools.fact_check_advanced import fact_check_advanced
+    from services.tools.semantic_similarity import semantic_similarity
+    from services.tools.content_filter import content_filter
+    from services.tools.export_to_formats import export_to_formats
+
+    # Получаем retriever для инструментов, которые его используют
+    retriever = get_retriever()
+
+    # Создаем обертки для инструментов, которые нуждаются в зависимостях
+    def verify_wrapper(**kwargs):
+        return verify(retriever=retriever, **kwargs)
+
+    def fetch_docs_wrapper(**kwargs):
+        return fetch_docs(retriever=retriever, **kwargs)
+
+    def multi_query_rewrite_wrapper(**kwargs):
+        # Передаем LLM factory для генерации
+        return multi_query_rewrite(llm_factory=_llm_factory, **kwargs)
+
+    async def web_search_wrapper(**kwargs):
+        # Web search асинхронный
+        return await web_search(**kwargs)
+
+    def translate_wrapper(**kwargs):
+        return translate(llm_factory=_llm_factory, **kwargs)
+
+    def fact_check_advanced_wrapper(**kwargs):
+        return fact_check_advanced(retriever=retriever, **kwargs)
+
+    def semantic_similarity_wrapper(**kwargs):
+        return semantic_similarity(retriever=retriever, **kwargs)
+
+    tool_runner.register("router_select", router_select)
+    tool_runner.register("compose_context", compose_context)
+    tool_runner.register("fetch_docs", fetch_docs_wrapper)
+    tool_runner.register("dedup_diversify", dedup_diversify)
+    tool_runner.register("verify", verify_wrapper)
+    tool_runner.register("math_eval", math_eval)
+    tool_runner.register("time_now", time_now)
+    tool_runner.register("multi_query_rewrite", multi_query_rewrite_wrapper)
+    tool_runner.register("web_search", web_search_wrapper, timeout_sec=10.0)
+    tool_runner.register("temporal_normalize", temporal_normalize, timeout_sec=2.0)
+    tool_runner.register("summarize", summarize, timeout_sec=3.0)
+    tool_runner.register("extract_entities", extract_entities, timeout_sec=2.0)
+    tool_runner.register("translate", translate_wrapper, timeout_sec=6.0)
+    tool_runner.register(
+        "fact_check_advanced", fact_check_advanced_wrapper, timeout_sec=4.0
+    )
+    tool_runner.register(
+        "semantic_similarity", semantic_similarity_wrapper, timeout_sec=2.0
+    )
+    tool_runner.register("content_filter", content_filter, timeout_sec=1.0)
+    tool_runner.register("export_to_formats", export_to_formats, timeout_sec=1.0)
+
+    # Передаем фабрику LLM для ленивой загрузки
+    def _llm_factory():
+        return get_llm()
+
+    # Получаем QA сервис для fallback
+    qa_service = get_qa_service()
+
+    return AgentService(
+        llm_factory=_llm_factory,
+        tool_runner=tool_runner,
+        settings=settings,
+        qa_service=qa_service,
+    )

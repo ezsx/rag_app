@@ -1,20 +1,16 @@
-### Модуль: `src/adapters/chroma/retriever.py`
+### Модуль `src/adapters/chroma/retriever.py`
 
-Назначение: dense‑retriever поверх ChromaDB. Инкапсулирует подключение к коллекции, вычисление эмбеддингов (SentenceTransformer), поиск и выдачу результатов в унифицированном формате.
+Назначение: поиск релевантных документов в ChromaDB и вспомогательные операции.
 
-#### Классы и функции
-- `Retriever`:
-  - `__init__(client, collection_name, embedding_model)` — коннект к коллекции (или создание), инициализация `SentenceTransformerEmbeddingFunction`, локальный энкодер для `embed_texts`.
-  - `get_context(query, k)` — возврат только документов.
-  - `get_context_with_metadata(query, k)` — документы + метаданные + дистанции.
-  - `search(query, k, filters)` — поиск с поддержкой Chroma `where` (часть фильтров пост‑обрабатывается в Python: `date_from/date_to`). Возвращает список items `{id,text,metadata,distance}` с устойчивым `id` (channel_id:msg_id, либо hash).
-  - `embed_texts(texts)` — эмбеддинг через локальный `SentenceTransformer` (np.ndarray).
-  - `_build_where(filters)` — трансляция бизнес‑фильтров в Chroma where (`$and/$or`, `$eq/$gte/$lte`).
+Ключевые методы:
+- `search(query, k, filters?) -> List[Item]` — E5‑префикс, include метаданных, пост‑фильтры по датам (ISO) на Python‑стороне
+- `get_context(query, k) -> List[str]`, `get_context_with_metadata(query, k) -> List[{document, metadata, distance}]`
+- `get_by_ids(ids) -> List[Dict]` — best‑effort по парам (channel_id, msg_id)
+- `embed_texts(texts) -> List[np.ndarray]` — CPU‑векторизация через SentenceTransformer
 
-#### Особенности
-- Для старых версий Chroma предусмотрен fallback без `where` + лог‑предупреждение.
-- E5‑префикс `query: ` добавляется перед эмбеддингом запроса.
-- Пост‑фильтрация по датам (ISO YYYY‑MM‑DD) выполняется на Python‑стороне.
+Примечания:
+- Инициализация коллекции с `SentenceTransformerEmbeddingFunction`
+- Косинусная метрика (`metadata: hnsw:space=cosine`)
 
 
 

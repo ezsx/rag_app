@@ -67,7 +67,7 @@ class QAService:
             response = self._get_llm()(
                 prompt,
                 max_tokens=512,
-                temperature=0.7,
+                temperature=0.3,
                 top_p=0.9,
                 stop=["</s>", "\n\nВопрос:", "\n\nUser:", "<s>"],
                 echo=False,
@@ -102,7 +102,7 @@ class QAService:
             response = self._get_llm()(
                 prompt,
                 max_tokens=512,
-                temperature=0.7,
+                temperature=0.3,
                 top_p=0.9,
                 stop=["</s>", "\n\nВопрос:", "\n\nUser:", "<s>"],
                 echo=False,
@@ -161,7 +161,7 @@ class QAService:
             stream = self._get_llm()(
                 prompt,
                 max_tokens=512,
-                temperature=0.7,
+                temperature=0.3,
                 top_p=0.9,
                 stop=["</s>", "\n\nВопрос:", "\n\nUser:", "<s>"],
                 echo=False,
@@ -596,7 +596,7 @@ class QAService:
         response = self._get_llm()(
             prompt,
             max_tokens=512,
-            temperature=0.7,
+            temperature=0.3,
             top_p=0.9,
             stop=["</s>", "\n\nВопрос:", "\n\nUser:", "<s>"],
             echo=False,
