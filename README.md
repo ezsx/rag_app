@@ -1,4 +1,4 @@
-# RAG App — система вопросов и ответов по Telegram-данным
+# RAG App — система вопросов и ответов и ReAct Agent API по Telegram-данным
 
 Сервис Retrieval-Augmented Generation (RAG) с гибридным поиском (BM25 + эмбеддинги), планированием запросов (Query Planner) и генерацией ответов LLM через FastAPI.
 
@@ -6,11 +6,13 @@
 
 - **Query Planner (LLM + GBNF)**: декомпозиция пользовательского запроса в 3–6 подзапросов, фильтры, `k_per_query`, стратегия слияния. Кеширование планов и результатов fusion.
 - **Гибридный поиск**: объединение Chroma (dense) и BM25 через RRF; поддержка MMR и CPU‑ререйкера (BGE v2‑m3).
-- **SSE стриминг**: ответы LLM в реальном времени (`/v1/qa/stream`).
+- **SSE стриминг**: ответы LLM в реальном времени (`/v1/qa/stream`, `/v1/agent/stream`).
+- **ReAct Agent**: пошаговое рассуждение + инструменты (`multi_query_rewrite`, `compose_context`, `fetch_docs`, `summarize`, `extract_entities`, `translate`, `fact_check_advanced`, `semantic_similarity`, `content_filter`, `export_to_formats`, и др.).
+- **Безопасность**: JWT/Bearer или API‑Key аутентификация, rate limiting, TrustedHost, безопасное логирование, защита от prompt‑injection.
 - **Горячая смена моделей**: переключение LLM/Embedding через API без рестартов.
 - **Redis (опционально)**: кеширование ответов/поиска.
 - **Docker‑готовность**: быстрый запуск и изоляция зависимостей.
-- **Инфраструктура под ReAct**: Planner + Hybrid + Reranker служат базой для будущих инструментов `search() · rerank() · verify()`.
+- **Инфраструктура под ReAct**: Planner + Hybrid + Reranker + ToolRunner.
 
 ## 🛠 Технологии
 
@@ -43,6 +45,19 @@ curl -X POST "http://localhost:8000/v1/qa" \
   -d '{"query": "Расскажи о системе", "include_context": false}'
 ```
 
+4) ReAct Agent — стриминг шагов (SSE, требуется авторизация):
+```bash
+curl -N -X POST "http://localhost:8000/v1/agent/stream" \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/event-stream" \
+  -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
+  -d '{
+    "query": "Найди подтверждения из базы и сделай краткий вывод",
+    "tools_allowlist": ["compose_context","fetch_docs","summarize"],
+    "max_steps": 4
+  }'
+```
+
 ## 📡 API Endpoints
 
 - System:
@@ -62,6 +77,10 @@ curl -X POST "http://localhost:8000/v1/qa" \
   - `GET /v1/models`
   - `POST /v1/models/select`
   - `GET /v1/models/{model_type}/current`
+ - Agent (требуется аутентификация):
+  - `POST /v1/agent/stream` — ReAct-агент, стриминг шагов через SSE
+  - `GET /v1/agent/tools` — список доступных инструментов агента
+  - `GET /v1/agent/status` — статус и текущая конфигурация агента
 - Ingest (Telegram):
   - `POST /v1/ingest/telegram`
   - `GET /v1/ingest/{job_id}`
@@ -88,6 +107,19 @@ curl -X POST "http://localhost:8000/v1/search/plan" \
   "k_per_query": 10,
   "fusion": "rrf"
 }
+```
+
+## 🔐 Аутентификация и безопасность
+
+- Поддерживаются два способа аутентификации:
+  - **Bearer JWT**: заголовок `Authorization: Bearer <JWT>`
+  - **API Key**: заголовок `X-API-Key: <KEY>`
+- Rate limiting активен по умолчанию. Заголовки ответа: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`.
+- TrustedHost/CORS настраиваются через переменные окружения.
+
+Быстрый пример запроса с авторизацией:
+```bash
+curl -H "Authorization: Bearer <YOUR_JWT_TOKEN>" http://localhost:8000/v1/agent/status
 ```
 
 ## 🧠 Query Planner вкратце
@@ -159,6 +191,27 @@ CUDA_VISIBLE_DEVICES=0
 ```
 Дополнительно поддерживаются: `AUTO_DOWNLOAD_LLM`, `AUTO_DOWNLOAD_EMBEDDING`, `AUTO_DOWNLOAD_RERANKER`, `LLM_MODEL_PATH`, `PLANNER_CHAT_FORMAT`, `PLANNER_LLM_CONTEXT_SIZE`, `PLANNER_LLM_THREADS`, `PLANNER_LLM_BATCH`, `RETRIEVER_TOP_K` и др.
 
+Дополнительные параметры безопасности и агента:
+```bash
+# Security / Auth
+JWT_SECRET=change-me-in-prod
+JWT_EXPIRATION_HOURS=24
+VALID_API_KEYS=
+
+# Rate limiting / CORS / Hosts
+RATE_LIMIT_PER_MINUTE=60
+RATE_LIMIT_PER_HOUR=1000
+RATE_LIMIT_BURST=10
+ALLOWED_HOSTS=*
+CORS_ORIGINS=*
+DEBUG=false
+
+# Agent / ReAct
+AGENT_MAX_STEPS=4
+AGENT_TOOL_TIMEOUT=5.0
+AGENT_TOKEN_BUDGET=2048
+```
+
 ## 💾 Структура проекта (ключевое)
 
 ```
@@ -217,6 +270,7 @@ curl -X POST "http://localhost:8000/v1/ingest/telegram" \
 - Включите Redis и ограничьте CORS/HTTPS.
 - Запускайте несколько реплик API, используйте внешний ChromaDB сервер.
 - Следите за `/v1/info` и логами планировщика/гибрида/ререйкера.
+- Настройте `JWT_SECRET`, `ALLOWED_HOSTS`, лимиты `RATE_LIMIT_*`, и используйте `Authorization`/`X-API-Key` во всех продакшен‑запросах.
 
 ## 📝 Лицензия
 

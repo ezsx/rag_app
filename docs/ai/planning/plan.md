@@ -36,6 +36,34 @@
 8) finish: LLM generate; SSE — только финальный ответ
 Halting: при слабом покрытии — один доп. раунд 4–7; любой fail tool → ok:false и деградация (dense‑only, без rerank)
 
+### Пример на диаграмме:
+
+```mermaid
+flowchart TD
+    A[User Query] --> B{"Router Select? Heuristic"}
+
+    subgraph Plan_and_Retrieve
+      C["Query Planner LLM"] --> D["Search Tool (Hybrid/BM25/Dense)"]
+      D --> E["Candidate Docs (RRF + MMR)"]
+      E --> F{"Need Rerank?"}
+      F -- yes --> G["Rerank Tool (CrossEncoder)"]
+      F -- no  --> G
+      G --> H["Top-N Results"]
+    end
+
+    B -- bm25/dense/hybrid --> C
+    H --> I["Compose Context"]
+    I --> J{"Coverage \u2265 80%?"}
+    J -- yes --> K["Answer LLM (Generate Final Answer)"]
+    J -- no  --> L["Refine Search"]
+    L --> D
+    K --> M{"Verify Answer?"}
+    M -- verify on --> N["Verify Tool (Fact-Check)"]
+    M -- verify off --> O["Return Answer"]
+    N -- low confidence --> L
+    N -- verified --> O
+```
+
 ### Параметры (стартовые рекомендации)
 - Планировщик (CPU, grammar): temperature≈0.2, top_p≈0.9, top_k≈40–50, repeat_penalty≈1.08–1.2, max_tokens≈256–384; без stop; фиксированный seed.
 - Контекст: n_ctx≈4096; budget документов ≈1800 токенов; ответ ≈600–800 токенов.
