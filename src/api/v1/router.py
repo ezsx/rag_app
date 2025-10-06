@@ -4,7 +4,16 @@
 
 from fastapi import APIRouter
 
-from api.v1.endpoints import system, qa, search, collections, models, ingest, agent
+from api.v1.endpoints import (
+    system,
+    qa,
+    search,
+    collections,
+    models,
+    ingest,
+    agent,
+    auth,
+)
 
 # Создаем главный роутер для API v1
 router = APIRouter(prefix="/v1")
@@ -17,3 +26,4 @@ router.include_router(collections.router, tags=["collections"])
 router.include_router(models.router, tags=["models"])
 router.include_router(ingest.router, tags=["ingest"])
 router.include_router(agent.router, tags=["agent"])
+router.include_router(auth.router, tags=["auth"])

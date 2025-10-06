@@ -1,0 +1,74 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Тестовый датасет для оценки Agentic ReAct-RAG",
+    "created": "2025-10-01",
+    "total_questions": 8
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "query": "Какие важные объявления делал @durov в августе 2023?",
+      "category": "temporal_channel_specific",
+      "expected_coverage": 0.9,
+      "expected_refinements": 0,
+      "notes": "Тестирует фильтрацию по дате и каналу"
+    },
+    {
+      "id": "q2",
+      "query": "Что обсуждали в канале @news о криптовалюте?",
+      "category": "topic_channel",
+      "expected_coverage": 0.8,
+      "expected_refinements": 0,
+      "notes": "Тестирует поиск по теме в конкретном канале"
+    },
+    {
+      "id": "q3",
+      "query": "Расскажи о новых функциях Telegram за последний месяц",
+      "category": "broad_temporal",
+      "expected_coverage": 0.7,
+      "expected_refinements": 1,
+      "notes": "Тестирует refinement при низком покрытии"
+    },
+    {
+      "id": "q4",
+      "query": "Какие новости были о компании X в сентябре?",
+      "category": "company_temporal",
+      "expected_coverage": 0.75,
+      "expected_refinements": 1,
+      "notes": "Тестирует комбинацию компании и даты"
+    },
+    {
+      "id": "q5",
+      "query": "Что писал @username о проекте Y?",
+      "category": "author_topic",
+      "expected_coverage": 0.85,
+      "expected_refinements": 0,
+      "notes": "Тестирует поиск по автору и теме"
+    },
+    {
+      "id": "q6",
+      "query": "Какие изменения произошли в политике канала Z?",
+      "category": "channel_policy",
+      "expected_coverage": 0.6,
+      "expected_refinements": 1,
+      "notes": "Тестирует refinement для сложных тем"
+    },
+    {
+      "id": "q7",
+      "query": "Расскажи о технических новостях за неделю",
+      "category": "technical_broad",
+      "expected_coverage": 0.65,
+      "expected_refinements": 1,
+      "notes": "Тестирует широкий поиск с refinement"
+    },
+    {
+      "id": "q8",
+      "query": "Что обсуждали в нескольких каналах о событии W?",
+      "category": "multi_channel",
+      "expected_coverage": 0.75,
+      "expected_refinements": 1,
+      "notes": "Тестирует поиск по нескольким каналам"
+    }
+  ]
+}

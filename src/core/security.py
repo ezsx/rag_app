@@ -78,7 +78,7 @@ class SecurityManager:
         enable_prompt_injection_check: bool = True,
         enable_xss_check: bool = True,
         enable_path_traversal_check: bool = True,
-        max_input_length: int = 10000,
+        max_input_length: int = 60000,
     ):
         self.enable_sql_check = enable_sql_check
         self.enable_prompt_injection_check = enable_prompt_injection_check

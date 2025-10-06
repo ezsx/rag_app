@@ -93,7 +93,7 @@ def get_llm():
 
     # Параметры модели
     n_gpu_layers = int(os.getenv("LLM_GPU_LAYERS", "-1"))
-    n_ctx = int(os.getenv("LLM_CONTEXT_SIZE", "4096"))
+    n_ctx = int(os.getenv("LLM_CONTEXT_SIZE", "8192"))
     n_threads = int(os.getenv("LLM_THREADS", "8"))
     n_batch = int(os.getenv("LLM_BATCH", "1024"))
 
@@ -474,27 +474,46 @@ def get_agent_service() -> AgentService:
     # Создаем ToolRunner с настроенным таймаутом
     tool_runner = ToolRunner(default_timeout_sec=settings.agent_tool_timeout)
 
-    # Регистрируем ВСЕ инструменты
+    # Регистрируем базовые инструменты
     from services.tools.router_select import router_select
     from services.tools.compose_context import compose_context
     from services.tools.fetch_docs import fetch_docs
-    from services.tools.dedup_diversify import dedup_diversify
     from services.tools.verify import verify
-    from services.tools.math_eval import math_eval
-    from services.tools.time_now import time_now
-    from services.tools.multi_query_rewrite import multi_query_rewrite
-    from services.tools.web_search import web_search
-    from services.tools.temporal_normalize import temporal_normalize
-    from services.tools.summarize import summarize
-    from services.tools.extract_entities import extract_entities
-    from services.tools.translate import translate
-    from services.tools.fact_check_advanced import fact_check_advanced
-    from services.tools.semantic_similarity import semantic_similarity
-    from services.tools.content_filter import content_filter
-    from services.tools.export_to_formats import export_to_formats
+    from services.tools.search import search
+    from services.tools.query_plan import query_plan
+    from services.tools.rerank import rerank
 
     # Получаем retriever для инструментов, которые его используют
     retriever = get_retriever()
+
+    # Получаем гибридный retriever для search инструмента
+    from adapters.search.hybrid_retriever import HybridRetriever
+
+    # Пытаемся взять готовый гибридный ретривер из кеша
+    hybrid_retriever = get_hybrid_retriever()
+    if hybrid_retriever is None:
+        # Фолбэк: собираем из BM25 и dense вручную
+        try:
+            bm25_mgr = get_bm25_index_manager()
+            bm25_ret = BM25Retriever(bm25_mgr, settings)
+            dense_ret = retriever  # текущий dense Retriever из Chroma
+            hybrid_retriever = HybridRetriever(bm25_ret, dense_ret, settings)
+        except Exception as e:
+            logger.warning(f"Hybrid retriever fallback init failed: {e}")
+            hybrid_retriever = None
+
+    # Получаем reranker для rerank инструмента
+    from services.reranker_service import RerankerService
+
+    reranker = get_reranker()
+
+    # Получаем query planner для query_plan инструмента
+    from services.query_planner_service import QueryPlannerService
+
+    def _llm_factory():
+        return get_llm()
+
+    query_planner = get_query_planner() if settings.enable_query_planner else None
 
     # Создаем обертки для инструментов, которые нуждаются в зависимостях
     def verify_wrapper(**kwargs):
@@ -503,44 +522,38 @@ def get_agent_service() -> AgentService:
     def fetch_docs_wrapper(**kwargs):
         return fetch_docs(retriever=retriever, **kwargs)
 
-    def multi_query_rewrite_wrapper(**kwargs):
-        # Передаем LLM factory для генерации
-        return multi_query_rewrite(llm_factory=_llm_factory, **kwargs)
+    # Эксплицитные завимосити для search-фолбэков
+    bm25_mgr = get_bm25_index_manager()
+    bm25_ret = BM25Retriever(bm25_mgr, settings)
 
-    async def web_search_wrapper(**kwargs):
-        # Web search асинхронный
-        return await web_search(**kwargs)
+    def search_wrapper(**kwargs):
+        return search(
+            hybrid_retriever=hybrid_retriever,
+            bm25_retriever=bm25_ret,
+            **kwargs,
+        )
 
-    def translate_wrapper(**kwargs):
-        return translate(llm_factory=_llm_factory, **kwargs)
+    def query_plan_wrapper(**kwargs):
+        return query_plan(query_planner=query_planner, **kwargs)
 
-    def fact_check_advanced_wrapper(**kwargs):
-        return fact_check_advanced(retriever=retriever, **kwargs)
-
-    def semantic_similarity_wrapper(**kwargs):
-        return semantic_similarity(retriever=retriever, **kwargs)
+    def rerank_wrapper(**kwargs):
+        return rerank(reranker=reranker, **kwargs)
 
     tool_runner.register("router_select", router_select)
-    tool_runner.register("compose_context", compose_context)
+    tool_runner.register("query_plan", query_plan_wrapper, timeout_sec=6.0)
+    tool_runner.register(
+        "search",
+        search_wrapper,
+        timeout_sec=max(5.0, settings.agent_tool_timeout * 0.8),
+    )
+    tool_runner.register(
+        "rerank",
+        rerank_wrapper,
+        timeout_sec=max(4.0, settings.agent_tool_timeout * 0.5),
+    )
     tool_runner.register("fetch_docs", fetch_docs_wrapper)
-    tool_runner.register("dedup_diversify", dedup_diversify)
+    tool_runner.register("compose_context", compose_context)
     tool_runner.register("verify", verify_wrapper)
-    tool_runner.register("math_eval", math_eval)
-    tool_runner.register("time_now", time_now)
-    tool_runner.register("multi_query_rewrite", multi_query_rewrite_wrapper)
-    tool_runner.register("web_search", web_search_wrapper, timeout_sec=10.0)
-    tool_runner.register("temporal_normalize", temporal_normalize, timeout_sec=2.0)
-    tool_runner.register("summarize", summarize, timeout_sec=3.0)
-    tool_runner.register("extract_entities", extract_entities, timeout_sec=2.0)
-    tool_runner.register("translate", translate_wrapper, timeout_sec=6.0)
-    tool_runner.register(
-        "fact_check_advanced", fact_check_advanced_wrapper, timeout_sec=4.0
-    )
-    tool_runner.register(
-        "semantic_similarity", semantic_similarity_wrapper, timeout_sec=2.0
-    )
-    tool_runner.register("content_filter", content_filter, timeout_sec=1.0)
-    tool_runner.register("export_to_formats", export_to_formats, timeout_sec=1.0)
 
     # Передаем фабрику LLM для ленивой загрузки
     def _llm_factory():

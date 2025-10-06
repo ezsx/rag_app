@@ -22,17 +22,19 @@
 ## Agent API (ReAct)
 
 ### `POST /v1/agent/stream`
-- **Назначение**: ReAct агент с пошаговым мышлением
-- **Тело**: `{"query": "string", "collection": "string", "max_steps": int, "planner": bool}`
+- **Назначение**: Agentic ReAct-RAG с детерминированной логикой, coverage check и refinement циклами
+- **Тело**: `{"query": "string", "collection": "string", "max_steps": int, "planner": bool, "tools_allowlist": ["string"]}`
 - **Ответ**: SSE поток событий (step_started, thought, tool_invoked, observation, final)
+- **Метаданные в финальном ответе**: `coverage`, `refinements`, `fallback`
 
 ### `GET /v1/agent/tools`
 - **Назначение**: Список доступных инструментов агента
 - **Ответ**: `{"tools": {...}, "total": int, "usage": "string"}`
 
 ### `GET /v1/agent/status`
-- **Назначение**: Статус и конфигурация агента
+- **Назначение**: Статус и конфигурация Agentic ReAct-RAG
 - **Ответ**: `{"status": "active", "configuration": {...}, "features": {...}}`
+- **Включает**: coverage_threshold, max_refinements, enable_verify_step, current_llm
 
 ## Collections API
 

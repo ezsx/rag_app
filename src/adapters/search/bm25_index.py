@@ -58,6 +58,47 @@ class BM25IndexManager:
         self._last_reload_ts: Dict[str, float] = {}
         self._reload_min_interval = reload_min_interval_sec
 
+    def _build_reader_and_searcher(
+        self, index: tantivy.Index
+    ) -> (Optional[tantivy.IndexReader], Optional[tantivy.IndexSearcher]):
+        """Создает reader/searcher с учётом различий версий python-tantivy."""
+
+        # Современные версии предоставляют builder API
+        if hasattr(index, "reader"):
+            try:
+                reader = index.reader()
+                searcher = reader.searcher()
+                return reader, searcher
+            except Exception as exc:
+                logger.warning(f"Unable to construct reader via index.reader(): {exc}")
+
+        if hasattr(index, "reader_builder"):
+            try:
+                builder = index.reader_builder()
+                # Попробуем закрепить ручную политику перезагрузки если доступна
+                if hasattr(builder, "reload_policy"):
+                    try:
+                        builder.reload_policy("manual")
+                    except Exception as exc:
+                        logger.debug(
+                            "reader_builder.reload_policy manual failed: %s", exc
+                        )
+                reader = builder.build()
+                searcher = reader.searcher()
+                return reader, searcher
+            except Exception as exc:
+                logger.warning(
+                    f"Unable to construct reader via reader_builder(): {exc}"
+                )
+
+        # Фолбэк: напрямую создаём searcher без reader
+        try:
+            searcher = index.searcher()
+            return None, searcher
+        except Exception as exc:
+            logger.error(f"Unable to construct searcher: {exc}")
+            return None, None
+
     def _resolve_fields(self, schema: tantivy.Schema) -> Dict[str, object]:
         """Совместимо получает ссылки на поля по именам в разных версиях python-tantivy."""
 
@@ -156,15 +197,7 @@ class BM25IndexManager:
         reader = None
         searcher = None
         if not for_write:
-            # Совместимость с разными версиями tantivy
-            try:
-                reader = index.reader()
-                searcher = reader.searcher()
-            except Exception:
-                try:
-                    searcher = index.searcher()
-                except Exception:
-                    searcher = None
+            reader, searcher = self._build_reader_and_searcher(index)
 
         handle = IndexHandle(
             schema=schema,
@@ -185,10 +218,20 @@ class BM25IndexManager:
         if now - self._last_reload_ts.get(collection, 0.0) < self._reload_min_interval:
             return
         handle = self.get_or_create(collection)
-        if handle.reader is None:
-            handle.reader = handle.index.reader()
-        handle.reader.reload()
-        handle.searcher = handle.reader.searcher()
+        if handle.reader is not None:
+            try:
+                handle.reader.reload()
+                handle.searcher = handle.reader.searcher()
+                self._last_reload_ts[collection] = now
+                logger.info(f"BM25 reload searcher (reader-based): {collection}")
+                return
+            except Exception as exc:
+                logger.warning(f"Reader reload failed, rebuilding searcher: {exc}")
+                handle.reader = None
+
+        reader, searcher = self._build_reader_and_searcher(handle.index)
+        handle.reader = reader
+        handle.searcher = searcher
         self._last_reload_ts[collection] = now
         logger.info(f"BM25 reload searcher: {collection}")
 

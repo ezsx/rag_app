@@ -99,3 +99,37 @@ flowchart TD
 - Итерация 4 — Наблюдаемость/качество:
   - Метрики шагов/таймаутов/кешей, A/B «короткий путь vs ReAct», тюнинг параметров; опц. `/v1/react/*` за фичфлагом.
 
+```mermaid
+flowchart TD
+  A["Test Case"] --> B["Retrieval"];
+  B -->|exact match| C["Candidates"];
+  B -->|BM25+Dense| C;
+  C --> D["LLM Extract (GBNF JSON)"];
+  D --> E["LLM IR (GBNF JSON)"];
+  E --> F["Static Validate"];
+  F --> G["Render Oracle SQL"];
+  G --> H["Artifacts: sql, binds, trace"];
+
+```
+
+```mermaid
+flowchart LR
+  subgraph Storage
+    P[("Postgres")];
+    V["pgvector"];
+    T["Tantivy"];
+  end;
+
+  L["llama.cpp (GBNF)"]:::llm;
+  R["Retriever"] --> T;
+  R --> V;
+  I["Ingest"] --> P;
+  I --> V;
+  I --> T;
+  C["Composer"] --> L;
+  Vd["Validator"] --> P;
+  Rd["Renderer"] --> P;
+
+  classDef llm fill:#eef,stroke:#99f;
+
+```

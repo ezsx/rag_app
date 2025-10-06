@@ -6,18 +6,18 @@
 - Предоставление API для поиска и ответа на вопросы с использованием внешнего контекста.
 - Поддержка гибридного поиска (BM25 + эмбеддинги) и опционального переранжирования.
 - Планирование запросов (Query Planner) для повышения точности за счёт декомпозиции запроса.
-- **ReAct агенты** с пошаговым мышлением и использованием инструментов для решения сложных задач.
+- **Agentic ReAct-RAG** с детерминированной логикой принятия решений, coverage check и refinement циклами.
 
 ### Основные сервисы и компоненты
 - `src/main.py`: точка входа FastAPI, CORS, маршруты v1, глобальная обработка ошибок.
 - `src/api/v1/`: роутер и конечные точки: `qa`, `search`, `models`, `collections`, `ingest`, `system`, **`agent`**.
-- `src/core/settings.py`: конфигурация (модели, Chroma, кеши, гибрид/ммр/ререйк, агенты), горячая смена моделей.
+- `src/core/settings.py`: конфигурация (модели, Chroma, кеши, гибрид/ммр/ререйк, агенты), горячая смена моделей. **Qwen2.5-7B-Instruct** как основная модель (16GB VRAM).
 - `src/core/deps.py`: фабрики зависимостей (`get_llm`, `get_retriever`, `get_qa_service`, `get_query_planner`, `get_reranker`, **`get_agent_service`** и т.д.).
 - `src/services/qa_service.py`: сбор контекста, промптинг и генерация ответа/стриминга.
 - `src/services/query_planner_service.py`: построение плана поиска, кеширование планов и результатов слияния.
 - `src/services/reranker_service.py`: переранжирование кандидатов (BAAI/bge-reranker-v2-m3).
-- **`src/services/agent_service.py`**: ReAct агент с пошаговым мышлением и SSE стримингом.
-- **`src/services/tools/`**: инструменты агента (router_select, compose_context, fetch_docs, verify, math_eval, time_now и др.).
+- **`src/services/agent_service.py`**: **Agentic ReAct-RAG** с детерминированной логикой, coverage check и refinement циклами.
+- **`src/services/tools/`**: **7 базовых инструментов** (query_plan, search, rerank, fetch_docs, compose_context, verify, router_select).
 - `src/adapters/chroma/retriever.py`: доступ к ChromaDB (HTTP/локально), эмбеддинг‑поиск.
 - `src/adapters/search/*`: BM25 индекс/ретривер и гибридный ретривер.
 - `src/utils/*`: загрузка/кеширование моделей, сбор промпта, ранжирование (RRF, MMR).
@@ -29,8 +29,9 @@
 - Планировщик и фьюжн используют встроенный TTL‑кеш (план ~10 мин, фьюжн ~5 мин) при включённом кешировании.
 - Гибридный поиск и MMR/ререйк опциональны и настраиваются через переменные окружения.
 - Основной контекст хранится в ChromaDB коллекции, имя коллекции — часть конфигурации и может переключаться «на лету».
-- **ReAct агенты** используют ToolRunner с таймаутами и JSON-трейсом, поддерживают fallback через QAService.
-- **Инструменты агента** регистрируются в deps.py с инъекцией зависимостей (retriever, settings и др.).
+- **Agentic ReAct-RAG** использует детерминированную логику с coverage check (≥80%) и refinement циклами (≤1 раунд).
+- **7 базовых инструментов** регистрируются в deps.py с инъекцией зависимостей (retriever, settings и др.).
+- **Основная модель Qwen2.5-7B-Instruct** оптимизирована для 16GB VRAM с контекстом 8k токенов.
 
 ### Безопасность и платформа (актуально)
 - JWT‑аутентификация и авторизация: `src/core/auth.py`; обязательная проверка в `agent` эндпойнтах.
@@ -38,14 +39,46 @@
 - Валидация и санитизация ввода (`SecurityManager`): `src/core/security.py`; защита от prompt‑injection, ограничение размера/глубины JSON.
 - Санитизация при логировании через `sanitize_for_logging`.
 
-### ReAct агент и инструменты (актуально)
-- Decoding‑профиль llama.cpp: temperature=0.2–0.4, top_p=0.9, top_k=40, repeat_penalty=1.2, seed=42.
-- Lost‑in‑the‑Middle mitigation и `citation_coverage` в `compose_context`.
-- Зарегистрированные инструменты в `deps.py`: router_select, compose_context, fetch_docs, verify, math_eval, time_now, multi_query_rewrite, web_search, temporal_normalize, summarize, extract_entities, translate, fact_check_advanced, semantic_similarity, content_filter, export_to_formats.
+### Agentic ReAct-RAG (актуально)
+- **Детерминированная логика**: coverage check (≥80%), refinement циклы (≤1 раунд), верификация ответов (confidence ≥0.6).
+- **Decoding‑профиль**: temperature=0.2–0.4, top_p=0.9, top_k=40, repeat_penalty=1.15–1.2, seed=42.
+- **Lost‑in‑the‑Middle mitigation** и `citation_coverage` в `compose_context`.
+- **7 базовых инструментов**: query_plan, search, rerank, fetch_docs, compose_context, verify, router_select.
+- **Основная модель**: Qwen2.5-7B-Instruct (16GB VRAM, 8k контекст, русскоязычная поддержка).
 
 ### Соответствие research/playbook
 - Единые параметры декодирования, ограничение шагов ReAct, таймауты инструментов.
 - Кеширование плана/фьюжна в указанные TTL.
 - Контроль качества: акцент на покрытие цитат и стабильность форматов.
+
+### Рефакторинг агентских инструментов (текущая сессия)
+
+#### Удаленные инструменты (13 шт.):
+**Обоснование удаления**: Эти инструменты признаны избыточными для MVP агентской системы или дублируют базовую функциональность.
+
+- **content_filter** - фильтрация контента (слишком специализированная функция)
+- **dedup_diversify** - дедупликация и диверсификация (функциональность частично перекрыта RRF/MMR)
+- **export_to_formats** - экспорт в различные форматы (не основной use case агента)
+- **extract_entities** - извлечение сущностей (слишком нишевая функция)
+- **fact_check_advanced** - продвинутый фактчекинг (заменен на базовый verify инструмент)
+- **semantic_similarity** - семантическое сходство (функциональность перекрыта rerank)
+- **summarize** - суммаризация (не критична для агентского цикла)
+- **temporal_normalize** - нормализация дат (обработка дат встроена в query_plan)
+- **translate** - перевод (не основной use case)
+- **math_eval** - математические вычисления (специфичный случай)
+- **multi_query_rewrite** - перезапись запросов (функциональность встроена в query_plan)
+- **time_now** - текущие дата/время (слишком простая функция)
+- **web_search** - поиск в веб (расширяет scope за пределы локальной базы знаний)
+
+#### Добавленные базовые инструменты:
+- **query_plan** - планирование запросов с фильтрами метаданных
+- **search** - гибридный поиск с RRF слиянием и fallback на BM25
+- **rerank** - переранжирование результатов через кросс-энкодер модель
+
+#### Обновленные компоненты:
+- **AgentService** - улучшена логика детерминированного ReAct, системный промпт, обработка ошибок
+- **Настройки и зависимости** - обновлены конфигурации в core модулях
+
+**Результат**: Архитектура агента упрощена и сфокусирована на базовой функциональности планирования-поиска-ранжирования, что улучшает стабильность и уменьшает сложность системы.
 
 

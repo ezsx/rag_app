@@ -11,7 +11,7 @@
 - `src/services/query_planner_service.py` — построение поискового плана, TTL‑кеш планов и результатов слияния (RRF/MMR), JSON‑контракты; поддержка строгой генерации через GBNF (`utils/gbnf.py`) и микро‑грамматики для догена подзапросов.
 - `src/services/reranker_service.py` — обёртка над BAAI/bge‑reranker‑v2‑m3 для переранжирования.
 - **`src/services/agent_service.py`** — ReAct агент с пошаговым мышлением, SSE стримингом и управлением инструментами.
-- **`src/services/tools/`** — инструменты агента с единым ToolRunner API: `router_select`, `compose_context`, `fetch_docs`, `dedup_diversify`, `verify`, `math_eval`, `time_now`.
+- **`src/services/tools/`** — **7 базовых инструментов** агента с единым ToolRunner API: `router_select`, `query_plan`, `search`, `rerank`, `fetch_docs`, `compose_context`, `verify`.
 - `src/adapters/chroma/retriever.py` — доступ к ChromaDB (HTTP/Persistent), методы поиска/эмбеддинга.
 - `src/adapters/search/bm25_*` — офлайновый BM25 индекс и ретривер; `hybrid_retriever.py` объединяет BM25 и dense‑поиск.
 - `src/utils/` — `model_downloader.py` (автоскачивание GGUF/эмбеддингов/ререйкера), `prompt.py` (сбор промпта), `ranking.py` (RRF, MMR).
@@ -34,13 +34,16 @@
    - Слияние (RRF), опционально MMR и ререйкер → топ‑K контекст.
    - `utils.prompt.build_prompt` → вызов LLM (`llama_cpp`) → ответ/стриминг.
 
-#### ReAct Agent поток:
+#### Agentic ReAct-RAG поток:
 1. HTTP запрос (FastAPI) → роут `v1/agent/stream`.
 2. DI создаёт `AgentService` с настроенным `ToolRunner` и зарегистрированными инструментами.
-3. **ReAct петля** (SSE стриминг):
+3. **Детерминированная ReAct петля** (SSE стриминг):
    - **Thought**: LLM размышляет о следующем действии.
    - **Action**: парсинг и вызов инструмента через `ToolRunner`.
    - **Observation**: результат выполнения инструмента.
+   - **Coverage Check**: после `compose_context` проверяется `citation_coverage ≥ 0.8`.
+   - **Refinement**: при низком покрытии выполняется дополнительный поиск (≤1 раунд).
+   - **Verification**: перед `FinalAnswer` проверяется confidence ≥ 0.6.
    - **Повтор** до получения `FinalAnswer` или достижения `max_steps`.
 4. **Fallback**: при превышении лимита шагов — использование обычного `QAService`.
 

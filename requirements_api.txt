@@ -12,6 +12,8 @@ filelock
 typing_extensions
 pydantic
 sse-starlette
+requests
+PyJWT
 # llama-cpp-python ставится из wheel, собранного в Dockerfile.api
 redis
 httpx

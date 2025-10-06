@@ -23,32 +23,63 @@ async def agent_stream(
     fastapi_request: Request,
     agent_service: AgentService = Depends(get_agent_service),
     settings: Settings = Depends(get_settings),
-    current_user: TokenData = Depends(require_read()),
+    current_user: TokenData = Depends(require_read),
 ) -> EventSourceResponse:
     """
-    Пошаговый ReAct агент с SSE стримингом
+    Пошаговый ReAct агент с SSE стримингом и детерминированной логикой
 
-    Агент выполняет цикл мышления-действия-наблюдения (ReAct) и транслирует
-    каждый шаг через Server-Sent Events в реальном времени.
+    Агент выполняет цикл мышления-действия-наблюдения (ReAct) с детерминированной логикой:
+    - Автоматическая проверка citation coverage (>= 80%)
+    - Дополнительный refinement раунд при низком покрытии
+    - Верификация финального ответа через verify инструмент
 
     **Параметры:**
     - **query**: Вопрос пользователя (обязательно)
-    - **collection**: Название коллекции (опционально, использует текущую если не указано)
+    - **collection**: Название коллекции (опционально)
     - **model_profile**: Профиль модели (опционально)
-    - **tools_allowlist**: Разрешенные инструменты (опционально, по умолчанию все)
-    - **planner**: Использовать ли планировщик запросов (по умолчанию true)
-    - **max_steps**: Максимальное количество шагов (1-10, по умолчанию 4)
+    - **tools_allowlist**: Разрешенные инструменты (опционально)
+    - **planner**: Использовать ли планировщик (по умолчанию true)
+    - **max_steps**: Максимум шагов (1-10, по умолчанию 4)
 
     **События SSE:**
     - `step_started`: Начало нового шага
-    - `thought`: Мысль агента
+    - `thought`: Мысль агента (может быть system-generated)
     - `tool_invoked`: Вызов инструмента
-    - `observation`: Результат выполнения инструмента
-    - `final`: Финальный ответ агента
+    - `observation`: Результат инструмента
+    - `final`: Финальный ответ с метаданными
+
+    **Метаданные в финальном ответе:**
+    - `coverage`: Citation coverage последнего compose_context
+    - `refinements`: Количество выполненных refinement раундов
+    - `fallback`: Было ли использовано fallback на QAService
+
+    **Примеры использования:**
+    ```json
+    {
+        "query": "Какие важные объявления делал @durov в августе 2023?",
+        "max_steps": 6,
+        "planner": true
+    }
+    ```
     """
 
     async def event_generator():
         try:
+            # Проверяем, включен ли агент
+            if not settings.enable_agent:
+                logger.info("Агент отключен, возвращаем fallback ответ")
+                yield {
+                    "event": "final",
+                    "data": {
+                        "answer": "Агент временно отключен. Используйте /v1/qa для получения ответа.",
+                        "step": 1,
+                        "request_id": "disabled",
+                        "fallback": True,
+                    },
+                    "retry": 3000,
+                }
+                return
+
             logger.info(f"Начинаем ReAct агент для запроса: {request.query[:100]}...")
 
             # Если указана коллекция, временно переключаемся

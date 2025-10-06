@@ -11,6 +11,13 @@ alwaysApply: false
 - Подход: локализовать проблему через трассу/тесты, подтвердить поиск точным инструментом (ripgrep).
 - После фикса — добавить или обновить тест, который воспроизводит баг.
 
+## Graphiti Triage
+- Сначала поиск по памяти:
+  - `graphiti.search_memory_nodes query="<сообщение об ошибке/stack/симптомы>", top_k=10`
+  - опционально `graphiti.search_memory_facts query="..."`
+- Если найдено похожее — применяй известный фикс; если нет — документируй новое решение:
+  - `graphiti.add_memory name="bug:<slug>" episode_body="Symptom: ... | Root cause: ... | Fix: ... | Verify: ... | Tags: bug; module:<...>" source="manual"`
+  
 # Шаги
 1) Найди источник ошибки:
    - Используй `workspace-code-search` для поиска по смыслу (например, функция, связанная с сообщением об ошибке).

@@ -22,6 +22,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Углубленное логирование для инструментов агента
+logging.getLogger("services.tools.search").setLevel(logging.DEBUG)
+logging.getLogger("services.tools.rerank").setLevel(logging.DEBUG)
+logging.getLogger("services.tools.fetch_docs").setLevel(logging.DEBUG)
+logging.getLogger("services.agent_service").setLevel(logging.DEBUG)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

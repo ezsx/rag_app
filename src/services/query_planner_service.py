@@ -329,6 +329,54 @@ class QueryPlannerService:
             fusion=fusion,
         )
 
+    def _generate_plan(self, query: str) -> SearchPlan:
+        """Генерирует план поиска через LLM с GBNF грамматикой."""
+        prompt = self._build_prompt(query)
+
+        try:
+            # Вызов LLM с GBNF грамматикой (если включено)
+            if self._grammar:
+                response = self.llm(
+                    prompt,
+                    max_tokens=512,
+                    temperature=0.1,
+                    top_p=0.95,
+                    grammar=self._grammar,
+                    stop=["</s>", "\n\n"],
+                )
+            else:
+                response = self.llm(
+                    prompt,
+                    max_tokens=512,
+                    temperature=0.1,
+                    top_p=0.95,
+                    stop=["</s>", "\n\n"],
+                )
+
+            raw_text = response["choices"][0]["text"].strip()
+
+            # Извлекаем JSON блок
+            json_match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+            if not json_match:
+                logger.warning("No JSON found in LLM response, using fallback")
+                return self._fallback_plan(query)
+
+            raw_json = json.loads(json_match.group(0))
+
+            # Применяем post_validate для санитизации
+            plan = self.post_validate(raw_json, query, self.settings)
+
+            # Кешируем результат
+            if self.settings.enable_cache:
+                cache_key = f"plan:{hash(query)}"
+                self._plan_cache.set(cache_key, plan)
+
+            return plan
+
+        except Exception as e:
+            logger.error(f"_generate_plan failed for query='{query[:80]}': {e}")
+            return self._fallback_plan(query)
+
     def _fallback_plan(self, query: str) -> SearchPlan:
         return SearchPlan(
             normalized_queries=[query],
@@ -349,174 +397,26 @@ class QueryPlannerService:
             if cached:
                 return cached  # type: ignore
 
-        t0 = time.time()
-        try:
-
-            def _try_parse_json(s: str):
-                try:
-                    return json.loads(s)
-                except Exception:
-                    start = s.find("{")
-                    end = s.rfind("}")
-                    if start != -1 and end != -1 and end > start:
-                        return json.loads(s[start : end + 1])
-                    raise
-
-            raw: Optional[Dict[str, Any]] = None
-            used_gbnf: bool = False
-
-            # Путь 1: GBNF grammar decoding (если включено и грамматика доступна)
-            if self._grammar is not None:
-                try:
-                    prompt = self._build_prompt(query)
-                    res = self.llm(
-                        prompt,
-                        grammar=self._grammar,
-                        temperature=0.2,
-                        top_p=0.9,
-                        top_k=40,
-                        repeat_penalty=1.2,
-                        max_tokens=256,
-                        seed=self._seed,
-                    )
-                    text = (res["choices"][0].get("text") or "").strip()
-                    if text:
-                        raw = json.loads(text)
-                        used_gbnf = True
-                        logger.info(
-                            f"QueryPlanner[GBNF]: json_len={len(text)}, subqueries~{len(raw.get('normalized_queries', []))}"
-                        )
-                except Exception as e:
-                    logger.warning(f"QueryPlanner[GBNF] failed: {e}")
-
-            # Путь 2: fallback — json_schema через chat-completion
-            if raw is None:
-                try:
-                    response = self.llm.create_chat_completion(
-                        messages=[
-                            {
-                                "role": "system",
-                                "content": (
-                                    "Ты — помощник-планировщик. Построй поисковый план по входному запросу. "
-                                    "Ответ должен быть СТРОГО одним JSON-объектом по схеме, без текста вокруг."
-                                ),
-                            },
-                            {
-                                "role": "user",
-                                "content": f"Построй поисковый план (на русском): {query}",
-                            },
-                        ],
-                        temperature=0.2,
-                        top_p=0.9,
-                        top_k=40,
-                        repeat_penalty=1.2,
-                        max_tokens=384,
-                        seed=self._seed,
-                        response_format={
-                            "type": "json_schema",
-                            "schema": self.JSON_SCHEMA,
-                        },
-                    )
-                    chat_text = (
-                        response["choices"][0].get("message", {}).get("content") or ""
-                    ).strip()
-                    if not chat_text:
-                        chat_text = (response["choices"][0].get("text") or "").strip()
-                    if chat_text:
-                        raw = _try_parse_json(chat_text)
-                        logger.info("QueryPlanner[fallback:json_schema]: used")
-                except Exception:
-                    raw = None
-
-            # Ретрай c ужесточённой подсказкой для json_schema
-            if raw is None:
-                try:
-                    response = self.llm.create_chat_completion(
-                        messages=[
-                            {
-                                "role": "system",
-                                "content": (
-                                    "Выведи РОВНО ОДИН JSON-объект по заданной схеме без какого-либо текста, кода или комментариев вокруг."
-                                ),
-                            },
-                            {
-                                "role": "user",
-                                "content": f"Построй поисковый план (на русском): {query}",
-                            },
-                        ],
-                        temperature=0.2,
-                        top_p=0.9,
-                        top_k=40,
-                        repeat_penalty=1.2,
-                        max_tokens=384,
-                        seed=self._seed,
-                        response_format={
-                            "type": "json_schema",
-                            "schema": self.JSON_SCHEMA,
-                        },
-                    )
-                    chat_text = (
-                        response["choices"][0].get("message", {}).get("content") or ""
-                    ).strip()
-                    if not chat_text:
-                        chat_text = (response["choices"][0].get("text") or "").strip()
-                    if chat_text:
-                        raw = _try_parse_json(chat_text)
-                        logger.info("QueryPlanner[fallback:json_schema-retry]: used")
-                except Exception:
-                    raw = None
-
-            if raw is None:
-                raise ValueError("LLM не вернул валидный JSON-план")
-
-            # Пост-валидация
-            plan = self.post_validate(raw, query, self.settings)
-
-            # Догенерация недостающих подзапросов (через микро-GBNF), если < 3
-            if len(plan.normalized_queries) < 3:
-                need = max(0, 3 - len(plan.normalized_queries))
-                if need > 0:
-                    try:
-                        added = self._generate_additional_queries(
-                            query, list(plan.normalized_queries), need
-                        )
-                        if added:
-                            merged = self._dedupe_preserve_order(
-                                list(plan.normalized_queries) + added
-                            )
-                            if len(merged) > 6:
-                                merged = merged[:6]
-                            raw_updated = {
-                                "normalized_queries": merged,
-                                "must_phrases": plan.must_phrases,
-                                "should_phrases": plan.should_phrases,
-                                "metadata_filters": (
-                                    plan.metadata_filters.dict()
-                                    if plan.metadata_filters
-                                    else None
-                                ),
-                                "k_per_query": plan.k_per_query,
-                                "fusion": plan.fusion,
-                            }
-                            plan = self.post_validate(raw_updated, query, self.settings)
-                    except Exception:
-                        pass
-
-        except Exception as e:
-            logger.warning(
-                f"Ошибка планировщика (парсинг/LLM): {e}. Используем fallback"
-            )
-            plan = self._fallback_plan(query)
-
-        t1 = time.time()
-        took_ms = int((t1 - t0) * 1000)
         logger.info(
-            f"QueryPlanner: num_subqueries={len(plan.normalized_queries)}, took_ms={took_ms}"
+            "QueryPlannerService.make_plan | query=%s | enable_hybrid=%s | enforce_router=%s",
+            query[:80],
+            self.settings.enable_hybrid_retriever,
+            self.settings.enforce_router_route,
         )
-
-        if self.settings.enable_cache:
-            self._plan_cache.set(cache_key, plan, ttl=600)
-
+        start_ts = time.perf_counter()
+        try:
+            plan = self._generate_plan(query)
+        except Exception as exc:
+            logger.error("QueryPlannerService.make_plan failed: %s", exc, exc_info=True)
+            raise
+        took_ms = int((time.perf_counter() - start_ts) * 1000)
+        logger.debug(
+            "QueryPlannerService.make_plan success | took_ms=%s | normalized=%s | must=%s | should=%s",
+            took_ms,
+            plan.normalized_queries,
+            plan.must_phrases,
+            plan.should_phrases,
+        )
         return plan
 
     def _build_prompt(self, query: str) -> str:

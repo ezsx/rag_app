@@ -29,14 +29,19 @@ class HybridRetriever:
             else {}
         )
         for q in plan.normalized_queries or [query_text]:
-            items = self.dense.search(
-                q, k=self.settings.hybrid_top_dense, filters=dense_filters
-            )
+            try:
+                items = self.dense.search(
+                    q, k=self.settings.hybrid_top_dense, filters=dense_filters
+                )
+            except Exception as exc:
+                logger.error("Dense search failed for query '%s': %s", q, exc)
+                logger.debug("Dense filters: %s", dense_filters)
+                items = []
             dense_lists_items.append(items)
 
         # Сливаем dense по под‑запросам через RRF
         dense_fused: List[Candidate] = []
-        if dense_lists_items:
+        if any(dense_lists_items):
             # подготовим формат для rrf_merge: (doc, distance, meta)
             rrf_input = []
             for lst in dense_lists_items:
@@ -88,7 +93,14 @@ class HybridRetriever:
                 ]
             )
 
-        fused_all = rrf_merge(rrf_all_input, k=self.settings.k_fusion)
+        if len(rrf_all_input) == 1:
+            # RRF из одной ветки — это исходные BM25 кандидаты
+            fused_all = [
+                (c.text, float(rank), c.metadata)
+                for rank, c in enumerate(bm25_candidates)
+            ]
+        else:
+            fused_all = rrf_merge(rrf_all_input, k=self.settings.k_fusion)
 
         # Дедуп по id
         seen = set()

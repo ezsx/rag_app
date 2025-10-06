@@ -64,7 +64,7 @@ class AgentRequest(BaseModel):
         None, description="Разрешенные инструменты"
     )
     planner: bool = Field(True, description="Использовать ли планировщик запросов")
-    max_steps: int = Field(4, description="Максимальное количество шагов", ge=1, le=10)
+    max_steps: int = Field(8, description="Максимальное количество шагов", ge=1, le=15)
 
 
 class AgentResponse(BaseModel):

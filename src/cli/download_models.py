@@ -106,6 +106,10 @@ def main():
 
     if llm_key:
         print(f"🧠 LLM модель: {RECOMMENDED_MODELS['llm'][llm_key]['description']}")
+        if llm_key == "qwen2.5-7b-instruct":
+            print(
+                "   💡 Рекомендуется для Agentic ReAct-RAG (оптимизирована для 16GB VRAM)"
+            )
     if embedding_key:
         print(
             f"📊 Embedding модель: {RECOMMENDED_MODELS['embedding'][embedding_key]['description']}"

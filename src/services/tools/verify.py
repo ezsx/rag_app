@@ -37,6 +37,16 @@ def verify(
         # Ищем документы по утверждению
         search_results = retriever.search(claim, k=top_k)
 
+        # Проверяем что search_results - словарь, а не список
+        if not isinstance(search_results, dict):
+            logger.warning(f"search_results is not dict: {type(search_results)}")
+            return {
+                "verified": False,
+                "confidence": 0.0,
+                "evidence": [],
+                "error": "Invalid search results format",
+            }
+
         if not search_results.get("documents"):
             return {
                 "verified": False,
@@ -52,14 +62,33 @@ def verify(
         evidence = []
         total_confidence = 0.0
 
+        # documents может быть списком списков (nested) или списком строк
+        # Flatten если nested
+        if documents and isinstance(documents[0], list):
+            documents = documents[0]
+
         for i, doc in enumerate(documents):
+            # doc - строка текста документа
+            if not isinstance(doc, str):
+                continue
+
             # Преобразуем distance в confidence (чем меньше distance, тем выше confidence)
-            if i < len(distances):
-                distance = distances[i]
-                # Нормализуем distance в confidence (0.0-1.0)
-                confidence = max(0.0, 1.0 - min(distance, 2.0) / 2.0)
-            else:
-                confidence = 0.5
+            confidence = 0.5  # default
+            if distances:
+                try:
+                    # distances может быть nested [[0.1, 0.2, ...]] или flat [0.1, 0.2, ...]
+                    if isinstance(distances[0], list):
+                        dist_list = distances[0]
+                    else:
+                        dist_list = distances
+
+                    if i < len(dist_list):
+                        distance = dist_list[i]
+                        # Нормализуем distance в confidence (0.0-1.0)
+                        confidence = max(0.0, 1.0 - min(distance, 2.0) / 2.0)
+                except (IndexError, TypeError) as e:
+                    logger.debug(f"Error parsing distances: {e}")
+                    confidence = 0.5
 
             total_confidence += confidence
             evidence.append(doc[:200] + "..." if len(doc) > 200 else doc)

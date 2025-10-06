@@ -14,7 +14,7 @@ class Settings:
     """Настройки приложения с поддержкой горячего переключения"""
 
     def __init__(self):
-        self.current_llm_key: str = os.getenv("LLM_MODEL_KEY", "gpt-oss-20b")
+        self.current_llm_key: str = os.getenv("LLM_MODEL_KEY", "qwen2.5-7b-instruct")
         # Отдельная модель для Query Planner (CPU)
         self.planner_llm_key: str = os.getenv(
             "PLANNER_LLM_MODEL_KEY", "qwen2.5-3b-instruct"
@@ -78,9 +78,35 @@ class Settings:
         self.enable_cache: bool = os.getenv("ENABLE_CACHE", "true").lower() == "true"
 
         # === ReAct Agent настройки ===
-        self.agent_max_steps: int = int(os.getenv("AGENT_MAX_STEPS", "4"))
-        self.agent_tool_timeout: float = float(os.getenv("AGENT_TOOL_TIMEOUT", "5.0"))
+        self.enable_agent: bool = os.getenv("ENABLE_AGENT", "true").lower() == "true"
+        self.agent_max_steps: int = int(os.getenv("AGENT_MAX_STEPS", "15"))
+        self.agent_default_steps: int = int(os.getenv("AGENT_DEFAULT_STEPS", "8"))
+        self.agent_tool_timeout: float = float(os.getenv("AGENT_TOOL_TIMEOUT", "15.0"))
         self.agent_token_budget: int = int(os.getenv("AGENT_TOKEN_BUDGET", "2000"))
+
+        # === Оптимизированные параметры декодинга для ReAct ===
+        # Шаги инструментов (короткие, детерминированные)
+        self.agent_tool_temp: float = float(os.getenv("AGENT_TOOL_TEMP", "0.2"))
+        self.agent_tool_top_p: float = float(os.getenv("AGENT_TOOL_TOP_P", "0.9"))
+        self.agent_tool_top_k: int = int(os.getenv("AGENT_TOOL_TOP_K", "40"))
+        self.agent_tool_repeat_penalty: float = float(
+            os.getenv("AGENT_TOOL_REPEAT_PENALTY", "1.15")
+        )
+        self.agent_tool_max_tokens: int = int(os.getenv("AGENT_TOOL_MAX_TOKENS", "64"))
+
+        # Финальные ответы (более креативные)
+        self.agent_final_temp: float = float(os.getenv("AGENT_FINAL_TEMP", "0.3"))
+        self.agent_final_top_p: float = float(os.getenv("AGENT_FINAL_TOP_P", "0.9"))
+        self.agent_final_max_tokens: int = int(
+            os.getenv("AGENT_FINAL_MAX_TOKENS", "512")
+        )
+
+        # === Enhanced ReAct Agent настройки ===
+        self.coverage_threshold: float = float(os.getenv("COVERAGE_THRESHOLD", "0.8"))
+        self.max_refinements: int = int(os.getenv("MAX_REFINEMENTS", "1"))
+        self.enable_verify_step: bool = (
+            os.getenv("ENABLE_VERIFY_STEP", "true").lower() == "true"
+        )
 
         # === BM25 / Hybrid настройки ===
         self.bm25_index_root: str = os.getenv("BM25_INDEX_ROOT", "./bm25-index")
@@ -93,10 +119,17 @@ class Settings:
         self.bm25_reload_min_interval_sec: int = int(
             os.getenv("BM25_RELOAD_MIN_INTERVAL_SEC", "5")
         )
+        # Алиас для совместимости со старыми настройками
+        self.enable_hybrid_retriever: bool = self.hybrid_enabled
+        self.enforce_router_route: bool = (
+            os.getenv("ENFORCE_ROUTER_ROUTE", "false").lower() == "true"
+        )
 
         logger.info(
             f"Настройки загружены: LLM={self.current_llm_key}, "
-            f"Embedding={self.current_embedding_key}, Collection={self.current_collection}"
+            f"Embedding={self.current_embedding_key}, Collection={self.current_collection}, "
+            f"Agent={self.enable_agent}, Hybrid={self.hybrid_enabled}, "
+            f"Coverage={self.coverage_threshold}, MaxRefinements={self.max_refinements}, Verify={self.enable_verify_step}"
         )
 
     def update_llm_model(self, model_key: str) -> None:
