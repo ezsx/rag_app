@@ -73,6 +73,17 @@ class Settings:
         self.use_gbnf_planner: bool = (
             os.getenv("USE_GBNF_PLANNER", "true").lower() == "true"
         )
+        self.planner_timeout: float = float(os.getenv("PLANNER_TIMEOUT", "15.0"))
+        self.planner_token_budget: int = int(os.getenv("PLANNER_TOKEN_BUDGET", "4096"))
+        self.planner_temp: float = float(os.getenv("PLANNER_TEMP", "0.2"))
+        self.planner_top_p: float = float(os.getenv("PLANNER_TOP_P", "0.9"))
+        self.planner_top_k: int = int(os.getenv("PLANNER_TOP_K", "40"))
+        self.planner_repeat_penalty: float = float(
+            os.getenv("PLANNER_REPEAT_PENALTY", "1.1")
+        )
+        self.planner_stop: List[str] = os.getenv("PLANNER_STOP", "Observation:").split(
+            "||"
+        )
 
         # Встроенный in-memory кеш (TTL), отдельный от Redis
         self.enable_cache: bool = os.getenv("ENABLE_CACHE", "true").lower() == "true"

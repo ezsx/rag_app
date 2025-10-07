@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Sequence
 
 from adapters.chroma import Retriever
 
@@ -9,7 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 def verify(
-    query: str, claim: str, retriever: Retriever, top_k: int = 3
+    query: str,
+    claim: str,
+    retriever: Retriever,
+    top_k: int = 3,
+    docs: Optional[Sequence[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """Проверяет утверждение через повторный поиск в базе знаний.
 
@@ -34,20 +38,71 @@ def verify(
         }
 
     try:
-        # Ищем документы по утверждению
-        search_results = retriever.search(claim, k=top_k)
+        retrieved_docs: List[Dict[str, Any]] = []
 
-        # Проверяем что search_results - словарь, а не список
-        if not isinstance(search_results, dict):
-            logger.warning(f"search_results is not dict: {type(search_results)}")
-            return {
-                "verified": False,
-                "confidence": 0.0,
-                "evidence": [],
-                "error": "Invalid search results format",
-            }
+        if docs:
+            for item in docs:
+                text = item.get("text") or item.get("snippet")
+                if text:
+                    retrieved_docs.append(
+                        {
+                            "text": str(text),
+                            "distance": item.get("distance"),
+                            "source_id": item.get("id"),
+                        }
+                    )
 
-        if not search_results.get("documents"):
+        if not retrieved_docs:
+            search_results = retriever.search(claim, k=top_k)
+
+            if isinstance(search_results, dict):
+                documents = search_results.get("documents") or []
+                distances = search_results.get("distances") or []
+                metadatas = search_results.get("metadatas") or []
+
+                # Flatten возможных вложенных структур Chroma
+                if documents and isinstance(documents[0], list):
+                    documents = documents[0]
+                if distances and isinstance(distances[0], list):
+                    distances = distances[0]
+                if metadatas and isinstance(metadatas[0], list):
+                    metadatas = metadatas[0]
+
+                for idx, doc_text in enumerate(documents):
+                    if isinstance(doc_text, str) and doc_text.strip():
+                        retrieved_docs.append(
+                            {
+                                "text": doc_text,
+                                "distance": (
+                                    distances[idx] if idx < len(distances) else None
+                                ),
+                                "source_id": (
+                                    (metadatas[idx] or {}).get("id")
+                                    if idx < len(metadatas)
+                                    else None
+                                ),
+                            }
+                        )
+            elif isinstance(search_results, list):
+                for item in search_results:
+                    if not isinstance(item, dict):
+                        continue
+                    text_value = item.get("text") or item.get("snippet")
+                    if not text_value:
+                        continue
+                    retrieved_docs.append(
+                        {
+                            "text": str(text_value),
+                            "distance": item.get("distance"),
+                            "source_id": item.get("id"),
+                        }
+                    )
+            else:
+                logger.warning(
+                    "verify: unexpected search result type %s", type(search_results)
+                )
+
+        if not retrieved_docs:
             return {
                 "verified": False,
                 "confidence": 0.0,
@@ -55,57 +110,32 @@ def verify(
                 "note": "Релевантные документы не найдены",
             }
 
-        documents = search_results["documents"]
-        distances = search_results.get("distances", [])
+        # Рассчитываем confidence по расстояниям/оценкам ранга
+        evidence: List[str] = []
+        confidences: List[float] = []
+        for idx, doc in enumerate(retrieved_docs[:top_k]):
+            text = doc.get("text", "")
+            distance = doc.get("distance")
+            confidence = 0.5
+            if isinstance(distance, (int, float)):
+                confidence = max(0.0, 1.0 - min(distance, 2.0) / 2.0)
+            else:
+                # Чем выше документ в ранге, тем выше confidence
+                confidence = max(0.3, 1.0 - idx * 0.1)
+            confidences.append(confidence)
+            evidence.append(text[:200] + "..." if len(text) > 200 else text)
 
-        # Простая эвристика проверки
-        evidence = []
-        total_confidence = 0.0
-
-        # documents может быть списком списков (nested) или списком строк
-        # Flatten если nested
-        if documents and isinstance(documents[0], list):
-            documents = documents[0]
-
-        for i, doc in enumerate(documents):
-            # doc - строка текста документа
-            if not isinstance(doc, str):
-                continue
-
-            # Преобразуем distance в confidence (чем меньше distance, тем выше confidence)
-            confidence = 0.5  # default
-            if distances:
-                try:
-                    # distances может быть nested [[0.1, 0.2, ...]] или flat [0.1, 0.2, ...]
-                    if isinstance(distances[0], list):
-                        dist_list = distances[0]
-                    else:
-                        dist_list = distances
-
-                    if i < len(dist_list):
-                        distance = dist_list[i]
-                        # Нормализуем distance в confidence (0.0-1.0)
-                        confidence = max(0.0, 1.0 - min(distance, 2.0) / 2.0)
-                except (IndexError, TypeError) as e:
-                    logger.debug(f"Error parsing distances: {e}")
-                    confidence = 0.5
-
-            total_confidence += confidence
-            evidence.append(doc[:200] + "..." if len(doc) > 200 else doc)
-
-        # Средняя confidence
-        avg_confidence = total_confidence / len(documents) if documents else 0.0
-
-        # Порог для верификации (можно настроить)
-        verification_threshold = 0.6
-        verified = avg_confidence >= verification_threshold
+        avg_confidence = sum(confidences) / len(confidences)
+        threshold = 0.6
+        verified = avg_confidence >= threshold
 
         return {
             "verified": verified,
             "confidence": round(avg_confidence, 3),
             "evidence": evidence,
-            "threshold": verification_threshold,
-            "documents_found": len(documents),
+            "threshold": threshold,
+            "documents_found": len(retrieved_docs),
+            "used_docs": min(len(retrieved_docs), top_k),
         }
 
     except Exception as e:

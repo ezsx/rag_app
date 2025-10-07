@@ -188,8 +188,16 @@ Be accurate, logical, and helpful."""
                     verified_answer = final_answer
 
                     if self.settings.enable_verify_step:
+                        logger.debug(
+                            "Starting answer verification for request %s", request_id
+                        )
                         verify_res = await self._verify_answer(
                             final_answer, conversation_history
+                        )
+                        logger.debug(
+                            "Verification result: verified=%s, confidence=%.3f",
+                            verify_res.get("verified", False),
+                            verify_res.get("confidence", 0.0),
                         )
 
                         if (
@@ -235,7 +243,8 @@ Be accurate, logical, and helpful."""
 
                                     # Send observation for verification refinement
                                     verify_ref_observation = self._format_observation(
-                                        verify_refinement_result.output
+                                        verify_refinement_result.output,
+                                        verify_refinement_result.tool,
                                     )
                                     yield AgentStepEvent(
                                         type="observation",
@@ -273,20 +282,43 @@ Be accurate, logical, and helpful."""
                                 " (⚠️ Answer not verified with high confidence)"
                             )
 
+                    # Добавляем информацию о верификации в финальный ответ
+                    final_data = {
+                        "answer": verified_answer,
+                        "step": step,
+                        "total_steps": step,
+                        "request_id": request_id,
+                        "coverage": agent_state.coverage,
+                        "refinements": agent_state.refinement_count,
+                    }
+
+                    if self.settings.enable_verify_step and verify_res:
+                        final_data.update(
+                            {
+                                "verification": {
+                                    "verified": verify_res.get("verified", False),
+                                    "confidence": verify_res.get("confidence", 0.0),
+                                    "documents_found": verify_res.get(
+                                        "documents_found", 0
+                                    ),
+                                }
+                            }
+                        )
+
                     yield AgentStepEvent(
                         type="final",
-                        data={
-                            "answer": verified_answer,
-                            "step": step,
-                            "total_steps": step,
-                            "request_id": request_id,
-                            "coverage": agent_state.coverage,
-                            "refinements": agent_state.refinement_count,
-                        },
+                        data=final_data,
                     )
+
                     logger.info(
-                        f"ReAct петля завершена на шаге {step} для запроса {request_id} "
-                        f"(coverage: {agent_state.coverage:.2f}, refinements: {agent_state.refinement_count})"
+                        "ReAct loop completed at step %d for request %s "
+                        "(coverage: %.2f, refinements: %d, verified: %s, confidence: %.3f)",
+                        step,
+                        request_id,
+                        agent_state.coverage,
+                        agent_state.refinement_count,
+                        verify_res.get("verified", False) if verify_res else "N/A",
+                        verify_res.get("confidence", 0.0) if verify_res else 0.0,
                     )
                     return
 
@@ -316,7 +348,9 @@ Be accurate, logical, and helpful."""
                         )
 
                         # Отправляем результат наблюдения
-                        observation = self._format_observation(action_result.output)
+                        observation = self._format_observation(
+                            action_result.output, action_result.tool
+                        )
                         yield AgentStepEvent(
                             type="observation",
                             data={
@@ -336,12 +370,26 @@ Be accurate, logical, and helpful."""
                                 "route",
                                 action_result.output.data.get("route_used"),
                             )
-                            self._last_search_hits = action_result.output.data.get(
-                                "hits", []
-                            )
+                            search_hits = action_result.output.data.get("hits", [])
+                            self._last_search_hits = search_hits
                             self._last_search_route = action_result.output.data.get(
                                 "route_used"
                             )
+
+                            # Логируем информацию о найденных документах
+                            if search_hits:
+                                hit_ids = [
+                                    hit.get("id")
+                                    for hit in search_hits[:5]
+                                    if hit.get("id")
+                                ]
+                                logger.debug(
+                                    "Search found %d hits, first IDs: %s",
+                                    len(search_hits),
+                                    hit_ids,
+                                )
+                            else:
+                                logger.warning("Search returned no hits")
 
                         if (
                             action_result.tool == "rerank"
@@ -357,7 +405,17 @@ Be accurate, logical, and helpful."""
                             coverage = action_result.output.data.get(
                                 "citation_coverage", 0.0
                             )
+                            citations = action_result.output.data.get("citations", [])
+                            contexts = action_result.output.data.get("contexts", [])
+
                             agent_state.coverage = coverage
+
+                            logger.debug(
+                                "Compose context: coverage=%.2f, citations=%d, contexts=%d",
+                                coverage,
+                                len(citations),
+                                len(contexts),
+                            )
 
                             if self._should_attempt_refinement(
                                 coverage, agent_state.refinement_count
@@ -399,7 +457,8 @@ Be accurate, logical, and helpful."""
 
                                         # Send observation for refinement
                                         ref_observation = self._format_observation(
-                                            refinement_result.output
+                                            refinement_result.output,
+                                            refinement_result.tool,
                                         )
                                         yield AgentStepEvent(
                                             type="observation",
@@ -676,6 +735,14 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
                 if isinstance(hit, dict) and hit.get("id")
             }
 
+            # Логируем для диагностики
+            logger.debug(
+                "compose_context: hit_ids=%s, available_hits=%s, last_hits_count=%s",
+                hit_ids,
+                list(hits_by_id.keys()),
+                len(last_hits),
+            )
+
             # Выбираем документы по hit_ids или берём все последние hits
             selected_hits: List[Dict[str, Any]] = []
             if hit_ids:
@@ -683,26 +750,78 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
                     match = hits_by_id.get(hid)
                     if match:
                         selected_hits.append(match)
+                    else:
+                        logger.warning(
+                            "compose_context: hit_id %s not found in last_hits", hid
+                        )
 
             if not selected_hits:
                 selected_hits = [hit for hit in last_hits if isinstance(hit, dict)]
+                logger.debug(
+                    "compose_context: using all last_hits, count=%s", len(selected_hits)
+                )
 
             # Нормализуем в формат docs
             normalized_docs: List[Dict[str, Any]] = []
+            missing_ids: List[str] = []
+
             for doc in selected_hits:
+                doc_id = doc.get("id")
+                text_value = (
+                    doc.get("text")
+                    or doc.get("snippet")
+                    or doc.get("meta", {}).get("text")
+                    or doc.get("metadata", {}).get("text")
+                    or ""
+                )
+
+                if not text_value and doc_id:
+                    missing_ids.append(doc_id)
+
                 normalized_docs.append(
                     {
-                        "id": doc.get("id"),
-                        "text": (
-                            doc.get("text")
-                            or doc.get("snippet")
-                            or doc.get("meta", {}).get("text")
-                            or doc.get("metadata", {}).get("text")
-                            or ""
-                        ),
+                        "id": doc_id,
+                        "text": text_value,
                         "metadata": doc.get("metadata") or doc.get("meta", {}),
                     }
                 )
+
+            if missing_ids:
+                try:
+                    fetch_request = ToolRequest(
+                        tool="fetch_docs",
+                        input={"ids": missing_ids},
+                    )
+                    fetch_result = self.tool_runner.run(
+                        self._current_request_id or "compose_context",
+                        self._current_step,
+                        fetch_request,
+                    )
+                    if fetch_result and fetch_result.output.ok:
+                        fetched_docs = fetch_result.output.data.get("docs", [])
+                        fetched_by_id = {
+                            item.get("id"): item
+                            for item in fetched_docs
+                            if isinstance(item, dict)
+                        }
+                        for doc in normalized_docs:
+                            doc_id = doc.get("id")
+                            if doc_id in fetched_by_id and not doc.get("text"):
+                                fetched = fetched_by_id[doc_id]
+                                doc["text"] = fetched.get("text", "")
+                                doc["metadata"] = fetched.get("metadata", {})
+                    elif fetch_result and fetch_result.output.meta.error:
+                        logger.warning(
+                            "compose_context: fetch_docs returned error for ids %s: %s",
+                            missing_ids,
+                            fetch_result.output.meta.error,
+                        )
+                except Exception as fetch_error:
+                    logger.warning(
+                        "compose_context: failed to fetch docs for ids %s: %s",
+                        missing_ids,
+                        fetch_error,
+                    )
 
             params["docs"] = normalized_docs
 
@@ -740,7 +859,7 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
 
         return params
 
-    def _format_observation(self, tool_response) -> str:
+    def _format_observation(self, tool_response, tool_name: str = "") -> str:
         """Форматирует результат инструмента для наблюдения"""
         if not tool_response.ok:
             return f"Ошибка: {tool_response.meta.error or 'Неизвестная ошибка'}"
@@ -753,8 +872,8 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
         try:
             if isinstance(tool_response.data, dict):
                 # Специальная обработка для search - показываем hit IDs
-                if "hits" in tool_response.data and isinstance(
-                    tool_response.data["hits"], list
+                if tool_name == "search" and isinstance(
+                    tool_response.data.get("hits"), list
                 ):
                     hits = tool_response.data["hits"]
                     hit_ids = [
@@ -763,7 +882,32 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
                         if isinstance(hit, dict)
                     ]
                     route_used = tool_response.data.get("route_used", "unknown")
-                    return f"Found {len(hits)} documents. IDs: {hit_ids}. Route: {route_used}. IMPORTANT: Use these IDs for compose_context!"
+                    total_found = tool_response.data.get("total_found", len(hits))
+                    return f"Found {len(hits)} documents (total: {total_found}). Route: {route_used}. Use these IDs for compose_context: {hit_ids}"
+
+                # Специальная обработка для compose_context
+                if tool_name == "compose_context":
+                    coverage = tool_response.data.get("citation_coverage", 0.0)
+                    citations_count = len(tool_response.data.get("citations", []))
+                    contexts_count = len(tool_response.data.get("contexts", []))
+                    return f"Composed context with {citations_count} citations, coverage: {coverage:.2f}, contexts: {contexts_count}"
+
+                # Специальная обработка для verify
+                if tool_name == "verify":
+                    verified = tool_response.data.get("verified", False)
+                    confidence = tool_response.data.get("confidence", 0.0)
+                    docs_found = tool_response.data.get("documents_found", 0)
+                    threshold = tool_response.data.get("threshold", 0.6)
+                    evidence_count = len(tool_response.data.get("evidence", []))
+                    return f"Verification: {verified} (confidence: {confidence:.3f}, threshold: {threshold}, docs: {docs_found}, evidence: {evidence_count})"
+
+                # Специальная обработка для query_plan
+                if tool_name == "query_plan":
+                    plan = tool_response.data.get("plan", {})
+                    queries = plan.get("normalized_queries", [])
+                    k_per_query = plan.get("k_per_query", 0)
+                    fusion = plan.get("fusion", "unknown")
+                    return f"Plan: {len(queries)} queries, k={k_per_query}, fusion={fusion}"
 
                 # Красиво форматируем ключевые поля
                 result_parts = []
@@ -771,9 +915,22 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
                     if key in ["error", "result", "answer", "route", "prompt"]:
                         result_parts.append(f"{key}: {value}")
                     elif isinstance(value, (list, dict)):
-                        result_parts.append(
-                            f"{key}: {len(value) if isinstance(value, list) else 'object'}"
-                        )
+                        if key == "citations" and tool_name == "compose_context":
+                            # Для compose_context показываем детали цитат
+                            citations = value if isinstance(value, list) else []
+                            if citations:
+                                citation_ids = [
+                                    c.get("id", "unknown") for c in citations[:3]
+                                ]
+                                result_parts.append(
+                                    f"citations: {citation_ids}{'...' if len(citations) > 3 else ''}"
+                                )
+                            else:
+                                result_parts.append("citations: none")
+                        else:
+                            result_parts.append(
+                                f"{key}: {len(value) if isinstance(value, list) else 'object'}"
+                            )
                     else:
                         result_parts.append(f"{key}: {str(value)[:100]}")
 
@@ -783,7 +940,8 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
             else:
                 return str(tool_response.data)[:500]  # Ограничиваем длину
 
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error formatting observation for {tool_name}: {e}")
             return "Результат получен (ошибка форматирования)"
 
     def get_available_tools(self) -> Dict[str, Any]:
@@ -851,8 +1009,15 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
             if not original_query.startswith("Human: "):
                 original_query = "Human: " + original_query
 
+            logger.debug(
+                "Verifying answer: query='%s', claim_length=%d",
+                original_query[:100],
+                len(final_answer),
+            )
+
             request_id_for_verify = self._current_request_id or "verify"
             verify_step = self._current_step if hasattr(self, "_current_step") else 1
+
             result = self.tool_runner.run(
                 request_id_for_verify,
                 verify_step,
@@ -866,17 +1031,34 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
                 ),
             )
 
+            logger.debug(
+                "Verify tool result: ok=%s, data_keys=%s",
+                result.output.ok if result else False,
+                list(result.output.data.keys()) if result and result.output.ok else [],
+            )
+
             if result and result.output.ok:
-                return result.output.data
+                verify_data = result.output.data
+                logger.debug(
+                    "Verification successful: verified=%s, confidence=%.3f, docs=%d",
+                    verify_data.get("verified", False),
+                    verify_data.get("confidence", 0.0),
+                    verify_data.get("documents_found", 0),
+                )
+                return verify_data
             else:
+                error_msg = "Tool execution failed"
+                if result and result.output.meta.error:
+                    error_msg = result.output.meta.error
+                logger.warning("Verification failed: %s", error_msg)
                 return {
                     "verified": False,
                     "confidence": 0.0,
-                    "error": "Verification failed",
+                    "error": error_msg,
                 }
 
         except Exception as e:
-            logger.error(f"Error in _verify_answer: {e}")
+            logger.error(f"Error in _verify_answer: {e}", exc_info=True)
             return {"verified": False, "confidence": 0.0, "error": str(e)}
 
     def _should_attempt_refinement(

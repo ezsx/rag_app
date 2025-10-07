@@ -9,10 +9,10 @@
 - Redis: `redis_enabled`, `redis_host/port/password`, `cache_ttl`.
 - Chroma: `chroma_host/port/path`.
 - Директории моделей/кэша: `models_dir`, `cache_dir`.
-- Query Planner/Fusion: `enable_query_planner`, `fusion_strategy`, `k_fusion`, `search_k_per_query_default`, `max_plan_subqueries`, `enable_cache`.
+- Query Planner/Fusion: `enable_query_planner`, `fusion_strategy`, `k_fusion`, `search_k_per_query_default`, `max_plan_subqueries`, `planner_timeout`, `planner_token_budget`, `planner_temp`, `planner_top_p`, `planner_top_k`, `planner_repeat_penalty`, `planner_stop`, `enable_cache`.
 - BM25/Hybrid: `bm25_index_root`, `hybrid_enabled`, `hybrid_top_*`, `bm25_default_top_k`, `bm25_reload_min_interval_sec`.
 - Reranker: `enable_reranker`, `reranker_model_key`, `reranker_top_n`, `reranker_batch_size`.
-- **Agentic ReAct-RAG**: `enable_agent`, `coverage_threshold`, `max_refinements`, `enable_verify_step`, `agent_tool_timeout`, `agent_token_budget`, `agent_tool_temp`, `agent_final_temp`.
+- **Agentic ReAct-RAG**: `enable_agent`, `agent_max_steps`, `agent_default_steps`, `coverage_threshold`, `max_refinements`, `enable_verify_step`, `agent_tool_timeout`, `agent_token_budget`, `agent_tool_temp`, `agent_final_temp`.
 
 ### Динамические обновления
 - `update_llm_model`, `update_embedding_model`, `update_collection` — горячая смена с очисткой `lru_cache` фабрик.

@@ -93,7 +93,7 @@ def get_llm():
 
     # Параметры модели
     n_gpu_layers = int(os.getenv("LLM_GPU_LAYERS", "-1"))
-    n_ctx = int(os.getenv("LLM_CONTEXT_SIZE", "8192"))
+    n_ctx = int(os.getenv("LLM_CONTEXT_SIZE", "10000"))
     n_threads = int(os.getenv("LLM_THREADS", "8"))
     n_batch = int(os.getenv("LLM_BATCH", "1024"))
 
@@ -540,16 +540,18 @@ def get_agent_service() -> AgentService:
         return rerank(reranker=reranker, **kwargs)
 
     tool_runner.register("router_select", router_select)
-    tool_runner.register("query_plan", query_plan_wrapper, timeout_sec=6.0)
+    tool_runner.register(
+        "query_plan", query_plan_wrapper, timeout_sec=settings.planner_timeout
+    )
     tool_runner.register(
         "search",
         search_wrapper,
-        timeout_sec=max(5.0, settings.agent_tool_timeout * 0.8),
+        timeout_sec=settings.agent_tool_timeout,
     )
     tool_runner.register(
         "rerank",
         rerank_wrapper,
-        timeout_sec=max(4.0, settings.agent_tool_timeout * 0.5),
+        timeout_sec=settings.agent_tool_timeout,
     )
     tool_runner.register("fetch_docs", fetch_docs_wrapper)
     tool_runner.register("compose_context", compose_context)

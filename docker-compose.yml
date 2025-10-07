@@ -48,7 +48,7 @@ services:
       # Автоскачивание моделей
       - AUTO_DOWNLOAD_EMBEDDING=true
       # Размер контекста для LLM (увеличен для агента)
-      - LLM_CONTEXT_SIZE=8192
+      - LLM_CONTEXT_SIZE=10000
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --loop uvloop --reload
 
   chroma:

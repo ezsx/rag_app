@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from datetime import datetime
 from typing import Optional, Any, Dict, List
 
@@ -329,29 +330,42 @@ class QueryPlannerService:
             fusion=fusion,
         )
 
+    def _call_planner_llm(self, prompt: str) -> Dict[str, Any]:
+        """Вызов планировочной LLM с таймаутом на уровне приложения."""
+
+        kwargs: Dict[str, Any] = {
+            "max_tokens": self.settings.planner_token_budget,
+            "temperature": self.settings.planner_temp,
+            "top_p": self.settings.planner_top_p,
+            "top_k": getattr(self.settings, "planner_top_k", 40),
+            "repeat_penalty": self.settings.planner_repeat_penalty,
+            "stop": self.settings.planner_stop,
+        }
+
+        if self._grammar:
+            kwargs["grammar"] = self._grammar
+
+        timeout_sec = max(float(self.settings.planner_timeout), 0.1)
+
+        def _invoke_llm():
+            return self.llm(prompt, **kwargs)
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(_invoke_llm)
+            try:
+                return future.result(timeout=timeout_sec)
+            except FuturesTimeoutError:
+                future.cancel()
+                raise TimeoutError(
+                    f"Planner LLM timeout after {int(timeout_sec * 1000)}ms"
+                )
+
     def _generate_plan(self, query: str) -> SearchPlan:
         """Генерирует план поиска через LLM с GBNF грамматикой."""
         prompt = self._build_prompt(query)
 
         try:
-            # Вызов LLM с GBNF грамматикой (если включено)
-            if self._grammar:
-                response = self.llm(
-                    prompt,
-                    max_tokens=512,
-                    temperature=0.1,
-                    top_p=0.95,
-                    grammar=self._grammar,
-                    stop=["</s>", "\n\n"],
-                )
-            else:
-                response = self.llm(
-                    prompt,
-                    max_tokens=512,
-                    temperature=0.1,
-                    top_p=0.95,
-                    stop=["</s>", "\n\n"],
-                )
+            response = self._call_planner_llm(prompt)
 
             raw_text = response["choices"][0]["text"].strip()
 
@@ -373,6 +387,13 @@ class QueryPlannerService:
 
             return plan
 
+        except TimeoutError as timeout_exc:
+            logger.error(
+                "Planner LLM timeout for query='%s': %s",
+                query[:80],
+                timeout_exc,
+            )
+            return self._fallback_plan(query)
         except Exception as e:
             logger.error(f"_generate_plan failed for query='{query[:80]}': {e}")
             return self._fallback_plan(query)
