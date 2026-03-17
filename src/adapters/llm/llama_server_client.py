@@ -116,6 +116,10 @@ class LlamaServerClient:
             "top_p": top_p,
             "top_k": top_k,
             "presence_penalty": presence_penalty,
+            # Qwen3 thinking mode конфликтует с tool_calls в history
+            # (ошибка "Assistant response prefill is incompatible with enable_thinking").
+            # Для agent pipeline thinking не нужен — отключаем явно.
+            "enable_thinking": False,
         }
         if self.model:
             payload["model"] = self.model

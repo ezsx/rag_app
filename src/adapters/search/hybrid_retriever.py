@@ -1,13 +1,19 @@
 """
-HybridRetriever Phase 1 — нативный RRF через Qdrant prefetch + FusionQuery.
+HybridRetriever Phase 1 — нативный RRF + MMR через Qdrant prefetch.
 
-Заменяет Phase 0 ChromaDB + BM25 + ручной rrf_merge.
+Двухэтапный pipeline:
+  1. prefetch: dense (cosine) + sparse (BM25) → RRF fusion → кандидаты
+  2. финальный query: MMR по dense_vector для разнообразия результатов
+
+dense_score каждого кандидата — cosine similarity с query vector,
+а не RRF score (RRF scores неинтерпретируемы для coverage metric).
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import threading
 from typing import Any, Coroutine, Optional, TypeVar
 
@@ -118,7 +124,12 @@ class HybridRetriever:
     async def _async_search(
         self, query_text: str, plan: SearchPlan
     ) -> list[Candidate]:
-        """Async реализация hybrid search."""
+        """Async реализация hybrid search: RRF fusion → MMR diversification.
+
+        Двухэтапный Qdrant query:
+        1. prefetch: dense + sparse → RRF fusion → расширенный набор кандидатов
+        2. финальный query: MMR по dense_vector для разнообразия
+        """
         dense_vector: list[float] = await self._embedding_client.embed_query(query_text)
 
         sparse_result = next(iter(self._sparse_encoder.query_embed(query_text)))
@@ -128,38 +139,53 @@ class HybridRetriever:
         )
 
         query_filter = self._build_filter(plan.metadata_filters)
+        # RRF prefetch берёт больше кандидатов, MMR потом сужает
+        rrf_limit = max(plan.k_per_query * 3, 40)
         prefetch_limit = max(plan.k_per_query * 2, 20)
 
         logger.debug(
-            "HybridRetriever query: collection=%s prefetch_limit=%d k=%d filter=%s",
+            "HybridRetriever query: collection=%s prefetch=%d rrf=%d k=%d mmr_lambda=%.2f filter=%s",
             self._store.collection,
             prefetch_limit,
+            rrf_limit,
             plan.k_per_query,
+            self._settings.mmr_lambda,
             bool(query_filter),
         )
 
+        # Двухэтапный pipeline:
+        # Уровень 1 (внутренний prefetch): dense + sparse → каждый по prefetch_limit
+        # Уровень 2 (промежуточный prefetch): RRF fusion → rrf_limit кандидатов
+        # Финальный query: MMR по dense_vector → k результатов с разнообразием
         result = await self._store.client.query_points(
             collection_name=self._store.collection,
             prefetch=[
                 models.Prefetch(
-                    query=dense_vector,
-                    using=QdrantStore.DENSE_VECTOR,
-                    limit=prefetch_limit,
-                ),
-                models.Prefetch(
-                    query=sparse_vector,
-                    using=QdrantStore.SPARSE_VECTOR,
-                    limit=prefetch_limit,
+                    prefetch=[
+                        models.Prefetch(
+                            query=dense_vector,
+                            using=QdrantStore.DENSE_VECTOR,
+                            limit=prefetch_limit,
+                        ),
+                        models.Prefetch(
+                            query=sparse_vector,
+                            using=QdrantStore.SPARSE_VECTOR,
+                            limit=prefetch_limit,
+                        ),
+                    ],
+                    query=models.FusionQuery(fusion=models.Fusion.RRF),
+                    limit=rrf_limit,
                 ),
             ],
-            query=models.FusionQuery(fusion=models.Fusion.RRF),
+            query=dense_vector,
+            using=QdrantStore.DENSE_VECTOR,
             query_filter=query_filter,
             with_payload=True,
             with_vectors=True,
             limit=plan.k_per_query,
         )
 
-        candidates = self._to_candidates(result.points)
+        candidates = self._to_candidates(result.points, dense_vector)
         logger.debug(
             "HybridRetriever: %d результатов для '%s'", len(candidates), query_text[:60]
         )
@@ -200,8 +226,27 @@ class HybridRetriever:
 
         return models.Filter(must=conditions) if conditions else None
 
-    def _to_candidates(self, points: list[Any]) -> list[Candidate]:
-        """Конвертирует ScoredPoint из Qdrant в Candidate."""
+    @staticmethod
+    def _cosine_similarity(a: list[float], b: list[float]) -> float:
+        """Cosine similarity между двумя векторами."""
+        dot = sum(x * y for x, y in zip(a, b))
+        norm_a = math.sqrt(sum(x * x for x in a))
+        norm_b = math.sqrt(sum(x * x for x in b))
+        if norm_a == 0.0 or norm_b == 0.0:
+            return 0.0
+        return dot / (norm_a * norm_b)
+
+    def _to_candidates(
+        self,
+        points: list[Any],
+        query_vector: list[float] | None = None,
+    ) -> list[Candidate]:
+        """Конвертирует ScoredPoint из Qdrant в Candidate.
+
+        dense_score вычисляется как cosine similarity между query_vector и
+        document dense_vector. Если query_vector не передан или у документа
+        нет dense vector — fallback на point.score.
+        """
         candidates: list[Candidate] = []
         for point in points:
             payload: dict[str, Any] = point.payload or {}
@@ -209,6 +254,12 @@ class HybridRetriever:
             dense_vec: list[float] | None = None
             if isinstance(point.vector, dict):
                 dense_vec = point.vector.get(QdrantStore.DENSE_VECTOR)
+
+            # Cosine similarity вместо RRF/MMR score для coverage metric
+            if query_vector and dense_vec:
+                cosine_sim = self._cosine_similarity(query_vector, dense_vec)
+            else:
+                cosine_sim = float(point.score)
 
             candidates.append(
                 Candidate(
@@ -224,7 +275,7 @@ class HybridRetriever:
                         "_dense_vector": dense_vec,
                     },
                     bm25_score=None,
-                    dense_score=float(point.score),
+                    dense_score=cosine_sim,
                     source="hybrid",
                 )
             )
