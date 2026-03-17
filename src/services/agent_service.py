@@ -113,10 +113,14 @@ Step 2: Thought → compose_context {hit_ids: [ids from step 1]} → Observation
 Step 3: Thought → FinalAnswer (based on context from step 2, with citation numbers [1], [2], etc.)
 
 SYSTEM DETERMINISTIC LOGIC:
-- After compose_context, system auto-checks citation coverage (>=65%)
-- If coverage insufficient, system performs additional search round
+- After compose_context, system auto-checks citation coverage
+- If coverage insufficient, system performs additional search round (max 2 rounds)
+- After compose_context succeeds (or after refinement rounds), you MUST proceed to FinalAnswer
+- Do NOT call search or compose_context again after system refinement — use what you have
 - Before final answer, system may verify claims
-- Maximum 2 additional search rounds to avoid infinite loops
+
+CRITICAL RULE: After you see "Composed context with N citations", your next action MUST be FinalAnswer.
+Do NOT search again. Use the citations you already have to write your answer.
 
 Be accurate, logical, and helpful."""
 
@@ -688,6 +692,69 @@ Be accurate, logical, and helpful."""
                                 >= self.settings.max_refinements
                             ):
                                 agent_state.low_coverage_disclaimer = True
+
+                            # После compose_context (с citations) — принудительно
+                            # генерируем FinalAnswer. Без этого LLM бесконечно
+                            # вызывает search/compose вместо ответа.
+                            if self._last_compose_citations:
+                                try:
+                                    # Собираем контекст из последних citations
+                                    ctx_texts = []
+                                    for hit in self._last_search_hits[:5]:
+                                        if isinstance(hit, dict) and hit.get("text"):
+                                            ctx_texts.append(hit["text"][:500])
+
+                                    context_block = "\n\n".join(
+                                        f"[{i+1}] {t}" for i, t in enumerate(ctx_texts)
+                                    )
+
+                                    final_prompt = (
+                                        f"На основе следующего контекста ответь на вопрос пользователя.\n\n"
+                                        f"Контекст:\n{context_block}\n\n"
+                                        f"Вопрос: {request.query}\n\n"
+                                        f"Ответь кратко и по существу на русском языке, "
+                                        f"ссылаясь на источники номерами [1], [2] и т.д."
+                                    )
+
+                                    llm = self.llm_factory()
+                                    final_resp = llm(
+                                        final_prompt,
+                                        max_tokens=self.settings.agent_final_max_tokens,
+                                        temperature=self.settings.agent_final_temp,
+                                        top_p=self.settings.agent_final_top_p,
+                                        stop=["Human:", "\n\nВопрос:"],
+                                    )
+                                    raw_answer = final_resp["choices"][0]["text"].strip()
+
+                                    # Strip thinking preamble
+                                    marker = re.search(r"[А-Яа-яЁё]", raw_answer)
+                                    if marker and marker.start() > 50:
+                                        raw_answer = raw_answer[marker.start():]
+
+                                    if agent_state.low_coverage_disclaimer:
+                                        raw_answer = (
+                                            "[Примечание: найдено ограниченное количество релевантной информации. "
+                                            "Ответ может быть неполным.]\n\n" + raw_answer
+                                        )
+
+                                    yield AgentStepEvent(
+                                        type="final",
+                                        data={
+                                            "answer": raw_answer,
+                                            "citations": self._last_compose_citations,
+                                            "coverage": agent_state.coverage,
+                                            "refinements": agent_state.refinement_count,
+                                            "step": step,
+                                            "total_steps": step,
+                                            "request_id": request_id,
+                                        },
+                                    )
+                                    return
+                                except Exception as e:
+                                    logger.error(
+                                        "Forced FinalAnswer generation failed: %s", e
+                                    )
+                                    # Fall through to normal step increment
 
                 step += 1
                 self._current_step = step  # Обновляем текущий шаг
