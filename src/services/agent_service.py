@@ -828,7 +828,53 @@ Be accurate, logical, and helpful."""
                     seed=42,
                 )
 
-            return response["choices"][0]["text"].strip()
+            raw_text = response["choices"][0]["text"].strip()
+            finish_reason = response["choices"][0].get("finish_reason", "unknown")
+            logger.debug(
+                "LLM raw response (step %d, finish=%s, len=%d): %s",
+                step, finish_reason, len(raw_text), raw_text[:300],
+            )
+
+            # Qwen3 thinking mode (DEC-0022): LLM может генерировать внутренний COT
+            # перед ReAct-маркерами. С /v1/completions endpoint thinking идёт БЕЗ тегов
+            # <think> — просто англоязычный текст перед первым Мысль:/Thought:/Action:.
+            #
+            # Стратегия: обрезаем всё до первого ReAct-маркера.
+
+            # 1. Strip <think>...</think> тегов (если есть — зависит от reasoning_format)
+            cleaned = re.sub(r"<think>.*?</think>", "", raw_text, flags=re.DOTALL)
+            cleaned = re.sub(r"<think>.*$", "", cleaned, flags=re.DOTALL)
+
+            # 2. Обрезаем до первого ReAct-маркера (Мысль/Thought/Action/FinalAnswer/Ответ)
+            marker_match = re.search(
+                r"((?:Мысль|Thought|Действие|Action|Ответ|FinalAnswer)\s*:)",
+                cleaned,
+                re.IGNORECASE,
+            )
+            if marker_match:
+                before = cleaned[: marker_match.start()]
+                cleaned = cleaned[marker_match.start() :].strip()
+                if before.strip():
+                    logger.debug(
+                        "Stripped %d chars of thinking preamble before '%s'",
+                        len(before.strip()),
+                        marker_match.group(1),
+                    )
+            else:
+                # Нет ReAct-маркера — весь бюджет ушёл на thinking.
+                # Извлечём последнее предложение как Thought.
+                cleaned = cleaned.strip()
+                if cleaned:
+                    sentences = [s.strip() for s in cleaned.split(".") if s.strip()]
+                    if sentences:
+                        cleaned = f"Thought: {sentences[-1]}"
+                        logger.warning(
+                            "No ReAct marker in LLM output (%d chars), "
+                            "extracted last sentence as Thought",
+                            len(raw_text),
+                        )
+
+            return cleaned
 
         except Exception as e:
             logger.error(f"Ошибка генерации шага {step} для запроса {request_id}: {e}")
