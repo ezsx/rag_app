@@ -36,6 +36,15 @@ async def lifespan(app: FastAPI):
 
     # Проверяем доступность зависимостей при старте
     try:
+        from core.deps import (
+            get_qdrant_store,
+            get_tei_embedding_client,
+            get_tei_reranker_client,
+        )
+
+        store = get_qdrant_store()
+        await store.ensure_collection()
+
         # Опциональный прогрев LLM. По умолчанию выключен для быстрых рестартов.
         if os.getenv("LLM_WARMUP", "false").lower() == "true":
             try:
@@ -53,6 +62,17 @@ async def lifespan(app: FastAPI):
     yield
 
     logger.info("🛑 RAG API завершает работу...")
+
+    from core.deps import get_reranker
+
+    sync_reranker = get_reranker()
+    if sync_reranker is not None:
+        sync_reranker.close()
+    await store.aclose()
+    emb = get_tei_embedding_client()
+    await emb.aclose()
+    rer = get_tei_reranker_client()
+    await rer.aclose()
 
 
 # Создаем FastAPI приложение

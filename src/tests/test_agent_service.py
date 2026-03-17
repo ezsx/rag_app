@@ -19,6 +19,7 @@ def mock_settings():
     settings.agent_max_steps = 4
     settings.agent_token_budget = 2000
     settings.agent_tool_timeout = 5.0
+    settings.enable_verify_step = False
     return settings
 
 
@@ -189,3 +190,36 @@ async def test_stream_agent_response_simple(agent_service, mock_llm):
     final_event = next(e for e in events if e.type == "final")
     assert "answer" in final_event.data
     assert final_event.data["answer"] == "Это тестовый ответ"
+
+
+@pytest.mark.asyncio
+async def test_stream_invokes_final_answer_tool(
+    agent_service, mock_llm, mock_tool_runner
+):
+    """Проверяем, что при финализации вызывается инструмент final_answer и эмитится tool_invoked."""
+    from schemas.agent import ToolResponse, ToolMeta, AgentAction, ToolRequest
+
+    # Готовим LLM к возврату финального ответа
+    mock_llm.return_value = {
+        "choices": [{"text": "FinalAnswer: Ответ через инструмент"}]
+    }
+
+    # Мокаем результат выполнения final_answer (не критично для события tool_invoked)
+    mock_tool_runner.run.return_value = AgentAction(
+        step=1,
+        tool="final_answer",
+        input={"answer": "Ответ через инструмент"},
+        output=ToolResponse(
+            ok=True, data={"answer": "Ответ через инструмент"}, meta=ToolMeta(took_ms=5)
+        ),
+    )
+
+    # Запускаем стрим
+    request = AgentRequest(query="Тестовый вопрос", max_steps=1)
+    events = []
+    async for event in agent_service.stream_agent_response(request):
+        events.append(event)
+
+    # Проверяем, что есть событие tool_invoked для final_answer
+    tool_events = [e for e in events if e.type == "tool_invoked"]
+    assert any(te.data.get("tool") == "final_answer" for te in tool_events)

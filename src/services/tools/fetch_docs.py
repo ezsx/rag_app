@@ -1,33 +1,51 @@
+"""Инструмент fetch_docs — батч-выгрузка документов по ID из Qdrant."""
+
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+import asyncio
 import logging
+from typing import Any, Dict, List, Optional
 
-from adapters.chroma import Retriever
+from adapters.qdrant.store import QdrantStore
 
 logger = logging.getLogger(__name__)
 
 
 def fetch_docs(
-    retriever: Retriever,
+    qdrant_store: QdrantStore,
     ids: Optional[List[str]] = None,
     window: Optional[List[int]] = None,
     doc_ids: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
-    """Батч-выгрузка документов по ids из активной коллекции.
-
-    MVP: Chroma коллекция не гарантирует прямого get по произвольным id, поэтому
-    используем имеющиеся тексты в hits. Если текст отсутствует, возвращаем заглушку
-    с пустым текстом и метаданными по умолчанию.
-    """
+    """Батч-выгрузка документов по IDs из Qdrant."""
     final_ids: List[str] = ids or doc_ids or []
     if not final_ids:
-        logger.debug("fetch_docs called without ids")
+        logger.debug("fetch_docs вызван без ids")
         return {"docs": []}
+
     try:
-        docs = retriever.get_by_ids(final_ids)
-        logger.debug("fetch_docs succeeded | ids=%s | count=%s", final_ids, len(docs))
+        records = asyncio.run(qdrant_store.get_by_ids(final_ids))
+        docs = []
+        for record in records:
+            payload = record.payload or {}
+            docs.append(
+                {
+                    "id": str(record.id),
+                    "text": payload.get("text", ""),
+                    "metadata": {
+                        "channel": payload.get("channel"),
+                        "message_id": payload.get("message_id"),
+                        "date": payload.get("date"),
+                        "author": payload.get("author"),
+                        "url": payload.get("url"),
+                    },
+                }
+            )
+        logger.debug("fetch_docs: %d документов для %d ids", len(docs), len(final_ids))
         return {"docs": docs}
+
     except Exception as exc:
-        logger.error("fetch_docs failed for ids=%s: %s", final_ids, exc)
-        return {"docs": [{"id": _id, "text": "", "metadata": {}} for _id in final_ids]}
+        logger.error("fetch_docs ошибка для ids=%s: %s", final_ids, exc)
+        return {
+            "docs": [{"id": _id, "text": "", "metadata": {}} for _id in final_ids]
+        }

@@ -1,68 +1,146 @@
-from types import SimpleNamespace
+import pytest
+from unittest.mock import AsyncMock, MagicMock
+
+from qdrant_client import models as qdrant_models
 
 from adapters.search.hybrid_retriever import HybridRetriever
-from adapters.search.bm25_index import BM25IndexManager, BM25Doc
-from adapters.search.bm25_retriever import BM25Retriever
+from schemas.search import MetadataFilters, SearchPlan
 
 
-class _DenseStub:
-    def __init__(self, items):
-        self._items = items
+def make_retriever(
+    collection: str = "news",
+) -> tuple[HybridRetriever, MagicMock, MagicMock, MagicMock]:
+    """Возвращает (retriever, mock_store, mock_tei, mock_sparse)."""
+    mock_store = MagicMock()
+    mock_store.collection = collection
+    mock_store.client = AsyncMock()
 
-    def search(self, q, k, filters=None):
-        return self._items
+    mock_result = MagicMock()
+    mock_result.points = []
+    mock_store.client.query_points = AsyncMock(return_value=mock_result)
 
+    mock_tei = MagicMock()
+    mock_tei.embed_query = AsyncMock(return_value=[0.1] * 1024)
 
-class _Settings(SimpleNamespace):
-    hybrid_top_bm25: int = 10
-    hybrid_top_dense: int = 10
-    k_fusion: int = 60
+    mock_sparse_enc = MagicMock()
+    mock_sparse_result = MagicMock()
+    mock_sparse_result.indices = MagicMock(tolist=lambda: [1, 5, 10])
+    mock_sparse_result.values = MagicMock(tolist=lambda: [0.5, 0.3, 0.2])
+    mock_sparse_enc.query_embed = MagicMock(return_value=iter([mock_sparse_result]))
 
+    settings = MagicMock()
+    settings.hybrid_enabled = True
 
-def test_hybrid_basic(tmp_path):
-    mgr = BM25IndexManager(index_root=str(tmp_path))
-    coll = "test"
-    docs = [
-        BM25Doc(
-            doc_id="1:1",
-            text="bm25 документ",
-            channel_id=1,
-            channel_username="@c",
-            date_days=750000,
-            date_iso="2024-01-01",
-            views=1,
-            reply_to=None,
-            msg_id=1,
-        )
-    ]
-    mgr.add_documents(coll, docs, commit_every=1)
-    bm25_ret = BM25Retriever(
-        mgr, SimpleNamespace(current_collection=coll, bm25_default_top_k=10)
+    retriever = HybridRetriever(
+        store=mock_store,
+        embedding_client=mock_tei,
+        sparse_encoder=mock_sparse_enc,
+        settings=settings,
     )
-    dense_stub = _DenseStub(
-        [
-            {
-                "text": "dense документ",
-                "distance": 0.1,
-                "metadata": {"channel_id": 1, "msg_id": 2},
-            },
-        ]
-    )
-    settings = _Settings()
-    hybrid = HybridRetriever(bm25_ret, dense_stub, SimpleNamespace(**settings.__dict__))
+    return retriever, mock_store, mock_tei, mock_sparse_enc
 
-    from schemas.search import SearchPlan
 
-    plan = SearchPlan(
-        normalized_queries=["документ"],
-        must_phrases=[],
-        should_phrases=[],
-        metadata_filters=None,
-        k_per_query=5,
+def make_plan(k: int = 10, filters: MetadataFilters | None = None) -> SearchPlan:
+    return SearchPlan(
+        normalized_queries=["test query"],
+        metadata_filters=filters,
+        k_per_query=k,
         fusion="rrf",
     )
 
-    res = hybrid.search_with_plan("документ", plan)
-    assert len(res) >= 1
-    ids = {c.id for c in res}
-    assert any(i.startswith("1:") for i in ids)
+
+@pytest.mark.asyncio
+async def test_async_search_calls_embed_and_query_points() -> None:
+    """_async_search вызывает embed_query и query_points с правильными параметрами."""
+    retriever, mock_store, mock_tei, _ = make_retriever()
+
+    await retriever._async_search("курс рубля", make_plan(k=5))
+
+    mock_tei.embed_query.assert_awaited_once_with("курс рубля")
+    mock_store.client.query_points.assert_awaited_once()
+    call_kwargs = mock_store.client.query_points.call_args.kwargs
+    assert call_kwargs["collection_name"] == "news"
+    assert call_kwargs["with_vectors"] is True
+    assert call_kwargs["limit"] == 5
+    prefetch = call_kwargs["prefetch"]
+    assert len(prefetch) == 2
+    assert prefetch[0].using == "dense_vector"
+    assert prefetch[1].using == "sparse_vector"
+
+
+@pytest.mark.asyncio
+async def test_async_search_uses_fusion_rrf() -> None:
+    """query FusionQuery(RRF) используется всегда."""
+    retriever, mock_store, _, _ = make_retriever()
+
+    await retriever._async_search("test", make_plan())
+
+    call_kwargs = mock_store.client.query_points.call_args.kwargs
+    assert isinstance(call_kwargs["query"], qdrant_models.FusionQuery)
+    assert call_kwargs["query"].fusion == qdrant_models.Fusion.RRF
+
+
+def test_build_filter_none_when_no_filters() -> None:
+    """Без фильтров возвращает None."""
+    retriever, *_ = make_retriever()
+    result = retriever._build_filter(None)
+    assert result is None
+
+
+def test_build_filter_channel_usernames() -> None:
+    """channel_usernames с @ → MatchAny без @."""
+    retriever, *_ = make_retriever()
+    filters = MetadataFilters(channel_usernames=["@news", "@finance"])
+    result = retriever._build_filter(filters)
+    assert result is not None
+    cond = result.must[0]
+    assert cond.key == "channel"
+    assert set(cond.match.any) == {"news", "finance"}
+
+
+def test_build_filter_date_range() -> None:
+    """date_from/date_to конвертируется в DatetimeRange."""
+    retriever, *_ = make_retriever()
+    filters = MetadataFilters(
+        date_from="2026-01-01T00:00:00", date_to="2026-03-01T00:00:00"
+    )
+    result = retriever._build_filter(filters)
+    assert result is not None
+    cond = result.must[0]
+    assert cond.key == "date"
+    assert cond.range.gte == "2026-01-01T00:00:00"
+
+
+def test_to_candidates_extracts_fields() -> None:
+    """ScoredPoint → Candidate с id, text, metadata, dense_score."""
+    retriever, *_ = make_retriever()
+
+    point = MagicMock()
+    point.id = "channel:123"
+    point.score = 0.42
+    point.payload = {
+        "text": "Новость",
+        "channel": "@news",
+        "message_id": 123,
+        "date": "2026-01-01T00:00:00",
+    }
+    point.vector = {"dense_vector": [0.1] * 1024}
+
+    candidates = retriever._to_candidates([point])
+
+    assert len(candidates) == 1
+    c = candidates[0]
+    assert c.id == "channel:123"
+    assert c.text == "Новость"
+    assert c.dense_score == 0.42
+    assert c.metadata["channel"] == "@news"
+    assert "_dense_vector" in c.metadata
+    assert len(c.metadata["_dense_vector"]) == 1024
+
+
+def test_search_with_plan_is_sync() -> None:
+    """search_with_plan возвращает список, не корутину."""
+    retriever, *_ = make_retriever()
+    plan = make_plan()
+    result = retriever.search_with_plan("test", plan)
+    assert isinstance(result, list)

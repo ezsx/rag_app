@@ -1,0 +1,20 @@
+{
+  "output": "docs/Architecture_ru.md",
+  "header": "docs/architecture/00-meta/00-header.md",
+  "modules": [
+    "docs/architecture/00-meta/01-howto.md",
+    "docs/architecture/01-scope/scope.md",
+    "docs/architecture/02-glossary/glossary.md",
+    "docs/architecture/03-invariants/invariants.md",
+    "docs/architecture/04-system/overview.md",
+    "docs/architecture/05-flows/FLOW-01-ingest.md",
+    "docs/architecture/05-flows/FLOW-02-agent.md",
+    "docs/architecture/05-flows/FLOW-03-eval.md",
+    "docs/architecture/06-api/api.md",
+    "docs/architecture/07-data-model/data-model.md",
+    "docs/architecture/08-security/security.md",
+    "docs/architecture/09-observability/observability.md",
+    "docs/architecture/10-open-questions/open-questions.md",
+    "docs/architecture/11-decisions/decision-log.md"
+  ]
+}

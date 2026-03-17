@@ -1,18 +1,29 @@
-*.session
-/models
-/chroma-data
-/sessions
+# Environment & secrets
 .env
-__pycache__/
-__pycache__
-.vscode
-.DS_Store
-.idea
-.pytest_cache
-.ruff_cache
-.venv
 .env.local
 .env.development.local
-.promt_editor.md
-/bm25-index
-/venv
+*.session
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+/venv/
+
+# Phase 0 legacy data (safe to delete locally)
+/models/
+/chroma-data/
+/bm25-index/
+
+# Telethon sessions
+/sessions/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Results & reports (generated)
+/results/

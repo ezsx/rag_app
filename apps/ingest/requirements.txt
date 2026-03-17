@@ -1,0 +1,9 @@
+telethon
+tqdm
+python-dotenv
+python-dateutil
+huggingface-hub
+numpy==1.26.4
+qdrant-client>=1.9.0
+fastembed>=0.3.0
+httpx

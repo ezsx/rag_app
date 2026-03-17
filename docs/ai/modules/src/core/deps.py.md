@@ -1,29 +1,27 @@
 ### Модуль: `src/core/deps.py`
 
-Назначение: фабрики зависимостей и ресурсоёмких компонентов с ленивой инициализацией (`@lru_cache`). Управление клиентами ChromaDB, LLM (`llama_cpp`), Query Planner, BM25, гибридным ретривером, ререйкером и Redis. Есть контекст‑менеджер для временного освобождения VRAM.
+Назначение: DI-фабрики Phase 1. Все компоненты через `@lru_cache` — синглтоны на процесс.
+Смена настроек требует `cache_clear()` через `settings.update_*()`.
 
 #### Ключевые фабрики
-- `get_chroma_client()` → `chromadb.HttpClient` c fallback на `PersistentClient`.
-- `get_retriever()` → `adapters.chroma.Retriever` с автоскачиванием embedding‑модели при необходимости.
-- `get_llm()` → `llama_cpp.Llama` (автоскачивание GGUF через `utils.model_downloader.auto_download_models`).
-- `release_llm_vram_temporarily()` → async contextmanager, очищает KV‑кеш и освобождает ресурсы.
-- `get_planner_llm()` → CPU‑LLM для планировщика (обычно Qwen2.5‑3B, n_gpu_layers=0).
-- `get_query_planner()` → `QueryPlannerService` (использует planner LLM или fallback на основную LLM).
-- `get_bm25_index_manager()` → `BM25IndexManager`.
-- `get_qa_service()` → `QAService` (ленивая LLM‑фабрика, опционально planner/reranker/hybrid).
-- `get_hybrid_retriever()` → опциональный `HybridRetriever` (BM25 + dense), если включено.
-- `get_reranker()` → `RerankerService` (CPU CrossEncoder), с автоскачиванием.
-- `get_redis_client()` → Redis при включённом кешировании.
+- `get_llm()` → `LlamaServerClient` (HTTP к llama-server.exe, Qwen3-8B).
+- `get_planner_llm()` → `LlamaServerClient` для QueryPlanner (отдельный endpoint или fallback на основной).
+- `get_query_planner()` → `QueryPlannerService`.
+- `get_tei_embedding_client()` → `TEIEmbeddingClient` (async httpx → TEI :8082).
+- `get_tei_reranker_client()` → `TEIRerankerClient` (async httpx → TEI :8083).
+- `get_qdrant_store()` → `QdrantStore` (dense+sparse, named vectors).
+- `get_sparse_encoder()` → `SparseTextEmbedding` (fastembed, Qdrant/bm25, language="russian", CPU).
+- `get_hybrid_retriever()` → `HybridRetriever` (Qdrant prefetch+FusionQuery(RRF)+MmrQuery).
+- `get_retriever()` → backward-compatible алиас для `get_hybrid_retriever()`.
+- `get_reranker()` → `RerankerService` (sync bridge over TEIRerankerClient).
+- `get_qa_service()` → `QAService`.
+- `get_redis_client()` → Redis (опционально).
+- `get_agent_service()` → `AgentService` с полным набором 8 инструментов.
 
-#### Конфигурация и инварианты
-- Все фабрики мемоизируются `@lru_cache` и пересоздаются при изменении `Settings` (сброс кешей в `settings.update_*`).
-- Подробное логирование путей и параметров LLM, GGUF‑хедера, размера файла.
-- Chroma: попытка HTTP клиента, при ошибке — локальный `PersistentClient`.
+#### Удалено в Phase 1
+- `get_chroma_client()` — ChromaDB удалён.
+- `get_bm25_index_manager()` — BM25IndexManager удалён.
+- `release_llm_vram_temporarily()` — llama-server.exe управляет VRAM сам.
 
 #### Внешние зависимости
-- `chromadb`, `llama_cpp`, `redis` (опц.), `numpy`, FastAPI `Depends` для `get_settings`.
-
-
-
-
-
+- `qdrant-client`, `httpx`, `fastembed`, `redis` (опц.), FastAPI `Depends`.

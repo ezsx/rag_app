@@ -1,62 +1,49 @@
 """
-Telegram → ChromaDB ingestor
-----------------------------
-CLI‑скрипт, который загружает сообщения публичного/приватного канала Telegram
-в указанном диапазоне дат, рассчитывает встраивания (BGE‑base‑v1.5 или другая
-указанная модель) и пачками пишет их в коллекцию ChromaDB.
+Telegram → Qdrant ingestor (Phase 1)
+------------------------------------
+CLI-скрипт для загрузки сообщений Telegram-каналов в Qdrant.
 
-Запуск (пример):
-$ python -m scripts.ingest_telegram \
-      --channel @some_channel \
-      --since 2024-06-01 \
-      --until 2024-07-01 \
-      --collection tg_some_channel
-
-Обязательно положите в .env:
-TG_API_ID=123456
-TG_API_HASH=abcdef0123456789abcdef0123456789
-# если используете user‑account логин → TG_PHONE=+79995555555
-# либо BOT_TOKEN=123456:ABC‑DEF… (тогда авторизация по боту)
-
-CHROMA_HOST=localhost
-CHROMA_PORT=8000
-
-Скрипт безопасно продолжит работу после обрыва сети или FloodWait,
-пишет прогресс и ожидаемое время завершения.
+Dense: TEI HTTP → multilingual-e5-large @ host.docker.internal:8082
+Sparse: fastembed SparseTextEmbedding (Qdrant/bm25, language=russian, CPU)
+Store: Qdrant (Docker CPU)
 """
 
 from __future__ import annotations
 
+import argparse
 import asyncio
+import logging
 import os
 import sys
-import uuid
-import logging
-import argparse
 from datetime import datetime, timezone
-from typing import List, Optional, Dict, Any
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
+from dateutil import parser as date_parser
 from dotenv import load_dotenv
-from tqdm.asyncio import tqdm_asyncio
-from dateutil import parser as date_parser, tz
-
-from telethon import TelegramClient, errors as tg_errors, events
+from telethon import TelegramClient, errors as tg_errors
 from telethon.errors import FloodWaitError, SessionPasswordNeededError
 from telethon.tl.types import Message
+from tqdm.asyncio import tqdm_asyncio
 
-import numpy as np
-import chromadb
-from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
-import torch
-from sentence_transformers import SentenceTransformer
+_SRC = Path(__file__).parent.parent / "src"
+if str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
 
-# ────────────────────────────────────────────────────────────────
-# Config & CLI parsing
-# ────────────────────────────────────────────────────────────────
+from adapters.qdrant.store import PointDocument, QdrantStore
+from adapters.tei.embedding_client import TEIEmbeddingClient
+from core.settings import get_settings
+
+try:
+    from fastembed import SparseTextEmbedding
+except ImportError as exc:
+    raise ImportError(
+        "fastembed не установлен. Добавьте в requirements: fastembed>=0.3.0"
+    ) from exc
 
 
 def _parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Ingest Telegram channel(s) into ChromaDB")
+    p = argparse.ArgumentParser(description="Ingest Telegram channel(s) into Qdrant")
     p.add_argument(
         "--channel", required=False, default=None, help="@username or chat id"
     )
@@ -68,20 +55,18 @@ def _parse_args() -> argparse.Namespace:
     )
     p.add_argument("--since", required=True, help="ISO date (inclusive)")
     p.add_argument("--until", required=True, help="ISO date (exclusive)")
-    p.add_argument("--collection", required=True, help="Chroma collection name")
+    p.add_argument(
+        "--collection",
+        required=False,
+        default=None,
+        help="Qdrant collection name (default: QDRANT_COLLECTION env or settings)",
+    )
     p.add_argument(
         "--batch-size",
         type=int,
-        default=None,
-        help="Batch size (auto-detected based on device)",
+        default=64,
+        help="Сколько сообщений обрабатывать за один TEI embed запрос (default: 64)",
     )
-    p.add_argument(
-        "--embed-model-key", default=None, help="Embedding model key from config"
-    )
-    p.add_argument(
-        "--embed-model", default=None, help="Direct embedding model name (fallback)"
-    )
-    p.add_argument("--device", default="auto", help="Device: auto, cpu, cuda, mps")
     p.add_argument(
         "--max-messages",
         type=int,
@@ -95,26 +80,16 @@ def _parse_args() -> argparse.Namespace:
         help="Split long messages into chunks of N chars (0 = no split)",
     )
     p.add_argument("--log-level", default="INFO")
-    p.add_argument(
-        "--gpu-batch-multiplier", type=int, default=4, help="GPU batch size multiplier"
-    )
     return p.parse_args()
 
 
 load_dotenv()
 
-# ────────────────────────────────────────────────────────────────
-# Logger
-# ────────────────────────────────────────────────────────────────
 logger = logging.getLogger("ingest_telegram")
 handler = logging.StreamHandler(sys.stdout)
 handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
 logger.addHandler(handler)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
-
-# ────────────────────────────────────────────────────────────────
-# Telegram utils
-# ────────────────────────────────────────────────────────────────
 
 
 async def create_telegram_client() -> TelegramClient:
@@ -167,209 +142,9 @@ async def create_telegram_client() -> TelegramClient:
     return client
 
 
-# ────────────────────────────────────────────────────────────────
-# Chroma utils
-# ────────────────────────────────────────────────────────────────
-
-
-def detect_optimal_device() -> str:
-    """Автоматически определяет лучшее устройство для вычислений"""
-    if torch.cuda.is_available():
-        logger.info(f"🚀 CUDA доступна: {torch.cuda.get_device_name(0)}")
-        return "cuda"
-    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-        logger.info("🚀 MPS (Apple Silicon) доступен")
-        return "mps"
-    else:
-        logger.info("💻 Используем CPU")
-        return "cpu"
-
-
-def get_optimal_batch_size(
-    device: str, base_batch_size: int = 64, gpu_multiplier: int = 4
-) -> int:
-    """Определяет оптимальный размер батча в зависимости от устройства"""
-    if device in ["cuda", "mps"]:
-        optimal_size = base_batch_size * gpu_multiplier
-        logger.info(f"📊 GPU detected, increasing batch size to {optimal_size}")
-        return optimal_size
-    else:
-        logger.info(f"📊 CPU detected, using batch size {base_batch_size}")
-        return base_batch_size
-
-
-def resolve_embedding_model(
-    embed_model_key: Optional[str], embed_model: Optional[str]
-) -> str:
-    """Определяет модель embedding из конфигурации или fallback"""
-    # Попытка использовать конфигурацию из .env как в API
-    if not embed_model_key:
-        embed_model_key = os.getenv("EMBEDDING_MODEL_KEY", "multilingual-e5-large")
-
-    # Импортируем конфигурацию моделей
-    try:
-        import sys
-        from pathlib import Path
-
-        # Добавляем src в путь
-        src_path = Path(__file__).parent.parent / "src"
-        if str(src_path) not in sys.path:
-            sys.path.insert(0, str(src_path))
-
-        from utils.model_downloader import RECOMMENDED_MODELS
-
-        if embed_model_key in RECOMMENDED_MODELS["embedding"]:
-            model_name = RECOMMENDED_MODELS["embedding"][embed_model_key]["name"]
-            logger.info(f"🎯 Используем модель из конфигурации: {model_name}")
-            return model_name
-    except Exception as e:
-        logger.warning(f"Не удалось загрузить конфигурацию моделей: {e}")
-
-    # Fallback
-    if embed_model:
-        logger.info(f"🎯 Используем указанную модель: {embed_model}")
-        return embed_model
-
-    # По умолчанию для русского языка
-    default_model = os.getenv("EMBEDDING_MODEL", "intfloat/multilingual-e5-large")
-    logger.info(f"🎯 Используем модель по умолчанию: {default_model}")
-    return default_model
-
-
-class FastEmbeddingFunction:
-    """Оптимизированная функция embedding с поддержкой GPU и батчинга"""
-
-    def __init__(self, model_name: str, device: str):
-        self.model_name = model_name
-        self.device = device
-        logger.info(f"⚡ Загружаем embedding модель: {model_name} на {device}")
-        self.model = SentenceTransformer(model_name, device=device)
-        if device in ["cuda", "mps"]:
-            try:
-                self.model.half()
-            except AttributeError:
-                pass
-            logger.info("🔥 Включена GPU оптимизация")
-
-    # sig must be (self, input)
-    def __call__(self, input):
-        if not input:
-            return np.empty((0, 768), dtype=np.float32)
-        with torch.no_grad():
-            emb = self.model.encode(
-                input,
-                convert_to_tensor=False,  # np.ndarray
-                device=self.device,
-                show_progress_bar=False,
-                batch_size=32 if self.device == "cpu" else 128,
-            )
-            return emb
-
-
-def create_chroma_collection(name: str, embed_model: str, device: str):
-    """Connect to Chroma HTTP server and obtain (or create) a collection.
-
-    The Chroma Python API changed multiple times; we probe the available
-    symbols/parameters at runtime so that the script works with 0.4.x and
-    newer versions alike."""
-
-    # ---------------------------
-    # Build embedding function
-    # ---------------------------
-    from inspect import signature
-
-    hf_kwargs: Dict[str, Any] = {"model_name": embed_model}
-
-    sig = signature(SentenceTransformerEmbeddingFunction)
-
-    if "device" in sig.parameters:
-        hf_kwargs["device"] = device
-    elif "device_type" in sig.parameters:
-        hf_kwargs["device_type"] = device
-
-    # Optional normalization flag changed name across versions.
-    if "normalize" in sig.parameters:
-        hf_kwargs["normalize"] = True
-    elif "normalize_embeddings" in sig.parameters:
-        hf_kwargs["normalize_embeddings"] = True
-
-    # Добавляем ключ HuggingFace из окружения, если доступен,
-    # так как новые версии chromadb требуют обязательного `api_key`.
-    api_key = os.getenv("CHROMA_HUGGINGFACE_API_KEY") or os.getenv(
-        "HUGGINGFACE_API_KEY"
-    )
-    if api_key:
-        if "api_key" in sig.parameters:
-            hf_kwargs["api_key"] = api_key
-        elif "huggingface_api_key" in sig.parameters:
-            hf_kwargs["huggingface_api_key"] = api_key
-
-    # Используем нашу оптимизированную функцию embedding
-    try:
-        embed_fn = FastEmbeddingFunction(embed_model, device)
-        logger.info(f"✅ Используем оптимизированную embedding функцию")
-    except Exception as e:
-        logger.warning(f"Fallback на стандартную embedding функцию: {e}")
-        embed_fn = SentenceTransformerEmbeddingFunction(**hf_kwargs)
-
-    # ---------------------------
-    # Connect to Chroma
-    # ---------------------------
-    host = os.getenv("CHROMA_HOST", "localhost")
-    port = int(os.getenv("CHROMA_PORT", 8000))
-
-    if hasattr(chromadb, "HttpClient"):
-        client = chromadb.HttpClient(host=host, port=port)
-    else:
-        # Fallback to old API
-        client = chromadb.Client(host=host, port=port)
-
-    # ---------------------------
-    # Get or create collection (with embedding function attached)
-    # ---------------------------
-    try:
-        collection = client.get_collection(name, embedding_function=embed_fn)
-        logger.info("Using existing collection %s (count=%s)", name, collection.count())
-    except Exception as e:
-        # get_collection may raise NotFoundError (old API) or ValueError (newer)
-        logger.debug("Collection %s not found (%s), creating new", name, e)
-        collection = client.create_collection(
-            name,
-            metadata={"hnsw:space": "cosine"},
-            embedding_function=embed_fn,
-        )
-        logger.info("Created new collection %s", name)
-
-    return collection
-
-
-# ────────────────────────────────────────────────────────────────
-# Batch helpers
-# ────────────────────────────────────────────────────────────────
-
-
 def split_into_batches(seq: List[Any], batch_size: int):
     for i in range(0, len(seq), batch_size):
         yield seq[i : i + batch_size]
-
-
-def estimate_processing_time(total_messages: int, batch_size: int, device: str) -> str:
-    """Оценивает время обработки в зависимости от устройства"""
-    # Примерные скорости (сообщений в секунду)
-    speeds = {
-        "cuda": 100,  # ~100 сообщений/сек на GPU
-        "cpu": 5,  # ~5 сообщений/сек на CPU
-    }
-
-    speed = speeds.get(device, 5)
-    estimated_seconds = total_messages / speed
-
-    if estimated_seconds < 60:
-        return f"{estimated_seconds:.0f} секунд"
-    elif estimated_seconds < 3600:
-        return f"{estimated_seconds/60:.1f} минут"
-    else:
-        return f"{estimated_seconds/3600:.1f} часов"
 
 
 async def gather_messages(
@@ -421,11 +196,6 @@ def _split_text(text: str, chunk_size: int) -> List[str]:
     return [text]
 
 
-# ────────────────────────────────────────────────────────────────
-# Resilience helpers
-# ────────────────────────────────────────────────────────────────
-
-
 async def _gather_with_retries(
     client: TelegramClient,
     channel: str,
@@ -465,135 +235,157 @@ async def _gather_with_retries(
         attempt += 1
 
 
+def _build_point_docs_flat(
+    source_messages: List[Message],
+    texts: List[str],
+    dense_vectors: List[List[float]],
+    sparse_results: List[Any],
+    channel_name: str,
+    chunk_size: int,
+) -> List[PointDocument]:
+    """
+    Flat-вариант построения PointDocument, где `source_messages[i] ↔ texts[i]`.
+
+    `channel_name` должен быть уже нормализован:
+    - `channel_hint.lstrip("@")`, если канал задан как `@username`
+    - `str(chat_id)`, если username отсутствует
+    """
+    docs: List[PointDocument] = []
+    msg_chunk_counter: Dict[int, int] = {}
+
+    for i, (message, text) in enumerate(zip(source_messages, texts)):
+        chunk_idx = msg_chunk_counter.get(message.id, 0)
+        msg_chunk_counter[message.id] = chunk_idx + 1
+
+        if chunk_size > 0:
+            point_id = f"{channel_name}:{message.id}:{chunk_idx}"
+        else:
+            point_id = f"{channel_name}:{message.id}"
+
+        author: Optional[str] = None
+        sender = getattr(message, "sender", None)
+        if sender is not None:
+            first = getattr(sender, "first_name", None) or ""
+            last = getattr(sender, "last_name", None) or ""
+            author = (first + " " + last).strip() or None
+
+        payload: Dict[str, Any] = {
+            "text": text,
+            "channel": channel_name,
+            "channel_id": int(message.chat_id),
+            "message_id": int(message.id),
+            "date": _to_utc_naive(message.date).isoformat(),
+        }
+        if author:
+            payload["author"] = author
+        if channel_name:
+            payload["url"] = f"https://t.me/{channel_name}/{message.id}"
+
+        sparse = sparse_results[i]
+        docs.append(
+            PointDocument(
+                point_id=point_id,
+                dense_vector=dense_vectors[i],
+                sparse_indices=sparse.indices.tolist(),
+                sparse_values=sparse.values.tolist(),
+                payload=payload,
+            )
+        )
+
+    return docs
+
+
 async def ingest_batches(
-    collection_name: str,
-    collection,
     messages: List[Message],
     batch_size: int,
-    chunk_size: int = 0,
+    embedding_client: TEIEmbeddingClient,
+    sparse_encoder: SparseTextEmbedding,
+    qdrant_store: QdrantStore,
     channel_hint: Optional[str] = None,
+    chunk_size: int = 0,
     progress_cb: Optional[Any] = None,
     log_every: int = 200,
-):
-    total = len(messages)
-    processed_in_channel = 0
-    total_written_chroma = 0
-    total_written_bm25 = 0
+) -> Dict[str, int]:
+    """
+    Основной цикл инжеста: Telegram messages → TEI dense → fastembed sparse → Qdrant.
+    """
     import time as _time
 
+    total = len(messages)
+    processed_in_channel = 0
+    total_written_qdrant = 0
     start_ts = _time.time()
     last_log_ts = start_ts
+
     for batch in tqdm_asyncio(
-        split_into_batches(messages, batch_size),
-        total=(total // batch_size) + 1,
+        split_into_batches(messages, max(1, int(batch_size))),
+        total=(total + max(1, int(batch_size)) - 1) // max(1, int(batch_size)),
         desc="Ingesting",
         unit="batch",
     ):
-        docs: List[str] = []
-        ids: List[str] = []
-        metas: List[Dict[str, Any]] = []
-        bm25_docs_local: List[Any] = []
+        texts: List[str] = []
+        source_messages: List[Message] = []
 
-        for m in batch:
-            text = (m.message or "").strip()
-            if not text:
+        for message in batch:
+            text_full = (message.message or "").strip()
+            if not text_full:
                 continue
-            parts = _split_text(text, chunk_size)
-            for idx, part in enumerate(parts):
-                docs.append(part)
-                # Детерминированный id: channel:msg:chunk
-                ids.append(f"{m.chat_id}:{m.id}:{idx}")
-                meta = {
-                    "channel_id": m.chat_id,
-                    "msg_id": m.id,
-                    "date": m.date.isoformat(),
-                }
-                if (
-                    channel_hint
-                    and isinstance(channel_hint, str)
-                    and channel_hint.startswith("@")
-                ):
-                    meta["channel_username"] = channel_hint
-                if m.reply_to_msg_id is not None:
-                    meta["reply_to"] = m.reply_to_msg_id
-                views = getattr(m, "views", None)
-                if views is not None:
-                    meta["views"] = views
-                metas.append(meta)
+            for part in _split_text(text_full, chunk_size):
+                texts.append(part)
+                source_messages.append(message)
 
-                # BM25 документ по каждому чанку
-                try:
-                    from adapters.search.bm25_index import BM25Doc
-                except Exception:
-                    BM25Doc = None  # type: ignore
-                if BM25Doc is not None:
-                    date_iso = _to_utc_naive(m.date).date().isoformat()
-                    date_days = _to_utc_naive(m.date).date().toordinal()
-                    bm25_docs_local.append(
-                        BM25Doc(
-                            doc_id=f"{m.chat_id}:{m.id}:{idx}",
-                            text=" ".join(part.split()),
-                            channel_id=int(m.chat_id),
-                            channel_username=(
-                                channel_hint
-                                if (
-                                    isinstance(channel_hint, str)
-                                    and channel_hint.startswith("@")
-                                )
-                                else None
-                            ),
-                            date_days=int(date_days),
-                            date_iso=date_iso,
-                            views=getattr(m, "views", None),
-                            reply_to=getattr(m, "reply_to_msg_id", None),
-                            msg_id=int(m.id),
-                        )
-                    )
+        if not texts:
+            processed_in_channel += len(batch)
+            continue
+
+        if channel_hint and isinstance(channel_hint, str) and channel_hint.startswith("@"):
+            channel_name = channel_hint.lstrip("@")
+        elif channel_hint:
+            channel_name = str(channel_hint)
+        else:
+            channel_name = str(source_messages[0].chat_id)
 
         try:
-            if hasattr(collection, "upsert"):
-                collection.upsert(documents=docs, metadatas=metas, ids=ids)
-            else:
-                collection.add(documents=docs, metadatas=metas, ids=ids)
-            total_written_chroma += len(ids)
-        except Exception as e:
-            logger.exception("Failed on batch, skipping… (%s)", e)
-
-        # BM25: добавление документов (батч)
-        try:
-            from adapters.search.bm25_index import BM25IndexManager
-            from core.settings import get_settings
-
-            settings = get_settings()
-            bm25_root = settings.bm25_index_root
-            mgr = BM25IndexManager(index_root=bm25_root)
-            if bm25_docs_local:
-                mgr.add_documents(
-                    collection=collection_name, docs=bm25_docs_local, commit_every=1000
-                )
-                total_written_bm25 += len(bm25_docs_local)
-        except Exception as e:
-            logger.warning(f"BM25 add_documents failed: {e}")
+            dense_vectors = await embedding_client.embed_documents(texts)
+            sparse_results = list(sparse_encoder.embed(texts))
+            point_docs = _build_point_docs_flat(
+                source_messages=source_messages,
+                texts=texts,
+                dense_vectors=dense_vectors,
+                sparse_results=sparse_results,
+                channel_name=channel_name,
+                chunk_size=chunk_size,
+            )
+            written = await qdrant_store.upsert(point_docs)
+            total_written_qdrant += written
+        except Exception as exc:
+            logger.exception(
+                "Ошибка при обработке батча channel=%s, пропускаем: %s",
+                channel_hint,
+                exc,
+            )
+            processed_in_channel += len(batch)
+            continue
 
         processed_in_channel += len(batch)
-        # Периодические логи
-        should_log = (processed_in_channel % max(1, log_every) == 0) or (
-            processed_in_channel >= total
-        )
+
         totals_from_cb = None
         if progress_cb is not None:
             try:
                 totals_from_cb = progress_cb(
                     {
                         "processed_in_channel": processed_in_channel,
-                        "written_chroma": total_written_chroma,
-                        "written_bm25": total_written_bm25,
+                        "written_qdrant": total_written_qdrant,
                         "batch_size": len(batch),
                         "total_in_channel": total,
                     }
                 )
             except Exception:
                 totals_from_cb = None
+
+        should_log = (processed_in_channel % max(1, log_every) == 0) or (
+            processed_in_channel >= total
+        )
         if should_log:
             now = _time.time()
             elapsed = now - start_ts
@@ -602,39 +394,31 @@ async def ingest_batches(
             speed = (processed_in_channel / elapsed) if elapsed > 0 else 0.0
             if isinstance(totals_from_cb, dict):
                 logger.info(
-                    "progress channel=%s processed_in_channel=%d/%d processed_total=%s written_chroma=%d written_bm25=%d elapsed_s=%.1f speed_msg_s=%.1f",
+                    "progress channel=%s processed_in_channel=%d/%d processed_total=%s written_qdrant=%d elapsed_s=%.1f speed_msg_s=%.1f",
                     (channel_hint or "?"),
                     processed_in_channel,
                     total,
                     totals_from_cb.get("processed_total", "-"),
-                    total_written_chroma,
-                    total_written_bm25,
+                    total_written_qdrant,
                     step_elapsed,
                     speed,
                 )
             else:
                 logger.info(
-                    "progress channel=%s processed_in_channel=%d/%d written_chroma=%d written_bm25=%d elapsed_s=%.1f speed_msg_s=%.1f",
+                    "progress channel=%s processed_in_channel=%d/%d written_qdrant=%d elapsed_s=%.1f speed_msg_s=%.1f",
                     (channel_hint or "?"),
                     processed_in_channel,
                     total,
-                    total_written_chroma,
-                    total_written_bm25,
+                    total_written_qdrant,
                     step_elapsed,
                     speed,
                 )
 
     return {
         "processed_in_channel": processed_in_channel,
-        "written_chroma": total_written_chroma,
-        "written_bm25": total_written_bm25,
+        "written_qdrant": total_written_qdrant,
         "total_in_channel": total,
     }
-
-
-# ────────────────────────────────────────────────────────────────
-# Date helpers
-# ────────────────────────────────────────────────────────────────
 
 
 def _to_utc_naive(dt: datetime) -> datetime:
@@ -643,11 +427,6 @@ def _to_utc_naive(dt: datetime) -> datetime:
     if dt.tzinfo is None:
         return dt
     return dt.astimezone(timezone.utc).replace(tzinfo=None)
-
-
-# ────────────────────────────────────────────────────────────────
-# Checkpoint stubs (not used yet)
-# ────────────────────────────────────────────────────────────────
 
 
 def load_state(
@@ -688,16 +467,10 @@ def save_state(
         logger.warning("[checkpoint] не удалось сохранить state: %s", e)
 
 
-# ────────────────────────────────────────────────────────────────
-# Main
-# ────────────────────────────────────────────────────────────────
-
-
-async def main():
+async def main() -> None:
     args = _parse_args()
     logger.setLevel(args.log_level.upper())
 
-    # Собираем итоговый список каналов
     channels: List[str] = []
     if getattr(args, "channel", None):
         channels.append(args.channel)
@@ -712,81 +485,50 @@ async def main():
         logger.error("Не указан ни один канал. Используйте --channel или --channels")
         sys.exit(2)
 
-    # Определяем оптимальное устройство
-    if args.device == "auto":
-        device = detect_optimal_device()
-    else:
-        device = args.device
-        logger.info(f"🎯 Используем указанное устройство: {device}")
+    settings = get_settings()
+    collection_name = (
+        args.collection or os.getenv("QDRANT_COLLECTION") or settings.qdrant_collection
+    )
+    batch_size = max(1, int(args.batch_size))
+    chunk_size = int(getattr(args, "chunk_size", 0) or 0)
 
-    # Определяем модель embedding
-    embed_model = resolve_embedding_model(args.embed_model_key, args.embed_model)
-
-    # Определяем оптимальный размер батча
-    if args.batch_size is None:
-        batch_size = get_optimal_batch_size(
-            device, gpu_multiplier=args.gpu_batch_multiplier
+    embedding_tei_url = os.getenv("EMBEDDING_TEI_URL") or settings.embedding_tei_url
+    logger.info("TEI embedding: %s", embedding_tei_url)
+    embedding_client = TEIEmbeddingClient(base_url=embedding_tei_url)
+    if not await embedding_client.healthcheck():
+        logger.warning(
+            "TEI embedding service недоступен: %s. Продолжаем (может восстановиться).",
+            embedding_tei_url,
         )
-    else:
-        batch_size = args.batch_size
-        logger.info(f"📊 Используем указанный batch size: {batch_size}")
+
+    logger.info("Инициализация sparse encoder: Qdrant/bm25 (language=russian)...")
+    sparse_encoder = SparseTextEmbedding(model_name="Qdrant/bm25", language="russian")
+    logger.info("Sparse encoder готов")
+
+    qdrant_url = os.getenv("QDRANT_URL") or settings.qdrant_url
+    logger.info("Qdrant: %s / collection=%s", qdrant_url, collection_name)
+    qdrant_store = QdrantStore(url=qdrant_url, collection=collection_name)
+    await qdrant_store.ensure_collection()
+    logger.info("Коллекция '%s' готова", collection_name)
 
     start_iso = _to_utc_naive(date_parser.isoparse(args.since))
     end_iso = _to_utc_naive(date_parser.isoparse(args.until))
 
-    logger.info("🔗 Подключение к Telegram…")
+    logger.info("Подключение к Telegram…")
     client = await create_telegram_client()
+    total_processed = 0
+    total_written_qdrant = 0
+
+    def _progress_cb(batch_stats: Dict[str, Any]) -> Dict[str, Any]:
+        nonlocal total_processed, total_written_qdrant
+        total_processed += int(batch_stats.get("batch_size", 0))
+        total_written_qdrant = int(batch_stats.get("written_qdrant", 0))
+        return {
+            "processed_total": total_processed,
+            "written_qdrant_total": total_written_qdrant,
+        }
+
     try:
-        logger.info(
-            "🔗 Подключение к ChromaDB %s:%s",
-            os.getenv("CHROMA_HOST", "localhost"),
-            os.getenv("CHROMA_PORT", 8000),
-        )
-
-        # Автоскачивание embedding модели если необходимо
-        try:
-            auto_download = (
-                os.getenv("AUTO_DOWNLOAD_EMBEDDING", "true").lower() == "true"
-            )
-            if auto_download:
-                logger.info("📥 Проверка и скачивание embedding модели...")
-                import sys as _sys
-                from pathlib import Path as _Path
-
-                src_path = _Path(__file__).parent.parent / "src"
-                if str(src_path) not in _sys.path:
-                    _sys.path.insert(0, str(src_path))
-
-                from utils.model_downloader import download_embedding_model
-
-                cache_dir = os.getenv("TRANSFORMERS_CACHE", "/models/.cache")
-                download_embedding_model(embed_model, cache_dir)
-        except Exception as e:
-            logger.warning(f"Не удалось автоскачать модель: {e}")
-
-        collection = create_chroma_collection(args.collection, embed_model, device)
-
-        total_processed = 0
-        total_written_chroma = 0
-        total_written_bm25 = 0
-
-        def _progress_cb(batch_stats: Dict[str, Any]):
-            nonlocal total_processed, total_written_chroma, total_written_bm25
-            total_processed += int(batch_stats.get("batch_size", 0))
-            total_written_chroma = int(batch_stats.get("written_chroma", 0))
-            total_written_bm25 = int(batch_stats.get("written_bm25", 0))
-            logger.debug(
-                "progress_total processed_total=%d written_chroma_total=%d written_bm25_total=%d",
-                total_processed,
-                total_written_chroma,
-                total_written_bm25,
-            )
-            return {
-                "processed_total": total_processed,
-                "written_chroma_total": total_written_chroma,
-                "written_bm25_total": total_written_bm25,
-            }
-
         for ch in channels:
             logger.info(
                 "▶ start channel=%s dates=%s→%s", ch, start_iso.date(), end_iso.date()
@@ -795,71 +537,46 @@ async def main():
             msgs = await _gather_with_retries(
                 client, ch, start_iso, end_iso, args.max_messages
             )
-            logger.info("📨 Получено %s сообщений для %s", len(msgs), ch)
+            logger.info("Получено %d сообщений для %s", len(msgs), ch)
             if not msgs:
                 logger.warning("Пусто для %s — пропускаем", ch)
                 continue
 
-            estimated_time = estimate_processing_time(len(msgs), batch_size, device)
-            est_batches = (len(msgs) + batch_size - 1) // batch_size
-            logger.info(
-                "⏱️ Оценка: %s, батчей ~%d (batch_size=%d)",
-                estimated_time,
-                est_batches,
-                batch_size,
-            )
-
-            logger.info(
-                f"🚀 Начинаем обработку канала {ch} на {device.upper()} с batch_size={batch_size}"
-            )
-
             stats = await ingest_batches(
-                args.collection,
-                collection,
-                msgs,
-                batch_size,
-                chunk_size=int(getattr(args, "chunk_size", 0) or 0),
+                messages=msgs,
+                batch_size=batch_size,
+                embedding_client=embedding_client,
+                sparse_encoder=sparse_encoder,
+                qdrant_store=qdrant_store,
                 channel_hint=ch if isinstance(ch, str) else None,
+                chunk_size=chunk_size,
                 progress_cb=_progress_cb,
                 log_every=200,
             )
 
             logger.info(
-                "✔ finish channel=%s read=%d written_chroma=%d written_bm25=%d",
+                "✔ finish channel=%s read=%d written_qdrant=%d",
                 ch,
                 stats.get("processed_in_channel", 0),
-                stats.get("written_chroma", 0),
-                stats.get("written_bm25", 0),
+                stats.get("written_qdrant", 0),
             )
 
-        final_count = collection.count()
+        info = await qdrant_store.collection_info()
         logger.info(
-            "🏁 Все каналы обработаны. В коллекции теперь: %s документов",
-            final_count,
+            "Все каналы обработаны. В коллекции '%s': %d точек",
+            collection_name,
+            info.get("points_count", 0),
         )
 
-        # Путь к BM25 индексу (если включён)
-        try:
-            from adapters.search.bm25_index import BM25IndexManager
-            from core.settings import get_settings
-
-            settings = get_settings()
-            bm25_root = settings.bm25_index_root
-            mgr = BM25IndexManager(index_root=bm25_root)
-            handle = mgr.get_or_create(args.collection)
-            logger.info(
-                "BM25 index path for collection '%s': %s",
-                args.collection,
-                handle.paths.get("root"),
-            )
-        except Exception as e:
-            logger.warning(f"BM25 unavailable or disabled: {e}")
-
-    except Exception as e:
-        logger.error(f"❌ Ошибка во время инжеста: {e}")
+    except Exception as exc:
+        logger.error("Ошибка во время инжеста: %s", exc)
         raise
+
     finally:
         await client.disconnect()
+        await embedding_client.aclose()
+        await qdrant_store.aclose()
+        logger.info("Соединения закрыты")
 
 
 if __name__ == "__main__":

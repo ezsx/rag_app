@@ -14,8 +14,8 @@ from core.deps import (
     get_hybrid_retriever,
 )
 from core.settings import get_settings, Settings
-from adapters.chroma.retriever import Retriever
 from schemas.search import (
+    Candidate,
     SearchPlanRequest,
     SearchPlan,
     SearchRequest,
@@ -26,6 +26,44 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def _normalize_search_items(search_results) -> List[Dict]:
+    """Нормализует разные форматы search() к списку dict items."""
+    if search_results is None:
+        return []
+
+    if isinstance(search_results, tuple) and len(search_results) == 3:
+        documents, distances, metadatas = search_results
+        items: List[Dict] = []
+        for idx, doc_text in enumerate(documents):
+            items.append(
+                {
+                    "text": doc_text,
+                    "distance": distances[idx] if idx < len(distances) else 0.0,
+                    "metadata": metadatas[idx] if idx < len(metadatas) else {},
+                }
+            )
+        return items
+
+    if isinstance(search_results, list):
+        if not search_results:
+            return []
+        if isinstance(search_results[0], Candidate):
+            return [
+                {
+                    "id": item.id,
+                    "text": item.text,
+                    "metadata": item.metadata,
+                    "distance": 0.0,
+                    "embedding": (item.metadata or {}).get("_dense_vector"),
+                }
+                for item in search_results
+            ]
+        if isinstance(search_results[0], dict):
+            return search_results
+
+    return []
 
 
 async def get_from_cache(redis_client, cache_key: str) -> Optional[dict]:
@@ -73,7 +111,7 @@ async def build_plan(
 @router.post("/search", response_model=SearchResponse, tags=["search"])
 async def semantic_search(
     request: SearchRequest,
-    retriever: Retriever = Depends(get_retriever),
+    retriever=Depends(get_retriever),
     planner=Depends(get_query_planner),
     redis_client=Depends(get_redis_client),
     settings: Settings = Depends(get_settings),
@@ -126,7 +164,7 @@ async def semantic_search(
             items_by_id: Dict[str, Dict] = {}
             if not merged_items:
                 for q in plan.normalized_queries:
-                    items = retriever.search(
+                    raw_items = retriever.search(
                         q,
                         k=plan.k_per_query,
                         filters=(
@@ -135,6 +173,7 @@ async def semantic_search(
                             else None
                         ),
                     )
+                    items = _normalize_search_items(raw_items)
                     triples: List[Tuple[str, float, Dict]] = []
                     for it in items:
                         doc = it.get("text", "")
@@ -246,9 +285,10 @@ async def semantic_search(
                 plan=plan if request.plan_debug else None,
             )
         else:
-            items = retriever.search(
+            raw_items = retriever.search(
                 request.query, k=settings.search_k_per_query_default, filters=None
             )
+            items = _normalize_search_items(raw_items)
             response = SearchResponse(
                 documents=[it["text"] for it in items],
                 distances=[float(it.get("distance", 0.0)) for it in items],

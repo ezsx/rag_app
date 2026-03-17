@@ -1,0 +1,21 @@
+fastapi
+uvicorn[standard]
+telethon
+python-dotenv
+python-dateutil
+huggingface-hub
+tqdm
+numpy
+filelock
+typing_extensions
+pydantic
+sse-starlette
+requests
+PyJWT
+# llama-cpp-python ставится из wheel, собранного в Dockerfile.api
+redis
+httpx
+qdrant-client>=1.9.0
+fastembed>=0.3.0
+pytest
+pytest-asyncio

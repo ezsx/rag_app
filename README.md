@@ -58,6 +58,14 @@ curl -N -X POST "http://localhost:8000/v1/agent/stream" \
   }'
 ```
 
+## 🧪 Тесты
+
+`pytest` в проекте запускается только через контейнер:
+
+```bash
+docker compose --profile test run --rm test
+```
+
 ## 📡 API Endpoints
 
 - System:

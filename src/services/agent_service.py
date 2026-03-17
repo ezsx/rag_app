@@ -23,7 +23,8 @@ class AgentState:
     def __init__(self):
         self.coverage: float = 0.0
         self.refinement_count: int = 0
-        self.max_refinements: int = 1  # allow at most 1 extra round
+        self.max_refinements: int = 2  # allow at most 2 extra rounds
+        self.low_coverage_disclaimer: bool = False
 
 
 class AgentService:
@@ -44,10 +45,20 @@ class AgentService:
         self._current_step: int = 1  # Текущий шаг для системных вызовов
         self._current_query: Optional[str] = None  # Текущий запрос пользователя
 
-        # Системный промпт для ReAct (на английском для лучшей работы Qwen)
+        # Системный промпт для ReAct (совмещён: русская политика языка + англ. контракт инструментов)
         self.system_prompt = """You are a ReAct agent that helps answer user questions using available tools.
 
-CRITICAL: Always respond in the SAME LANGUAGE as the user's query (Russian, English, etc.). Your Thought and FinalAnswer MUST match the user's language.
+STRICT LANGUAGE POLICY (RU):
+- Detect the user's language from the initial Human message.
+- If the user's language is Russian, write strictly in Russian. Do NOT mix scripts (no Latin A–Z/a–z, no CJK). If you accidentally switched, regenerate before emitting the final answer.
+- Allowed (RU) scripts/punct: Cyrillic U+0400–U+04FF, U+0500–U+052F, U+2DE0–U+2DFF, U+A640–U+A69F, U+1C80–U+1C8F; digits; spaces; punctuation . , ! ? ; : — – ( ) [ ] « » " ' …
+
+RUSSIAN LABELS (optional aliases):
+- Мысль = Thought
+- Действие = Action
+- Наблюдение = Observation
+- Ответ = FinalAnswer
+You may use Russian labels when producing outputs in Russian; the semantics must match the English contract below.
 
 WORKFLOW:
 Think step-by-step using this format:
@@ -102,10 +113,10 @@ Step 2: Thought → compose_context {hit_ids: [ids from step 1]} → Observation
 Step 3: Thought → FinalAnswer (based on context from step 2, with citation numbers [1], [2], etc.)
 
 SYSTEM DETERMINISTIC LOGIC:
-- After compose_context, system auto-checks citation coverage (>=80%)
+- After compose_context, system auto-checks citation coverage (>=65%)
 - If coverage insufficient, system performs additional search round
 - Before final answer, system may verify claims
-- Maximum 1 additional search round to avoid infinite loops
+- Maximum 2 additional search rounds to avoid infinite loops
 
 Be accurate, logical, and helpful."""
 
@@ -178,7 +189,12 @@ Be accurate, logical, and helpful."""
                 # Отправляем мысль если есть
                 if thought:
                     yield AgentStepEvent(
-                        type="thought", data={"content": thought, "step": step}
+                        type="thought",
+                        data={
+                            "content": thought,
+                            "step": step,
+                            "request_id": request_id,
+                        },
                     )
                     conversation_history.append(f"Thought: {thought}")
 
@@ -217,6 +233,7 @@ Be accurate, logical, and helpful."""
                                     "step": step,
                                     "system_generated": True,
                                     "verification": True,
+                                    "request_id": request_id,
                                 },
                             )
                             conversation_history.append(f"Thought: {verify_thought}")
@@ -237,6 +254,7 @@ Be accurate, logical, and helpful."""
                                             "tool": verify_refinement_result.tool,
                                             "input": verify_refinement_result.input,
                                             "step": step,
+                                            "request_id": request_id,
                                             "verification_refinement": True,
                                         },
                                     )
@@ -252,6 +270,7 @@ Be accurate, logical, and helpful."""
                                             "content": verify_ref_observation,
                                             "success": verify_refinement_result.output.ok,
                                             "step": step,
+                                            "request_id": request_id,
                                             "took_ms": verify_refinement_result.output.meta.took_ms,
                                             "verification_refinement": True,
                                         },
@@ -282,32 +301,139 @@ Be accurate, logical, and helpful."""
                                 " (⚠️ Answer not verified with high confidence)"
                             )
 
-                    # Добавляем информацию о верификации в финальный ответ
-                    final_data = {
-                        "answer": verified_answer,
-                        "step": step,
-                        "total_steps": step,
-                        "request_id": request_id,
-                        "coverage": agent_state.coverage,
-                        "refinements": agent_state.refinement_count,
-                    }
-
-                    if self.settings.enable_verify_step and verify_res:
-                        final_data.update(
-                            {
-                                "verification": {
-                                    "verified": verify_res.get("verified", False),
-                                    "confidence": verify_res.get("confidence", 0.0),
-                                    "documents_found": verify_res.get(
-                                        "documents_found", 0
-                                    ),
-                                }
-                            }
+                    # Собираем цитаты, если compose_context был вызван ранее
+                    latest_citations = []
+                    try:
+                        latest_citations = (
+                            getattr(self, "_last_compose_citations", None) or []
                         )
+                    except Exception:
+                        latest_citations = []
+
+                    # Удаляем возможные артефакты ReAct внутри финала (повторные Thought/Action)
+                    try:
+                        verified_answer = re.sub(
+                            r"\n(?:Thought|Action):[\s\S]*$",
+                            "",
+                            verified_answer,
+                            flags=re.IGNORECASE,
+                        ).strip()
+                    except Exception:
+                        pass
+
+                    # Приводим ответ к языку пользователя при необходимости (русский)
+                    try:
+                        is_russian_query = any(
+                            0x0400 <= ord(c) <= 0x04FF for c in conversation_history[0]
+                        )
+                        if is_russian_query:
+                            contains_cjk = (
+                                re.search(r"[\u3400-\u9FFF]", verified_answer)
+                                is not None
+                            )
+                            has_cyr = any(
+                                0x0400 <= ord(ch) <= 0x04FF for ch in verified_answer
+                            )
+                            if contains_cjk or not has_cyr:
+                                regen_prompt = (
+                                    "Переформулируй ответ строго на русском языке, без китайских символов и смешения языков. "
+                                    "Сохрани факты и структуру, добавь ссылки на источники в квадратных скобках при их наличии.\n\n"
+                                    f"Ответ для переформулирования:\n{verified_answer}"
+                                )
+                                try:
+                                    llm = self.llm_factory()
+                                    regen_response = llm(
+                                        regen_prompt,
+                                        max_tokens=min(
+                                            self.settings.agent_token_budget // 2, 800
+                                        ),
+                                        temperature=0.1,
+                                        top_p=0.9,
+                                        top_k=40,
+                                        repeat_penalty=1.15,
+                                        stop=["Human:", "Observation:"],
+                                        seed=43,
+                                    )
+                                    verified_answer = regen_response["choices"][0][
+                                        "text"
+                                    ].strip()
+                                except Exception:
+                                    verified_answer = self._sanitize_language_output(
+                                        verified_answer, target="Russian"
+                                    )
+                            else:
+                                verified_answer = self._sanitize_language_output(
+                                    verified_answer, target="Russian"
+                                )
+                    except Exception:
+                        pass
+
+                    if agent_state.low_coverage_disclaimer:
+                        disclaimer = (
+                            "[Примечание: найдено ограниченное количество релевантной информации. "
+                            "Ответ может быть неполным.]"
+                        )
+                        verified_answer = (
+                            f"{disclaimer}\n\n{verified_answer}"
+                            if verified_answer
+                            else disclaimer
+                        )
+
+                    # Вызов инструмента final_answer для унификации финального события
+                    try:
+                        fa_request = ToolRequest(
+                            tool="final_answer",
+                            input={
+                                "answer": verified_answer,
+                                "citations": latest_citations,
+                                "coverage": agent_state.coverage,
+                                "refinements": agent_state.refinement_count,
+                                "route": getattr(self, "_last_search_route", None),
+                                "plan": getattr(self, "_last_plan_summary", None),
+                                "verification": (
+                                    {
+                                        "verified": verify_res.get("verified", False),
+                                        "confidence": verify_res.get("confidence", 0.0),
+                                        "documents_found": verify_res.get(
+                                            "documents_found", 0
+                                        ),
+                                    }
+                                    if (self.settings.enable_verify_step and verify_res)
+                                    else None
+                                ),
+                            },
+                        )
+                        fa_result = self.tool_runner.run(request_id, step, fa_request)
+                        # Отправляем как observation финализацию инструмента
+                        yield AgentStepEvent(
+                            type="tool_invoked",
+                            data={
+                                "tool": "final_answer",
+                                "input": fa_request.input,
+                                "step": step,
+                                "request_id": request_id,
+                            },
+                        )
+                        if fa_result:
+                            # Обновим данные финального события из инструмента
+                            final_payload = fa_result.output.data or {}
+                        else:
+                            final_payload = {"answer": verified_answer}
+                    except Exception:
+                        final_payload = {"answer": verified_answer}
+
+                    # Добавляем служебные поля шага и запроса
+                    final_payload.update(
+                        {
+                            "step": step,
+                            "total_steps": step,
+                            "request_id": request_id,
+                        }
+                    )
 
                     yield AgentStepEvent(
                         type="final",
-                        data=final_data,
+                        data=final_payload,
                     )
 
                     logger.info(
@@ -344,6 +470,7 @@ Be accurate, logical, and helpful."""
                                 "tool": action_result.tool,
                                 "input": action_result.input,
                                 "step": step,
+                                "request_id": request_id,
                             },
                         )
 
@@ -357,6 +484,7 @@ Be accurate, logical, and helpful."""
                                 "content": observation,
                                 "success": action_result.output.ok,
                                 "step": step,
+                                "request_id": request_id,
                                 "took_ms": action_result.output.meta.took_ms,
                             },
                         )
@@ -364,6 +492,23 @@ Be accurate, logical, and helpful."""
                         # Добавляем в историю
                         conversation_history.append(f"Action: {action_text}")
                         conversation_history.append(f"Observation: {observation}")
+
+                        # Сохраняем сводку плана для финального payload
+                        if (
+                            action_result.tool == "query_plan"
+                            and action_result.output.ok
+                        ):
+                            try:
+                                plan = action_result.output.data.get("plan", {}) or {}
+                                self._last_plan_summary = {
+                                    "queries": len(
+                                        plan.get("normalized_queries", []) or []
+                                    ),
+                                    "k_per_query": plan.get("k_per_query", 0),
+                                    "fusion": plan.get("fusion", "unknown"),
+                                }
+                            except Exception:
+                                pass
 
                         if action_result.tool == "search" and action_result.output.ok:
                             action_result.output.data.setdefault(
@@ -409,6 +554,11 @@ Be accurate, logical, and helpful."""
                             contexts = action_result.output.data.get("contexts", [])
 
                             agent_state.coverage = coverage
+                            # Запомним последние цитаты для финального ответа
+                            try:
+                                self._last_compose_citations = citations
+                            except Exception:
+                                pass
 
                             logger.debug(
                                 "Compose context: coverage=%.2f, citations=%d, contexts=%d",
@@ -417,7 +567,48 @@ Be accurate, logical, and helpful."""
                                 len(contexts),
                             )
 
-                            if self._should_attempt_refinement(
+                            # Emit citations event
+                            try:
+                                if citations:
+                                    yield AgentStepEvent(
+                                        type="citations",
+                                        data={
+                                            "citations": citations,
+                                            "coverage": coverage,
+                                            "step": step,
+                                            "request_id": request_id,
+                                        },
+                                    )
+                            except Exception:
+                                pass
+
+                            max_sim = max(
+                                (
+                                    float(hit.get("dense_score") or 0.0)
+                                    for hit in getattr(self, "_last_search_hits", [])
+                                    if isinstance(hit, dict)
+                                ),
+                                default=0.0,
+                            )
+                            if max_sim < 0.30 and not agent_state.refinement_count:
+                                abort_thought = (
+                                    "Insufficient information: no relevant documents found "
+                                    "(max similarity < 0.30)."
+                                )
+                                yield AgentStepEvent(
+                                    type="thought",
+                                    data={
+                                        "content": abort_thought,
+                                        "step": step,
+                                        "system_generated": True,
+                                        "request_id": request_id,
+                                    },
+                                )
+                                conversation_history.append(f"Thought: {abort_thought}")
+                                agent_state.coverage = 0.0
+                                agent_state.low_coverage_disclaimer = True
+
+                            if max_sim >= 0.30 and self._should_attempt_refinement(
                                 coverage, agent_state.refinement_count
                             ):
                                 # Not enough coverage, trigger refinement search
@@ -490,6 +681,13 @@ Be accurate, logical, and helpful."""
                                         f"Error during refinement for request {request_id}: {e}"
                                     )
                                     # Continue without refinement if it fails
+
+                            if (
+                                coverage < 0.50
+                                and agent_state.refinement_count
+                                >= self.settings.max_refinements
+                            ):
+                                agent_state.low_coverage_disclaimer = True
 
                 step += 1
                 self._current_step = step  # Обновляем текущий шаг
@@ -565,7 +763,14 @@ Be accurate, logical, and helpful."""
                 ]
 
             # Собираем промпт
-            history_text = "\n".join(conversation_history)
+            history_text = "\n".join(
+                [
+                    line.replace("Thought:", "Мысль:")
+                    .replace("Action:", "Действие:")
+                    .replace("Observation:", "Наблюдение:")
+                    for line in conversation_history
+                ]
+            )
 
             # Определяем язык запроса пользователя (первая строка истории)
             user_query_lang = (
@@ -579,27 +784,49 @@ Be accurate, logical, and helpful."""
 
             prompt = f"""System Instruction: {self.system_prompt}
 
-REMINDER: The user's query is in {user_query_lang}. You MUST respond in {user_query_lang} for both Thought and FinalAnswer.
+Напоминание: язык пользователя — {user_query_lang}. Пиши строго на этом языке. Используй метки «Мысль:/Действие:/Наблюдение:/Ответ:».
 
-Conversation Context:
+Контекст диалога:
 {history_text}
 
-Continue reasoning following ReAct format (Thought/Action/Observation or FinalAnswer):"""
+Продолжай по формату ReAct на русском: «Мысль/Действие/Наблюдение» или «Ответ:».
+"""
 
             # Получаем LLM
             llm = self.llm_factory()
 
             # Генерируем ответ
-            response = llm(
-                prompt,
-                max_tokens=self.settings.agent_token_budget,
-                temperature=0.2,
-                top_p=0.9,
-                top_k=40,
-                repeat_penalty=1.2,
-                stop=["Human:", "Observation:"],
-                seed=42,
-            )
+            # Блокируем CJK-пунктуацию через logit_bias (снижение вероятности code-switch)
+            try:
+                cjk_punct = "，。、？！《》【】；：、「」『』（）—…．～％＄＃＠＆　"
+                llm_tokenize = getattr(llm, "tokenize", None)
+                bias = {}
+                if callable(llm_tokenize):
+                    for ch in cjk_punct:
+                        for tid in llm.tokenize(ch.encode("utf-8"), add_bos=False):
+                            bias[int(tid)] = -100.0
+                response = llm(
+                    prompt,
+                    max_tokens=self.settings.agent_token_budget,
+                    temperature=0.3,
+                    top_p=0.9,
+                    top_k=50,
+                    repeat_penalty=1.05,
+                    stop=["Human:", "Observation:", "\nНаблюдение:"],
+                    seed=42,
+                    logit_bias=bias or None,
+                )
+            except Exception:
+                response = llm(
+                    prompt,
+                    max_tokens=self.settings.agent_token_budget,
+                    temperature=0.3,
+                    top_p=0.9,
+                    top_k=50,
+                    repeat_penalty=1.05,
+                    stop=["Human:", "Observation:", "\nНаблюдение:"],
+                    seed=42,
+                )
 
             return response["choices"][0]["text"].strip()
 
@@ -615,28 +842,53 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
         action = None
         final_answer = None
 
-        # Ищем Thought
+        # Ищем Мысль/Thought
         thought_match = re.search(
-            r"Thought:\s*(.*?)(?=\nAction:|$)", response, re.DOTALL | re.IGNORECASE
+            r"(?:Мысль|Thought):\s*(.*?)(?=\n(?:Действие|Action):|$)",
+            response,
+            re.DOTALL | re.IGNORECASE,
         )
         if thought_match:
             thought = thought_match.group(1).strip()
 
-        # Ищем Action
+        # Ищем Действие/Action
         action_match = re.search(
-            r"Action:\s*(.*?)(?=\nObservation:|$)", response, re.DOTALL | re.IGNORECASE
+            r"(?:Действие|Action):\s*(.*?)(?=\n(?:Наблюдение|Observation):|$)",
+            response,
+            re.DOTALL | re.IGNORECASE,
         )
         if action_match:
             action = action_match.group(1).strip()
 
-        # Ищем FinalAnswer
+        # Ищем Ответ/FinalAnswer (нежадно)
         final_match = re.search(
-            r"FinalAnswer:\s*(.*)", response, re.DOTALL | re.IGNORECASE
+            r"(?:Ответ|FinalAnswer):\s*(.*?)(?=\n(?:Мысль|Thought):|\n(?:Действие|Action):|$)",
+            response,
+            re.DOTALL | re.IGNORECASE,
         )
         if final_match:
             final_answer = final_match.group(1).strip()
 
         return thought, action, final_answer
+
+    def _sanitize_language_output(self, text: str, target: str) -> str:
+        """Пост-обработка вывода для соблюдения целевого языка.
+
+        Простая эвристика: если целевой язык Russian и имеются китайские иероглифы,
+        удаляем их и повторные \
+        маркеры ReAct; также заменяем типичные китайские вставки.
+        """
+        try:
+            if target == "Russian":
+                # Удаляем CJK символы
+                text = re.sub(r"[\u3400-\u9FFF]+", "", text)
+                # Удаляем редкие CJK расширения
+                text = re.sub(r"[\uF900-\uFAFF]+", "", text)
+                # Чистим двойные пробелы
+                text = re.sub(r"\s{2,}", " ", text).strip()
+        except Exception:
+            pass
+        return text
 
     async def _execute_action(
         self, action_text: str, request_id: str, step: int
@@ -721,8 +973,9 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
 
         if tool_name == "compose_context":
             # Убираем лишние параметры, которые LLM может генерировать
-            params.pop("query", None)
             params.pop("hits", None)
+            params.pop("raw_input", None)
+            params["query"] = getattr(self, "_current_query", "") or ""
 
             # Извлекаем hit_ids
             hit_ids: List[str] = params.pop("hit_ids", []) or []
@@ -783,6 +1036,7 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
                         "id": doc_id,
                         "text": text_value,
                         "metadata": doc.get("metadata") or doc.get("meta", {}),
+                        "dense_score": doc.get("dense_score"),
                     }
                 )
 
@@ -985,11 +1239,25 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
             },
             "compose_context": {
                 "description": "Собирает контекст из документов с цитированием",
-                "parameters": {"docs": "array", "max_tokens_ctx": "integer"},
+                "parameters": {
+                    "docs": "array",
+                    "query": "string?",
+                    "max_tokens_ctx": "integer",
+                },
             },
             "verify": {
                 "description": "Проверяет утверждения через поиск в базе знаний",
                 "parameters": {"query": "string", "claim": "string"},
+            },
+            "final_answer": {
+                "description": "Формирует финальный ответ с унифицированной схемой (answer/citations/verification)",
+                "parameters": {
+                    "answer": "string",
+                    "citations": "array?",
+                    "verification": "object?",
+                    "coverage": "float?",
+                    "refinements": "int?",
+                },
             },
         }
 
@@ -1075,10 +1343,9 @@ Continue reasoning following ReAct format (Thought/Action/Observation or FinalAn
     ) -> Optional[AgentAction]:
         """Execute the refinement process with expanded search parameters."""
         try:
-            # Increase retrieval scope for refinement - use hybrid_top_bm25 as base
-            new_k = min(
-                self.settings.hybrid_top_bm25 * 2, 200
-            )  # double BM25 results, cap at 200
+            # Увеличиваем охват refinement на базе dense+sparse prefetch лимитов.
+            base_k = max(self.settings.hybrid_top_dense, self.settings.hybrid_top_sparse)
+            new_k = min(base_k * 2, 200)
 
             # Prepare a refined search action
             refine_input = {

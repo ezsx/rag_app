@@ -22,7 +22,6 @@ def search(
     hybrid_retriever: Optional[HybridRetriever] = None,
     query: Optional[str] = None,
     search_type: Optional[str] = None,
-    bm25_retriever: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """
     Выполняет гибридный поиск по коллекции документов с RRF слиянием
@@ -130,7 +129,6 @@ def search(
         candidates: List[Any] = []
         route_used = route
         hybrid_duration_ms: Optional[int] = None
-        bm25_duration_ms: Optional[int] = None
 
         # Выполняем гибридный поиск, если доступен retriever
         if hybrid_retriever is not None:
@@ -154,32 +152,10 @@ def search(
                 len(candidates) if candidates else 0,
             )
 
-        # Фолбэк на чистый BM25 при ошибках гибридного поиска или явном запросе
-        force_bm25 = (route or "").lower() == "bm25" or (
-            search_type and search_type.lower() == "bm25"
-        )
-        if (not candidates or force_bm25) and bm25_retriever is not None:
-            start_ts = time.perf_counter()
-            try:
-                candidates = bm25_retriever.search(deduped_queries[0], search_plan, k)
-                route_used = "bm25"
-            except Exception as bm25_err:
-                logger.error("BM25 fallback failed: %s", bm25_err)
-                candidates = []
-            bm25_duration_ms = int((time.perf_counter() - start_ts) * 1000)
-            logger.debug(
-                "search tool bm25 finished | took_ms=%s | results=%s",
-                bm25_duration_ms,
-                len(candidates) if candidates else 0,
-            )
-
         if not candidates:
-            total_ms = None
-            if hybrid_duration_ms is not None or bm25_duration_ms is not None:
-                total_ms = (hybrid_duration_ms or 0) + (bm25_duration_ms or 0)
             logger.warning(
                 "search tool returned no candidates | total_ms=%s | route=%s",
-                total_ms,
+                hybrid_duration_ms,
                 route_used,
             )
             return {
@@ -223,6 +199,9 @@ def search(
                 {
                     "id": candidate.id,
                     "score": float(i + 1),  # Используем rank как score
+                    "dense_score": float(
+                        getattr(candidate, "dense_score", 0.0) or 0.0
+                    ),
                     "text": text_value,
                     "snippet": (
                         text_value[:200] + "..."
@@ -233,14 +212,11 @@ def search(
                 }
             )
 
-        total_ms = None
-        if hybrid_duration_ms is not None or bm25_duration_ms is not None:
-            total_ms = (hybrid_duration_ms or 0) + (bm25_duration_ms or 0)
         logger.debug(
             "search tool success | route_used=%s | hits=%s | time_ms=%s",
             route_used,
             len(hits),
-            total_ms,
+            hybrid_duration_ms,
         )
         return {"hits": hits, "total_found": len(hits), "route_used": route_used}
 

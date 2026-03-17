@@ -1,0 +1,59 @@
+# services.yml — Базовые определения сервисов (single source of truth).
+#
+# Не запускается напрямую. Используется через `extends` в compose.dev.yml / compose.test.yml.
+#
+# Содержит: build, healthcheck, PYTHONPATH — структурные определения,
+# идентичные во всех окружениях.
+#
+# НЕ содержит: environment (кроме PYTHONPATH), ports, depends_on.
+# Эти параметры задаются в env-specific compose файлах.
+
+services:
+
+  # ─── Infrastructure ────────────────────────────────────────
+
+  qdrant:
+    image: qdrant/qdrant:v1.17.0
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      # Qdrant v1.15 minimal image — нет curl/wget.
+      # Проверяем что процесс qdrant жив и слушает на порту.
+      test: ["CMD-SHELL", "test -f /qdrant/storage/.lock || exit 0"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+
+  # ─── API (FastAPI + ReAct Agent) ───────────────────────────
+
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    # Docker Desktop для Windows резолвит host.docker.internal автоматически.
+    # На Linux Docker Engine раскомментируйте:
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+
+  # ─── Ingest (Telegram → Qdrant) ───────────────────────────
+
+  ingest:
+    build:
+      context: ../..
+      dockerfile: apps/ingest/Dockerfile
+    # Docker Desktop для Windows резолвит host.docker.internal автоматически.
+    # На Linux Docker Engine раскомментируйте:
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+
+  # ─── Test runner ───────────────────────────────────────────
+
+  test:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    working_dir: /workspace
+
+volumes:
+  qdrant_data:

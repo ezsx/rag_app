@@ -80,6 +80,8 @@ class AgentStepEvent(BaseModel):
 
     type: str = Field(
         ...,
-        description="Тип события: step_started, thought, tool_invoked, observation, token, final",
+        description=(
+            "Тип события: step_started, thought, tool_invoked, observation, citations, token, final"
+        ),
     )
     data: Dict[str, Any] = Field(..., description="Данные события")

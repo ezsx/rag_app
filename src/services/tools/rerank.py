@@ -1,6 +1,4 @@
-"""
-Инструмент rerank для переранжирования результатов поиска
-"""
+"""Инструмент rerank для переранжирования результатов поиска."""
 
 from __future__ import annotations
 
@@ -19,49 +17,29 @@ def rerank(
     reranker: Optional[RerankerService] = None,
     hits: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
-    """
-    Переранжирует документы по релевантности к запросу
-
-    Args:
-        query: Поисковый запрос
-        docs: Список документов для переранжирования
-        top_n: Количество лучших результатов (опционально)
-        reranker: Сервис переранжирования
-
-    Returns:
-        {
-            "indices": [0, 2, 1],  # индексы документов в порядке убывания релевантности
-            "scores": [0.95, 0.87, 0.72],  # соответствующие scores
-            "top_n": 3
-        }
-    """
+    """Переранжирует документы и возвращает реальные sigmoid-нормализованные scores."""
     if not reranker:
         return {"indices": [], "scores": [], "error": "RerankerService not provided"}
 
     if not query or not query.strip():
         return {"indices": [], "scores": [], "error": "Empty query"}
 
+    if hits and not docs:
+        docs = [item.get("text", "") for item in hits if item]
+
     if not docs:
         return {"indices": [], "scores": [], "error": "No documents provided"}
 
-    if hits and not docs:
-        docs = [item.get("text", "") for item in hits if item]
-        if not docs:
-            return {"indices": [], "scores": [], "error": "No documents provided"}
-
     try:
-        # Определяем top_n
         if top_n is None:
             top_n = len(docs)
 
-        # Выполняем переранжирование
-        indices = reranker.rerank(
-            query=query, docs=docs, top_n=top_n, batch_size=16  # Стандартный batch size
+        indices, scores = reranker.rerank_with_scores(
+            query=query,
+            docs=docs,
+            top_n=top_n,
+            batch_size=16,
         )
-
-        # Получаем scores для отсортированных документов
-        # (Для простоты возвращаем dummy scores, так как CrossEncoder не возвращает scores напрямую)
-        scores = [1.0 - (i * 0.1) for i in range(len(indices))]
 
         return {"indices": indices, "scores": scores, "top_n": len(indices)}
 

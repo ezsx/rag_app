@@ -1,0 +1,47 @@
+# compose.test.yml — Тестовый контур.
+#
+# Запуск:
+#   docker compose -f deploy/compose/compose.test.yml run --rm test
+
+name: rag-test
+
+services:
+
+  qdrant-test:
+    extends:
+      file: services.yml
+      service: qdrant
+
+  test:
+    extends:
+      file: services.yml
+      service: test
+    env_file:
+      - ../../.env
+    volumes:
+      - ../../src:/workspace/src
+      - ../../scripts:/workspace/scripts
+      - ../../sessions:/workspace/sessions
+    depends_on:
+      qdrant-test:
+        condition: service_healthy
+    environment:
+      - PYTHONPATH=/workspace/src
+      - TG_SESSION=/workspace/sessions/telegram.session
+      - LLM_BASE_URL=http://host.docker.internal:8080
+      - LLM_MODEL_NAME=qwen3-8b
+      - LLM_REQUEST_TIMEOUT=120
+      - EMBEDDING_TEI_URL=http://host.docker.internal:8082
+      - RERANKER_TEI_URL=http://host.docker.internal:8083
+      - QDRANT_URL=http://qdrant-test:6333
+      - QDRANT_COLLECTION=news_test
+      - COVERAGE_THRESHOLD=0.65
+      - MAX_REFINEMENTS=2
+    command: pytest src/tests/ -x -q
+
+volumes:
+  qdrant_data:
+
+networks:
+  default:
+    name: rag-test-net

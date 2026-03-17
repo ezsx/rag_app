@@ -7,7 +7,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from core.settings import get_settings, Settings
-from utils.model_downloader import RECOMMENDED_MODELS
+from utils import RECOMMENDED_MODELS
 from schemas.qa import (
     ModelInfo,
     ModelType,

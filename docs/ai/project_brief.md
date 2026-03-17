@@ -1,111 +1,61 @@
 ## Обзор проекта
 
-Проект `rag_app` — это сервис вопросов-ответов (QA) на базе подхода Retrieval-Augmented Generation (RAG) с поддержкой ReAct агентов. Он сочетает полнотекстовый и семантический поиск по коллекции документов (ChromaDB, BM25) и генерацию ответа LLM, предоставляя REST API через FastAPI.
+`rag_app` — FastAPI-платформа Retrieval-Augmented Generation с агентским ReAct-пайплайном.
+Поисковик/агрегатор новостей из Telegram-каналов: ingest → Qdrant (dense+sparse) → Hybrid Retrieval → ReAct Agent → SSE-ответ.
+Каноническая архитектурная схема: `docs/architecture/04-system/overview.md`.
 
-### Назначение
-- Предоставление API для поиска и ответа на вопросы с использованием внешнего контекста.
-- Поддержка гибридного поиска (BM25 + эмбеддинги) и опционального переранжирования.
-- Планирование запросов (Query Planner) для повышения точности за счёт декомпозиции запроса.
-- **Agentic ReAct-RAG** с детерминированной логикой принятия решений, coverage check и refinement циклами.
+### Архитектура (Phase 1)
+1. **Vector Store**: Qdrant — dense 1024-dim cosine + sparse BM25 (russian), named vectors, native RRF+MMR.
+2. **LLM**: Qwen3-8B GGUF через llama-server.exe (Windows Host, V100 SXM2 32GB, порт 8080). Thinking mode отключён (`/no_think`, DEC-0022).
+3. **Embedding**: multilingual-e5-large через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8082). Будущее: Qwen3-Embedding-0.6B (DEC-0026, approved, не реализовано).
+4. **Reranker**: bge-reranker-v2-m3 через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8083).
+5. **Sparse**: fastembed SparseTextEmbedding (Qdrant/bm25, language="russian", CPU).
+6. **Docker**: api + qdrant — CPU only. GPU недоступна в Docker Desktop (DEC-0024: V100 TCC блокирует NVML).
 
-### Основные сервисы и компоненты
-- `src/main.py`: точка входа FastAPI, CORS, маршруты v1, глобальная обработка ошибок.
-- `src/api/v1/`: роутер и конечные точки: `qa`, `search`, `models`, `collections`, `ingest`, `system`, **`agent`**.
-- `src/core/settings.py`: конфигурация (модели, Chroma, кеши, гибрид/ммр/ререйк, агенты), горячая смена моделей. **Qwen2.5-7B-Instruct** как основная модель (16GB VRAM).
-- `src/core/deps.py`: фабрики зависимостей (`get_llm`, `get_retriever`, `get_qa_service`, `get_query_planner`, `get_reranker`, **`get_agent_service`** и т.д.).
-- `src/services/qa_service.py`: сбор контекста, промптинг и генерация ответа/стриминга.
-- `src/services/query_planner_service.py`: построение плана поиска, кеширование планов и результатов слияния.
-- `src/services/reranker_service.py`: переранжирование кандидатов (BAAI/bge-reranker-v2-m3).
-- **`src/services/agent_service.py`**: **Agentic ReAct-RAG** с детерминированной логикой, coverage check и refinement циклами.
-- **`src/services/tools/`**: **7 базовых инструментов** (query_plan, search, rerank, fetch_docs, compose_context, verify, router_select).
-- `src/adapters/chroma/retriever.py`: доступ к ChromaDB (HTTP/локально), эмбеддинг‑поиск.
-- `src/adapters/search/*`: BM25 индекс/ретривер и гибридный ретривер.
-- `src/utils/*`: загрузка/кеширование моделей, сбор промпта, ранжирование (RRF, MMR).
-- Данные индекса: `bm25-index/`, векторное хранилище: `chroma-data/`.
+### Сервисы
+- `qa_service` — QA через HybridRetriever (Qdrant) + LLM.
+- `agent_service` — ReAct-цикл, оркестрация 7+1 инструментов, coverage/refinements.
+- `reranker_service` — синхронный мост над async TEIRerankerClient.
+- `query_planner_service` — GBNF-грамматика, декомпозиция подзапросов.
 
-### Инварианты и ключевые свойства
-- LLM и ретриверы создаются лениво через `lru_cache`; при смене настроек кеши сбрасываются.
-- API устойчив к падению зависимостей при старте (warmup опционален, ошибки логируются).
-- Планировщик и фьюжн используют встроенный TTL‑кеш (план ~10 мин, фьюжн ~5 мин) при включённом кешировании.
-- Гибридный поиск и MMR/ререйк опциональны и настраиваются через переменные окружения.
-- Основной контекст хранится в ChromaDB коллекции, имя коллекции — часть конфигурации и может переключаться «на лету».
-- **Agentic ReAct-RAG** использует детерминированную логику с coverage check (≥80%) и refinement циклами (≤1 раунд).
-- **7 базовых инструментов** регистрируются в deps.py с инъекцией зависимостей (retriever, settings и др.).
-- **Основная модель Qwen2.5-7B-Instruct** оптимизирована для 16GB VRAM с контекстом 8k токенов.
+### Адаптеры
+- `src/adapters/qdrant/store.py` — QdrantStore (dense+sparse upsert, query, RRF).
+- `src/adapters/search/hybrid_retriever.py` — Qdrant prefetch + FusionQuery(RRF) + MmrQuery.
+- `src/adapters/tei/embedding_client.py` — TEIEmbeddingClient (async httpx).
+- `src/adapters/tei/reranker_client.py` — TEIRerankerClient (async httpx).
+- `src/adapters/llm/llama_server_client.py` — LlamaServerClient.
 
-### Безопасность и платформа (актуально)
-- JWT‑аутентификация и авторизация: `src/core/auth.py`; обязательная проверка в `agent` эндпойнтах.
-- Rate limiting middleware с экспоненциальным бэкоффом: `src/core/rate_limit.py`; экспонирование заголовков в CORS.
-- Валидация и санитизация ввода (`SecurityManager`): `src/core/security.py`; защита от prompt‑injection, ограничение размера/глубины JSON.
-- Санитизация при логировании через `sanitize_for_logging`.
+### DI и конфигурация
+- Все фабрики через `@lru_cache` в `src/core/deps.py`. Hot-swap: `settings.update_*()` + `cache_clear()`.
+- API стартует при недоступных зависимостях (ошибки логируются, warmup опционален).
 
-### Agentic ReAct-RAG (актуально)
-- **Детерминированная логика**: coverage check (≥80%), refinement циклы (≤1 раунд), верификация ответов (confidence ≥0.6).
-- **Decoding‑профиль**: temperature=0.2–0.4, top_p=0.9, top_k=40, repeat_penalty=1.15–1.2, seed=42.
-- **Lost‑in‑the‑Middle mitigation** и `citation_coverage` в `compose_context`.
-- **7 базовых инструментов**: query_plan, search, rerank, fetch_docs, compose_context, verify, router_select.
-- **Основная модель**: Qwen2.5-7B-Instruct (16GB VRAM, 8k контекст, русскоязычная поддержка).
+### ReAct Agent
+- **7+1 инструментов**: router_select, query_plan, search, rerank, compose_context, verify, final_answer (+ fetch_docs).
+- Coverage threshold: **0.65** (DEC-0019, composite 5-signal metric в SPEC-RAG-07).
+- Max refinements: **2** (DEC-0019).
+- SSE-события: `thought`, `tool_invoked`, `observation`, `citations`, `final`.
+- `compose_context` считает citation coverage, предотвращает lost-in-the-middle.
+- `verify` возвращает confidence и evidence-ссылку.
 
-### Соответствие research/playbook
-- Единые параметры декодирования, ограничение шагов ReAct, таймауты инструментов.
-- Кеширование плана/фьюжна в указанные TTL.
-- Контроль качества: акцент на покрытие цитат и стабильность форматов.
+### API
+- REST `/v1/**`: QA, поиск, ReAct-агент.
+- SSE `/v1/agent/stream` — долгие соединения (таймаут 60 с).
+- `/v1/qa` — baseline без ReAct.
 
-### Рефакторинг агентских инструментов (текущая сессия)
+### Безопасность
+- JWT + роль админа, `RateLimitMiddleware` с экспоненциальным бэкоффом.
+- `SecurityManager`, `sanitize_for_logging`, фильтр prompt-injection, блокировка PII.
+- CORS, проверка прав на SSE-эндпоинтах.
 
-#### Удаленные инструменты (13 шт.):
-**Обоснование удаления**: Эти инструменты признаны избыточными для MVP агентской системы или дублируют базовую функциональность.
+### Evaluation
+- `scripts/evaluate_agent.py` — CLI, вызывает `/v1/agent/stream` и `/v1/qa`.
+- `datasets/eval_dataset.json` — тестовый датасет (id/query/category/expected_documents/answerable).
+- Метрики: latency, coverage, recall@5, agent_steps.
+- Флаги: `--dry-run`, `--limit`, `--collection`, `--skip-markdown`, `--api-key`.
+- Отчёты: per-query JSON в `results/raw`, агрегаты + Markdown в `results/reports`.
 
-- **content_filter** - фильтрация контента (слишком специализированная функция)
-- **dedup_diversify** - дедупликация и диверсификация (функциональность частично перекрыта RRF/MMR)
-- **export_to_formats** - экспорт в различные форматы (не основной use case агента)
-- **extract_entities** - извлечение сущностей (слишком нишевая функция)
-- **fact_check_advanced** - продвинутый фактчекинг (заменен на базовый verify инструмент)
-- **semantic_similarity** - семантическое сходство (функциональность перекрыта rerank)
-- **summarize** - суммаризация (не критична для агентского цикла)
-- **temporal_normalize** - нормализация дат (обработка дат встроена в query_plan)
-- **translate** - перевод (не основной use case)
-- **math_eval** - математические вычисления (специфичный случай)
-- **multi_query_rewrite** - перезапись запросов (функциональность встроена в query_plan)
-- **time_now** - текущие дата/время (слишком простая функция)
-- **web_search** - поиск в веб (расширяет scope за пределы локальной базы знаний)
-
-#### Добавленные базовые инструменты:
-- **query_plan** - планирование запросов с фильтрами метаданных
-- **search** - гибридный поиск с RRF слиянием и fallback на BM25
-- **rerank** - переранжирование результатов через кросс-энкодер модель
-
-#### Обновленные компоненты:
-- **AgentService** - улучшена логика детерминированного ReAct, системный промпт, обработка ошибок
-- **Настройки и зависимости** - обновлены конфигурации в core модулях
-
-**Результат**: Архитектура агента упрощена и сфокусирована на базовой функциональности планирования-поиска-ранжирования, что улучшает стабильность и уменьшает сложность системы.
-
-### Milestone 1: Стабильный ReAct-RAG агент (текущий статус)
-
-**Достигнутые улучшения**:
-- ✅ **Query Planner**: работает стабильно за 9 секунд с таймаутом 15с
-- ✅ **Гибридный поиск**: находит 10+ релевантных документов с правильными ID
-- ✅ **Compose Context**: формирует контекст с покрытием 1.0 после refinement
-- ✅ **Верификация**: работает с confidence scoring (0.938) и возвращает evidence
-- ✅ **Логирование**: детальная диагностика всех этапов работы агента
-- ✅ **Refinement**: автоматическое улучшение покрытия при недостаточности
-
-**Текущие ограничения**:
-- ⚠️ Финальный ответ формируется через обходной путь (не через инструмент FinalAnswer)
-- ⚠️ Ответ модели содержит устаревшую информацию (Claude/PaLM вместо актуальных моделей)
-
-**Метрики качества**:
-- Время планирования: ~9 секунд
-- Количество найденных документов: 10+ в первом поиске, 168+ после refinement
-- Покрытие контекста: достигает 1.0 после refinement
-- Уверенность верификации: 0.938 (высокая)
-- Стабильность: агент завершает цикл без критических ошибок
-
-**Следующие шаги**:
-1. Исправить механизм финального ответа (убрать необходимость в инструменте FinalAnswer)
-2. Улучшить актуальность ответов модели (добавить больше свежих данных)
-3. Оптимизировать таймауты на основе реальных метрик
-4. Добавить поддержку стриминга ответов
-
-
+### Незавершённые работы Phase 1
+- **SPEC-RAG-06**: миграция ingest pipeline (ingest_telegram.py ещё Phase 0).
+- **SPEC-RAG-07**: composite coverage metric (сейчас naive doc count ratio, цель — 5-signal weighted).
+- `collections.py` endpoint отключён (Phase 0, ChromaDB-код).
+- Phase 2 planned: LLM-judge correctness/faithfulness, Citation Precision, conciseness.
