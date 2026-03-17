@@ -4,7 +4,9 @@
 Изменения по сравнению с Phase 0:
 - Удалены: ChromaDB поля, BM25 поля, local-model пути
 - Добавлены: qdrant_url, qdrant_collection, embedding_tei_url, reranker_tei_url
-- Исправлены: coverage_threshold=0.65, max_refinements=2, LLM=qwen3-8b
+- Исправлены: coverage_threshold=0.65, max_refinements=2, LLM=qwen3-30b-a3b
+- Текущий embedding: Qwen3-Embedding-0.6B + instruction prefix
+- Добавлены настройки chunking для ingest
 """
 
 import os
@@ -22,26 +24,36 @@ class Settings:
         # === LLM — llama-server (V100 на Windows Host) ===
         # llama-server.exe запускается на хосте, Docker обращается через host.docker.internal.
         # V100 TCC недоступен в WSL2/Docker — только через HTTP на хосте.
-        self.current_llm_key: str = os.getenv("LLM_MODEL_KEY", "qwen3-8b")
+        self.current_llm_key: str = os.getenv("LLM_MODEL_KEY", "qwen3-30b-a3b")
         self.llm_base_url: str = os.getenv(
             "LLM_BASE_URL", "http://host.docker.internal:8080"
         )
-        self.llm_model_name: str = os.getenv("LLM_MODEL_NAME", "qwen3-8b")
+        self.llm_model_name: str = os.getenv("LLM_MODEL_NAME", "qwen3-30b-a3b")
         self.llm_request_timeout: int = int(os.getenv("LLM_REQUEST_TIMEOUT", "120"))
 
         # Query Planner может использовать отдельный endpoint.
         # Если PLANNER_LLM_BASE_URL не задан — используется тот же llama-server.
         self.planner_llm_base_url: str = os.getenv("PLANNER_LLM_BASE_URL", "")
-        self.planner_llm_key: str = os.getenv("PLANNER_LLM_MODEL_KEY", "qwen3-8b")
+        self.planner_llm_key: str = os.getenv(
+            "PLANNER_LLM_MODEL_KEY", "qwen3-30b-a3b"
+        )
 
         # === Embedding — TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8082) ===
-        # Модель: intfloat/multilingual-e5-large (1024-dim, cosine).
+        # Модель: Qwen/Qwen3-Embedding-0.6B (1024-dim, cosine, long context).
         # TEI запускается отдельно в WSL2, не в Docker (DEC-0024).
         self.current_embedding_key: str = os.getenv(
-            "EMBEDDING_MODEL_KEY", "multilingual-e5-large"
+            "EMBEDDING_MODEL_KEY", "qwen3-embedding-0.6b"
         )
         self.embedding_tei_url: str = os.getenv(
             "EMBEDDING_TEI_URL", "http://host.docker.internal:8082"
+        )
+        self.embedding_query_instruction: str = os.getenv(
+            "EMBEDDING_QUERY_INSTRUCTION",
+            (
+                "Instruct: Given a user question about ML, AI, LLM or tech news, "
+                "retrieve relevant Telegram channel posts\n"
+                "Query: "
+            ),
         )
 
         # === Reranker — TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8083) ===
@@ -129,9 +141,12 @@ class Settings:
         self.agent_token_budget: int = int(os.getenv("AGENT_TOKEN_BUDGET", "2000"))
 
         # Параметры декодинга для tool-шагов (короткие, детерминированные)
-        self.agent_tool_temp: float = float(os.getenv("AGENT_TOOL_TEMP", "0.2"))
-        self.agent_tool_top_p: float = float(os.getenv("AGENT_TOOL_TOP_P", "0.9"))
-        self.agent_tool_top_k: int = int(os.getenv("AGENT_TOOL_TOP_K", "40"))
+        self.agent_tool_temp: float = float(os.getenv("AGENT_TOOL_TEMP", "0.7"))
+        self.agent_tool_top_p: float = float(os.getenv("AGENT_TOOL_TOP_P", "0.8"))
+        self.agent_tool_top_k: int = int(os.getenv("AGENT_TOOL_TOP_K", "20"))
+        self.agent_tool_presence_penalty: float = float(
+            os.getenv("AGENT_TOOL_PRESENCE_PENALTY", "1.5")
+        )
         self.agent_tool_repeat_penalty: float = float(
             os.getenv("AGENT_TOOL_REPEAT_PENALTY", "1.15")
         )
@@ -147,16 +162,20 @@ class Settings:
         # === Coverage / Refinement (DEC-0018, DEC-0019) ===
         # 0.65 — откалиброван под composite 5-signal metric (R04).
         # 0.8 был слишком агрессивен: вызывал false-negative refinements.
-        # 0.45 — калиброван под текущий объём коллекции (~1K points).
-        # При росте до 5K+ поднять до 0.65 (DEC-0019 target).
         self.coverage_threshold: float = float(
-            os.getenv("COVERAGE_THRESHOLD", "0.45")
+            os.getenv("COVERAGE_THRESHOLD", "0.65")
         )
         # 2 refinements дают +12% recall без существенного роста latency (R04).
         self.max_refinements: int = int(os.getenv("MAX_REFINEMENTS", "2"))
         self.enable_verify_step: bool = (
             os.getenv("ENABLE_VERIFY_STEP", "true").lower() == "true"
         )
+
+        # === Chunking для ingest ===
+        self.chunk_char_threshold: int = int(
+            os.getenv("CHUNK_CHAR_THRESHOLD", "1500")
+        )
+        self.chunk_target_size: int = int(os.getenv("CHUNK_TARGET_SIZE", "1200"))
 
         logger.info(
             "Настройки загружены: LLM=%s, Embedding=%s, Qdrant=%s/%s, "

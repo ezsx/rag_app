@@ -5,8 +5,11 @@ HTTP-обёртка над llama-server с интерфейсом совмест
 через OpenAI-compatible completions API, пока RAG pipeline работает внутри Docker.
 
 llama-server запускается на хосте:
-    llama-server.exe -hf bartowski/Qwen2.5-7B-Instruct-GGUF:Q4_K_M.gguf \\
-        -ngl 99 --main-gpu 0 --host 0.0.0.0 --port 8080
+    llama-server.exe -hf unsloth/Qwen3-30B-A3B-GGUF:Q4_K_M \\
+        -c 16384 --parallel 2 --flash-attn on \\
+        --cache-type-k q8_0 --cache-type-v q8_0 \\
+        -ngl 99 --main-gpu 0 --host 0.0.0.0 --port 8080 \\
+        --jinja --reasoning-budget 0
 
 Docker-контейнер обращается по: http://host.docker.internal:8080/v1/completions
 """
@@ -87,11 +90,55 @@ class LlamaServerClient:
         resp.raise_for_status()
         return resp.json()
 
+    def chat_completion(
+        self,
+        messages: List[Dict[str, Any]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        max_tokens: int = 512,
+        temperature: float = 0.7,
+        top_p: float = 0.8,
+        top_k: int = 20,
+        presence_penalty: float = 1.5,
+        stop: Optional[List[str]] = None,
+        seed: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """
+        Вызывает `/v1/chat/completions` с поддержкой native function calling.
+
+        `__call__()` сохраняется для legacy `/v1/completions` сценариев
+        (`qa_service`, `query_planner_service`). Этот метод используется
+        агентом с `messages` и `tools` schema.
+        """
+        payload: Dict[str, Any] = {
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "top_k": top_k,
+            "presence_penalty": presence_penalty,
+        }
+        if self.model:
+            payload["model"] = self.model
+        if tools:
+            payload["tools"] = tools
+        if stop:
+            payload["stop"] = stop
+        if seed is not None:
+            payload["seed"] = seed
+
+        resp = self._session.post(
+            f"{self.base_url}/v1/chat/completions",
+            json=payload,
+            timeout=self.timeout,
+        )
+        resp.raise_for_status()
+        return resp.json()
+
     def tokenize(self, text: bytes, add_bos: bool = True) -> List[int]:
         """Токенизирует текст через /tokenize endpoint.
 
-        Используется в agent_service.py для построения logit_bias для CJK-пунктуации.
-        При ошибке возвращает пустой список — caller обрабатывает это gracefully.
+        Метод оставлен для совместимости со старыми вызовами и отладкой токенизации.
+        При ошибке возвращает пустой список.
         """
         try:
             resp = self._session.post(

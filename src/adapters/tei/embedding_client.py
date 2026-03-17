@@ -1,12 +1,12 @@
 """
-HTTP-клиент для TEI embedding service (intfloat/multilingual-e5-large).
+HTTP-клиент для TEI embedding service (Qwen/Qwen3-Embedding-0.6B).
 
 Обёртка над TEI REST API:
   POST /embed  → list[list[float]]  (normalize=True, 1024-dim)
 
-Instruction prefix для e5-large (обязателен для корректного retrieval):
-  query-текст:    "query: {text}"
-  document-текст: "passage: {text}"
+Формат instruction для Qwen3-Embedding:
+  query-текст:    "Instruct: ...\nQuery: {text}"
+  document-текст: "{text}"  (без prefix)
 """
 
 from __future__ import annotations
@@ -18,10 +18,12 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-# Instruction prefixes для intfloat/multilingual-e5-large.
-# Без префикса качество retrieval снижается ~5–8% NDCG@10.
-_QUERY_PREFIX = "query: "
-_PASSAGE_PREFIX = "passage: "
+DEFAULT_QUERY_INSTRUCTION = (
+    "Instruct: Given a user question about ML, AI, LLM or tech news, "
+    "retrieve relevant Telegram channel posts\n"
+    "Query: "
+)
+_PASSAGE_PREFIX = ""
 
 
 class TEIEmbeddingClient:
@@ -29,20 +31,27 @@ class TEIEmbeddingClient:
     Async HTTP-клиент для TEI embedding service.
 
     Используется для:
-    - embed_query: встраивание поискового запроса (с prefix "query: ")
-    - embed_documents: батчевое встраивание документов при ingest (с prefix "passage: ")
+    - embed_query: встраивание поискового запроса с instruction prefix
+    - embed_documents: батчевое встраивание документов без prefix
 
     Connection pool переиспользуется между вызовами — инстанс должен быть singleton.
     Создаётся через deps.get_tei_embedding_client().
     """
 
-    def __init__(self, base_url: str, timeout: float = 30.0) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        timeout: float = 30.0,
+        query_instruction: str = DEFAULT_QUERY_INSTRUCTION,
+    ) -> None:
         """
         Args:
             base_url: URL TEI service, например "http://host.docker.internal:8082"
             timeout: таймаут HTTP запроса в секундах (default 30s)
+            query_instruction: instruction prefix для query embedding
         """
         self.base_url = base_url.rstrip("/")
+        self.query_instruction = query_instruction
         self._client = httpx.AsyncClient(
             base_url=self.base_url,
             timeout=httpx.Timeout(timeout),
@@ -56,7 +65,7 @@ class TEIEmbeddingClient:
         """
         Встраивает один поисковый запрос.
 
-        Применяет prefix "query: " согласно спецификации multilingual-e5-large.
+        Применяет instruction prefix согласно спецификации Qwen3-Embedding.
         Возвращает L2-нормализованный вектор 1024-dim.
 
         Args:
@@ -69,7 +78,7 @@ class TEIEmbeddingClient:
             httpx.ConnectError: TEI service недоступен
             httpx.HTTPStatusError: TEI вернул ошибку (4xx/5xx)
         """
-        prefixed = _QUERY_PREFIX + text
+        prefixed = self.query_instruction + text
         vectors = await self._embed_batch([prefixed], normalize=True)
         return vectors[0]
 
@@ -77,7 +86,7 @@ class TEIEmbeddingClient:
         """
         Батчевое встраивание документов для ingest.
 
-        Применяет prefix "passage: " к каждому тексту.
+        Qwen3-Embedding не использует prefix для документов.
         Возвращает L2-нормализованные векторы 1024-dim.
 
         Args:

@@ -16,22 +16,25 @@
 - LLM, ретриверы создаются через `lru_cache` в `src/core/deps.py`. Смена — через `settings.update_*()`.
 
 ### Код и модели
-- LLM: **Qwen3-8B GGUF** через llama-server.exe (V100, Windows Host, порт 8080).
-- Embedding: **multilingual-e5-large** через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8082).
-- Reranker: **bge-reranker-v2-m3** через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8083).
+- LLM: **Qwen3-30B-A3B GGUF** через llama-server.exe (V100, Windows Host, порт 8080).
+- Embedding: **Qwen3-Embedding-0.6B** через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8082).
+- Reranker: **Qwen3-Reranker-0.6B-seq-cls** через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8083).
 - Vector store: **Qdrant** (Docker, CPU), dense + sparse named vectors, native RRF+MMR.
 - **GPU blocker**: RTX 5060 Ti недоступна в Docker Desktop (V100 TCC блокирует NVML для всех GPU).
   Embedding/Reranker = WSL2-native. Docker-контейнеры = CPU only. (DEC-0024)
 
 ### ReAct агент
-- Цикл: router_select → query_plan → search → rerank → compose_context → verify → final_answer.
+- Оркестрация: native function calling через `/v1/chat/completions`, без regex-парсинга Thought/Action.
+- Tools schema для LLM: `query_plan → search → rerank → compose_context → final_answer`.
+- `verify` и `fetch_docs` остаются системными вызовами внутри `AgentService`, не tools для LLM.
+- Retrieval-пайплайн: `search → rerank → compose_context`.
 - Coverage threshold **0.65**, max **2** refinements (DEC-0019). Не менять без ресерча.
 - Не ломать SSE контракт событий: `thought/tool_invoked/observation/citations/final`.
 
 ### Deploy и запуск
 - **Порядок запуска** (важно):
-  1. Windows Host: `llama-server.exe` (V100, порт 8080)
-  2. Ubuntu WSL2: TEI embedding (порт 8082) + TEI reranker (порт 8083) через `docker run --gpus all`
+  1. Windows Host: `llama-server.exe` (V100, порт 8080, `--jinja --reasoning-budget 0`)
+  2. Ubuntu WSL2: TEI embedding `Qwen/Qwen3-Embedding-0.6B` (порт 8082) + TEI reranker `tomaarsen/Qwen3-Reranker-0.6B-seq-cls` (порт 8083)
   3. Docker Desktop: `docker compose -f deploy/compose/compose.dev.yml up` (порт 8000, CPU)
 - Ingest: `docker compose -f deploy/compose/compose.dev.yml run --rm ingest --channel @name --since YYYY-MM-DD --until YYYY-MM-DD`
 - `.env` в корне — не коммитить секреты.

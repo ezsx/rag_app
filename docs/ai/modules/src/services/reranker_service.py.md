@@ -1,6 +1,6 @@
 ### Модуль: `src/services/reranker_service.py`
 
-Назначение: Синхронная обёртка (sync bridge) над async `TEIRerankerClient` для TEI reranker (BAAI/bge-reranker-v2-m3).
+Назначение: Синхронная обёртка (sync bridge) над async `TEIRerankerClient` для TEI reranker (`tomaarsen/Qwen3-Reranker-0.6B-seq-cls`).
 
 Phase 1: CrossEncoder удалён, `httpx.Client` заменён на bridge через выделенный event loop
 в фоновом потоке (`asyncio.run_coroutine_threadsafe`). Безопасен из sync и async контекстов.

@@ -16,17 +16,17 @@
 
 ```
 query
-  → QueryPlanner (Qwen3-8B, llama-server, GBNF grammar)
+  → QueryPlanner (Qwen3-30B-A3B, llama-server, GBNF grammar)
       → нормализованные подзапросы + MetadataFilters
   → HybridRetriever.search_with_plan()
-      → TEI embed (multilingual-e5-large, prefix "query: ")
+      → TEI embed (Qwen3-Embedding-0.6B, instruction prefix для query)
       → fastembed sparse (Qdrant/bm25, language="russian")
       → Qdrant prefetch:
           ├─ dense_vector: top-100
           └─ sparse_vector: top-100
       → FusionQuery(RRF) → top-N кандидатов
       → with_vectors=True (для coverage cosine_sim)
-  → Reranker (TEI HTTP → bge-reranker-v2-m3, sigmoid scores)
+  → Reranker (TEI HTTP → Qwen3-Reranker-0.6B-seq-cls, sigmoid scores)
   → compose_context → coverage check (0.65, DEC-0019)
 ```
 
@@ -59,10 +59,10 @@ reranker_batch_size   = 16     # ignored — TEI управляет батчин
 
 ## Embedding
 
-- **multilingual-e5-large** — текущая модель (1024-dim, cosine)
+- **Qwen3-Embedding-0.6B** — текущая модель (1024-dim, cosine, long context)
 - Через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8082)
-- Prefix: `"query: "` для запросов, `"passage: "` для документов (добавляется TEIEmbeddingClient)
-- **Будущее**: Qwen3-Embedding-0.6B (DEC-0026, approved, не реализовано)
+- Query format: `Instruct: Given a user question about ML, AI, LLM or tech news, retrieve relevant Telegram channel posts\nQuery: ...`
+- Documents идут без prefix
 
 ## Qdrant
 
@@ -77,6 +77,21 @@ reranker_batch_size   = 16     # ignored — TEI управляет батчин
 - fastembed `SparseTextEmbedding` (модель: `Qdrant/bm25`, language="russian", CPU)
 - Используется в HybridRetriever для sparse ветки prefetch
 - `embed()` для индексации, `query_embed()` для поиска (разные BM25 веса)
+
+## Reranker
+
+- **Qwen3-Reranker-0.6B-seq-cls** — текущая TEI-compatible модель
+- Основана на `Qwen3-Reranker-0.6B`, но обёрнута в seq-cls формат для TEI
+- Используется после search и перед compose_context
+
+## Chunking при ingest
+
+- Посты `<1500` символов индексируются одним point
+- Посты `>1500` символов режутся через `_smart_chunk()`
+- Recursive split по `["\n\n", "\n", ". ", " "]`
+- Target size чанка: `1200` символов
+- Без overlap
+- Point ID при chunking: `{channel}:{message_id}:{chunk_idx}`
 
 ## Hardware
 

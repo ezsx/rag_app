@@ -11,8 +11,7 @@
 
 ### Текущий статус
 
-> **SPEC-RAG-06 (pending)**: ingest_telegram.py ещё Phase 0 (ChromaDB + SentenceTransformer).
-> После реализации SPEC-RAG-06 будет: Qdrant + TEI HTTP + fastembed sparse.
+> Phase 1: `ingest_telegram.py` работает через Qdrant + TEI HTTP + fastembed sparse.
 
 ### Запуск ingestion
 
@@ -34,7 +33,7 @@ docker compose -f deploy/compose/compose.dev.yml run --rm ingest \
 Point:
   id:      "{channel_name}:{message_id}"     — детерминированный, idempotent upsert
   vector:  {
-    "dense_vector": list[float]              — TEI embed (multilingual-e5-large, 1024-dim)
+    "dense_vector": list[float]              — TEI embed (Qwen3-Embedding-0.6B, 1024-dim)
     "sparse_vector": SparseVector            — fastembed (Qdrant/bm25, language="russian")
   }
   payload: {
@@ -47,6 +46,14 @@ Point:
     "url": "https://t.me/{channel}/{msg_id}"
   }
 ```
+
+### Chunking
+
+- Короткие посты `<1500` символов индексируются целиком
+- Длинные посты режутся через `_smart_chunk()`
+- Recursive split идёт по `\n\n`, затем `\n`, затем `. `, затем пробелу
+- Target size чанка: `1200` символов
+- Если chunking включён, point id становится `{channel_name}:{message_id}:{chunk_idx}`
 
 ## Evaluation Tooling (MVP)
 
@@ -109,6 +116,8 @@ python scripts/evaluate_agent.py \
 ## Инварианты
 
 - Telethon session хранится в `sessions/` — volume в Docker, не в git.
-- Point ID в Qdrant: `"{channel_name}:{message_id}"` — уникальность, idempotent upsert.
+- Point ID в Qdrant:
+  - без chunking: `"{channel_name}:{message_id}"`
+  - с chunking: `"{channel_name}:{message_id}:{chunk_idx}"`
 - Evaluation скрипт НЕ изменяет коллекцию — только читает.
 - `datasets/eval_dataset.json` — основной датасет, не удалять без замены.

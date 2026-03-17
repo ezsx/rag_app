@@ -2,7 +2,7 @@
 
 ### Назначение
 - CLI-инжестор сообщений Telegram-каналов в Qdrant.
-- Dense-векторы получает через `TEIEmbeddingClient.embed_documents()`.
+- Dense-векторы получает через `TEIEmbeddingClient.embed_documents()` (`Qwen3-Embedding-0.6B`).
 - Sparse-векторы строит через `fastembed.SparseTextEmbedding.embed()`.
 - Загружает точки в Qdrant через `QdrantStore.upsert()`.
 
@@ -30,15 +30,23 @@ docker compose --profile ingest run --rm ingest \
 - `--collection`: имя Qdrant-коллекции
 - `--batch-size`: сколько сообщений отдавать в один TEI embed запрос
 - `--max-messages`: ограничение по числу последних сообщений
-- `--chunk-size`: разбиение длинных сообщений на чанки N символов
+- `--chunk-size`: override для fixed-size split по N символов
 - `--log-level`: уровень логирования
 
 ### Ключевые функции
 - `create_telegram_client()` — авторизация и создание клиента Telethon.
 - `gather_messages()` и `_gather_with_retries()` — сбор сообщений по диапазону дат с ретраями.
+- `_smart_chunk()` — two-tier chunking: короткие посты целиком, длинные через recursive split.
+- `_recursive_split()` — разбиение по иерархии сепараторов `["\n\n", "\n", ". ", " "]`.
 - `_build_point_docs_flat()` — маппинг `Message[] + dense + sparse` в `PointDocument`.
 - `ingest_batches()` — TEI dense embedding, fastembed sparse encoding и `QdrantStore.upsert()`.
 - `main()` — инициализация `TEIEmbeddingClient`, `SparseTextEmbedding`, `QdrantStore`, `ensure_collection()` и цикл по каналам.
+
+### Chunking
+- По умолчанию используется `_smart_chunk()`.
+- Порог chunking: `1500` символов.
+- Target size чанка: `1200` символов.
+- Если передан `--chunk-size > 0`, используется legacy `_split_text()` как явный override.
 
 ### Инварианты данных
 - Point ID:

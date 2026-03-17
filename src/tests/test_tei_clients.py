@@ -8,6 +8,7 @@ Integration-тест (помечен @pytest.mark.integration) требует з
 import pytest
 import httpx
 from adapters.tei import TEIEmbeddingClient, TEIRerankerClient
+from adapters.tei.embedding_client import DEFAULT_QUERY_INSTRUCTION
 
 
 class MockEmbedTransport(httpx.MockTransport):
@@ -59,7 +60,7 @@ async def test_embed_query_returns_vector():
 
 @pytest.mark.asyncio
 async def test_embed_query_adds_prefix():
-    """embed_query добавляет prefix 'query: ' к тексту."""
+    """embed_query добавляет Qwen3 instruction prefix к тексту."""
     captured_inputs = []
 
     class CapturingTransport(httpx.MockTransport):
@@ -76,12 +77,12 @@ async def test_embed_query_adds_prefix():
         transport=CapturingTransport(), base_url="http://mock"
     )
     await client.embed_query("новости крипто")
-    assert captured_inputs[0] == "query: новости крипто"
+    assert captured_inputs[0] == DEFAULT_QUERY_INSTRUCTION + "новости крипто"
 
 
 @pytest.mark.asyncio
-async def test_embed_documents_adds_passage_prefix():
-    """embed_documents добавляет prefix 'passage: ' к каждому документу."""
+async def test_embed_documents_no_prefix():
+    """embed_documents отправляет документы без prefix."""
     captured_inputs = []
 
     class CapturingTransport(httpx.MockTransport):
@@ -98,8 +99,8 @@ async def test_embed_documents_adds_passage_prefix():
         transport=CapturingTransport(), base_url="http://mock"
     )
     await client.embed_documents(["текст 1", "текст 2"])
-    assert captured_inputs[0] == "passage: текст 1"
-    assert captured_inputs[1] == "passage: текст 2"
+    assert captured_inputs[0] == "текст 1"
+    assert captured_inputs[1] == "текст 2"
 
 
 @pytest.mark.asyncio

@@ -3,7 +3,7 @@ Telegram → Qdrant ingestor (Phase 1)
 ------------------------------------
 CLI-скрипт для загрузки сообщений Telegram-каналов в Qdrant.
 
-Dense: TEI HTTP → multilingual-e5-large @ host.docker.internal:8082
+Dense: TEI HTTP → Qwen3-Embedding-0.6B @ host.docker.internal:8082
 Sparse: fastembed SparseTextEmbedding (Qdrant/bm25, language=russian, CPU)
 Store: Qdrant (Docker CPU)
 """
@@ -90,6 +90,10 @@ handler = logging.StreamHandler(sys.stdout)
 handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
 logger.addHandler(handler)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
+
+
+CHUNK_CHAR_THRESHOLD = 1500
+CHUNK_TARGET_SIZE = 1200
 
 
 async def create_telegram_client() -> TelegramClient:
@@ -196,6 +200,54 @@ def _split_text(text: str, chunk_size: int) -> List[str]:
     return [text]
 
 
+def _recursive_split(text: str, target: int, separators: List[str]) -> List[str]:
+    """Рекурсивно делит длинный текст по иерархии сепараторов."""
+    if len(text) <= target:
+        return [text]
+
+    if not separators:
+        return [text[i : i + target] for i in range(0, len(text), target)]
+
+    sep = separators[0]
+    rest_seps = separators[1:]
+    parts = text.split(sep)
+    chunks: List[str] = []
+    current = ""
+
+    for part in parts:
+        candidate = current + sep + part if current else part
+        if len(candidate) <= target:
+            current = candidate
+            continue
+
+        if current:
+            chunks.append(current)
+
+        if len(part) > target:
+            chunks.extend(_recursive_split(part, target, rest_seps))
+            current = ""
+        else:
+            current = part
+
+    if current:
+        chunks.append(current)
+
+    return chunks
+
+
+def _smart_chunk(
+    text: str,
+    threshold: int = CHUNK_CHAR_THRESHOLD,
+    target: int = CHUNK_TARGET_SIZE,
+) -> List[str]:
+    """Two-tier chunking: короткие посты целиком, длинные — recursive split."""
+    if len(text) <= threshold:
+        return [text]
+
+    chunks = _recursive_split(text, target, ["\n\n", "\n", ". ", " "])
+    return [chunk.strip() for chunk in chunks if chunk and chunk.strip()]
+
+
 async def _gather_with_retries(
     client: TelegramClient,
     channel: str,
@@ -252,12 +304,16 @@ def _build_point_docs_flat(
     """
     docs: List[PointDocument] = []
     msg_chunk_counter: Dict[int, int] = {}
+    msg_chunk_totals: Dict[int, int] = {}
+
+    for message in source_messages:
+        msg_chunk_totals[int(message.id)] = msg_chunk_totals.get(int(message.id), 0) + 1
 
     for i, (message, text) in enumerate(zip(source_messages, texts)):
         chunk_idx = msg_chunk_counter.get(message.id, 0)
         msg_chunk_counter[message.id] = chunk_idx + 1
 
-        if chunk_size > 0:
+        if chunk_size > 0 or msg_chunk_totals.get(int(message.id), 0) > 1:
             point_id = f"{channel_name}:{message.id}:{chunk_idx}"
         else:
             point_id = f"{channel_name}:{message.id}"
@@ -303,6 +359,8 @@ async def ingest_batches(
     qdrant_store: QdrantStore,
     channel_hint: Optional[str] = None,
     chunk_size: int = 0,
+    chunk_char_threshold: int = CHUNK_CHAR_THRESHOLD,
+    chunk_target_size: int = CHUNK_TARGET_SIZE,
     progress_cb: Optional[Any] = None,
     log_every: int = 200,
 ) -> Dict[str, int]:
@@ -330,7 +388,15 @@ async def ingest_batches(
             text_full = (message.message or "").strip()
             if not text_full:
                 continue
-            for part in _split_text(text_full, chunk_size):
+            if chunk_size > 0:
+                parts = _split_text(text_full, chunk_size)
+            else:
+                parts = _smart_chunk(
+                    text_full,
+                    threshold=chunk_char_threshold,
+                    target=chunk_target_size,
+                )
+            for part in parts:
                 texts.append(part)
                 source_messages.append(message)
 
@@ -491,10 +557,15 @@ async def main() -> None:
     )
     batch_size = max(1, int(args.batch_size))
     chunk_size = int(getattr(args, "chunk_size", 0) or 0)
+    chunk_char_threshold = int(settings.chunk_char_threshold)
+    chunk_target_size = int(settings.chunk_target_size)
 
     embedding_tei_url = os.getenv("EMBEDDING_TEI_URL") or settings.embedding_tei_url
     logger.info("TEI embedding: %s", embedding_tei_url)
-    embedding_client = TEIEmbeddingClient(base_url=embedding_tei_url)
+    embedding_client = TEIEmbeddingClient(
+        base_url=embedding_tei_url,
+        query_instruction=settings.embedding_query_instruction,
+    )
     if not await embedding_client.healthcheck():
         logger.warning(
             "TEI embedding service недоступен: %s. Продолжаем (может восстановиться).",
@@ -550,6 +621,8 @@ async def main() -> None:
                 qdrant_store=qdrant_store,
                 channel_hint=ch if isinstance(ch, str) else None,
                 chunk_size=chunk_size,
+                chunk_char_threshold=chunk_char_threshold,
+                chunk_target_size=chunk_target_size,
                 progress_cb=_progress_cb,
                 log_every=200,
             )

@@ -46,7 +46,7 @@ services:
       - TG_SESSION=/app/sessions/telegram.session
       # LLM — llama-server на Windows Host (V100 TCC)
       - LLM_BASE_URL=http://host.docker.internal:8080
-      - LLM_MODEL_NAME=qwen3-8b
+      - LLM_MODEL_NAME=qwen3-30b-a3b
       - LLM_REQUEST_TIMEOUT=120
       # Embedding TEI — WSL2 native, RTX 5060 Ti
       - EMBEDDING_TEI_URL=http://host.docker.internal:8082

@@ -1,34 +1,185 @@
 """
-ReAct Agent Service с пошаговым мышлением и наблюдаемостью
+ReAct Agent Service на native function calling через /v1/chat/completions.
 """
+
+from __future__ import annotations
 
 import json
 import logging
-import re
 import uuid
-from typing import Any, AsyncIterator, Dict, List, Optional, Callable
+from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 
+from core.security import sanitize_for_logging, security_manager
 from core.settings import Settings
-from core.security import security_manager, sanitize_for_logging
-from schemas.agent import AgentRequest, AgentStepEvent, ToolRequest, AgentAction
-from services.tools.tool_runner import ToolRunner
+from schemas.agent import (
+    AgentAction,
+    AgentRequest,
+    AgentStepEvent,
+    ToolMeta,
+    ToolRequest,
+    ToolResponse,
+)
 from services.qa_service import QAService
+from services.tools.tool_runner import ToolRunner
 
 logger = logging.getLogger(__name__)
+
+
+SYSTEM_PROMPT = """Ты — RAG-агент для поиска информации в базе новостей из Telegram-каналов.
+
+ПОРЯДОК РАБОТЫ:
+1. query_plan — декомпозируй запрос на подзапросы
+2. search — найди документы по подзапросам
+3. rerank — переранжируй документы по исходному запросу
+4. compose_context — собери контекст из лучших документов
+5. final_answer — дай итоговый ответ строго на основе контекста
+
+ПРАВИЛА:
+- Отвечай ТОЛЬКО на русском языке
+- Каждое фактическое утверждение ОБЯЗАТЕЛЬНО подкрепляй ссылкой [1], [2] и т.д.
+- НЕ придумывай факты: если в контексте нет данных, прямо скажи об этом
+- После compose_context переходи к final_answer, а не к повторному search
+- В final_answer перечисли использованные номера источников в поле sources
+"""
+
+AGENT_TOOLS: List[Dict[str, Any]] = [
+    {
+        "type": "function",
+        "function": {
+            "name": "query_plan",
+            "description": (
+                "Декомпозирует сложный запрос на 3-5 подзапросов с фильтрами. "
+                "Вызывай первым для планирования поиска."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Исходный запрос пользователя",
+                    }
+                },
+                "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search",
+            "description": (
+                "Выполняет гибридный поиск dense+sparse с RRF по коллекции "
+                "Telegram-каналов и возвращает документы."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "queries": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Список поисковых запросов (1-5 штук)",
+                    },
+                    "k": {
+                        "type": "integer",
+                        "description": "Количество результатов",
+                        "default": 10,
+                    },
+                },
+                "required": ["queries"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "rerank",
+            "description": (
+                "Переранжирует документы по семантической близости к запросу. "
+                "Используй после search для повышения точности."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Исходный пользовательский запрос",
+                    },
+                    "docs": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Тексты документов из search",
+                    },
+                    "top_n": {
+                        "type": "integer",
+                        "description": "Количество лучших документов",
+                        "default": 5,
+                    },
+                },
+                "required": ["query", "docs"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "compose_context",
+            "description": (
+                "Собирает контекст из документов с цитатами [1], [2] и считает coverage. "
+                "Вызывай после search или rerank."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "hit_ids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "ID документов из результатов search",
+                    }
+                },
+                "required": [],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "final_answer",
+            "description": (
+                "Формирует финальный ответ пользователю на русском языке, "
+                "опираясь только на собранный контекст."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "answer": {
+                        "type": "string",
+                        "description": "Текст ответа с цитатами [1], [2]",
+                    },
+                    "sources": {
+                        "type": "array",
+                        "items": {"type": "integer"},
+                        "description": "Номера использованных источников",
+                    },
+                },
+                "required": ["answer", "sources"],
+            },
+        },
+    },
+]
 
 
 class AgentState:
     """Tracks dynamic state of the agent between steps."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.coverage: float = 0.0
         self.refinement_count: int = 0
-        self.max_refinements: int = 2  # allow at most 2 extra rounds
+        self.max_refinements: int = 2
         self.low_coverage_disclaimer: bool = False
 
 
 class AgentService:
-    """ReAct агент с пошаговым мышлением и наблюдаемостью"""
+    """Агент с native function calling и SSE-наблюдаемостью."""
 
     def __init__(
         self,
@@ -36,115 +187,52 @@ class AgentService:
         tool_runner: ToolRunner,
         settings: Settings,
         qa_service: Optional[QAService] = None,
-    ):
+    ) -> None:
         self.llm_factory = llm_factory
         self.tool_runner = tool_runner
         self.settings = settings
         self.qa_service = qa_service
         self._current_request_id: Optional[str] = None
-        self._current_step: int = 1  # Текущий шаг для системных вызовов
-        self._current_query: Optional[str] = None  # Текущий запрос пользователя
-
-        # Системный промпт для ReAct (совмещён: русская политика языка + англ. контракт инструментов)
-        self.system_prompt = """You are a ReAct agent that helps answer user questions using available tools.
-
-STRICT LANGUAGE POLICY (RU):
-- Detect the user's language from the initial Human message.
-- If the user's language is Russian, write strictly in Russian. Do NOT mix scripts (no Latin A–Z/a–z, no CJK). If you accidentally switched, regenerate before emitting the final answer.
-- Allowed (RU) scripts/punct: Cyrillic U+0400–U+04FF, U+0500–U+052F, U+2DE0–U+2DFF, U+A640–U+A69F, U+1C80–U+1C8F; digits; spaces; punctuation . , ! ? ; : — – ( ) [ ] « » " ' …
-
-RUSSIAN LABELS (optional aliases):
-- Мысль = Thought
-- Действие = Action
-- Наблюдение = Observation
-- Ответ = FinalAnswer
-You may use Russian labels when producing outputs in Russian; the semantics must match the English contract below.
-
-WORKFLOW:
-Think step-by-step using this format:
-
-Thought: [your reasoning about what to do next]
-Action: [tool_name] {"param": "value"}
-Observation: [tool execution result]
-
-Repeat this cycle until you have enough information to answer.
-
-When you have sufficient information for a complete answer:
-FinalAnswer: [your final answer to the user]
-
-AVAILABLE TOOLS AND CONTRACTS:
-
-1. router_select: selects optimal search route
-   Parameters: {"query": "string"}
-
-2. query_plan: creates search plan
-   Parameters: {"query": "string"}
-
-3. search: performs hybrid search on collection
-   Parameters: {"queries": ["string"], "route": "hybrid|bm25|dense", "k": int}
-   Returns: {"hits": [{"id": "...", "text": "...", "metadata": {...}}], "route_used": "..."}
-
-4. rerank: re-ranks documents by relevance
-   Parameters: {"query": "string", "docs": ["text1", "text2", ...], "top_n": int}
-
-5. fetch_docs: retrieves documents by ID list
-   Parameters: {"ids": ["id1", "id2", ...]}
-
-6. compose_context: assembles context from documents with citations
-   Parameters: {"hit_ids": ["id1", "id2", ...]}
-   IMPORTANT: Use hit_ids from latest search results. System automatically converts ids to docs.
-   Returns: {"prompt": "...", "citations": [...], "citation_coverage": float}
-
-7. verify: verifies claims through knowledge base search
-   Parameters: {"query": "string", "claim": "string", "top_k": int}
-
-RULES:
-1. Always start with Thought
-2. Use tools to gather information
-3. MANDATORY: After EVERY successful search, you MUST call compose_context with hit_ids from search results
-4. NEVER generate FinalAnswer without calling compose_context first
-5. Pass ONLY specified parameters to tools
-6. End with FinalAnswer ONLY after compose_context
-7. CRITICAL: Match the user's query language in ALL your outputs (Thought, FinalAnswer, etc.)
-
-WORKFLOW EXAMPLE:
-Step 1: Thought → search → Observation (got 5 hits with ids)
-Step 2: Thought → compose_context {hit_ids: [ids from step 1]} → Observation (got context with citations)
-Step 3: Thought → FinalAnswer (based on context from step 2, with citation numbers [1], [2], etc.)
-
-SYSTEM DETERMINISTIC LOGIC:
-- After compose_context, system auto-checks citation coverage
-- If coverage insufficient, system performs additional search round (max 2 rounds)
-- After compose_context succeeds (or after refinement rounds), you MUST proceed to FinalAnswer
-- Do NOT call search or compose_context again after system refinement — use what you have
-- Before final answer, system may verify claims
-
-CRITICAL RULE: After you see "Composed context with N citations", your next action MUST be FinalAnswer.
-Do NOT search again. Use the citations you already have to write your answer.
-
-Be accurate, logical, and helpful."""
+        self._current_step: int = 1
+        self._current_query: Optional[str] = None
+        self._last_search_hits: List[Dict[str, Any]] = []
+        self._last_search_route: Optional[str] = None
+        self._last_plan_summary: Optional[Dict[str, Any]] = None
+        self._last_compose_citations: List[Dict[str, Any]] = []
+        self._last_coverage: float = 0.0
+        self.system_prompt = SYSTEM_PROMPT
 
     async def stream_agent_response(
         self, request: AgentRequest
     ) -> AsyncIterator[AgentStepEvent]:
-        """Основная ReAct петля с SSE стримингом"""
+        """Основной цикл агента на chat/completions + tool_calls."""
         request_id = str(uuid.uuid4())
-        step = 1
-        conversation_history = []
         requested_steps = request.max_steps or self.settings.agent_default_steps
         max_steps = min(max(requested_steps, 1), self.settings.agent_max_steps)
-        agent_state = AgentState()  # Track coverage and refinements
+        step = 1
+        agent_state = AgentState()
+        conversation_history = [f"Human: {request.query}"]
 
         self._current_request_id = request_id
-        self._current_query = request.query  # Сохраняем текущий запрос для нормализации
+        self._current_query = request.query
+        self._last_search_hits = []
+        self._last_search_route = None
+        self._last_plan_summary = None
+        self._last_compose_citations = []
+        self._last_coverage = 0.0
+
+        messages: List[Dict[str, Any]] = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": request.query},
+        ]
+
         try:
-            # Валидация и санитизация входных данных
             is_valid, violations = security_manager.validate_input(
                 request.query, context="prompt"
             )
             if not is_valid:
                 logger.warning(
-                    f"Security violations in request {request_id}: {violations}"
+                    "Security violations in request %s: %s", request_id, violations
                 )
                 yield AgentStepEvent(
                     type="final",
@@ -157,534 +245,291 @@ Be accurate, logical, and helpful."""
                 )
                 return
 
-            # Санитизированный запрос для логирования
             sanitized_query = sanitize_for_logging(request.query, max_length=100)
             logger.info(
-                f"Начинаем ReAct петлю для запроса: {sanitized_query} (ID: {request_id})"
+                "Начинаем function-calling agent loop для запроса: %s (ID: %s)",
+                sanitized_query,
+                request_id,
             )
-
-            # Уведомляем о начале
-            yield AgentStepEvent(
-                type="step_started",
-                data={
-                    "step": 1,
-                    "request_id": request_id,
-                    "max_steps": max_steps,
-                    "query": request.query,
-                },
-            )
-
-            # Добавляем исходный запрос в историю
-            conversation_history.append(f"Human: {request.query}")
 
             while step <= max_steps:
-                logger.info(f"Шаг {step}/{max_steps} для запроса {request_id}")
-
-                # Генерируем следующий шаг
-                llm_response = await self._generate_step(
-                    conversation_history, request_id, step
+                self._current_step = step
+                yield AgentStepEvent(
+                    type="step_started",
+                    data={
+                        "step": step,
+                        "request_id": request_id,
+                        "max_steps": max_steps,
+                        "query": request.query,
+                    },
                 )
 
-                # Парсим ответ
-                thought, action_text, final_answer = self._parse_llm_response(
-                    llm_response
+                llm = self.llm_factory()
+                response = llm.chat_completion(
+                    messages=messages,
+                    tools=AGENT_TOOLS,
+                    max_tokens=self.settings.agent_tool_max_tokens,
+                    temperature=self.settings.agent_tool_temp,
+                    top_p=self.settings.agent_tool_top_p,
+                    top_k=self.settings.agent_tool_top_k,
+                    presence_penalty=self.settings.agent_tool_presence_penalty,
+                    seed=42,
                 )
 
-                # Отправляем мысль если есть
-                if thought:
+                choice = (response.get("choices") or [{}])[0]
+                assistant_message = choice.get("message") or {}
+                finish_reason = choice.get("finish_reason", "unknown")
+                content = (assistant_message.get("content") or "").strip()
+                tool_calls = self._extract_tool_calls(assistant_message)
+
+                logger.debug(
+                    "Agent step %d finish=%s content_len=%d tool_calls=%d",
+                    step,
+                    finish_reason,
+                    len(content),
+                    len(tool_calls),
+                )
+
+                if content:
                     yield AgentStepEvent(
                         type="thought",
                         data={
-                            "content": thought,
+                            "content": content,
                             "step": step,
                             "request_id": request_id,
                         },
                     )
-                    conversation_history.append(f"Thought: {thought}")
+                    conversation_history.append(f"Thought: {content}")
 
-                # Проверяем на финальный ответ
-                if final_answer:
-                    # Before finalizing, optionally verify the answer
-                    verified_answer = final_answer
+                if tool_calls:
+                    messages.append(self._assistant_message_for_history(assistant_message))
 
-                    if self.settings.enable_verify_step:
-                        logger.debug(
-                            "Starting answer verification for request %s", request_id
-                        )
-                        verify_res = await self._verify_answer(
-                            final_answer, conversation_history
-                        )
-                        logger.debug(
-                            "Verification result: verified=%s, confidence=%.3f",
-                            verify_res.get("verified", False),
-                            verify_res.get("confidence", 0.0),
-                        )
+                    repeat_same_step = False
+                    for tool_call in tool_calls:
+                        tool_name = tool_call["name"]
+                        tool_args = tool_call["arguments"]
 
-                        if (
-                            not verify_res.get("verified", False)
-                            and agent_state.refinement_count
-                            < agent_state.max_refinements
-                        ):
-                            # Low confidence in answer, trigger one refinement round
-                            agent_state.refinement_count += 1
-
-                            # Send system-generated thought about verification failure
-                            verify_thought = "The answer may be incomplete or not fully verified; conducting additional verification search."
-                            yield AgentStepEvent(
-                                type="thought",
-                                data={
-                                    "content": verify_thought,
-                                    "step": step,
-                                    "system_generated": True,
-                                    "verification": True,
-                                    "request_id": request_id,
-                                },
-                            )
-                            conversation_history.append(f"Thought: {verify_thought}")
-
-                            # Execute verification refinement search with error handling
-                            try:
-                                verify_refinement_result = (
-                                    await self._perform_refinement(
-                                        request.query, agent_state, request_id, step
-                                    )
-                                )
-
-                                if verify_refinement_result:
-                                    # Send tool invocation for verification refinement
-                                    yield AgentStepEvent(
-                                        type="tool_invoked",
-                                        data={
-                                            "tool": verify_refinement_result.tool,
-                                            "input": verify_refinement_result.input,
-                                            "step": step,
-                                            "request_id": request_id,
-                                            "verification_refinement": True,
-                                        },
-                                    )
-
-                                    # Send observation for verification refinement
-                                    verify_ref_observation = self._format_observation(
-                                        verify_refinement_result.output,
-                                        verify_refinement_result.tool,
-                                    )
-                                    yield AgentStepEvent(
-                                        type="observation",
-                                        data={
-                                            "content": verify_ref_observation,
-                                            "success": verify_refinement_result.output.ok,
-                                            "step": step,
-                                            "request_id": request_id,
-                                            "took_ms": verify_refinement_result.output.meta.took_ms,
-                                            "verification_refinement": True,
-                                        },
-                                    )
-
-                                    conversation_history.append(
-                                        f"Action: search (verification refinement)"
-                                    )
-                                    conversation_history.append(
-                                        f"Observation: {verify_ref_observation}"
-                                    )
-
-                                    # Continue loop for additional verification
-                                    continue
-                                else:
-                                    logger.warning(
-                                        f"Verification refinement failed for request {request_id}"
-                                    )
-                                    # Continue without verification refinement if it fails
-                            except Exception as e:
-                                logger.error(
-                                    f"Error during verification refinement for request {request_id}: {e}"
-                                )
-                                # Continue without verification refinement if it fails
-                        elif not verify_res.get("verified", False):
-                            # Verification failed but no more refinements available
-                            verified_answer += (
-                                " (⚠️ Answer not verified with high confidence)"
-                            )
-
-                    # Собираем цитаты, если compose_context был вызван ранее
-                    latest_citations = []
-                    try:
-                        latest_citations = (
-                            getattr(self, "_last_compose_citations", None) or []
-                        )
-                    except Exception:
-                        latest_citations = []
-
-                    # Удаляем возможные артефакты ReAct внутри финала (повторные Thought/Action)
-                    try:
-                        verified_answer = re.sub(
-                            r"\n(?:Thought|Action):[\s\S]*$",
-                            "",
-                            verified_answer,
-                            flags=re.IGNORECASE,
-                        ).strip()
-                    except Exception:
-                        pass
-
-                    # Приводим ответ к языку пользователя при необходимости (русский)
-                    try:
-                        is_russian_query = any(
-                            0x0400 <= ord(c) <= 0x04FF for c in conversation_history[0]
-                        )
-                        if is_russian_query:
-                            contains_cjk = (
-                                re.search(r"[\u3400-\u9FFF]", verified_answer)
-                                is not None
-                            )
-                            has_cyr = any(
-                                0x0400 <= ord(ch) <= 0x04FF for ch in verified_answer
-                            )
-                            if contains_cjk or not has_cyr:
-                                regen_prompt = (
-                                    "Переформулируй ответ строго на русском языке, без китайских символов и смешения языков. "
-                                    "Сохрани факты и структуру, добавь ссылки на источники в квадратных скобках при их наличии.\n\n"
-                                    f"Ответ для переформулирования:\n{verified_answer}"
-                                )
-                                try:
-                                    llm = self.llm_factory()
-                                    regen_response = llm(
-                                        regen_prompt,
-                                        max_tokens=min(
-                                            self.settings.agent_token_budget // 2, 800
-                                        ),
-                                        temperature=0.1,
-                                        top_p=0.9,
-                                        top_k=40,
-                                        repeat_penalty=1.15,
-                                        stop=["Human:", "Observation:"],
-                                        seed=43,
-                                    )
-                                    verified_answer = regen_response["choices"][0][
-                                        "text"
-                                    ].strip()
-                                except Exception:
-                                    verified_answer = self._sanitize_language_output(
-                                        verified_answer, target="Russian"
-                                    )
-                            else:
-                                verified_answer = self._sanitize_language_output(
-                                    verified_answer, target="Russian"
-                                )
-                    except Exception:
-                        pass
-
-                    if agent_state.low_coverage_disclaimer:
-                        disclaimer = (
-                            "[Примечание: найдено ограниченное количество релевантной информации. "
-                            "Ответ может быть неполным.]"
-                        )
-                        verified_answer = (
-                            f"{disclaimer}\n\n{verified_answer}"
-                            if verified_answer
-                            else disclaimer
-                        )
-
-                    # Вызов инструмента final_answer для унификации финального события
-                    try:
-                        fa_request = ToolRequest(
-                            tool="final_answer",
-                            input={
-                                "answer": verified_answer,
-                                "citations": latest_citations,
-                                "coverage": agent_state.coverage,
-                                "refinements": agent_state.refinement_count,
-                                "route": getattr(self, "_last_search_route", None),
-                                "plan": getattr(self, "_last_plan_summary", None),
-                                "verification": (
-                                    {
-                                        "verified": verify_res.get("verified", False),
-                                        "confidence": verify_res.get("confidence", 0.0),
-                                        "documents_found": verify_res.get(
-                                            "documents_found", 0
-                                        ),
-                                    }
-                                    if (self.settings.enable_verify_step and verify_res)
-                                    else None
-                                ),
-                            },
-                        )
-                        fa_result = self.tool_runner.run(request_id, step, fa_request)
-                        # Отправляем как observation финализацию инструмента
                         yield AgentStepEvent(
                             type="tool_invoked",
                             data={
-                                "tool": "final_answer",
-                                "input": fa_request.input,
-                                "step": step,
-                                "request_id": request_id,
-                            },
-                        )
-                        if fa_result:
-                            # Обновим данные финального события из инструмента
-                            final_payload = fa_result.output.data or {}
-                        else:
-                            final_payload = {"answer": verified_answer}
-                    except Exception:
-                        final_payload = {"answer": verified_answer}
-
-                    # Добавляем служебные поля шага и запроса
-                    final_payload.update(
-                        {
-                            "step": step,
-                            "total_steps": step,
-                            "request_id": request_id,
-                        }
-                    )
-
-                    yield AgentStepEvent(
-                        type="final",
-                        data=final_payload,
-                    )
-
-                    logger.info(
-                        "ReAct loop completed at step %d for request %s "
-                        "(coverage: %.2f, refinements: %d, verified: %s, confidence: %.3f)",
-                        step,
-                        request_id,
-                        agent_state.coverage,
-                        agent_state.refinement_count,
-                        verify_res.get("verified", False) if verify_res else "N/A",
-                        verify_res.get("confidence", 0.0) if verify_res else 0.0,
-                    )
-                    return
-
-                # Выполняем действие если есть
-                if action_text:
-                    # Нормализация для всех инструментов будет выполнена в _execute_action через _normalize_tool_params
-                    normalized_action_text = action_text
-
-                    logger.debug(
-                        "Agent executing tool | tool=%s | payload=%s",
-                        normalized_action_text.split(" ", 1)[0],
-                        normalized_action_text,
-                    )
-                    action_result = await self._execute_action(
-                        normalized_action_text, request_id, step
-                    )
-
-                    if action_result:
-                        # Отправляем информацию о вызове инструмента
-                        yield AgentStepEvent(
-                            type="tool_invoked",
-                            data={
-                                "tool": action_result.tool,
-                                "input": action_result.input,
+                                "tool": tool_name,
+                                "input": tool_args,
                                 "step": step,
                                 "request_id": request_id,
                             },
                         )
 
-                        # Отправляем результат наблюдения
-                        observation = self._format_observation(
-                            action_result.output, action_result.tool
+                        action = await self._execute_action(
+                            tool_name=tool_name,
+                            params=tool_args,
+                            request_id=request_id,
+                            step=step,
+                        )
+                        if action is None:
+                            action = self._tool_error_action(
+                                tool_name=tool_name,
+                                params=tool_args,
+                                step=step,
+                                error="tool_execution_failed",
+                            )
+
+                        self._apply_action_state(action)
+                        observation_text = self._format_observation(
+                            action.output, tool_name
                         )
                         yield AgentStepEvent(
                             type="observation",
                             data={
-                                "content": observation,
-                                "success": action_result.output.ok,
+                                "content": observation_text,
+                                "success": action.output.ok,
                                 "step": step,
                                 "request_id": request_id,
-                                "took_ms": action_result.output.meta.took_ms,
+                                "took_ms": action.output.meta.took_ms,
                             },
                         )
 
-                        # Добавляем в историю
-                        conversation_history.append(f"Action: {action_text}")
-                        conversation_history.append(f"Observation: {observation}")
-
-                        # Сохраняем сводку плана для финального payload
-                        if (
-                            action_result.tool == "query_plan"
-                            and action_result.output.ok
-                        ):
-                            try:
-                                plan = action_result.output.data.get("plan", {}) or {}
-                                self._last_plan_summary = {
-                                    "queries": len(
-                                        plan.get("normalized_queries", []) or []
-                                    ),
-                                    "k_per_query": plan.get("k_per_query", 0),
-                                    "fusion": plan.get("fusion", "unknown"),
-                                }
-                            except Exception:
-                                pass
-
-                        if action_result.tool == "search" and action_result.output.ok:
-                            action_result.output.data.setdefault(
-                                "route",
-                                action_result.output.data.get("route_used"),
+                        conversation_history.append(
+                            f"Action: {tool_name} {json.dumps(action.input, ensure_ascii=False)}"
+                        )
+                        conversation_history.append(
+                            f"Observation: {observation_text}"
+                        )
+                        messages.append(
+                            self._tool_message_for_history(
+                                tool_call,
+                                tool_name,
+                                action.output.data
+                                if action.output.ok
+                                else {"error": action.output.meta.error},
                             )
-                            search_hits = action_result.output.data.get("hits", [])
-                            self._last_search_hits = search_hits
-                            self._last_search_route = action_result.output.data.get(
-                                "route_used"
+                        )
+
+                        if tool_name == "compose_context" and action.output.ok:
+                            coverage = float(
+                                action.output.data.get("citation_coverage", 0.0) or 0.0
                             )
-
-                            # Логируем информацию о найденных документах
-                            if search_hits:
-                                hit_ids = [
-                                    hit.get("id")
-                                    for hit in search_hits[:5]
-                                    if hit.get("id")
-                                ]
-                                logger.debug(
-                                    "Search found %d hits, first IDs: %s",
-                                    len(search_hits),
-                                    hit_ids,
-                                )
-                            else:
-                                logger.warning("Search returned no hits")
-
-                        if (
-                            action_result.tool == "rerank"
-                            and action_result.output.meta.error
-                        ):
-                            logger.debug(
-                                "Rerank tool returned error: %s",
-                                action_result.output.meta.error,
-                            )
-
-                        # Если compose_context дал покрытие, проверить необходимость refinement
-                        if action_result.tool == "compose_context":
-                            coverage = action_result.output.data.get(
-                                "citation_coverage", 0.0
-                            )
-                            citations = action_result.output.data.get("citations", [])
-                            contexts = action_result.output.data.get("contexts", [])
-
                             agent_state.coverage = coverage
-                            # Запомним последние цитаты для финального ответа
-                            try:
-                                self._last_compose_citations = citations
-                            except Exception:
-                                pass
+                            self._last_coverage = coverage
 
-                            logger.debug(
-                                "Compose context: coverage=%.2f, citations=%d, contexts=%d",
-                                coverage,
-                                len(citations),
-                                len(contexts),
+                            yield AgentStepEvent(
+                                type="citations",
+                                data={
+                                    "citations": action.output.data.get(
+                                        "citations", []
+                                    ),
+                                    "coverage": coverage,
+                                    "step": step,
+                                    "request_id": request_id,
+                                },
                             )
-
-                            # Emit citations event
-                            try:
-                                if citations:
-                                    yield AgentStepEvent(
-                                        type="citations",
-                                        data={
-                                            "citations": citations,
-                                            "coverage": coverage,
-                                            "step": step,
-                                            "request_id": request_id,
-                                        },
-                                    )
-                            except Exception:
-                                pass
 
                             max_sim = max(
                                 (
                                     float(hit.get("dense_score") or 0.0)
-                                    for hit in getattr(self, "_last_search_hits", [])
+                                    for hit in self._last_search_hits
                                     if isinstance(hit, dict)
                                 ),
                                 default=0.0,
                             )
-                            if max_sim < 0.30 and not agent_state.refinement_count:
+
+                            if max_sim < 0.30 and agent_state.refinement_count == 0:
+                                agent_state.coverage = 0.0
+                                self._last_coverage = 0.0
+                                agent_state.low_coverage_disclaimer = True
                                 abort_thought = (
-                                    "Insufficient information: no relevant documents found "
-                                    "(max similarity < 0.30)."
+                                    "Релевантные документы почти не найдены. "
+                                    "Дам осторожный ответ только по найденному контексту."
                                 )
                                 yield AgentStepEvent(
                                     type="thought",
                                     data={
                                         "content": abort_thought,
                                         "step": step,
-                                        "system_generated": True,
                                         "request_id": request_id,
-                                    },
-                                )
-                                conversation_history.append(f"Thought: {abort_thought}")
-                                agent_state.coverage = 0.0
-                                agent_state.low_coverage_disclaimer = True
-
-                            if max_sim >= 0.30 and self._should_attempt_refinement(
-                                coverage, agent_state.refinement_count
-                            ):
-                                # Not enough coverage, trigger refinement search
-                                agent_state.refinement_count += 1
-
-                                # Send system-generated thought about refinement
-                                refinement_thought = "Not enough information coverage, conducting additional search."
-                                yield AgentStepEvent(
-                                    type="thought",
-                                    data={
-                                        "content": refinement_thought,
-                                        "step": step,
                                         "system_generated": True,
+                                        "abort_guard": True,
                                     },
                                 )
                                 conversation_history.append(
-                                    f"Thought: {refinement_thought}"
+                                    f"Thought: {abort_thought}"
+                                )
+                                continue
+
+                            if self._should_attempt_refinement(
+                                coverage, agent_state.refinement_count
+                            ):
+                                agent_state.refinement_count += 1
+                                refine_thought = (
+                                    "Покрытие контекста недостаточно. Выполняю дополнительный поиск."
+                                )
+                                yield AgentStepEvent(
+                                    type="thought",
+                                    data={
+                                        "content": refine_thought,
+                                        "step": step,
+                                        "request_id": request_id,
+                                        "system_generated": True,
+                                        "refinement": True,
+                                        "refinement_count": agent_state.refinement_count,
+                                    },
+                                )
+                                conversation_history.append(
+                                    f"Thought: {refine_thought}"
                                 )
 
-                                # Execute refinement search with error handling
-                                try:
-                                    refinement_result = await self._perform_refinement(
-                                        request.query, agent_state, request_id, step
+                                refinement_actions = await self._perform_refinement(
+                                    request.query,
+                                    agent_state,
+                                    request_id,
+                                    step,
+                                )
+
+                                for refinement_action in refinement_actions:
+                                    yield AgentStepEvent(
+                                        type="tool_invoked",
+                                        data={
+                                            "tool": refinement_action.tool,
+                                            "input": refinement_action.input,
+                                            "step": step,
+                                            "request_id": request_id,
+                                            "system_generated": True,
+                                            "refinement": True,
+                                        },
                                     )
 
-                                    if refinement_result:
-                                        # Send tool invocation for refinement
+                                    self._apply_action_state(refinement_action)
+                                    refinement_observation = self._format_observation(
+                                        refinement_action.output,
+                                        refinement_action.tool,
+                                    )
+                                    yield AgentStepEvent(
+                                        type="observation",
+                                        data={
+                                            "content": refinement_observation,
+                                            "success": refinement_action.output.ok,
+                                            "step": step,
+                                            "request_id": request_id,
+                                            "took_ms": refinement_action.output.meta.took_ms,
+                                            "system_generated": True,
+                                            "refinement": True,
+                                        },
+                                    )
+                                    conversation_history.append(
+                                        f"Action: {refinement_action.tool} {json.dumps(refinement_action.input, ensure_ascii=False)}"
+                                    )
+                                    conversation_history.append(
+                                        f"Observation: {refinement_observation}"
+                                    )
+                                    messages.append(
+                                        self._tool_message_for_history(
+                                            {
+                                                "id": f"refinement-{step}-{refinement_action.tool}",
+                                                "name": refinement_action.tool,
+                                                "arguments": refinement_action.input,
+                                            },
+                                            refinement_action.tool,
+                                            refinement_action.output.data
+                                            if refinement_action.output.ok
+                                            else {
+                                                "error": refinement_action.output.meta.error
+                                            },
+                                        )
+                                    )
+
+                                    if (
+                                        refinement_action.tool == "compose_context"
+                                        and refinement_action.output.ok
+                                    ):
+                                        refined_coverage = float(
+                                            refinement_action.output.data.get(
+                                                "citation_coverage", 0.0
+                                            )
+                                            or 0.0
+                                        )
+                                        agent_state.coverage = refined_coverage
+                                        self._last_coverage = refined_coverage
                                         yield AgentStepEvent(
-                                            type="tool_invoked",
+                                            type="citations",
                                             data={
-                                                "tool": refinement_result.tool,
-                                                "input": refinement_result.input,
+                                                "citations": refinement_action.output.data.get(
+                                                    "citations", []
+                                                ),
+                                                "coverage": refined_coverage,
                                                 "step": step,
+                                                "request_id": request_id,
+                                                "system_generated": True,
                                                 "refinement": True,
                                             },
                                         )
+                                        if (
+                                            refined_coverage < 0.50
+                                            and agent_state.refinement_count
+                                            >= self.settings.max_refinements
+                                        ):
+                                            agent_state.low_coverage_disclaimer = True
 
-                                        # Send observation for refinement
-                                        ref_observation = self._format_observation(
-                                            refinement_result.output,
-                                            refinement_result.tool,
-                                        )
-                                        yield AgentStepEvent(
-                                            type="observation",
-                                            data={
-                                                "content": ref_observation,
-                                                "success": refinement_result.output.ok,
-                                                "step": step,
-                                                "took_ms": refinement_result.output.meta.took_ms,
-                                                "refinement": True,
-                                            },
-                                        )
-
-                                        conversation_history.append(
-                                            f"Action: search (refinement)"
-                                        )
-                                        conversation_history.append(
-                                            f"Observation: {ref_observation}"
-                                        )
-
-                                        # Continue loop without incrementing step for refinement
-                                        continue
-                                    else:
-                                        logger.warning(
-                                            f"Refinement failed for request {request_id}"
-                                        )
-                                        # Continue without refinement if it fails
-                                except Exception as e:
-                                    logger.error(
-                                        f"Error during refinement for request {request_id}: {e}"
-                                    )
-                                    # Continue without refinement if it fails
+                                repeat_same_step = True
+                                break
 
                             if (
                                 coverage < 0.50
@@ -693,85 +538,191 @@ Be accurate, logical, and helpful."""
                             ):
                                 agent_state.low_coverage_disclaimer = True
 
-                            # После compose_context (с citations) — принудительно
-                            # генерируем FinalAnswer. Без этого LLM бесконечно
-                            # вызывает search/compose вместо ответа.
-                            if self._last_compose_citations:
-                                try:
-                                    # Собираем контекст из последних citations
-                                    ctx_texts = []
-                                    for hit in self._last_search_hits[:5]:
-                                        if isinstance(hit, dict) and hit.get("text"):
-                                            ctx_texts.append(hit["text"][:500])
+                        if tool_name == "final_answer":
+                            answer = str(action.output.data.get("answer", "")).strip()
+                            verify_res: Dict[str, Any] = {}
 
-                                    context_block = "\n\n".join(
-                                        f"[{i+1}] {t}" for i, t in enumerate(ctx_texts)
+                            if self.settings.enable_verify_step and answer:
+                                verify_res = await self._verify_answer(
+                                    answer, conversation_history
+                                )
+                                if (
+                                    not verify_res.get("verified", False)
+                                    and agent_state.refinement_count
+                                    < agent_state.max_refinements
+                                ):
+                                    agent_state.refinement_count += 1
+                                    verify_thought = (
+                                        "Ответ требует дополнительной проверки. Выполняю ещё один поиск перед финализацией."
                                     )
-
-                                    final_prompt = (
-                                        f"На основе следующего контекста ответь на вопрос пользователя.\n\n"
-                                        f"Контекст:\n{context_block}\n\n"
-                                        f"Вопрос: {request.query}\n\n"
-                                        f"Ответь кратко и по существу на русском языке, "
-                                        f"ссылаясь на источники номерами [1], [2] и т.д."
-                                    )
-
-                                    llm = self.llm_factory()
-                                    final_resp = llm(
-                                        final_prompt,
-                                        max_tokens=self.settings.agent_final_max_tokens,
-                                        temperature=self.settings.agent_final_temp,
-                                        top_p=self.settings.agent_final_top_p,
-                                        stop=["Human:", "\n\nВопрос:"],
-                                    )
-                                    raw_answer = final_resp["choices"][0]["text"].strip()
-
-                                    # Strip thinking preamble
-                                    marker = re.search(r"[А-Яа-яЁё]", raw_answer)
-                                    if marker and marker.start() > 50:
-                                        raw_answer = raw_answer[marker.start():]
-
-                                    if agent_state.low_coverage_disclaimer:
-                                        raw_answer = (
-                                            "[Примечание: найдено ограниченное количество релевантной информации. "
-                                            "Ответ может быть неполным.]\n\n" + raw_answer
-                                        )
-
                                     yield AgentStepEvent(
-                                        type="final",
+                                        type="thought",
                                         data={
-                                            "answer": raw_answer,
-                                            "citations": self._last_compose_citations,
-                                            "coverage": agent_state.coverage,
-                                            "refinements": agent_state.refinement_count,
+                                            "content": verify_thought,
                                             "step": step,
-                                            "total_steps": step,
                                             "request_id": request_id,
+                                            "system_generated": True,
+                                            "verification": True,
+                                            "refinement_count": agent_state.refinement_count,
                                         },
                                     )
-                                    return
-                                except Exception as e:
-                                    logger.error(
-                                        "Forced FinalAnswer generation failed: %s", e
+                                    conversation_history.append(
+                                        f"Thought: {verify_thought}"
                                     )
-                                    # Fall through to normal step increment
+
+                                    refinement_actions = await self._perform_refinement(
+                                        request.query,
+                                        agent_state,
+                                        request_id,
+                                        step,
+                                    )
+                                    for refinement_action in refinement_actions:
+                                        yield AgentStepEvent(
+                                            type="tool_invoked",
+                                            data={
+                                                "tool": refinement_action.tool,
+                                                "input": refinement_action.input,
+                                                "step": step,
+                                                "request_id": request_id,
+                                                "system_generated": True,
+                                                "verification_refinement": True,
+                                            },
+                                        )
+                                        self._apply_action_state(refinement_action)
+                                        refinement_observation = self._format_observation(
+                                            refinement_action.output,
+                                            refinement_action.tool,
+                                        )
+                                        yield AgentStepEvent(
+                                            type="observation",
+                                            data={
+                                                "content": refinement_observation,
+                                                "success": refinement_action.output.ok,
+                                                "step": step,
+                                                "request_id": request_id,
+                                                "took_ms": refinement_action.output.meta.took_ms,
+                                                "system_generated": True,
+                                                "verification_refinement": True,
+                                            },
+                                        )
+                                        conversation_history.append(
+                                            f"Action: {refinement_action.tool} {json.dumps(refinement_action.input, ensure_ascii=False)}"
+                                        )
+                                        conversation_history.append(
+                                            f"Observation: {refinement_observation}"
+                                        )
+                                        messages.append(
+                                            self._tool_message_for_history(
+                                                {
+                                                    "id": f"verify-refinement-{step}-{refinement_action.tool}",
+                                                    "name": refinement_action.tool,
+                                                    "arguments": refinement_action.input,
+                                                },
+                                                refinement_action.tool,
+                                                refinement_action.output.data
+                                                if refinement_action.output.ok
+                                                else {
+                                                    "error": refinement_action.output.meta.error
+                                                },
+                                            )
+                                        )
+                                        if (
+                                            refinement_action.tool == "compose_context"
+                                            and refinement_action.output.ok
+                                        ):
+                                            refined_coverage = float(
+                                                refinement_action.output.data.get(
+                                                    "citation_coverage", 0.0
+                                                )
+                                                or 0.0
+                                            )
+                                            agent_state.coverage = refined_coverage
+                                            self._last_coverage = refined_coverage
+                                            yield AgentStepEvent(
+                                                type="citations",
+                                                data={
+                                                    "citations": refinement_action.output.data.get(
+                                                        "citations", []
+                                                    ),
+                                                    "coverage": refined_coverage,
+                                                    "step": step,
+                                                    "request_id": request_id,
+                                                    "system_generated": True,
+                                                    "verification_refinement": True,
+                                                },
+                                            )
+                                    repeat_same_step = True
+                                    break
+
+                                if not verify_res.get("verified", False):
+                                    answer += (
+                                        " (⚠️ Ответ не подтверждён с высокой уверенностью)"
+                                    )
+
+                            final_payload = self._build_final_payload(
+                                base_payload=action.output.data,
+                                answer=answer,
+                                verify_res=verify_res,
+                                agent_state=agent_state,
+                                request_id=request_id,
+                                step=step,
+                            )
+                            yield AgentStepEvent(type="final", data=final_payload)
+                            return
+
+                    if repeat_same_step:
+                        continue
+
+                    step += 1
+                    continue
+
+                if content and finish_reason == "stop":
+                    verify_res: Dict[str, Any] = {}
+                    direct_answer = content
+                    if self.settings.enable_verify_step and direct_answer:
+                        verify_res = await self._verify_answer(
+                            direct_answer, conversation_history
+                        )
+                        if not verify_res.get("verified", False):
+                            direct_answer += (
+                                " (⚠️ Ответ не подтверждён с высокой уверенностью)"
+                            )
+                    final_payload = self._build_final_payload(
+                        base_payload={"answer": content},
+                        answer=direct_answer,
+                        verify_res=verify_res,
+                        agent_state=agent_state,
+                        request_id=request_id,
+                        step=step,
+                    )
+                    yield AgentStepEvent(type="final", data=final_payload)
+                    return
+
+                if content:
+                    messages.append({"role": "assistant", "content": content})
+                else:
+                    fallback_thought = (
+                        "Модель не вызвала инструмент и не дала осмысленный ответ. Пробую следующий шаг."
+                    )
+                    yield AgentStepEvent(
+                        type="thought",
+                        data={
+                            "content": fallback_thought,
+                            "step": step,
+                            "system_generated": True,
+                            "request_id": request_id,
+                        },
+                    )
+                    conversation_history.append(f"Thought: {fallback_thought}")
+                    messages.append({"role": "assistant", "content": fallback_thought})
 
                 step += 1
-                self._current_step = step  # Обновляем текущий шаг
 
-                # Уведомляем о следующем шаге
-                if step <= max_steps:
-                    yield AgentStepEvent(
-                        type="step_started",
-                        data={"step": step, "request_id": request_id},
-                    )
-
-            # Если достигли максимума шагов без финального ответа
             logger.warning(
-                f"Достигнут максимум шагов ({max_steps}) без финального ответа для запроса {request_id}"
+                "Достигнут максимум шагов (%d) без финального ответа для запроса %s",
+                max_steps,
+                request_id,
             )
-
-            # Попробуем использовать fallback через QAService
             if self.qa_service:
                 try:
                     fallback_answer = self.qa_service.answer(request.query)
@@ -786,10 +737,9 @@ Be accurate, logical, and helpful."""
                         },
                     )
                     return
-                except Exception as e:
-                    logger.error(f"Fallback через QAService не удался: {e}")
+                except Exception as exc:
+                    logger.error("Fallback через QAService не удался: %s", exc)
 
-            # Последний fallback
             yield AgentStepEvent(
                 type="final",
                 data={
@@ -801,299 +751,113 @@ Be accurate, logical, and helpful."""
                 },
             )
 
-        except Exception as e:
-            logger.error(f"Ошибка в ReAct петле: {e}", exc_info=True)
+        except Exception as exc:
+            logger.error("Ошибка в function-calling agent loop: %s", exc, exc_info=True)
             yield AgentStepEvent(
                 type="final",
                 data={
-                    "answer": f"Извините, произошла ошибка при обработке запроса: {str(e)}",
+                    "answer": f"Извините, произошла ошибка при обработке запроса: {str(exc)}",
                     "step": step,
                     "request_id": request_id,
-                    "error": str(e),
+                    "error": str(exc),
                 },
             )
         finally:
             self._current_request_id = None
             self._current_query = None
 
-    async def _generate_step(
-        self, conversation_history: List[str], request_id: str, step: int
-    ) -> str:
-        """Генерирует следующий шаг через LLM"""
-        try:
-            # Ограничение истории скользящим окном для предотвращения overflow
-            MAX_HISTORY_ITEMS = 10  # Последние 5 Thought-Action-Observation триплетов
-            if len(conversation_history) > MAX_HISTORY_ITEMS:
-                # Сохраняем первый элемент (исходный запрос) и последние MAX_HISTORY_ITEMS
-                conversation_history = [conversation_history[0]] + conversation_history[
-                    -MAX_HISTORY_ITEMS:
-                ]
-
-            # Собираем промпт
-            history_text = "\n".join(
-                [
-                    line.replace("Thought:", "Мысль:")
-                    .replace("Action:", "Действие:")
-                    .replace("Observation:", "Наблюдение:")
-                    for line in conversation_history
-                ]
-            )
-
-            # Определяем язык запроса пользователя (первая строка истории)
-            user_query_lang = (
-                "Russian"
-                if any(
-                    ord(c) >= 0x0400 and ord(c) <= 0x04FF
-                    for c in conversation_history[0]
-                )
-                else "English"
-            )
-
-            prompt = f"""System Instruction: {self.system_prompt}
-
-Напоминание: язык пользователя — {user_query_lang}. Пиши строго на этом языке. Используй метки «Мысль:/Действие:/Наблюдение:/Ответ:».
-
-Контекст диалога:
-{history_text}
-
-Продолжай по формату ReAct на русском: «Мысль/Действие/Наблюдение» или «Ответ:».
-"""
-
-            # Получаем LLM
-            llm = self.llm_factory()
-
-            # Генерируем ответ
-            # Блокируем CJK-пунктуацию через logit_bias (снижение вероятности code-switch)
-            try:
-                cjk_punct = "，。、？！《》【】；：、「」『』（）—…．～％＄＃＠＆　"
-                llm_tokenize = getattr(llm, "tokenize", None)
-                bias = {}
-                if callable(llm_tokenize):
-                    for ch in cjk_punct:
-                        for tid in llm.tokenize(ch.encode("utf-8"), add_bos=False):
-                            bias[int(tid)] = -100.0
-                response = llm(
-                    prompt,
-                    max_tokens=self.settings.agent_token_budget,
-                    temperature=0.3,
-                    top_p=0.9,
-                    top_k=50,
-                    repeat_penalty=1.05,
-                    stop=["Human:", "Observation:", "\nНаблюдение:"],
-                    seed=42,
-                    logit_bias=bias or None,
-                )
-            except Exception:
-                response = llm(
-                    prompt,
-                    max_tokens=self.settings.agent_token_budget,
-                    temperature=0.3,
-                    top_p=0.9,
-                    top_k=50,
-                    repeat_penalty=1.05,
-                    stop=["Human:", "Observation:", "\nНаблюдение:"],
-                    seed=42,
-                )
-
-            raw_text = response["choices"][0]["text"].strip()
-            finish_reason = response["choices"][0].get("finish_reason", "unknown")
-            logger.debug(
-                "LLM raw response (step %d, finish=%s, len=%d): %s",
-                step, finish_reason, len(raw_text), raw_text[:300],
-            )
-
-            # Qwen3 thinking mode (DEC-0022): LLM может генерировать внутренний COT
-            # перед ReAct-маркерами. С /v1/completions endpoint thinking идёт БЕЗ тегов
-            # <think> — просто англоязычный текст перед первым Мысль:/Thought:/Action:.
-            #
-            # Стратегия: обрезаем всё до первого ReAct-маркера.
-
-            # 1. Strip <think>...</think> тегов (если есть — зависит от reasoning_format)
-            cleaned = re.sub(r"<think>.*?</think>", "", raw_text, flags=re.DOTALL)
-            cleaned = re.sub(r"<think>.*$", "", cleaned, flags=re.DOTALL)
-
-            # 2. Обрезаем до первого ReAct-маркера (Мысль/Thought/Action/FinalAnswer/Ответ)
-            marker_match = re.search(
-                r"((?:Мысль|Thought|Действие|Action|Ответ|FinalAnswer)\s*:)",
-                cleaned,
-                re.IGNORECASE,
-            )
-            if marker_match:
-                before = cleaned[: marker_match.start()]
-                cleaned = cleaned[marker_match.start() :].strip()
-                if before.strip():
-                    logger.debug(
-                        "Stripped %d chars of thinking preamble before '%s'",
-                        len(before.strip()),
-                        marker_match.group(1),
-                    )
-            else:
-                # Нет ReAct-маркера — весь бюджет ушёл на thinking.
-                # Извлечём последнее предложение как Thought.
-                cleaned = cleaned.strip()
-                if cleaned:
-                    sentences = [s.strip() for s in cleaned.split(".") if s.strip()]
-                    if sentences:
-                        cleaned = f"Thought: {sentences[-1]}"
-                        logger.warning(
-                            "No ReAct marker in LLM output (%d chars), "
-                            "extracted last sentence as Thought",
-                            len(raw_text),
-                        )
-
-            return cleaned
-
-        except Exception as e:
-            logger.error(f"Ошибка генерации шага {step} для запроса {request_id}: {e}")
-            return f"Ошибка генерации: {str(e)}"
-
-    def _parse_llm_response(
-        self, response: str
-    ) -> tuple[Optional[str], Optional[str], Optional[str]]:
-        """Парсит ответ LLM на компоненты: thought, action, final_answer"""
-        thought = None
-        action = None
-        final_answer = None
-
-        # Ищем Мысль/Thought
-        thought_match = re.search(
-            r"(?:Мысль|Thought):\s*(.*?)(?=\n(?:Действие|Action):|$)",
-            response,
-            re.DOTALL | re.IGNORECASE,
-        )
-        if thought_match:
-            thought = thought_match.group(1).strip()
-
-        # Ищем Действие/Action
-        action_match = re.search(
-            r"(?:Действие|Action):\s*(.*?)(?=\n(?:Наблюдение|Observation):|$)",
-            response,
-            re.DOTALL | re.IGNORECASE,
-        )
-        if action_match:
-            action = action_match.group(1).strip()
-
-        # Ищем Ответ/FinalAnswer (нежадно)
-        final_match = re.search(
-            r"(?:Ответ|FinalAnswer):\s*(.*?)(?=\n(?:Мысль|Thought):|\n(?:Действие|Action):|$)",
-            response,
-            re.DOTALL | re.IGNORECASE,
-        )
-        if final_match:
-            final_answer = final_match.group(1).strip()
-
-        return thought, action, final_answer
-
-    def _sanitize_language_output(self, text: str, target: str) -> str:
-        """Пост-обработка вывода для соблюдения целевого языка.
-
-        Простая эвристика: если целевой язык Russian и имеются китайские иероглифы,
-        удаляем их и повторные \
-        маркеры ReAct; также заменяем типичные китайские вставки.
-        """
-        try:
-            if target == "Russian":
-                # Удаляем CJK символы
-                text = re.sub(r"[\u3400-\u9FFF]+", "", text)
-                # Удаляем редкие CJK расширения
-                text = re.sub(r"[\uF900-\uFAFF]+", "", text)
-                # Чистим двойные пробелы
-                text = re.sub(r"\s{2,}", " ", text).strip()
-        except Exception:
-            pass
-        return text
-
     async def _execute_action(
-        self, action_text: str, request_id: str, step: int
+        self,
+        tool_name: str,
+        params: Dict[str, Any],
+        request_id: str,
+        step: int,
     ) -> Optional[AgentAction]:
-        """Выполняет действие (вызов инструмента)"""
+        """Нормализует параметры и выполняет инструмент через ToolRunner."""
         try:
-            # Парсим строку действия: "tool_name {json_params}"
-            parts = action_text.split(" ", 1)
-            if len(parts) < 1:
-                logger.warning(f"Невалидное действие: {action_text}")
-                return None
+            safe_params = dict(params or {})
+            serialized = json.dumps(safe_params, ensure_ascii=False, default=str)
+            is_valid, violations = security_manager.validate_input(serialized)
+            if not is_valid:
+                logger.warning(
+                    "Security violations in tool params for %s: %s",
+                    tool_name,
+                    violations,
+                )
+                return self._tool_error_action(
+                    tool_name=tool_name,
+                    params=safe_params,
+                    step=step,
+                    error="security_violation",
+                )
 
-            tool_name = parts[0].strip()
-
-            # Парсим параметры JSON с валидацией
-            params = {}
-            if len(parts) > 1:
-                params_text = parts[1].strip()
-                if params_text:
-                    # Проверка на SQL injection и другие атаки
-                    is_valid, violations = security_manager.validate_input(params_text)
-                    if not is_valid:
-                        logger.warning(
-                            f"Security violations in tool params: {violations}"
-                        )
-                        return None
-
-                    try:
-                        # Ограничение размера JSON для предотвращения DoS
-                        if len(params_text) > security_manager.max_input_length:
-                            logger.warning(
-                                f"Tool parameters too large: {len(params_text)}"
-                            )
-                            return None
-
-                        params = json.loads(params_text)
-
-                        # Дополнительная проверка вложенности
-                        def check_depth(obj, depth=0, max_depth=5):
-                            if depth > max_depth:
-                                return False
-                            if isinstance(obj, dict):
-                                return all(
-                                    check_depth(v, depth + 1, max_depth)
-                                    for v in obj.values()
-                                )
-                            elif isinstance(obj, list):
-                                return all(
-                                    check_depth(v, depth + 1, max_depth) for v in obj
-                                )
-                            return True
-
-                        if not check_depth(params):
-                            logger.warning("Tool parameters too deeply nested")
-                            return None
-
-                    except json.JSONDecodeError:
-                        sanitized_text = sanitize_for_logging(params_text)
-                        logger.warning(
-                            f"Невалидный JSON в параметрах: {sanitized_text}"
-                        )
-                        params = {"raw_input": params_text}
-
-            # Нормализуем параметры через единый метод
-            params = self._normalize_tool_params(tool_name, params)
-
-            # Создаем запрос к инструменту
-            tool_request = ToolRequest(tool=tool_name, input=params)
-
-            # Выполняем
-            result = self.tool_runner.run(request_id, step, tool_request)
-            return result
-
-        except Exception as e:
-            logger.error(f"Ошибка выполнения действия '{action_text}': {e}")
-            return None
+            normalized = self._normalize_tool_params(tool_name, safe_params)
+            tool_request = ToolRequest(tool=tool_name, input=normalized)
+            return self.tool_runner.run(request_id, step, tool_request)
+        except Exception as exc:
+            logger.error("Ошибка выполнения инструмента %s: %s", tool_name, exc)
+            return self._tool_error_action(
+                tool_name=tool_name,
+                params=params,
+                step=step,
+                error=str(exc),
+            )
 
     def _normalize_tool_params(
         self, tool_name: str, params: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Нормализует параметры инструментов для совместимости."""
+        """Нормализует параметры инструментов для совместимости и системных вызовов."""
+        normalized = dict(params or {})
+
+        if tool_name == "query_plan":
+            normalized.setdefault("query", self._current_query or "")
+            return normalized
+
+        if tool_name == "search":
+            if not normalized.get("queries"):
+                if normalized.get("query"):
+                    normalized["queries"] = [str(normalized.pop("query"))]
+                elif self._last_plan_summary and self._last_plan_summary.get(
+                    "normalized_queries"
+                ):
+                    normalized["queries"] = list(
+                        self._last_plan_summary["normalized_queries"]
+                    )
+                elif self._current_query:
+                    normalized["queries"] = [self._current_query]
+
+            normalized.setdefault(
+                "k",
+                (
+                    self._last_plan_summary or {}
+                ).get("k_per_query", self.settings.search_k_per_query_default),
+            )
+            normalized.setdefault("route", "hybrid")
+            return normalized
+
+        if tool_name == "rerank":
+            normalized.setdefault("query", self._current_query or "")
+            hits = normalized.pop("hits", None) or self._last_search_hits
+            if not normalized.get("docs") or not any(normalized["docs"]):
+                normalized["docs"] = [
+                    str(hit.get("text") or hit.get("snippet") or "")
+                    for hit in hits
+                    if isinstance(hit, dict)
+                    and (hit.get("text") or hit.get("snippet"))
+                ]
+            if normalized.get("docs") and not normalized.get("top_n"):
+                normalized["top_n"] = min(
+                    len(normalized["docs"]),
+                    max(1, int(self.settings.reranker_top_n)),
+                )
+            return normalized
 
         if tool_name == "compose_context":
-            # Убираем лишние параметры, которые LLM может генерировать
-            params.pop("hits", None)
-            params.pop("raw_input", None)
-            params["query"] = getattr(self, "_current_query", "") or ""
+            normalized.pop("hits", None)
+            normalized.pop("raw_input", None)
+            normalized["query"] = self._current_query or ""
 
-            # Извлекаем hit_ids
-            hit_ids: List[str] = params.pop("hit_ids", []) or []
-
-            # Получаем последние hits из поиска
+            hit_ids = normalized.pop("hit_ids", []) or []
             last_hits = getattr(self, "_last_search_hits", [])
             hits_by_id = {
                 hit.get("id"): hit
@@ -1101,36 +865,18 @@ Be accurate, logical, and helpful."""
                 if isinstance(hit, dict) and hit.get("id")
             }
 
-            # Логируем для диагностики
-            logger.debug(
-                "compose_context: hit_ids=%s, available_hits=%s, last_hits_count=%s",
-                hit_ids,
-                list(hits_by_id.keys()),
-                len(last_hits),
-            )
-
-            # Выбираем документы по hit_ids или берём все последние hits
             selected_hits: List[Dict[str, Any]] = []
             if hit_ids:
-                for hid in hit_ids:
-                    match = hits_by_id.get(hid)
+                for hit_id in hit_ids:
+                    match = hits_by_id.get(hit_id)
                     if match:
                         selected_hits.append(match)
-                    else:
-                        logger.warning(
-                            "compose_context: hit_id %s not found in last_hits", hid
-                        )
 
             if not selected_hits:
                 selected_hits = [hit for hit in last_hits if isinstance(hit, dict)]
-                logger.debug(
-                    "compose_context: using all last_hits, count=%s", len(selected_hits)
-                )
 
-            # Нормализуем в формат docs
             normalized_docs: List[Dict[str, Any]] = []
             missing_ids: List[str] = []
-
             for doc in selected_hits:
                 doc_id = doc.get("id")
                 text_value = (
@@ -1140,9 +886,8 @@ Be accurate, logical, and helpful."""
                     or doc.get("metadata", {}).get("text")
                     or ""
                 )
-
                 if not text_value and doc_id:
-                    missing_ids.append(doc_id)
+                    missing_ids.append(str(doc_id))
 
                 normalized_docs.append(
                     {
@@ -1155,253 +900,224 @@ Be accurate, logical, and helpful."""
 
             if missing_ids:
                 try:
-                    fetch_request = ToolRequest(
-                        tool="fetch_docs",
-                        input={"ids": missing_ids},
-                    )
                     fetch_result = self.tool_runner.run(
-                        self._current_request_id or "compose_context",
+                        self._current_request_id or "fetch-docs",
                         self._current_step,
-                        fetch_request,
+                        ToolRequest(tool="fetch_docs", input={"ids": missing_ids}),
                     )
-                    if fetch_result and fetch_result.output.ok:
-                        fetched_docs = fetch_result.output.data.get("docs", [])
-                        fetched_by_id = {
+                    if fetch_result.output.ok:
+                        fetched_docs = {
                             item.get("id"): item
-                            for item in fetched_docs
-                            if isinstance(item, dict)
+                            for item in fetch_result.output.data.get("docs", [])
+                            if isinstance(item, dict) and item.get("id")
                         }
                         for doc in normalized_docs:
-                            doc_id = doc.get("id")
-                            if doc_id in fetched_by_id and not doc.get("text"):
-                                fetched = fetched_by_id[doc_id]
+                            if not doc.get("text") and doc.get("id") in fetched_docs:
+                                fetched = fetched_docs[doc["id"]]
                                 doc["text"] = fetched.get("text", "")
-                                doc["metadata"] = fetched.get("metadata", {})
-                    elif fetch_result and fetch_result.output.meta.error:
-                        logger.warning(
-                            "compose_context: fetch_docs returned error for ids %s: %s",
-                            missing_ids,
-                            fetch_result.output.meta.error,
-                        )
-                except Exception as fetch_error:
-                    logger.warning(
-                        "compose_context: failed to fetch docs for ids %s: %s",
-                        missing_ids,
-                        fetch_error,
-                    )
+                                doc["metadata"] = fetched.get(
+                                    "metadata", doc.get("metadata", {})
+                                )
+                except Exception as exc:
+                    logger.warning("fetch_docs during compose_context failed: %s", exc)
 
-            params["docs"] = normalized_docs
+            normalized["docs"] = normalized_docs
+            normalized.setdefault("max_tokens_ctx", 1200)
+            return normalized
 
-            # Ограничиваем max_tokens_ctx для предотвращения overflow
-            params.setdefault("max_tokens_ctx", 1200)
+        if tool_name == "fetch_docs":
+            if "doc_ids" in normalized and "ids" not in normalized:
+                normalized["ids"] = normalized.pop("doc_ids")
+            return normalized
 
-        elif tool_name == "fetch_docs":
-            # Нормализация hit_ids → ids
-            hit_ids = params.pop("hit_ids", None)
-            doc_ids = params.pop("doc_ids", None)
-            if hit_ids is not None and "ids" not in params:
-                params["ids"] = hit_ids
-            elif doc_ids is not None and "ids" not in params:
-                params["ids"] = doc_ids
+        if tool_name == "verify":
+            if "k" in normalized and "top_k" not in normalized:
+                normalized["top_k"] = normalized.pop("k")
+            normalized.setdefault("query", self._current_query or "")
+            return normalized
 
-        elif tool_name == "rerank":
-            # Автоматически добавляем docs из последних hits если не переданы
-            if "docs" not in params:
-                hits_payload = params.pop("hits", None)
-                if not hits_payload:
-                    hits_payload = getattr(self, "_last_search_hits", [])
-                if hits_payload:
-                    params["docs"] = [
-                        item.get("snippet") or item.get("text") or ""
-                        for item in hits_payload
-                        if item
-                    ]
-            params.setdefault("query", getattr(self, "_current_query", None) or "")
+        return normalized
 
-        elif tool_name == "verify":
-            # Нормализация k → top_k
-            k_value = params.pop("k", None)
-            if k_value is not None and "top_k" not in params:
-                params["top_k"] = k_value
+    def _apply_action_state(self, action: AgentAction) -> None:
+        """Сохраняет детерминированное состояние после успешных tool calls."""
+        if not action.output.ok:
+            return
 
-        return params
+        if action.tool == "query_plan":
+            self._last_plan_summary = action.output.data.get("plan") or {}
+            return
 
-    def _format_observation(self, tool_response, tool_name: str = "") -> str:
-        """Форматирует результат инструмента для наблюдения"""
+        if action.tool == "search":
+            self._last_search_hits = list(action.output.data.get("hits", []) or [])
+            self._last_search_route = action.output.data.get("route_used")
+            return
+
+        if action.tool == "rerank":
+            indices = action.output.data.get("indices") or []
+            scores = action.output.data.get("scores") or []
+            if not isinstance(indices, list) or not self._last_search_hits:
+                return
+
+            ranked_hits: List[Dict[str, Any]] = []
+            used_indices: set[int] = set()
+            for position, raw_idx in enumerate(indices):
+                if not isinstance(raw_idx, int):
+                    continue
+                if raw_idx < 0 or raw_idx >= len(self._last_search_hits):
+                    continue
+                hit = dict(self._last_search_hits[raw_idx])
+                if position < len(scores):
+                    hit["rerank_score"] = scores[position]
+                ranked_hits.append(hit)
+                used_indices.add(raw_idx)
+
+            if ranked_hits:
+                tail_hits = [
+                    dict(hit)
+                    for idx, hit in enumerate(self._last_search_hits)
+                    if idx not in used_indices
+                ]
+                self._last_search_hits = ranked_hits + tail_hits
+            return
+
+        if action.tool == "compose_context":
+            self._last_compose_citations = list(
+                action.output.data.get("citations", []) or []
+            )
+            self._last_coverage = float(
+                action.output.data.get("citation_coverage", 0.0) or 0.0
+            )
+
+    def _format_observation(self, tool_response: ToolResponse, tool_name: str = "") -> str:
+        """Форматирует результат инструмента для observation SSE."""
         if not tool_response.ok:
             return f"Ошибка: {tool_response.meta.error or 'Неизвестная ошибка'}"
 
-        # Форматируем данные
         if not tool_response.data:
             return "Результат получен (пустые данные)"
 
-        # Преобразуем в читаемый вид
         try:
-            if isinstance(tool_response.data, dict):
-                # Специальная обработка для search - показываем hit IDs
-                if tool_name == "search" and isinstance(
-                    tool_response.data.get("hits"), list
-                ):
-                    hits = tool_response.data["hits"]
-                    hit_ids = [
-                        hit.get("id", "unknown")
-                        for hit in hits
-                        if isinstance(hit, dict)
-                    ]
-                    route_used = tool_response.data.get("route_used", "unknown")
-                    total_found = tool_response.data.get("total_found", len(hits))
-                    return f"Found {len(hits)} documents (total: {total_found}). Route: {route_used}. Use these IDs for compose_context: {hit_ids}"
-
-                # Специальная обработка для compose_context
-                if tool_name == "compose_context":
-                    coverage = tool_response.data.get("citation_coverage", 0.0)
-                    citations_count = len(tool_response.data.get("citations", []))
-                    contexts_count = len(tool_response.data.get("contexts", []))
-                    return f"Composed context with {citations_count} citations, coverage: {coverage:.2f}, contexts: {contexts_count}"
-
-                # Специальная обработка для verify
-                if tool_name == "verify":
-                    verified = tool_response.data.get("verified", False)
-                    confidence = tool_response.data.get("confidence", 0.0)
-                    docs_found = tool_response.data.get("documents_found", 0)
-                    threshold = tool_response.data.get("threshold", 0.6)
-                    evidence_count = len(tool_response.data.get("evidence", []))
-                    return f"Verification: {verified} (confidence: {confidence:.3f}, threshold: {threshold}, docs: {docs_found}, evidence: {evidence_count})"
-
-                # Специальная обработка для query_plan
-                if tool_name == "query_plan":
-                    plan = tool_response.data.get("plan", {})
-                    queries = plan.get("normalized_queries", [])
-                    k_per_query = plan.get("k_per_query", 0)
-                    fusion = plan.get("fusion", "unknown")
-                    return f"Plan: {len(queries)} queries, k={k_per_query}, fusion={fusion}"
-
-                # Красиво форматируем ключевые поля
-                result_parts = []
-                for key, value in tool_response.data.items():
-                    if key in ["error", "result", "answer", "route", "prompt"]:
-                        result_parts.append(f"{key}: {value}")
-                    elif isinstance(value, (list, dict)):
-                        if key == "citations" and tool_name == "compose_context":
-                            # Для compose_context показываем детали цитат
-                            citations = value if isinstance(value, list) else []
-                            if citations:
-                                citation_ids = [
-                                    c.get("id", "unknown") for c in citations[:3]
-                                ]
-                                result_parts.append(
-                                    f"citations: {citation_ids}{'...' if len(citations) > 3 else ''}"
-                                )
-                            else:
-                                result_parts.append("citations: none")
-                        else:
-                            result_parts.append(
-                                f"{key}: {len(value) if isinstance(value, list) else 'object'}"
-                            )
-                    else:
-                        result_parts.append(f"{key}: {str(value)[:100]}")
-
+            if tool_name == "search" and isinstance(
+                tool_response.data.get("hits"), list
+            ):
+                hits = tool_response.data["hits"]
+                hit_ids = [
+                    hit.get("id", "unknown")
+                    for hit in hits
+                    if isinstance(hit, dict)
+                ]
+                route_used = tool_response.data.get("route_used", "unknown")
+                total_found = tool_response.data.get("total_found", len(hits))
                 return (
-                    "; ".join(result_parts) if result_parts else str(tool_response.data)
+                    f"Found {len(hits)} documents (total: {total_found}). "
+                    f"Route: {route_used}. Use these IDs for compose_context: {hit_ids}"
                 )
-            else:
-                return str(tool_response.data)[:500]  # Ограничиваем длину
 
-        except Exception as e:
-            logger.error(f"Error formatting observation for {tool_name}: {e}")
-            return "Результат получен (ошибка форматирования)"
+            if tool_name == "compose_context":
+                coverage = float(
+                    tool_response.data.get("citation_coverage", 0.0) or 0.0
+                )
+                citations_count = len(tool_response.data.get("citations", []))
+                contexts_count = len(tool_response.data.get("contexts", []))
+                return (
+                    f"Composed context with {citations_count} citations, "
+                    f"coverage: {coverage:.2f}, contexts: {contexts_count}"
+                )
+
+            if tool_name == "verify":
+                verified = tool_response.data.get("verified", False)
+                confidence = float(tool_response.data.get("confidence", 0.0) or 0.0)
+                docs_found = tool_response.data.get("documents_found", 0)
+                threshold = tool_response.data.get("threshold", 0.6)
+                return (
+                    "Verification: "
+                    f"{verified} (confidence: {confidence:.3f}, "
+                    f"threshold: {threshold}, docs: {docs_found})"
+                )
+
+            if tool_name == "query_plan":
+                plan = tool_response.data.get("plan", {})
+                queries = plan.get("normalized_queries", [])
+                k_per_query = plan.get("k_per_query", 0)
+                fusion = plan.get("fusion", "unknown")
+                return f"Plan: {len(queries)} queries, k={k_per_query}, fusion={fusion}"
+
+            if tool_name == "final_answer":
+                answer = str(tool_response.data.get("answer", "")).strip()
+                return f"Final answer prepared ({len(answer)} chars)"
+
+            result_parts = []
+            for key, value in tool_response.data.items():
+                if key in {"error", "result", "answer", "route", "prompt"}:
+                    result_parts.append(f"{key}: {value}")
+                elif isinstance(value, list):
+                    result_parts.append(f"{key}: {len(value)}")
+                elif isinstance(value, dict):
+                    result_parts.append(f"{key}: object")
+                else:
+                    result_parts.append(f"{key}: {str(value)[:100]}")
+
+            return "; ".join(result_parts) if result_parts else str(tool_response.data)
+        except Exception as exc:
+            logger.warning("Failed to format observation for %s: %s", tool_name, exc)
+            return str(tool_response.data)[:500]
 
     def get_available_tools(self) -> Dict[str, Any]:
-        """Возвращает схемы всех доступных инструментов"""
-        tools = {}
-
-        # Базовая информация об инструментах
+        """Возвращает обзор LLM-visible и системных инструментов агента."""
         tools_info = {
-            "router_select": {
-                "description": "Выбирает оптимальный маршрут поиска (bm25/dense/hybrid)",
-                "parameters": {"query": "string"},
-            },
             "query_plan": {
-                "description": "Создает план поиска для заданного запроса",
+                "description": "Декомпозирует пользовательский запрос на подзапросы",
                 "parameters": {"query": "string"},
             },
             "search": {
-                "description": "Выполняет гибридный поиск по коллекции с RRF слиянием",
-                "parameters": {
-                    "queries": "array of strings",
-                    "filters": {
-                        "date_from": "YYYY-MM-DD",
-                        "date_to": "YYYY-MM-DD",
-                        "channel": "string",
-                    },
-                    "k": "integer (default 10)",
-                    "route": "string (bm25|dense|hybrid, default hybrid)",
-                },
+                "description": "Выполняет гибридный поиск по Qdrant",
+                "parameters": {"queries": "array<string>", "k": "integer"},
             },
             "rerank": {
-                "description": "Переранжирует документы по релевантности к запросу",
+                "description": "Переранжирует найденные документы",
                 "parameters": {
                     "query": "string",
-                    "docs": "array of strings",
-                    "top_n": "integer?",
+                    "docs": "array<string>",
+                    "top_n": "integer",
                 },
-            },
-            "fetch_docs": {
-                "description": "Получает документы по списку ID",
-                "parameters": {"ids": "array of strings"},
             },
             "compose_context": {
-                "description": "Собирает контекст из документов с цитированием",
-                "parameters": {
-                    "docs": "array",
-                    "query": "string?",
-                    "max_tokens_ctx": "integer",
-                },
-            },
-            "verify": {
-                "description": "Проверяет утверждения через поиск в базе знаний",
-                "parameters": {"query": "string", "claim": "string"},
+                "description": "Собирает prompt с цитатами и coverage",
+                "parameters": {"hit_ids": "array<string>?"},
             },
             "final_answer": {
-                "description": "Формирует финальный ответ с унифицированной схемой (answer/citations/verification)",
+                "description": "Формирует финальный ответ пользователю",
                 "parameters": {
                     "answer": "string",
-                    "citations": "array?",
-                    "verification": "object?",
-                    "coverage": "float?",
-                    "refinements": "int?",
+                    "sources": "array<int>",
                 },
             },
         }
 
+        system_tools = {
+            "fetch_docs": "Системная догрузка полных текстов по id",
+            "verify": "Системная верификация финального ответа",
+        }
+
         return {
             "tools": tools_info,
+            "system_tools": system_tools,
             "total": len(tools_info),
-            "note": "Все инструменты принимают JSON параметры",
+            "note": "LLM видит только 5 tools schema; verify и fetch_docs вызываются системно.",
         }
 
     async def _verify_answer(
         self, final_answer: str, conversation_history: List[str]
     ) -> Dict[str, Any]:
-        """Verify the final answer's claims using the knowledge base."""
+        """Проверяет финальный ответ через verify tool."""
         try:
-            # Use the original user query and answer as input to verify tool
             original_query = conversation_history[0] if conversation_history else ""
             if not original_query.startswith("Human: "):
                 original_query = "Human: " + original_query
 
-            logger.debug(
-                "Verifying answer: query='%s', claim_length=%d",
-                original_query[:100],
-                len(final_answer),
-            )
-
-            request_id_for_verify = self._current_request_id or "verify"
-            verify_step = self._current_step if hasattr(self, "_current_step") else 1
-
             result = self.tool_runner.run(
-                request_id_for_verify,
-                verify_step,
+                self._current_request_id or "verify",
+                self._current_step,
                 ToolRequest(
                     tool="verify",
                     input={
@@ -1412,40 +1128,22 @@ Be accurate, logical, and helpful."""
                 ),
             )
 
-            logger.debug(
-                "Verify tool result: ok=%s, data_keys=%s",
-                result.output.ok if result else False,
-                list(result.output.data.keys()) if result and result.output.ok else [],
-            )
+            if result.output.ok:
+                return result.output.data
 
-            if result and result.output.ok:
-                verify_data = result.output.data
-                logger.debug(
-                    "Verification successful: verified=%s, confidence=%.3f, docs=%d",
-                    verify_data.get("verified", False),
-                    verify_data.get("confidence", 0.0),
-                    verify_data.get("documents_found", 0),
-                )
-                return verify_data
-            else:
-                error_msg = "Tool execution failed"
-                if result and result.output.meta.error:
-                    error_msg = result.output.meta.error
-                logger.warning("Verification failed: %s", error_msg)
-                return {
-                    "verified": False,
-                    "confidence": 0.0,
-                    "error": error_msg,
-                }
-
-        except Exception as e:
-            logger.error(f"Error in _verify_answer: {e}", exc_info=True)
-            return {"verified": False, "confidence": 0.0, "error": str(e)}
+            return {
+                "verified": False,
+                "confidence": 0.0,
+                "error": result.output.meta.error or "Tool execution failed",
+            }
+        except Exception as exc:
+            logger.error("Error in _verify_answer: %s", exc, exc_info=True)
+            return {"verified": False, "confidence": 0.0, "error": str(exc)}
 
     def _should_attempt_refinement(
         self, coverage: float, refinement_count: int
     ) -> bool:
-        """Check if a refinement is warranted based on coverage and refinement count."""
+        """Проверяет, нужен ли refinement по coverage и лимиту попыток."""
         return (
             coverage < self.settings.coverage_threshold
             and refinement_count < self.settings.max_refinements
@@ -1453,33 +1151,171 @@ Be accurate, logical, and helpful."""
 
     async def _perform_refinement(
         self, query: str, agent_state: AgentState, request_id: str, step: int
-    ) -> Optional[AgentAction]:
-        """Refinement: расширенный search + автоматический compose_context.
+    ) -> List[AgentAction]:
+        """Выполняет системный refinement: search → compose_context."""
+        del agent_state
 
-        Вместо передачи сотен UUID модели (что переполняет контекст),
-        refinement выполняет полный подцикл search → compose_context
-        и возвращает результат compose_context.
-        """
-        try:
-            # Расширенный search (но разумный k, не 200)
-            refine_input = {
+        actions: List[AgentAction] = []
+        search_action = await self._execute_action(
+            tool_name="search",
+            params={
                 "queries": [query],
                 "filters": {},
                 "k": 20,
                 "route": "hybrid",
+            },
+            request_id=request_id,
+            step=step,
+        )
+        if search_action is None:
+            return actions
+
+        actions.append(search_action)
+        if not search_action.output.ok:
+            return actions
+
+        self._apply_action_state(search_action)
+        compose_action = await self._execute_action(
+            tool_name="compose_context",
+            params={"hit_ids": []},
+            request_id=request_id,
+            step=step,
+        )
+        if compose_action is not None:
+            actions.append(compose_action)
+        return actions
+
+    def _extract_tool_calls(
+        self, assistant_message: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Приводит tool_calls llama-server к единому внутреннему формату."""
+        raw_tool_calls = assistant_message.get("tool_calls") or []
+        normalized_calls: List[Dict[str, Any]] = []
+
+        for item in raw_tool_calls:
+            if not isinstance(item, dict):
+                continue
+
+            function_block = (
+                item.get("function") if isinstance(item.get("function"), dict) else item
+            )
+            tool_name = function_block.get("name")
+            raw_arguments = function_block.get("arguments", {})
+
+            if isinstance(raw_arguments, str):
+                try:
+                    loaded = json.loads(raw_arguments)
+                    parsed_arguments = loaded if isinstance(loaded, dict) else {}
+                except json.JSONDecodeError:
+                    parsed_arguments = {"raw_input": raw_arguments}
+            elif isinstance(raw_arguments, dict):
+                parsed_arguments = raw_arguments
+            else:
+                parsed_arguments = {}
+
+            if tool_name:
+                normalized_calls.append(
+                    {
+                        "id": item.get("id"),
+                        "name": tool_name,
+                        "arguments": parsed_arguments,
+                    }
+                )
+
+        return normalized_calls
+
+    def _assistant_message_for_history(
+        self, assistant_message: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Сохраняет assistant message в chat history без искажения tool_calls."""
+        message = {"role": "assistant"}
+        if "content" in assistant_message:
+            message["content"] = assistant_message.get("content")
+        if "tool_calls" in assistant_message:
+            message["tool_calls"] = assistant_message.get("tool_calls")
+        return message
+
+    def _tool_message_for_history(
+        self,
+        tool_call: Dict[str, Any],
+        tool_name: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Сериализует результат инструмента в стандартный `role=tool` message."""
+        message: Dict[str, Any] = {
+            "role": "tool",
+            "name": tool_name,
+            "content": self._serialize_tool_payload(payload),
+        }
+        if tool_call.get("id"):
+            message["tool_call_id"] = tool_call["id"]
+        return message
+
+    def _serialize_tool_payload(self, payload: Dict[str, Any]) -> str:
+        """Безопасно сериализует payload инструмента для chat history."""
+        try:
+            return json.dumps(payload, ensure_ascii=False, default=str)
+        except Exception:
+            return json.dumps({"error": "serialization_failed"}, ensure_ascii=False)
+
+    def _tool_error_action(
+        self,
+        tool_name: str,
+        params: Dict[str, Any],
+        step: int,
+        error: str,
+    ) -> AgentAction:
+        """Строит псевдо-результат инструмента при локальной ошибке вызова."""
+        return AgentAction(
+            step=step,
+            tool=tool_name,
+            input=dict(params or {}),
+            output=ToolResponse(
+                ok=False,
+                data={},
+                meta=ToolMeta(took_ms=0, error=error),
+            ),
+        )
+
+    def _build_final_payload(
+        self,
+        base_payload: Dict[str, Any],
+        answer: str,
+        verify_res: Dict[str, Any],
+        agent_state: AgentState,
+        request_id: str,
+        step: int,
+    ) -> Dict[str, Any]:
+        """Собирает финальный SSE payload без изменения публичной схемы."""
+        final_answer = answer.strip()
+
+        if agent_state.low_coverage_disclaimer:
+            disclaimer = (
+                "[Примечание: найдено ограниченное количество релевантной информации. "
+                "Ответ может быть неполным.]"
+            )
+            final_answer = (
+                f"{disclaimer}\n\n{final_answer}" if final_answer else disclaimer
+            )
+
+        final_payload = dict(base_payload)
+        final_payload["answer"] = final_answer
+        final_payload.setdefault("citations", self._last_compose_citations)
+        final_payload["coverage"] = agent_state.coverage
+        final_payload["refinements"] = agent_state.refinement_count
+        final_payload["route"] = self._last_search_route
+        final_payload["plan"] = self._last_plan_summary
+        if verify_res:
+            final_payload["verification"] = {
+                "verified": verify_res.get("verified", False),
+                "confidence": verify_res.get("confidence", 0.0),
+                "documents_found": verify_res.get("documents_found", 0),
             }
-            action_text = f"search {json.dumps(refine_input)}"
-            search_result = await self._execute_action(action_text, request_id, step)
-
-            if not search_result or not search_result.output.ok:
-                return search_result
-
-            # Автоматически вызываем compose_context по результатам search
-            compose_action = f'compose_context {{"hit_ids": []}}'
-            compose_result = await self._execute_action(compose_action, request_id, step)
-
-            return compose_result or search_result
-
-        except Exception as e:
-            logger.error(f"Error in _perform_refinement: {e}")
-            return None
+        final_payload.update(
+            {
+                "step": step,
+                "total_steps": step,
+                "request_id": request_id,
+            }
+        )
+        return final_payload

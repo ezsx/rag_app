@@ -81,6 +81,19 @@ class TestBuildPointDocsFlat:
         assert docs[0].point_id == "chan:7:0"
         assert docs[1].point_id == "chan:7:1"
 
+    def test_two_chunks_same_message_with_smart_chunk_ids(self):
+        mod = _load_ingest_module()
+        msg = _make_message(8, "text")
+        dense = [[0.1] * 1024, [0.2] * 1024]
+        sparse = [_make_sparse_result(), _make_sparse_result()]
+
+        docs = mod._build_point_docs_flat(
+            [msg, msg], ["part1", "part2"], dense, sparse, "chan", 0
+        )
+
+        assert docs[0].point_id == "chan:8:0"
+        assert docs[1].point_id == "chan:8:1"
+
     def test_payload_fields(self):
         mod = _load_ingest_module()
         msg = _make_message(1, "text", chat_id=999)

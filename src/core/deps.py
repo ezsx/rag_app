@@ -71,7 +71,10 @@ def get_tei_embedding_client() -> TEIEmbeddingClient:
     """Singleton TEIEmbeddingClient."""
     settings = get_settings()
     logger.info("TEI embedding client: %s", settings.embedding_tei_url)
-    return TEIEmbeddingClient(base_url=settings.embedding_tei_url)
+    return TEIEmbeddingClient(
+        base_url=settings.embedding_tei_url,
+        query_instruction=settings.embedding_query_instruction,
+    )
 
 
 @lru_cache
