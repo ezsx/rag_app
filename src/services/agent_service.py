@@ -1387,25 +1387,31 @@ Be accurate, logical, and helpful."""
     async def _perform_refinement(
         self, query: str, agent_state: AgentState, request_id: str, step: int
     ) -> Optional[AgentAction]:
-        """Execute the refinement process with expanded search parameters."""
-        try:
-            # Увеличиваем охват refinement на базе dense+sparse prefetch лимитов.
-            base_k = max(self.settings.hybrid_top_dense, self.settings.hybrid_top_sparse)
-            new_k = min(base_k * 2, 200)
+        """Refinement: расширенный search + автоматический compose_context.
 
-            # Prepare a refined search action
+        Вместо передачи сотен UUID модели (что переполняет контекст),
+        refinement выполняет полный подцикл search → compose_context
+        и возвращает результат compose_context.
+        """
+        try:
+            # Расширенный search (но разумный k, не 200)
             refine_input = {
                 "queries": [query],
                 "filters": {},
-                "k": new_k,
-                "route": "hybrid",  # use hybrid for broader coverage
+                "k": 20,
+                "route": "hybrid",
             }
-
-            # Execute the search tool directly
             action_text = f"search {json.dumps(refine_input)}"
-            result = await self._execute_action(action_text, request_id, step)
+            search_result = await self._execute_action(action_text, request_id, step)
 
-            return result
+            if not search_result or not search_result.output.ok:
+                return search_result
+
+            # Автоматически вызываем compose_context по результатам search
+            compose_action = f'compose_context {{"hit_ids": []}}'
+            compose_result = await self._execute_action(compose_action, request_id, step)
+
+            return compose_result or search_result
 
         except Exception as e:
             logger.error(f"Error in _perform_refinement: {e}")
