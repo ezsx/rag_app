@@ -7,7 +7,8 @@ Phase 1 стек: Telegram ingest → Qdrant (dense+sparse) → Hybrid Retrieval
 1. **Vector Store**: Qdrant с named vectors `dense_vector` и `sparse_vector`, native RRF+MMR.
 2. **LLM**: Qwen3-30B-A3B GGUF через `llama-server.exe` на Windows Host (V100, OpenAI-compatible API).
 3. **Embedding**: `Qwen/Qwen3-Embedding-0.6B` через TEI HTTP в WSL2.
-4. **Reranker**: `tomaarsen/Qwen3-Reranker-0.6B-seq-cls` через TEI HTTP в WSL2.
+4. **Reranker**: `BAAI/bge-m3` (XLMRoberta seq-cls) через TEI HTTP в WSL2.
+   *Временная мера*: целевой — `Qwen3-Reranker-0.6B-seq-cls`, ждём TEI PR #835.
 5. **Sparse**: `fastembed.SparseTextEmbedding("Qdrant/bm25", language="russian")`.
 6. **Docker**: API и Qdrant работают на CPU; GPU в Docker Desktop недоступна по DEC-0024.
 

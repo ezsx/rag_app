@@ -131,6 +131,12 @@ class LlamaServerClient:
             json=payload,
             timeout=self.timeout,
         )
+        if resp.status_code >= 400:
+            logger.error(
+                "LLM chat_completion %d: %s",
+                resp.status_code,
+                resp.text[:500],
+            )
         resp.raise_for_status()
         return resp.json()
 

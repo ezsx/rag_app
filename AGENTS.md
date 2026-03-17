@@ -18,7 +18,8 @@
 ### Код и модели
 - LLM: **Qwen3-30B-A3B GGUF** через llama-server.exe (V100, Windows Host, порт 8080).
 - Embedding: **Qwen3-Embedding-0.6B** через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8082).
-- Reranker: **Qwen3-Reranker-0.6B-seq-cls** через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8083).
+- Reranker: **BAAI/bge-m3** (XLMRoberta seq-cls) через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8083).
+  **Временная мера**: целевой — Qwen3-Reranker-0.6B-seq-cls, ждём TEI PR #835.
 - Vector store: **Qdrant** (Docker, CPU), dense + sparse named vectors, native RRF+MMR.
 - **GPU blocker**: RTX 5060 Ti недоступна в Docker Desktop (V100 TCC блокирует NVML для всех GPU).
   Embedding/Reranker = WSL2-native. Docker-контейнеры = CPU only. (DEC-0024)
@@ -34,7 +35,7 @@
 ### Deploy и запуск
 - **Порядок запуска** (важно):
   1. Windows Host: `llama-server.exe` (V100, порт 8080, `--jinja --reasoning-budget 0`)
-  2. Ubuntu WSL2: TEI embedding `Qwen/Qwen3-Embedding-0.6B` (порт 8082) + TEI reranker `tomaarsen/Qwen3-Reranker-0.6B-seq-cls` (порт 8083)
+  2. Ubuntu WSL2: TEI embedding `Qwen3-Embedding-0.6B` (порт 8082, образ `cuda-1.9`) + TEI reranker `BAAI/bge-m3` (порт 8083, образ `120-1.9` для Blackwell)
   3. Docker Desktop: `docker compose -f deploy/compose/compose.dev.yml up` (порт 8000, CPU)
 - Ingest: `docker compose -f deploy/compose/compose.dev.yml run --rm ingest --channel @name --since YYYY-MM-DD --until YYYY-MM-DD`
 - `.env` в корне — не коммитить секреты.

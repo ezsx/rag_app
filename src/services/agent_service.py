@@ -97,8 +97,8 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
         "function": {
             "name": "rerank",
             "description": (
-                "Переранжирует документы по семантической близости к запросу. "
-                "Используй после search для повышения точности."
+                "Переранжирует найденные документы по семантической близости к запросу. "
+                "Вызывай после search. Документы подставляются автоматически."
             ),
             "parameters": {
                 "type": "object",
@@ -107,18 +107,13 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
                         "type": "string",
                         "description": "Исходный пользовательский запрос",
                     },
-                    "docs": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Тексты документов из search",
-                    },
                     "top_n": {
                         "type": "integer",
                         "description": "Количество лучших документов",
                         "default": 5,
                     },
                 },
-                "required": ["query", "docs"],
+                "required": ["query"],
             },
         },
     },
@@ -779,22 +774,32 @@ class AgentService:
         """Нормализует параметры и выполняет инструмент через ToolRunner."""
         try:
             safe_params = dict(params or {})
-            serialized = json.dumps(safe_params, ensure_ascii=False, default=str)
-            is_valid, violations = security_manager.validate_input(serialized)
-            if not is_valid:
-                logger.warning(
-                    "Security violations in tool params for %s: %s",
-                    tool_name,
-                    violations,
-                )
-                return self._tool_error_action(
-                    tool_name=tool_name,
-                    params=safe_params,
-                    step=step,
-                    error="security_violation",
-                )
-
+            # Нормализуем ДО security check — rerank/compose_context заполняют
+            # данные из внутреннего состояния, а не от пользователя.
             normalized = self._normalize_tool_params(tool_name, safe_params)
+
+            # Security check только для user-facing полей, не для внутренних docs.
+            # rerank и compose_context получают docs из _last_search_hits (системно).
+            _skip_security = {"rerank", "compose_context"}
+            if tool_name not in _skip_security:
+                serialized = json.dumps(
+                    normalized, ensure_ascii=False, default=str
+                )
+                is_valid, violations = security_manager.validate_input(
+                    serialized
+                )
+                if not is_valid:
+                    logger.warning(
+                        "Security violations in tool params for %s: %s",
+                        tool_name,
+                        violations,
+                    )
+                    return self._tool_error_action(
+                        tool_name=tool_name,
+                        params=safe_params,
+                        step=step,
+                        error="security_violation",
+                    )
             tool_request = ToolRequest(tool=tool_name, input=normalized)
             return self.tool_runner.run(request_id, step, tool_request)
         except Exception as exc:
@@ -1254,10 +1259,28 @@ class AgentService:
             message["tool_call_id"] = tool_call["id"]
         return message
 
-    def _serialize_tool_payload(self, payload: Dict[str, Any]) -> str:
-        """Безопасно сериализует payload инструмента для chat history."""
+    def _serialize_tool_payload(
+        self, payload: Dict[str, Any], max_chars: int = 2000
+    ) -> str:
+        """Безопасно сериализует payload инструмента для chat history.
+
+        Усекает результат чтобы не переполнить LLM context window.
+        Полные данные (docs, contexts) хранятся в _last_search_hits / _last_context.
+        """
         try:
-            return json.dumps(payload, ensure_ascii=False, default=str)
+            # Для compose_context: убираем полные тексты из history,
+            # оставляем только prompt (усечённый) и метаданные.
+            trimmed = dict(payload)
+            if "contexts" in trimmed:
+                trimmed.pop("contexts", None)
+            if "docs" in trimmed:
+                trimmed.pop("docs", None)
+            if "prompt" in trimmed and len(str(trimmed["prompt"])) > max_chars:
+                trimmed["prompt"] = str(trimmed["prompt"])[:max_chars] + "…"
+            serialized = json.dumps(trimmed, ensure_ascii=False, default=str)
+            if len(serialized) > max_chars:
+                serialized = serialized[:max_chars] + "…}"
+            return serialized
         except Exception:
             return json.dumps({"error": "serialization_failed"}, ensure_ascii=False)
 

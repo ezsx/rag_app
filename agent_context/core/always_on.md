@@ -11,7 +11,9 @@
 ## Код и модели
 - Основной LLM: **Qwen3-30B-A3B GGUF** (V100 SXM2 32GB, llama-server.exe на Windows хосте).
 - Embedding: **Qwen3-Embedding-0.6B** через TEI HTTP → WSL2 native (RTX 5060 Ti, порт 8082).
-- Reranker: **Qwen3-Reranker-0.6B-seq-cls** через TEI HTTP → WSL2 native (RTX 5060 Ti, порт 8083).
+- Reranker: **BAAI/bge-m3** (XLMRoberta seq-cls) через TEI HTTP → WSL2 native (RTX 5060 Ti, порт 8083).
+  **Временная мера**: целевой реранкер — Qwen3-Reranker-0.6B-seq-cls, но TEI v1.9 не поддерживает
+  Qwen3 classifier (PR #835 открыт, не смержен). Переключить после выхода TEI с поддержкой Qwen3.
 - Хранилище (Phase 1): **Qdrant** (dense + sparse named vectors, native RRF+MMR).
 - **Docker GPU blocker**: RTX 5060 Ti недоступна в Docker Desktop (TCC V100 блокирует NVML).
   Embedding/Reranker запускаются нативно в Ubuntu WSL2, Docker обращается через `host.docker.internal`.
@@ -28,8 +30,9 @@
 
 ## Deploy и запуск
 - **Перед** `docker compose up` — запустить в Ubuntu WSL2:
-  - TEI embedding: `docker run -d --gpus all --name tei-embedding -p 8082:80 ghcr.io/huggingface/text-embeddings-inference:1.9 --model-id Qwen/Qwen3-Embedding-0.6B`
-  - TEI reranker: `docker run -d --gpus all --name tei-reranker -p 8083:80 ghcr.io/huggingface/text-embeddings-inference:1.9 --model-id tomaarsen/Qwen3-Reranker-0.6B-seq-cls`
+  - TEI embedding: `docker run -d --runtime=nvidia --name tei-embedding -p 8082:80 -v /home/tei-models/qwen3-embedding:/model ghcr.io/huggingface/text-embeddings-inference:cuda-1.9 --model-id /model --dtype float16 --max-batch-tokens 4096 --max-concurrent-requests 64`
+  - TEI reranker: `docker run -d --runtime=nvidia -e CUDA_VISIBLE_DEVICES=0 --name tei-reranker -p 8083:80 -v /home/tei-models/reranker:/model ghcr.io/huggingface/text-embeddings-inference:120-1.9 --model-id /model --dtype float16`
+    (BGE-M3; переключить на Qwen3-Reranker когда TEI поддержит — см. PR #835)
   - llama-server.exe: на Windows хосте (V100), с `--jinja --reasoning-budget 0 --cache-type-k q8_0 --cache-type-v q8_0`
 - Docker-сервисы (CPU only): `docker compose -f deploy/compose/compose.dev.yml up`
 - Ingest: `docker compose -f deploy/compose/compose.dev.yml run --rm ingest --channel @name --since YYYY-MM-DD --until YYYY-MM-DD`

@@ -26,7 +26,7 @@ query
           └─ sparse_vector: top-100
       → FusionQuery(RRF) → top-N кандидатов
       → with_vectors=True (для coverage cosine_sim)
-  → Reranker (TEI HTTP → Qwen3-Reranker-0.6B-seq-cls, sigmoid scores)
+  → Reranker (TEI HTTP → BAAI/bge-m3, sigmoid scores; целевой — Qwen3-Reranker)
   → compose_context → coverage check (0.65, DEC-0019)
 ```
 
@@ -80,8 +80,11 @@ reranker_batch_size   = 16     # ignored — TEI управляет батчин
 
 ## Reranker
 
-- **Qwen3-Reranker-0.6B-seq-cls** — текущая TEI-compatible модель
-- Основана на `Qwen3-Reranker-0.6B`, но обёрнута в seq-cls формат для TEI
+- **Текущая модель: BAAI/bge-m3** (XLMRobertaForSequenceClassification) через TEI HTTP
+- **Временная мера**: целевой реранкер — `Qwen3-Reranker-0.6B-seq-cls`, но TEI v1.9
+  не поддерживает Qwen3 classifier (PR [#835](https://github.com/huggingface/text-embeddings-inference/pull/835) открыт, не смержен).
+  Переключить после выхода TEI с поддержкой Qwen3.
+- TEI образ для Blackwell (RTX 5060 Ti): `120-1.9` (compute cap 12.0), не `cuda-1.9`
 - Используется после search и перед compose_context
 
 ## Chunking при ingest
