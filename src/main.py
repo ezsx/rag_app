@@ -6,10 +6,13 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
 from api.v1.router import router as v1_router
@@ -117,22 +120,23 @@ app.add_middleware(
 app.include_router(v1_router)
 
 
+_STATIC_DIR = Path(__file__).parent / "static"
+if _STATIC_DIR.is_dir():
+    app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+
+
 @app.get("/", tags=["root"])
 async def root():
-    """Главная страница API"""
+    """Web UI — если есть static/index.html, отдаём его; иначе JSON."""
+    index = _STATIC_DIR / "index.html"
+    if index.exists():
+        return FileResponse(str(index), media_type="text/html")
     return {
         "message": "RAG QA API v1.0.0",
         "status": "running",
         "docs": "/docs",
         "health": "/v1/health",
         "api_v1": "/v1",
-        "available_endpoints": {
-            "qa": "/v1/qa",
-            "search": "/v1/search",
-            "collections": "/v1/collections",
-            "models": "/v1/models",
-            "ingest": "/v1/ingest",
-        },
     }
 
 

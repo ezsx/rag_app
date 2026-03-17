@@ -263,8 +263,9 @@ class AgentService:
                 )
 
                 llm = self.llm_factory()
+                trimmed_messages = self._trim_messages(messages)
                 response = llm.chat_completion(
-                    messages=messages,
+                    messages=trimmed_messages,
                     tools=AGENT_TOOLS,
                     max_tokens=self.settings.agent_tool_max_tokens,
                     temperature=self.settings.agent_tool_temp,
@@ -1283,6 +1284,45 @@ class AgentService:
             return serialized
         except Exception:
             return json.dumps({"error": "serialization_failed"}, ensure_ascii=False)
+
+    @staticmethod
+    def _trim_messages(
+        messages: list[dict[str, Any]], max_chars: int = 16000
+    ) -> list[dict[str, Any]]:
+        """Обрезает messages чтобы уложиться в context window LLM.
+
+        Стратегия: всегда сохраняем system + user (первые 2 сообщения),
+        затем оставляем последние N сообщений по бюджету символов.
+        Бюджет 16K символов ≈ 4K токенов messages + ~2K tools schema + ~2K для ответа = 8K слот.
+        """
+        total = sum(len(json.dumps(m, ensure_ascii=False, default=str)) for m in messages)
+        if total <= max_chars:
+            return messages
+
+        # Первые 2 — system + user, всегда сохраняем
+        head = messages[:2]
+        tail = messages[2:]
+
+        # Берём tail с конца пока не превышаем бюджет
+        head_size = sum(len(json.dumps(m, ensure_ascii=False, default=str)) for m in head)
+        budget = max_chars - head_size
+        kept: list[dict[str, Any]] = []
+        for msg in reversed(tail):
+            msg_size = len(json.dumps(msg, ensure_ascii=False, default=str))
+            if budget - msg_size < 0 and kept:
+                break
+            kept.append(msg)
+            budget -= msg_size
+        kept.reverse()
+
+        logger.debug(
+            "Trimmed messages: %d → %d (from %d chars to ~%d)",
+            len(messages),
+            len(head) + len(kept),
+            total,
+            max_chars - budget,
+        )
+        return head + kept
 
     def _tool_error_action(
         self,

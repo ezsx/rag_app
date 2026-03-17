@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Agent</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<style>
+  :root { --bg: #0f172a; --card: #1e293b; --border: #334155; --accent: #3b82f6; --green: #10b981; --amber: #f59e0b; --text: #e2e8f0; --muted: #94a3b8; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+  .step-card { border-left: 3px solid var(--border); transition: all 0.3s; }
+  .step-card.active { border-left-color: var(--accent); }
+  .step-card.done { border-left-color: var(--green); }
+  .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .badge-tool { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .badge-thought { background: rgba(168,85,247,0.15); color: #c084fc; }
+  .badge-obs { background: rgba(16,185,129,0.15); color: #34d399; }
+  .badge-final { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .badge-cite { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.3s ease-out; }
+  .final-answer { background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(59,130,246,0.08)); border: 1px solid rgba(16,185,129,0.3); }
+  .citation-ref { color: #60a5fa; font-weight: 600; cursor: help; }
+  textarea:focus, input:focus { outline: none; box-shadow: 0 0 0 2px var(--accent); }
+  .coverage-bar { height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+  .coverage-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease-out; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  #chat-area { scroll-behavior: smooth; }
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<!-- Header -->
+<header class="border-b border-gray-800 px-6 py-4 flex items-center justify-between flex-shrink-0">
+  <div class="flex items-center gap-3">
+    <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-sm">R</div>
+    <div>
+      <h1 class="text-lg font-semibold">RAG Agent</h1>
+      <p class="text-xs text-gray-500">Telegram News Intelligence</p>
+    </div>
+  </div>
+  <div id="status-indicator" class="flex items-center gap-2 text-xs text-gray-500">
+    <span class="w-2 h-2 rounded-full bg-green-500"></span> Ready
+  </div>
+</header>
+
+<!-- Chat area -->
+<main id="chat-area" class="flex-1 overflow-y-auto px-4 py-6 space-y-4 max-w-4xl mx-auto w-full">
+  <div id="welcome" class="text-center py-20 text-gray-500">
+    <div class="text-5xl mb-4 opacity-30">?</div>
+    <p class="text-lg mb-2">Ask anything about AI & LLM news</p>
+    <p class="text-sm">Data from Telegram channels: protechietich, data_secrets, ai_machinelearning_big_data, data_easy, xor_journal</p>
+  </div>
+  <div id="messages"></div>
+</main>
+
+<!-- Input -->
+<footer class="border-t border-gray-800 px-4 py-4 flex-shrink-0">
+  <form id="query-form" class="max-w-4xl mx-auto flex gap-3">
+    <input id="query-input" type="text" placeholder="Ask a question..."
+      class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm placeholder-gray-500"
+      autocomplete="off" />
+    <button type="submit" id="send-btn"
+      class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+      Send
+    </button>
+  </form>
+</footer>
+
+<script>
+const API = window.location.origin;
+let token = null;
+
+async function getToken() {
+  if (token) return token;
+  const r = await fetch(`${API}/v1/auth/admin`, {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: '{"key":"1"}'
+  });
+  const d = await r.json();
+  token = d.access_token;
+  return token;
+}
+
+function esc(s) {
+  const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+}
+
+function formatAnswer(text) {
+  // Bold **text**
+  let h = esc(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Citation refs [1], [2]
+  h = h.replace(/\[(\d+)\]/g, '<span class="citation-ref" title="Source $1">[$1]</span>');
+  // Newlines
+  h = h.replace(/\n/g, '<br>');
+  return h;
+}
+
+function addMessage(role, html) {
+  document.getElementById('welcome').style.display = 'none';
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'fade-in mb-4 mt-6';
+  if (role === 'user') {
+    div.innerHTML = `<div class="flex justify-end"><div class="card px-4 py-3 max-w-lg" style="background:#2563eb22;border-color:#2563eb44"><p class="text-sm">${esc(html)}</p></div></div>`;
+  }
+  container.appendChild(div);
+  return div;
+}
+
+// Текущий контекст ответа — scoped refs вместо глобальных ID
+let _ctx = null;
+
+function createAgentBlock() {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'fade-in space-y-2';
+
+  const statusRow = document.createElement('div');
+  statusRow.className = 'flex items-center gap-2 mb-2 text-xs text-gray-500';
+  statusRow.innerHTML = '<div class="spinner"></div><span>Thinking...</span>';
+
+  const stepsEl = document.createElement('div');
+  const finalEl = document.createElement('div');
+
+  div.appendChild(statusRow);
+  div.appendChild(stepsEl);
+  div.appendChild(finalEl);
+  container.appendChild(div);
+
+  _ctx = { root: div, statusRow, statusSpan: statusRow.querySelector('span'), stepsEl, finalEl };
+  return div;
+}
+
+function addStep(type, data) {
+  if (!_ctx) return;
+  const div = document.createElement('div');
+  div.className = 'step-card card px-4 py-3 mb-2 fade-in';
+
+  if (type === 'tool_invoked') {
+    const tool = data.tool;
+    const icons = {query_plan:'\u{1F4CB}', search:'\u{1F50D}', rerank:'\u{1F4CA}', compose_context:'\u{1F4DD}', final_answer:'\u2705'};
+    const icon = icons[tool] || '\u{1F527}';
+    let detail = '';
+    if (tool === 'query_plan') detail = `Query: ${esc(data.input?.query || '')}`;
+    else if (tool === 'search') detail = `Queries: ${(data.input?.queries||[]).map(q=>esc(q)).join(', ')}`;
+    else if (tool === 'rerank') detail = `Top ${data.input?.top_n || 5}`;
+    else if (tool === 'compose_context') detail = 'Building context...';
+    else if (tool === 'final_answer') detail = '';
+    div.className += ' active';
+    div.innerHTML = `<div class="flex items-center gap-2 mb-1"><span>${icon}</span><span class="badge badge-tool">${esc(tool)}</span>${data.system_generated?'<span class="badge" style="background:rgba(245,158,11,0.15);color:#fbbf24">refinement</span>':''}</div>${detail?`<p class="text-xs text-gray-400 mt-1">${detail}</p>`:''}`;
+  }
+  else if (type === 'observation') {
+    div.className += ' done';
+    const ok = data.success;
+    const ms = data.took_ms || 0;
+    div.innerHTML = `<div class="flex items-center gap-2"><span class="badge badge-obs">${ok?'OK':'FAIL'}</span><span class="text-xs text-gray-500">${ms}ms</span></div><p class="text-xs text-gray-400 mt-1">${esc((data.content||'').substring(0,200))}</p>`;
+  }
+  else if (type === 'thought') {
+    div.innerHTML = `<div class="flex items-center gap-2"><span class="badge badge-thought">thought</span></div><p class="text-xs text-gray-300 mt-1 italic">${esc(data.content||'')}</p>`;
+  }
+  else if (type === 'citations') {
+    const cov = (data.coverage * 100).toFixed(0);
+    const color = data.coverage >= 0.65 ? '#10b981' : data.coverage >= 0.45 ? '#f59e0b' : '#ef4444';
+    div.innerHTML = `<div class="flex items-center gap-3"><span class="badge badge-cite">coverage</span><div class="flex-1"><div class="coverage-bar"><div class="coverage-fill" style="width:${cov}%;background:${color}"></div></div></div><span class="text-xs font-mono" style="color:${color}">${cov}%</span></div>`;
+  }
+
+  _ctx.stepsEl.appendChild(div);
+  document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+}
+
+function showFinal(data) {
+  if (!_ctx) return;
+
+  // Stop spinner
+  _ctx.statusRow.innerHTML = '<span class="text-green-500 text-xs font-medium">Done</span>';
+
+  const answer = data.answer || '';
+  const citations = data.citations || [];
+  const coverage = data.coverage;
+  const refinements = data.refinements || 0;
+  const totalSteps = data.total_steps || data.step || '?';
+  const verified = data.verification?.verified;
+
+  let citationsHtml = '';
+  if (citations.length) {
+    citationsHtml = `<div class="mt-4 pt-3 border-t border-gray-700"><p class="text-xs text-gray-500 mb-2 font-medium">Sources</p><div class="space-y-1">${citations.map(c => {
+      const ch = c.metadata?.channel || '?';
+      const dt = (c.metadata?.date || '').substring(0, 10);
+      return `<div class="text-xs text-gray-400 flex gap-2"><span class="citation-ref">[${c.index}]</span><span>${esc(ch)}</span><span class="text-gray-600">${dt}</span></div>`;
+    }).join('')}</div></div>`;
+  }
+
+  const metaParts = [];
+  if (coverage !== undefined) metaParts.push(`Coverage: ${(coverage*100).toFixed(0)}%`);
+  if (refinements > 0) metaParts.push(`Refinements: ${refinements}`);
+  metaParts.push(`Steps: ${totalSteps}`);
+  if (verified !== undefined) metaParts.push(verified ? 'Verified' : 'Unverified');
+  const metaHtml = `<div class="flex flex-wrap gap-3 mt-3 text-xs text-gray-500">${metaParts.map(p=>`<span>${esc(p)}</span>`).join('<span class="text-gray-700">|</span>')}</div>`;
+
+  _ctx.finalEl.innerHTML = `<div class="final-answer card px-5 py-4 mt-3 fade-in"><div class="text-sm leading-relaxed">${formatAnswer(answer)}</div>${citationsHtml}${metaHtml}</div>`;
+  _ctx = null; // Закрываем контекст — следующий вопрос создаст новый
+  document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+}
+
+async function sendQuery(query) {
+  addMessage('user', query);
+  createAgentBlock();
+
+  const t = await getToken();
+  const resp = await fetch(`${API}/v1/agent/stream`, {
+    method: 'POST',
+    headers: {'Authorization': `Bearer ${t}`, 'Content-Type': 'application/json'},
+    body: JSON.stringify({query, max_steps: 8})
+  });
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, {stream: true});
+
+    const lines = buf.split('\n');
+    buf = lines.pop();
+
+    let currentEvent = null;
+    for (const line of lines) {
+      if (line.startsWith('event:')) {
+        currentEvent = line.substring(6).trim();
+      } else if (line.startsWith('data:') && currentEvent) {
+        try {
+          const raw = line.substring(5).trim();
+          // SSE data uses Python repr (single quotes), convert to JSON
+          const jsonStr = raw.replace(/'/g, '"').replace(/True/g, 'true').replace(/False/g, 'false').replace(/None/g, 'null');
+          const data = JSON.parse(jsonStr);
+
+          if (currentEvent === 'final') {
+            showFinal(data);
+          } else if (['tool_invoked','observation','thought','citations'].includes(currentEvent)) {
+            addStep(currentEvent, data);
+            if (_ctx && _ctx.statusSpan) {
+              if (currentEvent === 'tool_invoked') _ctx.statusSpan.textContent = `Running ${data.tool}...`;
+              else if (currentEvent === 'thought') _ctx.statusSpan.textContent = 'Thinking...';
+            }
+          }
+        } catch(e) { /* skip parse errors */ }
+        currentEvent = null;
+      } else if (line.trim() === '') {
+        currentEvent = null;
+      }
+    }
+  }
+
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('query-input').disabled = false;
+  document.getElementById('status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500"></span> Ready';
+}
+
+document.getElementById('query-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('query-input');
+  const query = input.value.trim();
+  if (!query) return;
+
+  input.value = '';
+  input.disabled = true;
+  document.getElementById('send-btn').disabled = true;
+  document.getElementById('status-indicator').innerHTML = '<div class="spinner"></div><span>Processing...</span>';
+
+  try {
+    await sendQuery(query);
+  } catch(err) {
+    showFinal({answer: 'Error: ' + err.message, sources: []});
+  }
+});
+
+// Focus input on load
+document.getElementById('query-input').focus();
+</script>
+</body>
+</html>
