@@ -116,6 +116,14 @@
 - Document embedding: тот же encoder, но без prefix
 - Reranker: `Qwen3-Reranker-0.6B-seq-cls` через TEI-compatible seq-cls wrapper
 
+## Grounding & Citation Rules
+
+- Модель должна использовать только факты из retrieved контекста.
+- Каждое фактическое утверждение обязано сопровождаться inline citation вида `[N]`.
+- Если в контексте нет ответа, агент должен прямо сообщить, что в доступных источниках нет информации.
+- `final_answer` обязан заполнять поле `sources`.
+- `compose_context` передаёт в prompt не только текст, но и metadata в формате `[N] (channel, YYYY-MM-DD): text`, чтобы модель лучше привязывала факты к источнику.
+
 ## SSE contract
 
 Публичный контракт не меняется. Агент продолжает публиковать:

@@ -47,6 +47,19 @@ def _truncate_by_chars(text: str, max_chars: int) -> str:
     return text[:max_chars]
 
 
+def _format_citation_chunk(idx: int, doc: Dict[str, Any], cut: str) -> str:
+    """Форматирует чанк контекста с metadata для жёсткого grounding."""
+    meta = doc.get("metadata", {}) or {}
+    channel = str(meta.get("channel", "") or "").strip()
+    date = str(meta.get("date", "") or "").strip()[:10]
+
+    if channel and date:
+        return f"[{idx}] ({channel}, {date}): {cut}"
+    if channel:
+        return f"[{idx}] ({channel}): {cut}"
+    return f"[{idx}] {cut}"
+
+
 def _query_term_coverage(query: str, docs: List[Dict[str, Any]]) -> float:
     """
     Считает долю значимых терминов запроса, покрытых текстами документов.
@@ -179,7 +192,7 @@ def compose_context(
 
     # Формируем финальные chunks
     for idx, d, cut in indexed_docs:
-        chunks.append(f"[{idx}] {cut}")
+        chunks.append(_format_citation_chunk(idx, d, cut))
         contexts.append(cut)
         citations.append(
             {"id": d.get("id"), "index": idx, "metadata": d.get("metadata", {})}

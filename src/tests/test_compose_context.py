@@ -20,6 +20,18 @@ def test_compose_context_basic_limit():
     assert citations[-1]["index"] == len(citations)
 
 
+def test_citation_format_includes_metadata():
+    docs = [
+        {
+            "id": "1",
+            "text": "DeepSeek выпустит V4 в феврале",
+            "metadata": {"channel": "ai_news", "date": "2026-01-10T12:00:00"},
+        }
+    ]
+    out = compose_context(docs, max_tokens_ctx=100)
+    assert "[1] (ai_news, 2026-01-10): DeepSeek выпустит V4 в феврале" in out["prompt"]
+
+
 def test_compute_coverage_empty():
     assert _compute_coverage("query", []) == 0.0
 

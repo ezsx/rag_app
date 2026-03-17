@@ -1,29 +1,55 @@
 from __future__ import annotations
 
+import logging
+import re
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 def final_answer(
     *,
     answer: str,
+    sources: Optional[List[int]] = None,
     citations: Optional[List[Dict[str, Any]]] = None,
     verification: Optional[Dict[str, Any]] = None,
     coverage: Optional[float] = None,
     refinements: Optional[int] = None,
     **extra: Any,
 ) -> Dict[str, Any]:
-    """Finalize agent answer in a uniform structure.
+    """Формирует финальный ответ с валидацией citations и observability."""
+    normalized_answer = answer or ""
+    cited_in_text = set(
+        int(match) for match in re.findall(r"\[(\d+)\]", normalized_answer)
+    )
+    all_sources = sorted(set(sources or []) | cited_in_text)
 
-    This tool normalizes the final payload so that upstream layers (SSE, clients)
-    receive a consistent schema regardless of where the answer was produced.
-    """
+    sentences = re.split(r"[.!?]\s+", normalized_answer)
+    non_empty_sentences = [sentence for sentence in sentences if sentence.strip()]
+    uncited = [
+        sentence.strip()
+        for sentence in non_empty_sentences
+        if not re.search(r"\[\d+\]", sentence)
+    ]
+    if uncited:
+        logger.info(
+            "final_answer: %d/%d предложений без цитат",
+            len(uncited),
+            len(non_empty_sentences),
+        )
+
+    if not all_sources and normalized_answer:
+        normalized_answer += (
+            "\n\n⚠️ Источники не указаны. Информация может быть неточной."
+        )
 
     payload: Dict[str, Any] = {
-        "answer": answer or "",
+        "answer": normalized_answer,
+        "sources": all_sources,
     }
 
     if citations:
-        # Keep only essential citation fields if provided
+        # Сохраняем только основные поля citation, чтобы не раздувать SSE payload.
         norm_citations: List[Dict[str, Any]] = []
         for c in citations[:50]:  # hard cap to avoid oversized frames
             if isinstance(c, dict):
@@ -48,7 +74,7 @@ def final_answer(
     if refinements is not None:
         payload["refinements"] = int(refinements)
 
-    # Merge any extra fields (e.g., fallback, error codes) if provided
+    # Примешиваем дополнительные поля, если они не конфликтуют с основным payload.
     if extra:
         for k, v in list(extra.items())[:20]:  # cap extras to avoid abuse
             if k not in payload:

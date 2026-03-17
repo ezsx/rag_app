@@ -3,6 +3,7 @@
 ## Обзор
 
 `compose_context` собирает prompt-контекст из документов, формирует цитаты и считает `citation_coverage` не по наивному ratio, а по composite metric из пяти сигналов.
+Для жёсткого grounding каждый фрагмент prompt теперь содержит metadata источника.
 
 ## Параметры
 
@@ -53,6 +54,22 @@ coverage = min(1.0,
 3. При необходимости применяет lost-in-the-middle mitigation
 4. Формирует `prompt`, `citations`, `contexts`
 5. Считает `citation_coverage` по исходному списку `docs`, а не по усечённому prompt
+
+## Формат prompt
+
+Было:
+
+```text
+[1] Текст документа
+```
+
+Стало:
+
+```text
+[1] (channel, 2026-01-27): Текст документа
+```
+
+Если дата отсутствует, используется формат `[N] (channel): text`.
 
 ## Возвращаемые данные
 
