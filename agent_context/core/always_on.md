@@ -29,12 +29,17 @@
 - SSE стриминг через `/v1/agent/stream` — не ломать контракт событий (thought/tool_invoked/observation/citations/final).
 
 ## Deploy и запуск
-- **Перед** `docker compose up` — запустить в Ubuntu WSL2:
-  - TEI embedding: `docker run -d --runtime=nvidia --name tei-embedding -p 8082:80 -v /home/tei-models/qwen3-embedding:/model ghcr.io/huggingface/text-embeddings-inference:cuda-1.9 --model-id /model --dtype float16 --max-batch-tokens 4096 --max-concurrent-requests 64`
-  - TEI reranker: `docker run -d --runtime=nvidia -e CUDA_VISIBLE_DEVICES=0 --name tei-reranker -p 8083:80 -v /home/tei-models/reranker:/model ghcr.io/huggingface/text-embeddings-inference:120-1.9 --model-id /model --dtype float16`
-    (BGE-M3; переключить на Qwen3-Reranker когда TEI поддержит — см. PR #835)
-  - llama-server.exe: на Windows хосте (V100), с `--jinja --reasoning-budget 0 --cache-type-k q8_0 --cache-type-v q8_0`
-- Docker-сервисы (CPU only): `docker compose -f deploy/compose/compose.dev.yml up`
+- **ВАЖНО: Docker GPU НЕ ИСПОЛЬЗУЕТСЯ.** V100 TCC отравляет NVML в WSL2 →
+  nvidia-container-cli крашится. Flash Attention не работает на sm_120 (RTX 5060 Ti).
+  Подробности: `docs/research/rag-stack/reports/R10-gpu-docker-wsl2-troubleshooting.md`.
+- **Порядок запуска:**
+  1. llama-server.exe на Windows хосте (V100, порт 8080):
+     `--jinja --reasoning-budget 0 --cache-type-k q8_0 --cache-type-v q8_0 -c 16384 --parallel 2`
+  2. gpu_server.py нативно в WSL2 (RTX 5060 Ti, порт 8082):
+     `source /home/ezsx/infinity-env/bin/activate && CUDA_VISIBLE_DEVICES=0 python scripts/gpu_server.py`
+     Embedding (Qwen3-Embedding-0.6B) + Reranker (BGE-M3) в одном процессе.
+     PyTorch cu128 + cuBLAS, без Docker, без Flash Attention.
+  3. Docker Desktop (CPU only): `docker compose -f deploy/compose/compose.dev.yml up`
 - Ingest: `docker compose -f deploy/compose/compose.dev.yml run --rm ingest --channel @name --since YYYY-MM-DD --until YYYY-MM-DD`
 - `.env` в корне репозитория — не коммитить, не логировать plaintext-секреты.
 

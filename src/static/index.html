@@ -237,9 +237,7 @@ async function sendQuery(query) {
       } else if (line.startsWith('data:') && currentEvent) {
         try {
           const raw = line.substring(5).trim();
-          // SSE data uses Python repr (single quotes), convert to JSON
-          const jsonStr = raw.replace(/'/g, '"').replace(/True/g, 'true').replace(/False/g, 'false').replace(/None/g, 'null');
-          const data = JSON.parse(jsonStr);
+          const data = JSON.parse(raw);
 
           if (currentEvent === 'final') {
             showFinal(data);

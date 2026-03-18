@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
+import httpx
 import numpy as np
 import pytest
 
@@ -207,3 +208,77 @@ class TestIngestBatches:
         point_docs = qdrant_store.upsert.await_args.args[0]
         assert point_docs[0].point_id == "555:10"
         assert point_docs[0].payload["channel"] == "555"
+
+    @pytest.mark.asyncio
+    async def test_retries_embed_timeout_then_succeeds(self, monkeypatch):
+        mod = _load_ingest_module()
+        messages = [_make_message(i, f"text {i}") for i in range(2)]
+
+        sleep_mock = AsyncMock()
+        monkeypatch.setattr(mod.asyncio, "sleep", sleep_mock)
+
+        embedding_client = AsyncMock()
+        embedding_client.embed_documents = AsyncMock(
+            side_effect=[
+                httpx.ConnectTimeout("timeout"),
+                [[0.1] * 1024 for _ in range(2)],
+            ]
+        )
+
+        sparse_encoder = MagicMock()
+        sparse_encoder.embed = MagicMock(
+            return_value=iter([_make_sparse_result(), _make_sparse_result()])
+        )
+
+        qdrant_store = AsyncMock()
+        qdrant_store.upsert = AsyncMock(return_value=2)
+
+        stats = await mod.ingest_batches(
+            messages=messages,
+            batch_size=10,
+            embedding_client=embedding_client,
+            sparse_encoder=sparse_encoder,
+            qdrant_store=qdrant_store,
+            channel_hint="@retrychan",
+        )
+
+        assert embedding_client.embed_documents.await_count == 2
+        sleep_mock.assert_awaited_once()
+        qdrant_store.upsert.assert_called_once()
+        assert stats["written_qdrant"] == 2
+
+    @pytest.mark.asyncio
+    async def test_raises_after_embed_retry_exhausted(self, monkeypatch):
+        mod = _load_ingest_module()
+        messages = [_make_message(1, "text")]
+
+        sleep_mock = AsyncMock()
+        monkeypatch.setattr(mod.asyncio, "sleep", sleep_mock)
+
+        embedding_client = AsyncMock()
+        embedding_client.embed_documents = AsyncMock(
+            side_effect=[
+                httpx.ConnectTimeout("timeout")
+                for _ in range(mod.EMBED_RETRY_ATTEMPTS)
+            ]
+        )
+
+        sparse_encoder = MagicMock()
+        sparse_encoder.embed = MagicMock(return_value=iter([_make_sparse_result()]))
+
+        qdrant_store = AsyncMock()
+        qdrant_store.upsert = AsyncMock(return_value=1)
+
+        with pytest.raises(httpx.ConnectTimeout):
+            await mod.ingest_batches(
+                messages=messages,
+                batch_size=10,
+                embedding_client=embedding_client,
+                sparse_encoder=sparse_encoder,
+                qdrant_store=qdrant_store,
+                channel_hint="@retrychan",
+            )
+
+        assert embedding_client.embed_documents.await_count == mod.EMBED_RETRY_ATTEMPTS
+        assert sleep_mock.await_count == mod.EMBED_RETRY_ATTEMPTS - 1
+        qdrant_store.upsert.assert_not_called()

@@ -2,7 +2,7 @@
 #
 # Порядок запуска (обязательно ПЕРЕД compose up):
 #   1. Windows Host:  llama-server.exe (V100, :8080)
-#   2. Ubuntu WSL2:   TEI embedding (:8082) + TEI reranker (:8083)
+#   2. Ubuntu WSL2:   gpu_server.py — embedding + reranker (:8082)
 #   3. docker compose -f deploy/compose/compose.dev.yml up
 #
 # Ingest (отдельно):
@@ -50,8 +50,8 @@ services:
       - LLM_REQUEST_TIMEOUT=120
       # Embedding TEI — WSL2 native, RTX 5060 Ti
       - EMBEDDING_TEI_URL=http://host.docker.internal:8082
-      # Reranker TEI — WSL2 native, RTX 5060 Ti
-      - RERANKER_TEI_URL=http://host.docker.internal:8083
+      # Reranker — gpu_server.py на том же порту что embedding (WSL2 native, RTX 5060 Ti)
+      - RERANKER_TEI_URL=http://host.docker.internal:8082
       # Qdrant — Docker CPU
       - QDRANT_URL=http://qdrant:6333
       - QDRANT_COLLECTION=news

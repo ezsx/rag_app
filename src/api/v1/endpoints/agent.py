@@ -2,6 +2,7 @@
 ReAct Agent API endpoints
 """
 
+import json
 import logging
 from typing import Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -106,8 +107,12 @@ async def agent_stream(
                     logger.info("Клиент отключился, останавливаем ReAct агент")
                     break
 
-                # Отправляем событие
-                yield {"event": event.type, "data": event.data, "retry": 3000}
+                # Отправляем событие — data как JSON-строка для корректного парсинга на клиенте
+                yield {
+                    "event": event.type,
+                    "data": json.dumps(event.data, ensure_ascii=False, default=str),
+                    "retry": 3000,
+                }
 
                 # Если это финальное событие, завершаем
                 if event.type == "final":

@@ -56,10 +56,10 @@ class Settings:
             ),
         )
 
-        # === Reranker — TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8083) ===
-        # Модель управляется самим TEI сервисом.
+        # === Reranker — gpu_server.py (WSL2 native, RTX 5060 Ti, порт 8082) ===
+        # Embedding и Reranker обслуживаются одним процессом на порту 8082.
         self.reranker_tei_url: str = os.getenv(
-            "RERANKER_TEI_URL", "http://host.docker.internal:8083"
+            "RERANKER_TEI_URL", "http://host.docker.internal:8082"
         )
         self.enable_reranker: bool = (
             os.getenv("ENABLE_RERANKER", "true").lower() == "true"

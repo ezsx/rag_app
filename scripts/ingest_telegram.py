@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import httpx
 from dateutil import parser as date_parser
 from dotenv import load_dotenv
 from telethon import TelegramClient, errors as tg_errors
@@ -40,6 +41,11 @@ except ImportError as exc:
     raise ImportError(
         "fastembed не установлен. Добавьте в requirements: fastembed>=0.3.0"
     ) from exc
+
+
+EMBED_RETRY_ATTEMPTS = 5
+EMBED_RETRY_BASE_DELAY_S = 2.0
+EMBED_RETRY_MAX_DELAY_S = 20.0
 
 
 def _parse_args() -> argparse.Namespace:
@@ -81,6 +87,61 @@ def _parse_args() -> argparse.Namespace:
     )
     p.add_argument("--log-level", default="INFO")
     return p.parse_args()
+
+
+def _compute_embed_retry_delay(attempt: int) -> float:
+    """Возвращает задержку перед повторной попыткой embed с простым exponential backoff."""
+    return min(
+        EMBED_RETRY_BASE_DELAY_S * (2 ** max(0, attempt - 1)),
+        EMBED_RETRY_MAX_DELAY_S,
+    )
+
+
+async def _embed_documents_with_retry(
+    embedding_client: TEIEmbeddingClient,
+    texts: List[str],
+    *,
+    channel_hint: Optional[str],
+    batch_no: int,
+) -> List[List[float]]:
+    """Запрашивает dense embeddings с retry для transient ошибок сети/таймаутов.
+
+    Если TEI временно недоступен, делаем несколько повторных попыток с backoff.
+    После исчерпания попыток исключение пробрасывается наверх, чтобы ingest
+    завершился ошибкой, а не оставил тихую дыру в коллекции.
+    """
+    last_exc: Exception | None = None
+
+    for attempt in range(1, EMBED_RETRY_ATTEMPTS + 1):
+        try:
+            return await embedding_client.embed_documents(texts)
+        except (httpx.TimeoutException, httpx.NetworkError) as exc:
+            last_exc = exc
+            if attempt >= EMBED_RETRY_ATTEMPTS:
+                logger.error(
+                    "TEI embed не восстановился после %d попыток: channel=%s batch=%d texts=%d",
+                    EMBED_RETRY_ATTEMPTS,
+                    channel_hint,
+                    batch_no,
+                    len(texts),
+                )
+                raise
+
+            delay_s = _compute_embed_retry_delay(attempt)
+            logger.warning(
+                "TEI embed временно недоступен, retry через %.1fs: channel=%s batch=%d attempt=%d/%d error=%s",
+                delay_s,
+                channel_hint,
+                batch_no,
+                attempt,
+                EMBED_RETRY_ATTEMPTS,
+                exc.__class__.__name__,
+            )
+            await asyncio.sleep(delay_s)
+
+    if last_exc is not None:
+        raise last_exc
+    raise RuntimeError("TEI embedding retry loop завершился без результата")
 
 
 load_dotenv()
@@ -375,11 +436,14 @@ async def ingest_batches(
     start_ts = _time.time()
     last_log_ts = start_ts
 
-    for batch in tqdm_asyncio(
-        split_into_batches(messages, max(1, int(batch_size))),
-        total=(total + max(1, int(batch_size)) - 1) // max(1, int(batch_size)),
-        desc="Ingesting",
-        unit="batch",
+    for batch_no, batch in enumerate(
+        tqdm_asyncio(
+            split_into_batches(messages, max(1, int(batch_size))),
+            total=(total + max(1, int(batch_size)) - 1) // max(1, int(batch_size)),
+            desc="Ingesting",
+            unit="batch",
+        ),
+        start=1,
     ):
         texts: List[str] = []
         source_messages: List[Message] = []
@@ -412,7 +476,12 @@ async def ingest_batches(
             channel_name = str(source_messages[0].chat_id)
 
         try:
-            dense_vectors = await embedding_client.embed_documents(texts)
+            dense_vectors = await _embed_documents_with_retry(
+                embedding_client,
+                texts,
+                channel_hint=channel_hint,
+                batch_no=batch_no,
+            )
             sparse_results = list(sparse_encoder.embed(texts))
             point_docs = _build_point_docs_flat(
                 source_messages=source_messages,
@@ -426,12 +495,12 @@ async def ingest_batches(
             total_written_qdrant += written
         except Exception as exc:
             logger.exception(
-                "Ошибка при обработке батча channel=%s, пропускаем: %s",
+                "Ошибка при обработке батча channel=%s, batch=%d. Прерываем ingest, чтобы не оставлять дыру в коллекции: %s",
                 channel_hint,
+                batch_no,
                 exc,
             )
-            processed_in_channel += len(batch)
-            continue
+            raise
 
         processed_in_channel += len(batch)
 

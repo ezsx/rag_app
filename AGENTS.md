@@ -33,10 +33,14 @@
 - Не ломать SSE контракт событий: `thought/tool_invoked/observation/citations/final`.
 
 ### Deploy и запуск
+- **ВАЖНО: Docker GPU НЕ ИСПОЛЬЗУЕТСЯ.** V100 TCC отравляет NVML в WSL2, Flash Attention
+  не работает на sm_120. GPU-сервисы запускаются нативно. Подробности: R10, R11 в reports/.
 - **Порядок запуска** (важно):
   1. Windows Host: `llama-server.exe` (V100, порт 8080, `--jinja --reasoning-budget 0`)
-  2. Ubuntu WSL2: TEI embedding `Qwen3-Embedding-0.6B` (порт 8082, образ `cuda-1.9`) + TEI reranker `BAAI/bge-m3` (порт 8083, образ `120-1.9` для Blackwell)
-  3. Docker Desktop: `docker compose -f deploy/compose/compose.dev.yml up` (порт 8000, CPU)
+  2. WSL2 native: `scripts/gpu_server.py` — embedding + reranker на RTX 5060 Ti (порт 8082).
+     PyTorch cu128, cuBLAS. Venv: `/home/ezsx/infinity-env/`.
+     `source /home/ezsx/infinity-env/bin/activate && CUDA_VISIBLE_DEVICES=0 python scripts/gpu_server.py`
+  3. Docker Desktop (CPU only): `docker compose -f deploy/compose/compose.dev.yml up`
 - Ingest: `docker compose -f deploy/compose/compose.dev.yml run --rm ingest --channel @name --since YYYY-MM-DD --until YYYY-MM-DD`
 - `.env` в корне — не коммитить секреты.
 
@@ -105,6 +109,7 @@ src/
   adapters/llm/       — LlamaServerClient
   schemas/            — Pydantic схемы
 scripts/
+  gpu_server.py       — Embedding + Reranker HTTP API (PyTorch cu128, RTX 5060 Ti)
   evaluate_agent.py   — CLI evaluation
   ingest_telegram.py  — Telegram → Qdrant ingestion
 datasets/
