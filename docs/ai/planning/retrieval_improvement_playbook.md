@@ -26,8 +26,26 @@
 | 8 | 2026-03-19 | Pure RRF + orig query (best so far) | **0.59** | +0.26 | eval_results_20260319-133619 | e0bd871 |
 | 9 | 2026-03-19 | Weighted RRF 3:1 (expired JWT → 0 agent) | 0.00 | broken | eval_results_20260319-174155 | — |
 | 10 | 2026-03-19 | Weighted RRF 3:1 + new JWT | 0.48 | -0.11 | eval_results_20260319-174813 | testing |
+| **11** | **2026-03-19** | **+ Forced search + dynamic tools** | **0.70** | **+0.11** | **eval_results_20260319-175853** | **036e54f** |
 
-**Примечание к #10**: снижение из-за LLM нестабильности (Q1, Q2 — агент не вызывает search, cov=0.0). На вопросах где search работает — результаты лучше (reranker scores дифференцированные). Нужно исследовать отдельно.
+### Подробные результаты лучшего прогона (#11, recall@5=0.70)
+
+| Q | Тип | Вопрос | Recall | Cov | Статус | Citations (top-4) |
+|---|-----|--------|--------|-----|--------|-------------------|
+| Q1 | factual | Financial Times ЧГ 2025 | **1.0** | 0.88 | ✅ | ai_ml_big_data:9245 ← exact match |
+| Q2 | factual | GPT OSS параметры | **1.0** | 0.91 | ✅ | rybolos:1563 (±1 от :1562) |
+| Q3 | factual | Meta + Manus AI | **1.0** | 0.83 | ✅ | ai_newz:4355 ← exact match, top-1 |
+| Q4 | temporal | Декабрь 2025 Google/NVIDIA | 0.0 | 0.85 | ✅ ответ | Нашёл декабрьские, но не msg 9245/9226 |
+| Q5 | temporal | Январь 2026 AI-каналы | 0.33 | 0.80 | ✅ partial | boris_again:3703 (±2 от :3701) |
+| Q6 | channel | llm_under_hood reasoning GPT-5 | **1.0** | 0.92 | ✅ | llm_under_hood:648 ← exact match |
+| Q7 | channel | boris_again Gemini 3 Flash | **1.0** | 0.91 | ✅ | boris_again нет в top-4, но в citations |
+| Q8 | comparative | Deep Think vs o3-pro | **1.0** | 0.84 | ✅ | seeallochnaya:2711 ← exact match, top-1 |
+| Q9 | multi_hop | LLM production 2 канала | 0.0 | 0.84 | ✅ ответ | llm_under_hood:641/723 (не :652/:769) |
+| Q10 | negative | GPT-6 | N/A | 0.86 | ❌ корректный отказ | — |
+
+**Анализ провалов:**
+- Q4, Q9: retrieval находит **правильный канал и тему**, но другой msg_id (chunk boundary). Fuzzy ±5 не хватает — посты разбиты на чанки с разными msg_id.
+- Q5: partial — нашёл 1 из 3 expected документов (boris_again:3703 ≈ :3701).
 
 ### Корневые проблемы (диагностированы)
 
@@ -41,14 +59,18 @@
 
 ## Tier 1: Quick Wins (часы, не дни)
 
-### 1.1 Embedding Whitening (mean-centering)
-- **Суть**: вычесть среднее по всей коллекции из каждого вектора. Опционально PCA whitening.
-- **Почему поможет**: раздвигает cosine range с [0.78-0.83] до [0.5-0.9]. Zero cost, без перетренировки.
-- **Как**: один раз пройти по всем 13K точкам, посчитать mean vector, сохранить. При поиске вычитать из query embedding и из document embeddings (через Qdrant payload или переиндексацию).
-- **Нюанс**: нужна переиндексация или on-the-fly вычитание. Можно начать с on-the-fly для query (вычитать mean из query embedding перед поиском) — это уже даст эффект.
-- **Ожидание**: +3-8% recall
-- **Статус**: [ ] не начато
-- **Ссылки**: Liang et al. "Embedding anisotropy", Su et al. "Whitening Sentence Representations"
+### 1.1 Embedding Whitening (PCA 1024→512)
+- **Суть**: Global PCA whitening — mean-centering + scaling по eigenvalues + dimensionality reduction.
+- **Почему поможет**: раздвигает cosine range. **Подтверждено экспериментально (2026-03-19)**:
+  - ДО: pairwise cosine mean=0.7954, std=0.0933, range [0.33, 0.95]
+  - ПОСЛЕ: pairwise cosine mean=0.0006, std=0.0484, range [-0.17, 0.61]
+  - Variance explained: 96.2% (потеря 3.8% информации при 1024→512)
+- **Whitening params сохранены**: `datasets/whitening_params.npz` (mean, components, explained_variance)
+- **Нюанс**: query-only mean-centering **НЕ работает** (asymmetric — query в другом пространстве, docs в оригинальном). Нужна **полная переиндексация**: embed → whitening transform → upload whitened vectors в Qdrant.
+- **Как реализовать**: скрипт переиндексации: загрузить все 13K vectors, применить whitening, создать новую коллекцию с dense_vector 512-dim, скопировать sparse + payload.
+- **Ожидание**: +5-15% recall (по литературе: Su et al. +8-12 Spearman, WhitenRec +7-16% recall)
+- **Статус**: [x] whitening подтверждён, params сохранены. [ ] переиндексация не выполнена.
+- **Ссылки**: Su et al. 2021 "BERT-whitening", WhitenRec 2024, WhiteningBERT (Huang et al. EMNLP 2021)
 
 ### 1.2 Weighted RRF (BM25 3:1 vs dense)
 - **Суть**: Qdrant v1.17 поддерживает веса для prefetch веток в RRF. BM25 weight=3, dense weight=1.
