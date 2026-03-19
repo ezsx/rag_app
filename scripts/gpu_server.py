@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger("gpu_server")
 
 EMBEDDING_MODEL_PATH = "/home/tei-models/qwen3-embedding"
-RERANKER_MODEL_PATH = "/home/tei-models/reranker"
+RERANKER_MODEL_PATH = "/home/tei-models/reranker-v2"
 
 emb_tokenizer = None
 emb_model = None
