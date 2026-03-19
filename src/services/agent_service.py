@@ -168,6 +168,7 @@ class AgentState:
         self.refinement_count: int = 0
         self.max_refinements: int = 2
         self.low_coverage_disclaimer: bool = False
+        self.search_count: int = 0
 
 
 class AgentService:
@@ -203,6 +204,7 @@ class AgentService:
         max_steps = min(max(requested_steps, 1), self.settings.agent_max_steps)
         step = 1
         agent_state = AgentState()
+        self._agent_state = agent_state  # для _get_step_tools и _apply_action_state
         conversation_history = [f"Human: {request.query}"]
 
         self._current_request_id = request_id
@@ -266,9 +268,15 @@ class AgentService:
                     if expect_final
                     else self.settings.agent_tool_max_tokens
                 )
+                # Динамический набор tools: final_answer доступен
+                # только после search. Без этого LLM иногда пропускает
+                # поиск и сразу отвечает "не найдено" (особенно Qwen3-30B
+                # с 3B active params — ненадёжно следует сложным промптам).
+                step_tools = self._get_step_tools(agent_state)
+
                 response = llm.chat_completion(
                     messages=trimmed_messages,
-                    tools=AGENT_TOOLS,
+                    tools=step_tools,
                     max_tokens=step_max_tokens,
                     temperature=self.settings.agent_tool_temp,
                     top_p=self.settings.agent_tool_top_p,
@@ -301,6 +309,33 @@ class AgentService:
                         },
                     )
                     conversation_history.append(f"Thought: {content}")
+
+                # Если LLM не вызвала tools и search ещё не был —
+                # принудительно вызываем search с оригинальным запросом.
+                # Qwen3-30B иногда решает ответить "не найдено" без поиска.
+                if not tool_calls and agent_state.search_count == 0:
+                    logger.warning(
+                        "Agent step %d: LLM не вызвала tools, search_count=0 → forced search",
+                        step,
+                    )
+                    tool_calls = [{
+                        "id": f"forced_search_{step}",
+                        "name": "search",
+                        "arguments": {"queries": [request.query]},
+                    }]
+                    # Формируем assistant message для истории
+                    assistant_message = {
+                        "role": "assistant",
+                        "content": content or "",
+                        "tool_calls": [{
+                            "id": tool_calls[0]["id"],
+                            "type": "function",
+                            "function": {
+                                "name": "search",
+                                "arguments": json.dumps(tool_calls[0]["arguments"]),
+                            },
+                        }],
+                    }
 
                 if tool_calls:
                     messages.append(self._assistant_message_for_history(assistant_message))
@@ -984,6 +1019,7 @@ class AgentService:
         if action.tool == "search":
             self._last_search_hits = list(action.output.data.get("hits", []) or [])
             self._last_search_route = action.output.data.get("route_used")
+            self._agent_state.search_count += 1
             return
 
         if action.tool == "rerank":
@@ -1331,6 +1367,20 @@ class AgentService:
             return serialized
         except Exception:
             return json.dumps({"error": "serialization_failed"}, ensure_ascii=False)
+
+    @staticmethod
+    def _get_step_tools(agent_state) -> List[Dict[str, Any]]:
+        """Динамический набор tools в зависимости от состояния агента.
+
+        final_answer доступен только после search — архитектурная гарантия
+        что LLM не пропустит поиск. Промпт-инструкции ненадёжны для маленьких
+        моделей (Qwen3-30B, 3B active params).
+        """
+        search_done = agent_state.search_count > 0
+        if search_done:
+            return AGENT_TOOLS  # все 5 tools
+        # До search: только query_plan, search, rerank (без final_answer и compose_context)
+        return [t for t in AGENT_TOOLS if t["function"]["name"] not in ("final_answer", "compose_context")]
 
     @staticmethod
     def _trim_messages(

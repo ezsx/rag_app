@@ -155,23 +155,31 @@ class HybridRetriever:
             bool(query_filter),
         )
 
-        # Этап 1-2: dense + sparse → RRF fusion → расширенный набор
-        # RRF сохраняет вклад BM25 (keyword match), не пересортирует по dense.
+        # Weighted RRF fusion: BM25 weight=3, dense weight=1.
+        # BM25 keyword match надёжно находит релевантные документы,
+        # но при equal weight dense "attractor documents" (generic AI posts
+        # с cosine 0.78-0.83 для ЛЮБОГО запроса) перевешивают BM25 результаты.
+        # Асимметричный prefetch: BM25 берёт больше кандидатов (100 vs 20).
+        bm25_prefetch_limit = max(plan.k_per_query * 10, 100)
+        dense_prefetch_limit = max(plan.k_per_query * 2, 20)
+
         result = await self._store.client.query_points(
             collection_name=self._store.collection,
             prefetch=[
                 models.Prefetch(
                     query=dense_vector,
                     using=QdrantStore.DENSE_VECTOR,
-                    limit=prefetch_limit,
+                    limit=dense_prefetch_limit,
                 ),
                 models.Prefetch(
                     query=sparse_vector,
                     using=QdrantStore.SPARSE_VECTOR,
-                    limit=prefetch_limit,
+                    limit=bm25_prefetch_limit,
                 ),
             ],
-            query=models.FusionQuery(fusion=models.Fusion.RRF),
+            query=models.RrfQuery(
+                rrf=models.Rrf(weights=[1.0, 3.0]),  # [dense, sparse/BM25]
+            ),
             query_filter=query_filter,
             with_payload=True,
             with_vectors=True,

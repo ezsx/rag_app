@@ -13,13 +13,20 @@
 
 ### История экспериментов
 
-| Дата | Изменение | Recall@5 | Δ | Коммит |
-|------|-----------|----------|---|--------|
-| 2026-03-19 | Baseline: RRF → dense re-score | 0.15 | — | — |
-| 2026-03-19 | Убрали dense re-score → чистый RRF | 0.33 | +0.18 | 72efb31 |
-| 2026-03-19 | RRF → MMR (lambda=0.7) | 0.11 | -0.22 | reverted |
-| 2026-03-19 | RRF → MMR (lambda=0.9) | 0.11 | -0.22 | reverted |
-| 2026-03-19 | + Оригинальный запрос в subqueries | 0.59 | +0.26 | e0bd871 |
+| # | Дата | Изменение | Recall@5 | Δ | Файл результата | Коммит |
+|---|------|-----------|----------|---|-----------------|--------|
+| 1 | 2026-03-19 | Baseline: RRF → dense re-score (broken SSE) | 0.00 | — | eval_results_20260319-121112 | — |
+| 2 | 2026-03-19 | SSE fix, baseline (dense re-score) | 0.00 | — | eval_results_20260319-122157 | — |
+| 3 | 2026-03-19 | + SSE fix + fuzzy recall (limit 3) | 0.00 | — | eval_results_20260319-122430 | — |
+| 4 | 2026-03-19 | Убрали dense re-score → чистый RRF | 0.15 | — | eval_results_20260319-123202 | — |
+| 5 | 2026-03-19 | + Orig query в subqueries (best RRF) | 0.33 | +0.18 | eval_results_20260319-125400 | 72efb31 |
+| 6 | 2026-03-19 | + MMR post-process (lambda=0.7) | 0.11 | -0.22 | eval_results_20260319-130723 | reverted |
+| 7 | 2026-03-19 | + MMR post-process (lambda=0.9) | 0.11 | -0.22 | eval_results_20260319-131422 | reverted |
+| 8 | 2026-03-19 | Pure RRF + orig query (best so far) | **0.59** | +0.26 | eval_results_20260319-133619 | e0bd871 |
+| 9 | 2026-03-19 | Weighted RRF 3:1 (expired JWT → 0 agent) | 0.00 | broken | eval_results_20260319-174155 | — |
+| 10 | 2026-03-19 | Weighted RRF 3:1 + new JWT | 0.48 | -0.11 | eval_results_20260319-174813 | testing |
+
+**Примечание к #10**: снижение из-за LLM нестабильности (Q1, Q2 — агент не вызывает search, cov=0.0). На вопросах где search работает — результаты лучше (reranker scores дифференцированные). Нужно исследовать отдельно.
 
 ### Корневые проблемы (диагностированы)
 
