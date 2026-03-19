@@ -837,6 +837,14 @@ class AgentService:
                 elif self._current_query:
                     normalized["queries"] = [self._current_query]
 
+            # Всегда добавляем оригинальный запрос пользователя в subqueries.
+            # LLM перефразирует запросы и теряет ключевые сущности —
+            # оригинал обеспечивает BM25 keyword match по исходным терминам.
+            if self._current_query and normalized.get("queries"):
+                orig = self._current_query.strip()
+                if orig and orig not in normalized["queries"]:
+                    normalized["queries"].insert(0, orig)
+
             normalized.setdefault(
                 "k",
                 (
