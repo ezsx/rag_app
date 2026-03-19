@@ -124,11 +124,12 @@ class HybridRetriever:
     async def _async_search(
         self, query_text: str, plan: SearchPlan
     ) -> list[Candidate]:
-        """Async реализация hybrid search: RRF fusion → MMR diversification.
+        """Hybrid search: RRF fusion → MMR diversification.
 
-        Двухэтапный Qdrant query:
-        1. prefetch: dense + sparse → RRF fusion → расширенный набор кандидатов
-        2. финальный query: MMR по dense_vector для разнообразия
+        Трёхэтапный pipeline:
+        1. prefetch: dense + sparse → каждый по prefetch_limit
+        2. RRF fusion → расширенный набор кандидатов (k * 3)
+        3. MMR post-processing → k результатов с diversity
         """
         dense_vector: list[float] = await self._embedding_client.embed_query(query_text)
 
@@ -139,9 +140,10 @@ class HybridRetriever:
         )
 
         query_filter = self._build_filter(plan.metadata_filters)
-        # RRF prefetch берёт больше кандидатов, MMR потом сужает
-        rrf_limit = max(plan.k_per_query * 3, 40)
+        # RRF берёт k*3 кандидатов, MMR потом сужает до k с diversity
+        rrf_limit = max(plan.k_per_query * 3, 30)
         prefetch_limit = max(plan.k_per_query * 2, 20)
+        mmr_lambda = self._settings.mmr_lambda  # default 0.7
 
         logger.debug(
             "HybridRetriever query: collection=%s prefetch=%d rrf=%d k=%d mmr_lambda=%.2f filter=%s",
@@ -149,17 +151,12 @@ class HybridRetriever:
             prefetch_limit,
             rrf_limit,
             plan.k_per_query,
-            self._settings.mmr_lambda,
+            mmr_lambda,
             bool(query_filter),
         )
 
-        # Двухэтапный pipeline:
-        # Уровень 1 (внутренний prefetch): dense + sparse → каждый по prefetch_limit
-        # Уровень 2 (финальный query): RRF fusion → k результатов
-        #
-        # ВАЖНО: НЕ добавляем финальный re-score по dense_vector —
-        # он стирает вклад BM25/sparse, и keyword-релевантные документы
-        # проваливаются ниже "документов-магнитов" с высоким cosine.
+        # Этап 1-2: dense + sparse → RRF fusion → расширенный набор
+        # RRF сохраняет вклад BM25 (keyword match), не пересортирует по dense.
         result = await self._store.client.query_points(
             collection_name=self._store.collection,
             prefetch=[
@@ -178,14 +175,79 @@ class HybridRetriever:
             query_filter=query_filter,
             with_payload=True,
             with_vectors=True,
-            limit=plan.k_per_query,
+            limit=rrf_limit,
         )
 
         candidates = self._to_candidates(result.points, dense_vector)
+
+        # MMR post-processing отключён: классический MMR использует cosine
+        # как primary relevance signal, что снова поднимает "документы-магниты"
+        # и стирает BM25 вклад из RRF. Нужен diversity penalty поверх RRF scores,
+        # а не cosine-based MMR. TODO: реализовать RRF-aware diversity.
+        if len(candidates) > plan.k_per_query:
+            candidates = candidates[:plan.k_per_query]
+
         logger.debug(
             "HybridRetriever: %d результатов для '%s'", len(candidates), query_text[:60]
         )
         return candidates
+
+    @staticmethod
+    def _mmr_rerank(
+        candidates: list[Candidate],
+        query_vector: list[float],
+        k: int,
+        lambda_: float,
+    ) -> list[Candidate]:
+        """MMR post-processing: выбирает k кандидатов, балансируя relevance и diversity.
+
+        Использует dense_score (cosine с query) как relevance,
+        и cosine между документами как similarity для diversity penalty.
+        """
+        import numpy as np
+        from utils.ranking import mmr_select
+
+        # Подготовка данных для mmr_select
+        query_emb = np.asarray(query_vector, dtype=np.float32)
+        doc_embs = []
+        mmr_candidates = []
+
+        for c in candidates:
+            dense_vec = (c.metadata or {}).get("_dense_vector")
+            if dense_vec is None:
+                continue
+            doc_embs.append(dense_vec)
+            mmr_candidates.append({
+                "id": c.id,
+                "text": c.text,
+                "score": c.dense_score,
+                "metadata": c.metadata,
+                "bm25_score": c.bm25_score,
+                "dense_score": c.dense_score,
+                "source": c.source,
+            })
+
+        if len(mmr_candidates) <= k:
+            return candidates[:k]
+
+        doc_embs_np = np.asarray(doc_embs, dtype=np.float32)
+        selected = mmr_select(
+            mmr_candidates, query_emb, doc_embs_np,
+            lambda_=lambda_, out_k=k,
+        )
+
+        # Конвертируем обратно в Candidate
+        return [
+            Candidate(
+                id=s["id"],
+                text=s["text"],
+                metadata=s["metadata"],
+                bm25_score=s.get("bm25_score"),
+                dense_score=s.get("dense_score", 0.0),
+                source=s.get("source", "hybrid"),
+            )
+            for s in selected
+        ]
 
     async def _async_embed_texts(self, texts: list[str]) -> list[list[float]]:
         """Возвращает эмбеддинги без добавления префиксов."""
