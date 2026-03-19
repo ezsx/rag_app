@@ -113,7 +113,12 @@
   - Confidence в правильном документе: 0.37 → **0.9995**
   - На 50+ вопросах с borderline documents разница проявится
 - **Статус**: [x] **Выполнено**. Модель: `/home/tei-models/reranker-v2`, gpu_server.py переключён. Commit: 4d43183.
-- **Альтернативы на будущее**: jina-reranker-v2-base-multilingual (278M, 15× throughput), bge-reranker-v2-gemma (2.5B, best quality)
+- **Альтернативы на будущее** (исследовано 2026-03-19):
+  - **Jina Reranker v3** (0.6B, Qwen3-0.6B backbone, listwise): 65.20 nDCG на MIRACL Russian, BEIR 61.94 — выше Qwen3-Reranker-4B при 6x меньше. `AutoModel` + `trust_remote_code=True`. CC-BY-NC-4.0.
+  - **Jina Reranker v2-base-multilingual** (278M, XLMRoberta): 100+ языков, 15× throughput vs bge-reranker-v2-m3. Контекст 1024 tokens. Стабилен через `CrossEncoder`.
+  - **Contextual AI Reranker v2** (1B/2B/6B): **instruction-following** — можно приоритизировать по дате, типу, метаданным. Для temporal queries — ценная фича. Инференс через vLLM. CC-BY-NC-SA-4.0.
+  - **GTE-Reranker-ModernBERT-base** (149M): Hit@1=83%, 8x меньше nemotron-1.2B. Контекст 8192. Но EN-only — нужна валидация на русском.
+  - **Qwen3-Reranker-0.6B-seq-cls**: TEI не поддерживает (PR #835), но через gpu_server.py (AutoModelForSequenceClassification) **может работать** — стоит проверить.
 
 ---
 
