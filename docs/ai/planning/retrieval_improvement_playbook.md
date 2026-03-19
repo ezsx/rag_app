@@ -27,6 +27,8 @@
 | 9 | 2026-03-19 | Weighted RRF 3:1 (expired JWT → 0 agent) | 0.00 | broken | eval_results_20260319-174155 | — |
 | 10 | 2026-03-19 | Weighted RRF 3:1 + new JWT | 0.48 | -0.11 | eval_results_20260319-174813 | testing |
 | **11** | **2026-03-19** | **+ Forced search + dynamic tools** | **0.70** | **+0.11** | **eval_results_20260319-175853** | **036e54f** |
+| 12 | 2026-03-19 | Whitening (news_whitened, 512-dim) | 0.56 | -0.14 | eval_results_20260319-* | reverted |
+| **13** | **2026-03-19** | **+ bge-reranker-v2-m3** | **0.70** | 0 | **eval_results_20260319-*** | **4d43183** |
 
 ### Подробные результаты лучшего прогона (#11, recall@5=0.70)
 
@@ -95,13 +97,23 @@
 - **Статус**: [ ] не начато
 
 ### 1.5 Замена реранкера: bge-m3 → bge-reranker-v2-m3
-- **Суть**: текущий реранкер — bge-m3 загруженный как seq-cls. Dedicated cross-encoder bge-reranker-v2-m3 на 10+ пунктов nDCG выше.
-- **Почему поможет**: специализированная модель лучше различает релевантные/нерелевантные пары. Скоры станут дифференцированными.
-- **Как**: скачать модель на Windows → скопировать в WSL2 → поменять путь в gpu_server.py.
-- **Нюанс**: нужен интернет для скачивания. VPN блокирует WSL2 — качать на Windows.
-- **Ожидание**: +10-20% recall (самый impactful single fix)
-- **Статус**: [ ] не начато
-- **Альтернативы**: jina-reranker-v2-base-multilingual (278M, 15× throughput), bge-reranker-v2-gemma (2.5B, best quality)
+- **Суть**: bge-m3 — bi-encoder, загруженный как seq-cls. bge-reranker-v2-m3 — dedicated cross-encoder, дообученный из bge-m3 backbone специально для query-document relevance scoring.
+- **Нюанс**: `_name_or_path` в config обоих моделей = `BAAI/bge-m3` (reranker построен НА БАЗЕ bge-m3). Но **веса разные** — reranker дообучен на reranking task.
+- **Результат эксперимента (2026-03-19)**:
+  - Recall@5 на quick dataset (10 Qs): **0.70 → 0.70** (без изменений на малом датасете)
+  - Но reranker scores **значительно лучше**:
+
+  | | bge-m3 (старый) | bge-reranker-v2-m3 (текущий) |
+  |---|---|---|
+  | Релевантный doc | logit **-0.55**, sigmoid 0.37 | logit **+7.60**, sigmoid 0.9995 |
+  | Нерелевантный doc | logit -8.77...-9.07 | logit -8.41...-11.03 |
+  | Gap (relev vs irrelev) | ~8 пунктов | **~18 пунктов** |
+
+  - Gap между релевантным и нерелевантным удвоился (8→18 logit points)
+  - Confidence в правильном документе: 0.37 → **0.9995**
+  - На 50+ вопросах с borderline documents разница проявится
+- **Статус**: [x] **Выполнено**. Модель: `/home/tei-models/reranker-v2`, gpu_server.py переключён. Commit: 4d43183.
+- **Альтернативы на будущее**: jina-reranker-v2-base-multilingual (278M, 15× throughput), bge-reranker-v2-gemma (2.5B, best quality)
 
 ---
 
