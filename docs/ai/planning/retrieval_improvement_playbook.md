@@ -8,8 +8,9 @@
 
 ## Текущее состояние
 
-**Recall@5 = 0.59** на quick dataset (10 вопросов).
-**Target: 0.65-0.70** (реалистично), **0.75+** (stretch goal).
+**Recall@5 = 0.70** на quick dataset (10 вопросов, 6 full + 1 partial из 9 answerable).
+**Coverage = 0.86**, **Answer rate = 9/10**.
+**Target: 0.80+** (реалистично с whitening + reranker), **0.85+** (stretch goal с BGE-M3).
 
 ### История экспериментов
 
@@ -199,52 +200,109 @@ STRATEGIES = {
 
 ## Research Track: Тематическая кластеризация коллекции
 
-> **Статус**: требует отдельного исследования. Потенциально фундаментальное решение проблемы attractor documents и embedding collapse.
+> **Статус**: исследование завершено (R12). **Вердикт: Phase 4, не Phase 1.** Есть более простые и impactful решения. Кластеризация становится оправданной при 50K+ документов или когда простые фиксы plateau'ят.
+> **Источник**: [R12-cluster-based-retrieval.md](../../research/rag-stack/reports/R12-cluster-based-retrieval.md)
 
-### Идея
+### Исходная идея
 
-Одна плоская коллекция на весь AI-корпус — наивно. Все документы "про AI" сливаются в embedding space.
-Если кластеризовать по **темам** (M&A, релизы моделей, образование, research papers, инфраструктура...) — внутри каждого кластера cosine становится **осмысленным**: сравниваем яблоки с яблоками.
+Одна плоская коллекция на весь AI-корпус — наивно. Все документы "про AI" сливаются в embedding space (cosine 0.78-0.83). Если кластеризовать по темам (M&A, релизы моделей, образование, research papers...) — внутри каждого кластера cosine станет осмысленным.
 
-### Архитектура (предварительная)
+### Результаты исследования (R12)
+
+**Comparison table (ключевой результат)**:
+
+| Подход | Effort | Recall@5 Δ | Cumulative | Ops burden |
+|--------|--------|------------|------------|------------|
+| Weighted RRF tuning | 1-2 ч | +3-10% | 0.62-0.65 | None |
+| **Global PCA whitening** (1024→512) | 2-4 ч | **+5-15%** | 0.67-0.73 | Near-zero |
+| **bge-reranker-v2-m3** | 4-8 ч | **+15-30%** | 0.75-0.82 | ~200ms latency |
+| BGE-M3 model swap (dense+sparse+ColBERT) | 8-12 ч | +25-40% | 0.80-0.88 | Medium |
+| **Topic clustering + routing** | **20-40 ч** | +10-20% | 0.69-0.77 | **High (ongoing)** |
+
+**Вывод**: кластеризация даёт **меньше recall** при **большем effort** чем whitening + reranker. Cross-encoder reranker "bypasses the cosine floor entirely" — обходит проблему embedding collapse фундаментально, без кластеров.
+
+### Что мы узнали (ценные находки)
+
+**Per-cluster whitening математически некорректен** при наших размерах:
+- 200-600 docs/cluster, 1024 dims → ковариационная матрица rank-deficient (625 eigenvalues = 0)
+- Деление на 0 при whitening = amplification шума
+- **Безопасная операция**: только mean-centering per-cluster (без PCA)
+- **Global whitening** корректен (N=13000, d=1024, ratio ~12.7)
+
+**BERTopic — правильный инструмент** (не raw TF-IDF):
+- TF-IDF плох для коротких мультиязычных текстов (40-120 tokens → шумные вектора)
+- Ключевая идея: **отдельная embedding модель** для кластеризации (paraphrase-multilingual-mpnet-base-v2), не наша Qwen3-Embedding (которая сама "сломана")
+- UMAP проецирует в 5 dims → re-scales compressed distance space → HDBSCAN работает
+- 25-40 кластеров оптимально (min_cluster_size=100-200)
+- Soft assignment через `approximate_distribution()` (top-3 clusters per doc, хранить как array payload в Qdrant)
+
+**Routing: ensemble (centroid + BM25 frequency)**, не LLM:
+- Embed query → nearest centroids (top-3) + BM25 full-corpus top-50 → count cluster frequency (top-3) → union
+- Суммарная latency ~100-150ms на CPU
+- LLM-classification **не рекомендуют**: "slow inference, high costs, poor accuracy on domain-specific topics"
+- Fine-tuned BERT classifier (94% accuracy, ms latency) — если нужен ML-based router, но требует labeled data
+
+**Incremental updates**: daily nearest-centroid assignment + weekly BERTopic `merge_models()`. Trigger re-clustering при drift > threshold или >500 orphan docs.
+
+**"Embedding collapse on topically narrow corpus — expected behavior, не баг"**:
+- Ethayarajh 2019: average BERT pairwise cosine = 0.99 (!)
+- Zhou et al. ACL 2025 (Length-Induced Collapse): self-attention = low-pass filter, фундаментальное свойство архитектуры
+- Domain homogeneity (все про AI) amplifies сужение
+
+### Когда кластеризация НУЖНА
+
+1. **50K+ документов** — reranker не справляется с шумным candidate pool, cluster filtering сужает HNSW search space на 90-95%
+2. **Расширение за AI/ML** — crypto, biotech, finance → cross-domain filtering через кластеры
+3. **Per-cluster whitening at scale** — при 500+ docs/cluster ковариация стабильна
+
+### Архитектура (финальная, из R12)
 
 ```
-Документы → TF-IDF → UMAP → HDBSCAN → 20-50 кластеров
-                                         ↓
-                              cluster_id как Qdrant payload
-                                         ↓
-Query → определить релевантные кластеры → filter по cluster_id → search
-                                         ↓
-                              Per-cluster whitening для dense vectors
+Query → [Embed] + [BM25 full corpus]
+           ↓              ↓
+    [Global Whitening]  [Top-50 BM25]
+    [PCA 1024→512]      [Cluster frequency]
+           ↓              ↓
+    [Centroid routing]  [top-3 clusters]
+           ↓              ↓
+         [Union: 3-5 clusters]
+                  ↓
+    [Qdrant Filtered Hybrid Search]
+    filter: cluster_ids ∈ selected
+    prefetch: dense(20) + BM25(20)
+    fusion: weighted RRF
+                  ↓
+    [bge-reranker-v2-m3 top-20 → top-5]
+                  ↓
+         [Final Results]
+Latency: ~240ms total
 ```
 
-**Одна коллекция**, кластеры через payload, не 50 отдельных коллекций (BM25 IDF нужен широкий корпус).
+### Код для будущей реализации
 
-### Что это даёт
+```python
+# BERTopic clustering
+from bertopic import BERTopic
+from sentence_transformers import SentenceTransformer
 
-1. **Внутри кластера cosine range шире** — attractor documents не попадают в чужие кластеры
-2. **Per-cluster whitening** — mean-centering от тематически однородной группы, эффективнее глобального
-3. **Естественная diversity** — результаты из разных кластеров = разные темы
-4. **Query routing** — classifier выбирает 3-5 релевантных кластеров → меньше шума
+cluster_model = SentenceTransformer("paraphrase-multilingual-mpnet-base-v2")
+embeddings = cluster_model.encode(all_texts, batch_size=64)
 
-### Открытые вопросы (нужен ресёрч)
+topic_model = BERTopic(
+    embedding_model=cluster_model,
+    umap_model=UMAP(n_neighbors=15, n_components=5, min_dist=0.0, metric='cosine'),
+    hdbscan_model=HDBSCAN(min_cluster_size=150, min_samples=10, prediction_data=True),
+    calculate_probabilities=True
+)
+topics, probs = topic_model.fit_transform(all_texts, embeddings)
 
-1. **Как выбирать кластеры для query?** Варианты: LLM classifier, embed query → nearest centroids, BM25 по описаниям кластеров, или искать во всех (whitening per-cluster всё равно помогает)
-2. **Сколько кластеров оптимально?** При 13K документов: 20-50? Меньше = кластеры слишком широкие, больше = слишком мало документов в каждом
-3. **Soft assignment**: документ на стыке 2-3 тем — дублировать или список cluster_ids?
-4. **Кластеризация на TF-IDF vs на embeddings?** TF-IDF надёжнее (embeddings сломаны), но теряет семантику. Возможно BERTopic (TF-IDF + UMAP + HDBSCAN + LLM naming) — best of both worlds
-5. **Как переиндексировать при добавлении новых документов?** Online clustering vs periodic rebuild
-
-### Как начать исследование
-
-1. Кластеризовать 13K документов (TF-IDF + HDBSCAN) — 30 мин
-2. Посмотреть кластеры: осмысленные ли? Сколько получилось? Размеры?
-3. Замерить cosine range внутри кластеров vs глобально
-4. Если кластеры осмысленные — пилотировать на quick dataset
-
-### Ожидание
-
-Если сработает — может быть **самый impactful long-term fix**. Фундаментально решает embedding collapse на узком домене. Но требует исследования и экспериментов перед production-внедрением.
+# Soft assignment → Qdrant payload
+topic_distr, _ = topic_model.approximate_distribution(all_texts, window=4, stride=1)
+for i, point_id in enumerate(point_ids):
+    top_ids = np.argsort(topic_distr[i])[::-1][:3]
+    assigned = [int(t) for t in top_ids if topic_distr[i][t] > 0.05] or [int(top_ids[0])]
+    client.set_payload("news", {"cluster_ids": assigned}, points=[point_id])
+```
 
 ---
 
@@ -274,8 +332,27 @@ Query → определить релевантные кластеры → filte
 ## Бенчмарки для ориентации
 
 - **Production RAG (structured docs)**: 0.70-0.85 recall@5
-- **Short social media, non-English**: **0.55-0.70** recall@5 — наш реалистичный target
-- **Stretch goal**: 0.75+
-- **Текущий**: 0.59 (10 questions, stat. незначимо, CI [0.35-0.80])
+- **Short social media, non-English**: **0.55-0.70** recall@5
+- **С whitening + cross-encoder reranker**: **0.75-0.82** (R12 estimate)
+- **С BGE-M3 swap**: **0.80-0.88** (R12 estimate)
+- **Текущий**: **0.70** (10 questions, quick dataset) — уже в production range!
 - **Минимум для regression testing**: 50 вопросов
 - **Минимум для значимости**: 200+ вопросов
+
+## Рекомендуемый путь к 0.80+ (из R11 + R12)
+
+```
+Текущее состояние: recall@5 = 0.70
+  ↓
+Phase 1 (Day 1-2): Global PCA whitening (1024→512) + DBSF fusion test
+  → Expected: 0.73-0.78
+  ↓
+Phase 2 (Day 3-5): bge-reranker-v2-m3 (dedicated cross-encoder)
+  → Expected: 0.78-0.85
+  ↓
+Phase 3 (Week 2, если нужно): BGE-M3 model swap (dense+sparse+ColBERT в одной модели)
+  → Expected: 0.83-0.88
+  ↓
+Phase 4 (Week 3+, при масштабировании): BERTopic кластеризация как metadata layer
+  → Expected: дополнительные +5-10% при 50K+ docs
+```
