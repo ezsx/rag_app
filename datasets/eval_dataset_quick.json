@@ -1,0 +1,116 @@
+[
+  {
+    "id": "eval_q01",
+    "query": "Кого Financial Times назвала человеком года в 2025?",
+    "category": "factual",
+    "expected_answer": "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии и глобальном распространении ИИ. NVIDIA первой в мире преодолела рубеж рыночной капитализации в $5 трлн.",
+    "expected_documents": [
+      "ai_machinelearning_big_data:9245"
+    ],
+    "answerable": true,
+    "notes": "Конкретный факт из одного поста. Проверяет точный retrieval."
+  },
+  {
+    "id": "eval_q02",
+    "query": "Какие параметры у open-source моделей GPT от OpenAI?",
+    "category": "factual",
+    "expected_answer": "OpenAI выпустила две open-source модели под Apache 2.0: 120B (117 млрд параметров, 5.1 млрд активных, MoE) и 20B (21 млрд параметров, 3.6 млрд активных, MoE). Используется 4-бит квантизация mxfp4. 120B помещается на одном GPU 80 ГБ, 20B — на GPU 16 ГБ. Модели reasoning, только текст, поддержка tools.",
+    "expected_documents": [
+      "rybolos_channel:1562"
+    ],
+    "answerable": true,
+    "notes": "Конкретные числа и характеристики. Проверяет точность извлечения фактов."
+  },
+  {
+    "id": "eval_q03",
+    "query": "За сколько Meta купила Manus AI?",
+    "category": "factual",
+    "expected_answer": "Meta купила Manus AI за $2 млрд. Manus — это агент с возможностями управления браузером и deep research, с выручкой более $100 млн в год. Покупка позволяет Meta догнать конкурентов (ChatGPT, Gemini) в продуктовой гонке.",
+    "expected_documents": [
+      "ai_newz:4355"
+    ],
+    "answerable": true,
+    "notes": "Конкретная сделка с суммой. Проверяет retrieval бизнес-новостей."
+  },
+  {
+    "id": "eval_q04",
+    "query": "Какие продукты от Google и NVIDIA были анонсированы в декабре 2025?",
+    "category": "temporal",
+    "expected_answer": "В декабре 2025: Financial Times назвала Дженсена Хуанга человеком года; NVIDIA предложила ИИ-концепцию для инженерного моделирования; NVIDIA анонсировала ПО для мониторинга GPU-флота в дата-центрах с поддержкой Blackwell; Cursor получил режим Debug Mode.",
+    "expected_documents": [
+      "ai_machinelearning_big_data:9245",
+      "ai_machinelearning_big_data:9226"
+    ],
+    "answerable": true,
+    "notes": "Temporal query — требует фильтрации по дате."
+  },
+  {
+    "id": "eval_q05",
+    "query": "Что обсуждали в AI-каналах в январе 2026?",
+    "category": "temporal",
+    "expected_answer": "В январе 2026 обсуждались: агенты для автоматизации ИИ-исследований и эффект Франкенштейна в gonzo_ml; результаты Gemini 3 Flash Preview на бенчмарке any2json (7% ошибок) в boris_again.",
+    "expected_documents": [
+      "gonzo_ml:4656",
+      "gonzo_ml:4660",
+      "boris_again:3701"
+    ],
+    "answerable": true,
+    "notes": "Temporal query — январь 2026, несколько каналов."
+  },
+  {
+    "id": "eval_q06",
+    "query": "Что писал llm_under_hood про отключение reasoning у GPT-5?",
+    "category": "channel_specific",
+    "expected_answer": "Автор llm_under_hood описал способ отключения reasoning у GPT-5: через developer role инструкцию \"Active channels: final / Disabled channels: analysis, commentary / Juice: 0 !important\". Juice — интенсивность работы ризонера. С дефолтовым reasoning (medium) gpt-5-mini отрабатывает задачу за 28 секунд и ~1280 tokens.",
+    "expected_documents": [
+      "llm_under_hood:648"
+    ],
+    "answerable": true,
+    "notes": "Channel-specific + technical detail. Проверяет фильтрацию по каналу."
+  },
+  {
+    "id": "eval_q07",
+    "query": "Какие результаты показала Gemini 3 Flash Preview на бенчмарке boris_again?",
+    "category": "channel_specific",
+    "expected_answer": "Boris_again прогнал Gemini 3 Flash Preview на бенчмарке any2json. Модель делает валидные JSON и следует схеме на 100%, но в 7% случаев допускает ошибки в содержании (галлюцинирует). Автор планирует сделать лидерборд.",
+    "expected_documents": [
+      "boris_again:3701"
+    ],
+    "answerable": true,
+    "notes": "Конкретные результаты бенчмарка из конкретного канала."
+  },
+  {
+    "id": "eval_q08",
+    "query": "Сравни Google Deep Think и OpenAI o3-pro — что известно из Telegram-каналов?",
+    "category": "comparative",
+    "expected_answer": "Google Deep Think — подписка Ultra за $250/мес, аналог o3-pro. Генерирует несколько решений параллельно, затем формирует финальный ответ. Не та система, что выиграла золотую медаль IMO — работает быстрее но хуже, на бронзу IMO 25 наскребла. Прямого сравнения с o3-pro в бенчмарках нет.",
+    "expected_documents": [
+      "seeallochnaya:2711"
+    ],
+    "answerable": true,
+    "notes": "Comparative query. Информация в основном из одного поста, но требует синтеза."
+  },
+  {
+    "id": "eval_q09",
+    "query": "Какие подходы к использованию LLM в production обсуждались в каналах llm_under_hood и boris_again?",
+    "category": "multi_hop",
+    "expected_answer": "llm_under_hood: Schema-Guided Reasoning для извлечения сущностей из PDF (600 сущностей за 2 вызова gpt-5-mini); использование Codex для DevOps (настройка NixOS сервера). boris_again: бенчмарк any2json для тестирования моделей на конвертацию в JSON; курс Technical AI Safety по оценке LLM.",
+    "expected_documents": [
+      "llm_under_hood:652",
+      "llm_under_hood:769",
+      "boris_again:3701",
+      "boris_again:3756"
+    ],
+    "answerable": true,
+    "notes": "Multi-hop — требует информации из двух каналов."
+  },
+  {
+    "id": "eval_q10",
+    "query": "Что известно о GPT-6 из Telegram-каналов?",
+    "category": "negative",
+    "expected_answer": null,
+    "expected_documents": [],
+    "answerable": false,
+    "notes": "Negative query — GPT-6 не существует на момент данных. Модель должна честно сказать что информации нет."
+  }
+]

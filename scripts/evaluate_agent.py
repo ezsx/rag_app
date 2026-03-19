@@ -189,6 +189,9 @@ def iter_sse_events(response: httpx.Response) -> Iterator[Tuple[str, str]]:
         if line.startswith(":"):
             continue
 
+        if line.startswith("retry:"):
+            continue
+
         if line.startswith("event:"):
             event_type = line.split(":", 1)[1].strip()
             continue
@@ -313,6 +316,11 @@ class AgentEvaluationRunner:
         return results
 
     def _call_agent(self, item: EvalItem) -> Dict[str, Any]:
+        """
+        Вызов агента через SSE endpoint.
+        Парсит event: header (не type внутри JSON).
+        Собирает citations из event=citations для recall.
+        """
         payload: Dict[str, Any] = {
             "query": item.query,
             "max_steps": self.max_steps,
@@ -325,8 +333,10 @@ class AgentEvaluationRunner:
         last_error: Optional[str] = None
 
         for attempt in range(1, self.agent_retries + 1):
-            top_hits: List[str] = []
+            citation_hits: List[str] = []  # "channel:message_id"
             final_payload: Optional[Dict[str, Any]] = None
+            coverage: Optional[float] = None
+            refinements: int = 0
             latency: Optional[float] = None
 
             try:
@@ -342,27 +352,37 @@ class AgentEvaluationRunner:
                             try:
                                 decoded = json.loads(event_data)
                             except json.JSONDecodeError:
-                                logging.warning(
-                                    "Не удалось распарсить событие SSE %s: %s",
+                                logging.debug(
+                                    "SSE %s: не JSON: %s",
                                     event_name,
                                     event_data[:100],
                                 )
                                 continue
 
-                            event_type = decoded.get("type", event_name)
-                            data = decoded.get("data", decoded)
-                            if event_type == "observation":
-                                tool_name = data.get("tool")
-                                if tool_name == "search":
-                                    hits = data.get("result", {}).get("hits", [])
-                                    for hit_id in extract_hit_ids(hits):
-                                        if hit_id not in top_hits:
-                                            top_hits.append(hit_id)
-                                        if len(top_hits) >= 5:
-                                            break
-                            elif event_type == "final":
-                                final_payload = data
+                            if event_name == "citations":
+                                # Извлекаем channel:message_id из citations
+                                for cit in decoded.get("citations", []):
+                                    meta = cit.get("metadata", {})
+                                    ch = meta.get("channel", "")
+                                    msg = meta.get("message_id", "")
+                                    if ch and msg:
+                                        key = f"{ch}:{msg}"
+                                        if key not in citation_hits:
+                                            citation_hits.append(key)
+                                cov = decoded.get("coverage")
+                                if cov is not None:
+                                    coverage = cov
+
+                            elif event_name == "thought":
+                                # Считаем refinements
+                                content = decoded.get("content", "")
+                                if "недостаточно" in content.lower() or "дополнительный" in content.lower():
+                                    refinements += 1
+
+                            elif event_name == "final":
+                                final_payload = decoded
                                 break
+
                 latency = time.perf_counter() - start
             except Exception as exc:  # noqa: BLE001
                 last_error = str(exc)
@@ -376,14 +396,14 @@ class AgentEvaluationRunner:
 
             if final_payload:
                 return {
-                    "answer": final_payload.get("answer"),
+                    "answer": final_payload.get("answer", ""),
                     "citations": final_payload.get("citations", []),
-                    "coverage": final_payload.get("coverage"),
-                    "refinements": final_payload.get("refinements"),
+                    "coverage": coverage or final_payload.get("coverage"),
+                    "refinements": refinements,
                     "verification": final_payload.get("verification"),
                     "fallback": final_payload.get("fallback", False),
                     "request_id": final_payload.get("request_id"),
-                    "top5_hits": top_hits,
+                    "citation_hits": citation_hits,
                     "latency_sec": latency,
                     "error": False,
                 }
@@ -399,7 +419,7 @@ class AgentEvaluationRunner:
             "error": True,
             "error_message": last_error,
             "latency_sec": None,
-            "top5_hits": [],
+            "citation_hits": [],
         }
 
     def _call_baseline(self, item: EvalItem) -> Dict[str, Any]:
@@ -471,20 +491,41 @@ class AgentEvaluationRunner:
         agent_result: Dict[str, Any],
         baseline_result: Dict[str, Any],
     ) -> Dict[str, Any]:
-        top_hits = agent_result.get("top5_hits") or []
+        """
+        Recall считается по citation_hits (формат channel:message_id).
+        Fuzzy matching: channel совпадает + message_id ±5 (чанки одного поста).
+        """
+        citation_hits = agent_result.get("citation_hits") or []
         expected = item.expected_documents or []
         recall = None
         if item.answerable and expected:
-            expected_set = {doc.lower() for doc in expected if isinstance(doc, str)}
-            hits_set = {doc.lower() for doc in top_hits if isinstance(doc, str)}
-            if expected_set:
-                recall = len(expected_set & hits_set) / len(expected_set)
+            matched = 0
+            for exp_doc in expected:
+                parts = exp_doc.split(":", 1)
+                if len(parts) != 2:
+                    continue
+                exp_ch, exp_msg = parts[0].lower(), int(parts[1])
+                for hit in citation_hits:
+                    h_parts = hit.split(":", 1)
+                    if len(h_parts) != 2:
+                        continue
+                    try:
+                        h_ch, h_msg = h_parts[0].lower(), int(h_parts[1])
+                    except ValueError:
+                        continue
+                    # Fuzzy: тот же канал, message_id ±5
+                    if h_ch == exp_ch and abs(h_msg - exp_msg) <= 5:
+                        matched += 1
+                        break
+            recall = matched / len(expected) if expected else None
 
         return {
             "agent_latency_sec": agent_result.get("latency_sec"),
             "baseline_latency_sec": baseline_result.get("latency_sec"),
             "agent_coverage": agent_result.get("coverage"),
             "recall_at_5": recall,
+            "citation_hits": citation_hits,
+            "expected_documents": expected,
             "agent_correct": None,
             "baseline_correct": None,
         }

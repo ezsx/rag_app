@@ -155,30 +155,26 @@ class HybridRetriever:
 
         # Двухэтапный pipeline:
         # Уровень 1 (внутренний prefetch): dense + sparse → каждый по prefetch_limit
-        # Уровень 2 (промежуточный prefetch): RRF fusion → rrf_limit кандидатов
-        # Финальный query: MMR по dense_vector → k результатов с разнообразием
+        # Уровень 2 (финальный query): RRF fusion → k результатов
+        #
+        # ВАЖНО: НЕ добавляем финальный re-score по dense_vector —
+        # он стирает вклад BM25/sparse, и keyword-релевантные документы
+        # проваливаются ниже "документов-магнитов" с высоким cosine.
         result = await self._store.client.query_points(
             collection_name=self._store.collection,
             prefetch=[
                 models.Prefetch(
-                    prefetch=[
-                        models.Prefetch(
-                            query=dense_vector,
-                            using=QdrantStore.DENSE_VECTOR,
-                            limit=prefetch_limit,
-                        ),
-                        models.Prefetch(
-                            query=sparse_vector,
-                            using=QdrantStore.SPARSE_VECTOR,
-                            limit=prefetch_limit,
-                        ),
-                    ],
-                    query=models.FusionQuery(fusion=models.Fusion.RRF),
-                    limit=rrf_limit,
+                    query=dense_vector,
+                    using=QdrantStore.DENSE_VECTOR,
+                    limit=prefetch_limit,
+                ),
+                models.Prefetch(
+                    query=sparse_vector,
+                    using=QdrantStore.SPARSE_VECTOR,
+                    limit=prefetch_limit,
                 ),
             ],
-            query=dense_vector,
-            using=QdrantStore.DENSE_VECTOR,
+            query=models.FusionQuery(fusion=models.Fusion.RRF),
             query_filter=query_filter,
             with_payload=True,
             with_vectors=True,
