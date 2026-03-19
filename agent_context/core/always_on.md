@@ -11,22 +11,25 @@
 ## Код и модели
 - Основной LLM: **Qwen3-30B-A3B GGUF** (V100 SXM2 32GB, llama-server.exe на Windows хосте).
 - Embedding: **Qwen3-Embedding-0.6B** через TEI HTTP → WSL2 native (RTX 5060 Ti, порт 8082).
-- Reranker: **BAAI/bge-m3** (XLMRoberta seq-cls) через TEI HTTP → WSL2 native (RTX 5060 Ti, порт 8083).
-  **Временная мера**: целевой реранкер — Qwen3-Reranker-0.6B-seq-cls, но TEI v1.9 не поддерживает
-  Qwen3 classifier (PR #835 открыт, не смержен). Переключить после выхода TEI с поддержкой Qwen3.
-- Хранилище (Phase 1): **Qdrant** (dense + sparse named vectors, native RRF+MMR).
+- Reranker: **BAAI/bge-m3** (XLMRoberta seq-cls) через gpu_server.py → WSL2 native (RTX 5060 Ti, порт 8082).
+  **Временная мера**: целевой реранкер — bge-reranker-v2-m3 (dedicated cross-encoder, +10 nDCG).
+- Хранилище (Phase 1): **Qdrant** (dense + sparse named vectors, **weighted RRF** BM25 3:1).
 - **Docker GPU blocker**: RTX 5060 Ti недоступна в Docker Desktop (TCC V100 блокирует NVML).
-  Embedding/Reranker запускаются нативно в Ubuntu WSL2, Docker обращается через `host.docker.internal`.
+  Embedding/Reranker запускаются нативно через gpu_server.py в Ubuntu WSL2, Docker обращается через `host.docker.internal`.
   Детали: DEC-0024 в `docs/architecture/11-decisions/decision-log.md`.
 
 ## ReAct агент
 - Оркестрация: native function calling через `/v1/chat/completions`, без regex-парсинга Thought/Action.
 - LLM tools schema: `query_plan → search → rerank → compose_context → final_answer`.
+- **Dynamic tools**: `final_answer` скрыт до выполнения `search` — LLM не может пропустить поиск.
+- **Forced search**: если LLM не вызывает tools, принудительный search с оригинальным запросом.
+- **Original query injection**: оригинальный запрос всегда добавляется в subqueries для BM25 keyword match.
 - `verify` и `fetch_docs` вызываются системно внутри `AgentService`, не через schema для модели.
-- Retrieval-пайплайн: `search → rerank → compose_context`.
+- Retrieval-пайплайн: `query_plan → search (BM25 top-100 + dense top-20 → RRF 3:1) → rerank → compose_context`.
 - Coverage threshold: **0.65**; max refinements: **2** (DEC-0019; не менять без ресерча).
 - `agent_service.py` — единственный владелец состояния шага; не дублировать логику снаружи.
 - SSE стриминг через `/v1/agent/stream` — не ломать контракт событий (thought/tool_invoked/observation/citations/final).
+- **Recall@5 = 0.70** на quick dataset (10 вопросов). Roadmap к 0.80+: `docs/ai/planning/retrieval_improvement_playbook.md`.
 
 ## Deploy и запуск
 - **ВАЖНО: Docker GPU НЕ ИСПОЛЬЗУЕТСЯ.** V100 TCC отравляет NVML в WSL2 →

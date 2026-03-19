@@ -31,19 +31,23 @@ http://localhost:8001/
 - [x] Docker compose (API + Qdrant), thin Dockerfiles
 - [x] Self-hosted LLM: Qwen3-30B-A3B MoE на V100 SXM2 32GB
 - [x] Self-hosted embedding: Qwen3-Embedding-0.6B через TEI (RTX 5060 Ti)
-- [x] Self-hosted reranker: BGE-M3 через TEI (временно, целевой — Qwen3-Reranker)
-- [x] Telegram ingestion: 5 каналов, 1199 точек с smart chunking
+- [x] Self-hosted reranker: BGE-M3 через gpu_server.py (временно, целевой — bge-reranker-v2-m3)
+- [x] Telegram ingestion: 36 каналов, 13124 точки с smart chunking
+- [x] gpu_server.py: embedding + reranker в одном HTTP-сервере (PyTorch cu128, RTX 5060 Ti)
 
 ### RAG Pipeline
 - [x] Qdrant: dense (1024-dim cosine) + sparse (BM25 russian) named vectors
-- [x] Hybrid retrieval: RRF fusion → dense re-scoring (MMR-like diversity)
-- [x] TEI reranker integration с auto sub-batching
+- [x] Weighted RRF fusion (BM25 weight=3, dense weight=1) — dense re-score убран (убивал BM25)
+- [x] BGE-M3 reranker через gpu_server.py (AutoModelForSequenceClassification)
 - [x] Two-tier chunking: posts <1500 chars целиком, >1500 recursive split
 - [x] UUID5 deterministic point IDs
+- [x] Оригинальный запрос пользователя всегда в subqueries (BM25 keyword match)
 
 ### Agent
 - [x] Native function calling (не regex-парсинг ReAct)
 - [x] 5 tools: query_plan → search → rerank → compose_context → final_answer
+- [x] Dynamic tool availability: final_answer скрыт до выполнения search
+- [x] Forced search: если LLM пропускает tools, принудительный search с оригинальным запросом
 - [x] Coverage metric: 6-signal composite (cosine similarity based)
 - [x] Auto-refinement: дополнительный поиск при coverage < 0.65
 - [x] Grounding: citation-forced generation, source validation
@@ -212,24 +216,40 @@ Eval-запросы: фактические, аналитические, tempora
 
 ## Что осталось (Phase 3) — приоритет по влиянию на портфолио
 
-### Phase 3.0: Расширение коллекции [ПЕРВЫЙ ШАГ]
+### Phase 3.0: Расширение коллекции [ЗАВЕРШЕНО]
 - [x] Deep Research: 32 канала отобраны из 70+ кандидатов с evidence
 - [x] Валидация: 37/37 каналов доступны (validate_channels.py)
-- [ ] Ingest: 32 новых канала, 2025-07-01 → 2026-03-18 (9 мес)
+- [x] Ingest: 36 каналов, 13124 точки, период 2025-07-01 → 2026-03-18
 - [ ] Проверить quality: нет ли мусора, рекламы, форвардов-дублей
 - [ ] Статистика: точек по каждому каналу, общий объём коллекции
 
-### Phase 3.1: Evaluation Framework [КРИТИЧНО для собесов]
+### Phase 3.1: Evaluation Framework + Pipeline Optimization [В РАБОТЕ]
 **Почему**: "Как ты меришь качество?" — первый вопрос на Applied LLM собесе.
 
-- [ ] Evaluation dataset: 50+ вопросов, 5 типов (factual, analytical, temporal, comparative, multi-hop)
-- [ ] Ground truth: для каждого вопроса — ожидаемые source документы + эталонный ответ
-- [ ] Метрики: faithfulness, answer relevance, context recall, context precision
-- [ ] Baseline: naive vector search → LLM (без reranker, без refinement)
+**Eval pipeline (готово):**
+- [x] Quick golden dataset: 10 вопросов, 5 типов (factual, temporal, channel-specific, comparative, multi-hop, negative)
+- [x] Ground truth: channel:message_id + expected_answer для каждого вопроса
+- [x] Автоматический прогон: `python scripts/evaluate_agent.py` → JSON + Markdown отчёты
+- [x] Метрики: recall@5 (fuzzy ±5 msg_id), coverage, latency, answer rate
+- [x] 11 прогонов eval с разными конфигурациями (history в results/raw/)
+
+**Pipeline optimization (recall@5: 0.15 → 0.70):**
+- [x] Убрали dense re-score после RRF (убивал BM25): 0.15 → 0.33
+- [x] Оригинальный запрос в subqueries (LLM теряет entities): 0.33 → 0.59
+- [x] Weighted RRF (BM25 3:1) + forced search + dynamic tools: 0.59 → 0.70
+- [x] MMR протестирован и отключён (cosine-based MMR re-promotes attractors)
+- [x] Ablation study: 4 конфигурации с измеренной дельтой
+
+**Следующие шаги (recall@5 → 0.80+):**
+- [ ] Global PCA whitening (1024→512 dim): ожидание +5-15%
+- [ ] Замена реранкера bge-m3 → bge-reranker-v2-m3: ожидание +15-30%
+- [ ] Расширение dataset до 50+ вопросов для stat. значимости
+- [ ] Baseline: naive vector search (без reranker, без refinement)
 - [ ] Benchmark: LlamaIndex с тем же Qdrant + тем же LLM
-- [ ] Ablation study: отключаем компоненты по одному
-- [ ] Автоматический прогон: `python scripts/evaluate_agent.py` → отчёт с таблицами
+- [ ] Ablation study: отключаем компоненты по одному → таблица
 - [ ] A/B визуализация: графики, сравнительные таблицы
+
+**Roadmap к 0.80+ (из R11 + R12 research):** см. `docs/ai/planning/retrieval_improvement_playbook.md`
 
 ### Phase 3.2: Adaptive Retrieval [КЛЮЧЕВОЕ ОТЛИЧИЕ от фреймворков]
 - [ ] Query Classifier: определение типа запроса
@@ -269,7 +289,7 @@ Eval-запросы: фактические, аналитические, tempora
 | Тема | Что спросят | Покрытие в проекте |
 |------|------------|-------------------|
 | RAG | Chunking strategies, embedding selection, hybrid search | ✅ Полное |
-| Evaluation | Как меришь качество RAG | ⚠️ Нужен evaluation framework |
+| Evaluation | Как меришь качество RAG | ✅ Eval pipeline + golden dataset + ablation study |
 | Prompt engineering | Grounding, system prompts | ✅ Citation-forced generation |
 | Agent design | Tool calling, loops, when to stop | ✅ Function calling + coverage threshold |
 | Scaling | Batching, caching, context management | ✅ Sub-batching, trim_messages |
@@ -282,8 +302,8 @@ Eval-запросы: фактические, аналитические, tempora
 ## Порядок работы
 
 ```
-Phase 3.0: Расширение коллекции (37 каналов, 9 мес) [IN PROGRESS]
-Phase 3.1: Evaluation framework + benchmarks vs LlamaIndex
+Phase 3.0: Расширение коллекции (36 каналов, 13124 точки) [DONE]
+Phase 3.1: Evaluation + Pipeline Optimization [IN PROGRESS — recall@5 = 0.70]
 Phase 3.2: Adaptive retrieval (query classification + strategy selection)
 Phase 3.3: README + архитектурная диаграмма + метрики
 Phase 3.4: Observability
@@ -294,7 +314,11 @@ Phase 3.5: UI polish
 
 ## Заметки
 
-- Qwen3-Reranker: ждём TEI PR #835, пока BGE-M3 как временная мера
+- Целевой реранкер: bge-reranker-v2-m3 (dedicated cross-encoder, +10 nDCG vs текущий bge-m3)
 - RTX 5060 Ti недоступна в Docker Desktop (V100 TCC блокирует NVML) — DEC-0024
-- Coverage 0.71 после fix (было 0.29) — адекватный уровень
-- Latency: несколько секунд на полный pipeline при прогретой модели
+- gpu_server.py: embedding + reranker в одном HTTP-процессе (PyTorch cu128, WSL2 native)
+- Recall@5: 0.15 → 0.70 через 11 eval прогонов (weighted RRF, forced search, original query injection)
+- Coverage: 0.86 mean на текущем quick dataset
+- Latency: ~25-30s на полный pipeline (LLM inference — основное узкое место)
+- Retrieval improvement playbook: `docs/ai/planning/retrieval_improvement_playbook.md`
+- Research reports: R11 (advanced retrieval), R12 (clustering) — ключевые для дальнейшего развития

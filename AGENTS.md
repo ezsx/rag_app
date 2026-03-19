@@ -18,18 +18,22 @@
 ### Код и модели
 - LLM: **Qwen3-30B-A3B GGUF** через llama-server.exe (V100, Windows Host, порт 8080).
 - Embedding: **Qwen3-Embedding-0.6B** через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8082).
-- Reranker: **BAAI/bge-m3** (XLMRoberta seq-cls) через TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8083).
-  **Временная мера**: целевой — Qwen3-Reranker-0.6B-seq-cls, ждём TEI PR #835.
-- Vector store: **Qdrant** (Docker, CPU), dense + sparse named vectors, native RRF+MMR.
+- Reranker: **BAAI/bge-m3** (XLMRoberta seq-cls) через gpu_server.py (WSL2 native, RTX 5060 Ti, порт 8082).
+  **Временная мера**: целевой — bge-reranker-v2-m3 (dedicated cross-encoder, +10 nDCG).
+- Vector store: **Qdrant** (Docker, CPU), dense + sparse named vectors, **weighted RRF** (BM25 3:1).
 - **GPU blocker**: RTX 5060 Ti недоступна в Docker Desktop (V100 TCC блокирует NVML для всех GPU).
-  Embedding/Reranker = WSL2-native. Docker-контейнеры = CPU only. (DEC-0024)
+  Embedding/Reranker = WSL2-native через gpu_server.py. Docker-контейнеры = CPU only. (DEC-0024)
 
 ### ReAct агент
 - Оркестрация: native function calling через `/v1/chat/completions`, без regex-парсинга Thought/Action.
 - Tools schema для LLM: `query_plan → search → rerank → compose_context → final_answer`.
+- **Dynamic tools**: `final_answer` скрыт до выполнения `search` (LLM не может пропустить поиск).
+- **Forced search**: если LLM не вызывает tools, принудительный search с оригинальным запросом.
+- **Original query injection**: оригинальный запрос пользователя всегда в subqueries (BM25 match).
 - `verify` и `fetch_docs` остаются системными вызовами внутри `AgentService`, не tools для LLM.
-- Retrieval-пайплайн: `search → rerank → compose_context`.
+- Retrieval-пайплайн: `query_plan → search (BM25 top-100 + dense top-20 → weighted RRF 3:1) → rerank → compose_context`.
 - Coverage threshold **0.65**, max **2** refinements (DEC-0019). Не менять без ресерча.
+- **Recall@5 = 0.70** на quick dataset (10 вопросов). Target 0.80+ с whitening + reranker upgrade.
 - Не ломать SSE контракт событий: `thought/tool_invoked/observation/citations/final`.
 
 ### Deploy и запуск
