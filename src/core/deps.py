@@ -74,6 +74,7 @@ def get_tei_embedding_client() -> TEIEmbeddingClient:
     return TEIEmbeddingClient(
         base_url=settings.embedding_tei_url,
         query_instruction=settings.embedding_query_instruction,
+        whitening_params_path=settings.whitening_params_path,
     )
 
 

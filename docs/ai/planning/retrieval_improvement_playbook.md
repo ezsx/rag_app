@@ -69,7 +69,8 @@
 - **Нюанс**: query-only mean-centering **НЕ работает** (asymmetric — query в другом пространстве, docs в оригинальном). Нужна **полная переиндексация**: embed → whitening transform → upload whitened vectors в Qdrant.
 - **Как реализовать**: скрипт переиндексации: загрузить все 13K vectors, применить whitening, создать новую коллекцию с dense_vector 512-dim, скопировать sparse + payload.
 - **Ожидание**: +5-15% recall (по литературе: Su et al. +8-12 Spearman, WhitenRec +7-16% recall)
-- **Статус**: [x] whitening подтверждён, params сохранены. [ ] переиндексация не выполнена.
+- **Результат эксперимента (2026-03-19)**: переиндексация выполнена в коллекцию `news_whitened`. **Recall упал с 0.70 до 0.56.** Whitening улучшил reranker score differentiation, но изменил RRF ranking непредсказуемо. Coverage metric требует рекалибровки (0.42 в whitened space). **Решение: откат на `news` (recall 0.70).** `news_whitened` сохранена для дальнейших экспериментов.
+- **Статус**: [x] whitening подтверждён, params сохранены. [x] переиндексация выполнена. **Recall не улучшился — отложен.**
 - **Ссылки**: Su et al. 2021 "BERT-whitening", WhitenRec 2024, WhiteningBERT (Huang et al. EMNLP 2021)
 
 ### 1.2 Weighted RRF (BM25 3:1 vs dense)

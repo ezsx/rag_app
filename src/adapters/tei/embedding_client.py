@@ -43,44 +43,71 @@ class TEIEmbeddingClient:
         base_url: str,
         timeout: float = 30.0,
         query_instruction: str = DEFAULT_QUERY_INSTRUCTION,
+        whitening_params_path: str = "",
     ) -> None:
         """
         Args:
             base_url: URL TEI service, например "http://host.docker.internal:8082"
             timeout: таймаут HTTP запроса в секундах (default 30s)
             query_instruction: instruction prefix для query embedding
+            whitening_params_path: путь к .npz с PCA whitening (mean, components, explained_variance)
         """
         self.base_url = base_url.rstrip("/")
         self.query_instruction = query_instruction
+        self._whitening = None
         self._client = httpx.AsyncClient(
             base_url=self.base_url,
             timeout=httpx.Timeout(timeout),
-            # Лимит соединений: embedding вызывается последовательно в pipeline,
-            # но при параллельных subquery-запросах может быть несколько concurrent
             limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
         )
+
+        # Загрузка PCA whitening transform (если указан)
+        if whitening_params_path:
+            try:
+                import numpy as np
+                params = np.load(whitening_params_path)
+                self._whitening = {
+                    "mean": params["mean"],
+                    "components": params["components"],
+                    "scale": 1.0 / np.sqrt(params["explained_variance"] + 1e-4),
+                }
+                out_dim = self._whitening["components"].shape[0]
+                logger.info(
+                    "PCA whitening загружен: %s (1024→%d dim)",
+                    whitening_params_path, out_dim,
+                )
+            except Exception as exc:
+                logger.warning("Не удалось загрузить whitening: %s", exc)
+
         logger.info("TEIEmbeddingClient инициализирован: %s", self.base_url)
 
     async def embed_query(self, text: str) -> List[float]:
         """
         Встраивает один поисковый запрос.
 
-        Применяет instruction prefix согласно спецификации Qwen3-Embedding.
-        Возвращает L2-нормализованный вектор 1024-dim.
-
-        Args:
-            text: поисковый запрос на естественном языке
-
-        Returns:
-            list[float] длиной 1024
-
-        Raises:
-            httpx.ConnectError: TEI service недоступен
-            httpx.HTTPStatusError: TEI вернул ошибку (4xx/5xx)
+        Применяет instruction prefix, затем PCA whitening (если загружен).
+        Возвращает L2-нормализованный вектор (512-dim с whitening, 1024 без).
         """
         prefixed = self.query_instruction + text
         vectors = await self._embed_batch([prefixed], normalize=True)
-        return vectors[0]
+        vec = vectors[0]
+
+        if self._whitening is not None:
+            vec = self._apply_whitening(vec)
+
+        return vec
+
+    def _apply_whitening(self, vec: List[float]) -> List[float]:
+        """PCA whitening: center → project → scale → normalize."""
+        import numpy as np
+        x = np.array(vec, dtype=np.float32)
+        centered = x - self._whitening["mean"]
+        projected = centered @ self._whitening["components"].T
+        whitened = projected * self._whitening["scale"]
+        norm = np.linalg.norm(whitened)
+        if norm > 0:
+            whitened = whitened / norm
+        return whitened.tolist()
 
     async def embed_documents(self, texts: List[str]) -> List[List[float]]:
         """

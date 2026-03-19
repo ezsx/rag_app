@@ -69,9 +69,13 @@ class Settings:
 
         # === Qdrant (Docker CPU, порт 6333) ===
         self.qdrant_url: str = os.getenv("QDRANT_URL", "http://qdrant:6333")
-        self.qdrant_collection: str = os.getenv("QDRANT_COLLECTION", "news")
+        self.qdrant_collection: str = os.getenv("QDRANT_COLLECTION", "news_whitened")
         # Алиас для обратной совместимости с кодом, обращающимся к current_collection
         self.current_collection: str = self.qdrant_collection
+
+        # === PCA Whitening (1024→512 dim) ===
+        # Пустой путь = whitening отключён. Включить через WHITENING_PARAMS_PATH env.
+        self.whitening_params_path: str = os.getenv("WHITENING_PARAMS_PATH", "")
 
         # === Redis кеширование (отключён по умолчанию) ===
         self.redis_enabled: bool = os.getenv("REDIS_ENABLED", "false").lower() == "true"
