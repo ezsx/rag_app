@@ -55,10 +55,9 @@ services:
       - RERANKER_TEI_URL=http://host.docker.internal:8082
       # Qdrant — Docker CPU
       - QDRANT_URL=http://qdrant:6333
-      - QDRANT_COLLECTION=news
-      # PCA whitening: отключён (recall 0.56 < baseline 0.70)
-      # news_whitened коллекция сохранена для экспериментов
-      # - QDRANT_COLLECTION=news_whitened
+      - QDRANT_COLLECTION=news_colbert
+      # Alternatives: news (baseline), news_whitened (PCA 1024, паритет)
+      # news_colbert: dense + sparse + ColBERT MaxSim rerank
       # - WHITENING_PARAMS_PATH=datasets/whitening_params.npz
       # - COVERAGE_THRESHOLD=0.35
       # Coverage (DEC-0019)

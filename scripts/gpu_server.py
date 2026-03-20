@@ -20,15 +20,19 @@ logger = logging.getLogger("gpu_server")
 
 EMBEDDING_MODEL_PATH = "/home/tei-models/qwen3-embedding"
 RERANKER_MODEL_PATH = "/home/tei-models/reranker-v2"
+COLBERT_MODEL_PATH = "/home/tei-models/jina-colbert-v2"
 
 emb_tokenizer = None
 emb_model = None
 rer_tokenizer = None
 rer_model = None
+col_tokenizer = None
+col_model = None
+col_linear = None  # projection 1024→128
 
 
 def load_models():
-    global emb_tokenizer, emb_model, rer_tokenizer, rer_model
+    global emb_tokenizer, emb_model, rer_tokenizer, rer_model, col_tokenizer, col_model, col_linear
 
     logger.info("Загрузка embedding: %s", EMBEDDING_MODEL_PATH)
     t0 = time.time()
@@ -45,6 +49,20 @@ def load_models():
         RERANKER_MODEL_PATH, torch_dtype=torch.float16
     ).cuda().eval()
     logger.info("Reranker загружен за %.1f сек", time.time() - t0)
+
+    logger.info("Загрузка ColBERT: %s", COLBERT_MODEL_PATH)
+    t0 = time.time()
+    col_tokenizer = AutoTokenizer.from_pretrained(COLBERT_MODEL_PATH, trust_remote_code=True)
+    col_model = AutoModel.from_pretrained(
+        COLBERT_MODEL_PATH, torch_dtype=torch.float16, trust_remote_code=True
+    ).cuda().eval()
+    # Загружаем linear projection 1024→128 отдельно из safetensors
+    import safetensors.torch as st
+    all_tensors = st.load_file(COLBERT_MODEL_PATH + "/model.safetensors", device="cuda")
+    if "linear.weight" in all_tensors:
+        col_linear = all_tensors["linear.weight"].half()  # [128, 1024]
+        logger.info("ColBERT linear projection: %s", col_linear.shape)
+    logger.info("ColBERT загружен за %.1f сек", time.time() - t0)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -76,6 +94,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send_json(self._embed_openai(data))
             elif self.path == "/rerank":
                 self._send_json(self._rerank(data))
+            elif self.path == "/colbert-encode":
+                self._send_json(self._colbert_encode(data))
             else:
                 self._send_json({"error": "not found"}, 404)
         except Exception as e:
@@ -129,6 +149,45 @@ class Handler(BaseHTTPRequestHandler):
             scores = out.logits.squeeze(-1)
         results = [{"index": i, "score": float(s)} for i, s in enumerate(scores)]
         results.sort(key=lambda r: r["score"], reverse=True)
+        return results
+
+    def _colbert_encode(self, data):
+        """Encode текстов через jina-colbert-v2 → per-token vectors (128-dim).
+
+        Input: {"texts": ["text1", "text2", ...], "is_query": false}
+        Output: [[[tok1_128dim], [tok2_128dim], ...], [...], ...]
+
+        is_query=true: добавляет [Q] маркер, truncate до 32 токенов.
+        is_query=false: документы, truncate до 8192 токенов.
+        """
+        texts = data.get("texts", [])
+        if isinstance(texts, str):
+            texts = [texts]
+        is_query = data.get("is_query", False)
+        max_len = 32 if is_query else 8192
+
+        with torch.no_grad():
+            enc = col_tokenizer(
+                texts, padding=True, truncation=True, max_length=max_len,
+                return_tensors="pt"
+            ).to("cuda")
+            out = col_model(**enc)
+            # ColBERT: per-token embeddings из last_hidden_state [batch, seq_len, 1024]
+            token_embeddings = out.last_hidden_state
+            # Проецируем 1024→128 через linear.weight
+            if col_linear is not None:
+                token_embeddings = token_embeddings @ col_linear.T  # [batch, seq, 1024] @ [1024, 128] → [batch, seq, 128]
+            # Нормализуем каждый token vector
+            token_embeddings = torch.nn.functional.normalize(token_embeddings, p=2, dim=-1)
+            # Маскируем padding tokens
+            mask = enc["attention_mask"]  # [batch, seq_len]
+
+        results = []
+        for i in range(len(texts)):
+            seq_len = int(mask[i].sum().item())
+            # Берём только реальные токены (без padding)
+            vecs = token_embeddings[i, :seq_len, :].cpu().tolist()
+            results.append(vecs)
         return results
 
     def log_message(self, format, *args):

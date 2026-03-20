@@ -69,7 +69,7 @@ class Settings:
 
         # === Qdrant (Docker CPU, порт 6333) ===
         self.qdrant_url: str = os.getenv("QDRANT_URL", "http://qdrant:6333")
-        self.qdrant_collection: str = os.getenv("QDRANT_COLLECTION", "news_whitened")
+        self.qdrant_collection: str = os.getenv("QDRANT_COLLECTION", "news_colbert")
         # Алиас для обратной совместимости с кодом, обращающимся к current_collection
         self.current_collection: str = self.qdrant_collection
 

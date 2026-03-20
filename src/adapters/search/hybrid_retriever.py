@@ -12,6 +12,7 @@ dense_score каждого кандидата — cosine similarity с query vec
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import math
 import threading
@@ -124,12 +125,12 @@ class HybridRetriever:
     async def _async_search(
         self, query_text: str, plan: SearchPlan
     ) -> list[Candidate]:
-        """Hybrid search: RRF fusion → MMR diversification.
+        """Hybrid search: BM25 + Dense → RRF → ColBERT rerank.
 
         Трёхэтапный pipeline:
         1. prefetch: dense + sparse → каждый по prefetch_limit
-        2. RRF fusion → расширенный набор кандидатов (k * 3)
-        3. MMR post-processing → k результатов с diversity
+        2. RRF fusion → расширенный набор кандидатов
+        3. ColBERT MaxSim rerank → финальные top-k (если коллекция поддерживает)
         """
         dense_vector: list[float] = await self._embedding_client.embed_query(query_text)
 
@@ -140,65 +141,106 @@ class HybridRetriever:
         )
 
         query_filter = self._build_filter(plan.metadata_filters)
-        # RRF берёт k*3 кандидатов, MMR потом сужает до k с diversity
         rrf_limit = max(plan.k_per_query * 3, 30)
-        prefetch_limit = max(plan.k_per_query * 2, 20)
-        mmr_lambda = self._settings.mmr_lambda  # default 0.7
 
-        logger.debug(
-            "HybridRetriever query: collection=%s prefetch=%d rrf=%d k=%d mmr_lambda=%.2f filter=%s",
-            self._store.collection,
-            prefetch_limit,
-            rrf_limit,
-            plan.k_per_query,
-            mmr_lambda,
-            bool(query_filter),
-        )
-
-        # Weighted RRF fusion: BM25 weight=3, dense weight=1.
-        # BM25 keyword match надёжно находит релевантные документы,
-        # но при equal weight dense "attractor documents" (generic AI posts
-        # с cosine 0.78-0.83 для ЛЮБОГО запроса) перевешивают BM25 результаты.
         # Асимметричный prefetch: BM25 берёт больше кандидатов (100 vs 20).
         bm25_prefetch_limit = max(plan.k_per_query * 10, 100)
         dense_prefetch_limit = max(plan.k_per_query * 2, 20)
 
-        result = await self._store.client.query_points(
-            collection_name=self._store.collection,
-            prefetch=[
-                models.Prefetch(
-                    query=dense_vector,
-                    using=QdrantStore.DENSE_VECTOR,
-                    limit=dense_prefetch_limit,
+        # ColBERT rerank: encode query через gpu_server /colbert-encode
+        colbert_query_vectors = await self._get_colbert_query_vectors(query_text)
+
+        if colbert_query_vectors:
+            # Трёхэтапный: BM25+Dense → RRF → ColBERT MaxSim rerank
+            logger.debug(
+                "HybridRetriever ColBERT: collection=%s rrf=%d k=%d",
+                self._store.collection, rrf_limit, plan.k_per_query,
+            )
+            result = await self._store.client.query_points(
+                collection_name=self._store.collection,
+                prefetch=[
+                    models.Prefetch(
+                        prefetch=[
+                            models.Prefetch(
+                                query=dense_vector,
+                                using=QdrantStore.DENSE_VECTOR,
+                                limit=dense_prefetch_limit,
+                            ),
+                            models.Prefetch(
+                                query=sparse_vector,
+                                using=QdrantStore.SPARSE_VECTOR,
+                                limit=bm25_prefetch_limit,
+                            ),
+                        ],
+                        query=models.RrfQuery(
+                            rrf=models.Rrf(weights=[1.0, 3.0]),
+                        ),
+                        limit=rrf_limit,
+                    ),
+                ],
+                query=colbert_query_vectors,
+                using="colbert_vector",
+                query_filter=query_filter,
+                with_payload=True,
+                with_vectors=True,
+                limit=plan.k_per_query,
+            )
+        else:
+            # Fallback: BM25+Dense → RRF (без ColBERT)
+            logger.debug(
+                "HybridRetriever RRF-only: collection=%s rrf=%d k=%d",
+                self._store.collection, rrf_limit, plan.k_per_query,
+            )
+            result = await self._store.client.query_points(
+                collection_name=self._store.collection,
+                prefetch=[
+                    models.Prefetch(
+                        query=dense_vector,
+                        using=QdrantStore.DENSE_VECTOR,
+                        limit=dense_prefetch_limit,
+                    ),
+                    models.Prefetch(
+                        query=sparse_vector,
+                        using=QdrantStore.SPARSE_VECTOR,
+                        limit=bm25_prefetch_limit,
+                    ),
+                ],
+                query=models.RrfQuery(
+                    rrf=models.Rrf(weights=[1.0, 3.0]),
                 ),
-                models.Prefetch(
-                    query=sparse_vector,
-                    using=QdrantStore.SPARSE_VECTOR,
-                    limit=bm25_prefetch_limit,
-                ),
-            ],
-            query=models.RrfQuery(
-                rrf=models.Rrf(weights=[1.0, 3.0]),  # [dense, sparse/BM25]
-            ),
-            query_filter=query_filter,
-            with_payload=True,
-            with_vectors=True,
-            limit=rrf_limit,
-        )
+                query_filter=query_filter,
+                with_payload=True,
+                with_vectors=True,
+                limit=plan.k_per_query,
+            )
 
         candidates = self._to_candidates(result.points, dense_vector)
-
-        # MMR post-processing отключён: классический MMR использует cosine
-        # как primary relevance signal, что снова поднимает "документы-магниты"
-        # и стирает BM25 вклад из RRF. Нужен diversity penalty поверх RRF scores,
-        # а не cosine-based MMR. TODO: реализовать RRF-aware diversity.
-        if len(candidates) > plan.k_per_query:
-            candidates = candidates[:plan.k_per_query]
 
         logger.debug(
             "HybridRetriever: %d результатов для '%s'", len(candidates), query_text[:60]
         )
         return candidates
+
+    async def _get_colbert_query_vectors(self, query_text: str) -> list[list[float]] | None:
+        """Encode query через ColBERT (gpu_server /colbert-encode).
+        Возвращает list of token vectors [N_tokens × 128] или None при ошибке.
+        """
+        import urllib.request
+        try:
+            colbert_url = self._settings.embedding_tei_url.replace("/embed", "").rstrip("/")
+            body = json.dumps({"texts": [query_text], "is_query": True}).encode()
+            req = urllib.request.Request(
+                f"{colbert_url}/colbert-encode",
+                data=body,
+                headers={"Content-Type": "application/json"},
+            )
+            resp = urllib.request.urlopen(req, timeout=15)
+            result = json.loads(resp.read())
+            if result and result[0]:
+                return result[0]  # list of 128-dim token vectors
+        except Exception as e:
+            logger.warning("ColBERT query encoding failed: %s", e)
+        return None
 
     @staticmethod
     def _mmr_rerank(
