@@ -130,26 +130,37 @@ def search(
         route_used = route
         hybrid_duration_ms: Optional[int] = None
 
-        # Выполняем гибридный поиск, если доступен retriever
+        # Выполняем гибридный поиск ПО КАЖДОМУ subquery и merge результаты.
+        # Ранее искали только по первому query — остальные subqueries пропадали.
         if hybrid_retriever is not None:
             start_ts = time.perf_counter()
-            try:
-                candidates = hybrid_retriever.search_with_plan(
-                    deduped_queries[0], search_plan
-                )
-            except AttributeError as attr_err:
-                logger.error(
-                    "Hybrid retriever failed with AttributeError: %s", attr_err
-                )
-                candidates = []
-            except Exception as hybrid_err:
-                logger.error("Hybrid retriever failed: %s", hybrid_err)
-                candidates = []
+            # Собираем результаты от каждого subquery отдельно
+            per_query_results: List[List[Any]] = []
+            seen_ids: set = set()
+            for q in deduped_queries:
+                try:
+                    sub_candidates = hybrid_retriever.search_with_plan(q, search_plan)
+                    per_query_results.append(sub_candidates)
+                except Exception as err:
+                    logger.error("Hybrid retriever failed for query '%s': %s", q[:60], err)
+            # Round-robin merge: чередуем top-1 от каждого subquery, потом top-2 и т.д.
+            # Сохраняет ranking от ColBERT/RRF внутри каждого subquery.
+            all_candidates: List[Any] = []
+            max_len = max((len(r) for r in per_query_results), default=0)
+            for rank_idx in range(max_len):
+                for sub_result in per_query_results:
+                    if rank_idx < len(sub_result):
+                        c = sub_result[rank_idx]
+                        if c.id not in seen_ids:
+                            all_candidates.append(c)
+                            seen_ids.add(c.id)
+            candidates = all_candidates
             hybrid_duration_ms = int((time.perf_counter() - start_ts) * 1000)
             logger.debug(
-                "search tool hybrid finished | took_ms=%s | results=%s",
+                "search tool hybrid finished | took_ms=%s | results=%s | queries=%d",
                 hybrid_duration_ms,
-                len(candidates) if candidates else 0,
+                len(candidates),
+                len(deduped_queries),
             )
 
         if not candidates:

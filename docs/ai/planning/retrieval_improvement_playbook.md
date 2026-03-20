@@ -37,6 +37,8 @@ Dataset v2 (10 Qs): entity ×1, product ×3, fact_check ×1, cross_channel ×1, 
 |---|------|-----------|----------|------|------------|
 | **19** | **2026-03-20** | **ColBERT + RRF 3:1 (v2 dataset)** | **0.46** | **eval_results_20260320-*** | Сложнее v1: entity/product/cross-channel |
 | 20 | 2026-03-20 | + Channel dedup max 2/channel (v2 Q1+Q3 точечно) | 0.50 | точечный тест | Diversity ↑, recall без изменений |
+| **21** | **2026-03-20** | **CRITICAL: multi-query search (v1)** | **0.76** | **eval_results_20260320-*** | v1 стабильно |
+| **22** | **2026-03-20** | **CRITICAL: multi-query search (v2)** | **0.61** | **eval_results_20260320-*** | **v2: 0.46→0.61 (+33%)** |
 
 #### Retrieval Eval (прямые Qdrant queries, без LLM, ~5с/запрос)
 

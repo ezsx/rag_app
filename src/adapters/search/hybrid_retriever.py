@@ -141,7 +141,7 @@ class HybridRetriever:
         )
 
         query_filter = self._build_filter(plan.metadata_filters)
-        rrf_limit = max(plan.k_per_query * 3, 30)
+        rrf_limit = max(plan.k_per_query * 5, 50)
 
         # Асимметричный prefetch: BM25 берёт больше кандидатов (100 vs 20).
         bm25_prefetch_limit = max(plan.k_per_query * 10, 100)
