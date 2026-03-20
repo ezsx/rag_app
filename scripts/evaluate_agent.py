@@ -493,11 +493,20 @@ class AgentEvaluationRunner:
     ) -> Dict[str, Any]:
         """
         Recall считается по citation_hits (формат channel:message_id).
-        Fuzzy matching: channel совпадает + message_id ±5 (чанки одного поста).
+        Стратегия matching зависит от категории:
+        - factual, channel_specific, comparative: точный match (channel + msg_id ±5)
+        - temporal, multi_hop: мягкий match (channel совпадает + msg_id ±50)
+          Для broad queries (temporal, multi_hop) нет единственно правильного поста —
+          любой релевантный пост из нужного канала считается валидным.
         """
         citation_hits = agent_result.get("citation_hits") or []
         expected = item.expected_documents or []
         recall = None
+
+        # Мягкие категории: temporal и multi_hop — более широкий fuzzy
+        broad_categories = {"temporal", "multi_hop"}
+        fuzzy_tolerance = 50 if item.category in broad_categories else 5
+
         if item.answerable and expected:
             matched = 0
             for exp_doc in expected:
@@ -513,8 +522,7 @@ class AgentEvaluationRunner:
                         h_ch, h_msg = h_parts[0].lower(), int(h_parts[1])
                     except ValueError:
                         continue
-                    # Fuzzy: тот же канал, message_id ±5
-                    if h_ch == exp_ch and abs(h_msg - exp_msg) <= 5:
+                    if h_ch == exp_ch and abs(h_msg - exp_msg) <= fuzzy_tolerance:
                         matched += 1
                         break
             recall = matched / len(expected) if expected else None

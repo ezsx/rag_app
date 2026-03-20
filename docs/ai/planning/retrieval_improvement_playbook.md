@@ -29,6 +29,8 @@
 | **11** | **2026-03-19** | **+ Forced search + dynamic tools** | **0.70** | **+0.11** | **eval_results_20260319-175853** | **036e54f** |
 | 12 | 2026-03-19 | Whitening (news_whitened, 512-dim) | 0.56 | -0.14 | eval_results_20260319-* | reverted |
 | **13** | **2026-03-19** | **+ bge-reranker-v2-m3** | **0.70** | 0 | **eval_results_20260319-*** | **4d43183** |
+| 14 | 2026-03-20 | Whitening 1024-dim (без reduction) — ручной тест | — | — | ручной тест, без LLM | — |
+| **15** | **2026-03-20** | **Per-category eval matching (±50 для temporal/multi_hop)** | **0.76** | **+0.06** | **eval_results_20260320-*** | **pending** |
 
 ### Подробные результаты лучшего прогона (#11, recall@5=0.70)
 
@@ -71,8 +73,17 @@
 - **Нюанс**: query-only mean-centering **НЕ работает** (asymmetric — query в другом пространстве, docs в оригинальном). Нужна **полная переиндексация**: embed → whitening transform → upload whitened vectors в Qdrant.
 - **Как реализовать**: скрипт переиндексации: загрузить все 13K vectors, применить whitening, создать новую коллекцию с dense_vector 512-dim, скопировать sparse + payload.
 - **Ожидание**: +5-15% recall (по литературе: Su et al. +8-12 Spearman, WhitenRec +7-16% recall)
-- **Результат эксперимента (2026-03-19)**: переиндексация выполнена в коллекцию `news_whitened`. **Recall упал с 0.70 до 0.56.** Whitening улучшил reranker score differentiation, но изменил RRF ranking непредсказуемо. Coverage metric требует рекалибровки (0.42 в whitened space). **Решение: откат на `news` (recall 0.70).** `news_whitened` сохранена для дальнейших экспериментов.
-- **Статус**: [x] whitening подтверждён, params сохранены. [x] переиндексация выполнена. **Recall не улучшился — отложен.**
+- **Результат эксперимента #1 (2026-03-19, 1024→512)**: переиндексация в `news_whitened` (512-dim). **Recall упал с 0.70 до 0.56.** Слишком агрессивный cutoff — потеря полезных dimensions.
+- **Результат эксперимента #2 (2026-03-20, 1024→1024, без reduction)**:
+  - Cosine range: original mean=0.80 std=0.09 → whitened mean=0.00 std=0.03
+  - Ручной тест на 10 запросах (прямые Qdrant queries, **без LLM**):
+  - 3 запроса стали лучше (Qwen3: miss→#5, NVIDIA: #2→#1, Sakana: #2→#1)
+  - 1 запрос стал хуже (GPT-5 Pro: #8→miss)
+  - 6 без изменений
+  - **Итог: паритет с лёгким преимуществом whitened.** Не ломает pipeline, немного помогает на некоторых запросах.
+  - Коллекция `news_whitened` (1024-dim) сохранена. Whitening params: `datasets/_whitening_mean.npy`, `datasets/_whitening_transform.npy`.
+  - **Ключевой инсайт**: при weighted RRF 3:1 BM25 доминирует, dense вносит малый вклад. Whitening улучшает dense, но dense уже не bottleneck. Bottleneck — reranking quality и query expansion.
+- **Статус**: [x] whitening 512 — recall 0.56, откат. [x] whitening 1024 — паритет, коллекция сохранена. **Dense не является bottleneck при текущей архитектуре (BM25 3:1).**
 - **Ссылки**: Su et al. 2021 "BERT-whitening", WhitenRec 2024, WhiteningBERT (Huang et al. EMNLP 2021)
 
 ### 1.2 Weighted RRF (BM25 3:1 vs dense)
@@ -80,7 +91,7 @@
 - **Почему поможет**: BM25 правильно находит keyword-matched документы, но при equal weight dense "магниты" их перевешивают.
 - **Как**: одна строка — `models.RrfQuery(rrf=models.Rrf(weights=[3.0, 1.0], k=2))`. Также асимметричный prefetch: BM25 limit=100, dense limit=20.
 - **Ожидание**: +5-10% recall
-- **Статус**: [ ] не начато
+- **Статус**: [x] **Выполнено (2026-03-19)**. BM25 limit=100, dense limit=20, weights=[1.0, 3.0]. Recall 0.33 → 0.59. Commit: e0bd871.
 
 ### 1.3 DBSF fusion (альтернатива RRF)
 - **Суть**: Distribution-Based Score Fusion — нормализует скоры через mean ± 3σ перед слиянием.
@@ -384,15 +395,20 @@ for i, point_id in enumerate(point_ids):
 ```
 Текущее состояние: recall@5 = 0.70
   ↓
-Phase 1 (Day 1-2): Global PCA whitening (1024→512) + DBSF fusion test
-  → Expected: 0.73-0.78
+✅ Phase 0 (Done): Weighted RRF 3:1 + forced search + bge-reranker-v2-m3
+  → Achieved: 0.15 → 0.70
   ↓
-Phase 2 (Day 3-5): bge-reranker-v2-m3 (dedicated cross-encoder)
-  → Expected: 0.78-0.85
+✅ Phase 0.5 (Done): Whitening 1024-dim — паритет, dense не bottleneck
   ↓
-Phase 3 (Week 2, если нужно): BGE-M3 model swap (dense+sparse+ColBERT в одной модели)
-  → Expected: 0.83-0.88
+Phase 1 (Next): Расширить dataset до 50 вопросов + fix msg_id matching
+  → Expected: более надёжные метрики, recall может вырасти просто от лучшего matching
   ↓
-Phase 4 (Week 3+, при масштабировании): BERTopic кластеризация как metadata layer
-  → Expected: дополнительные +5-10% при 50K+ docs
+Phase 2: DBSF fusion test + channel dedup + query classifier
+  → Expected: 0.75-0.80
+  ↓
+Phase 3: ColBERT reranking / Jina v3 / Qwen3-Reranker
+  → Expected: 0.80-0.85
+  ↓
+Phase 4 (если нужно): BGE-M3 model swap (dense+sparse+ColBERT) / кластеризация
+  → Expected: 0.85+
 ```
