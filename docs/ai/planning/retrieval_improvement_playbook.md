@@ -14,42 +14,77 @@
 
 ### История экспериментов
 
-| # | Дата | Изменение | Recall@5 | Δ | Файл результата | Коммит |
-|---|------|-----------|----------|---|-----------------|--------|
-| 1 | 2026-03-19 | Baseline: RRF → dense re-score (broken SSE) | 0.00 | — | eval_results_20260319-121112 | — |
-| 2 | 2026-03-19 | SSE fix, baseline (dense re-score) | 0.00 | — | eval_results_20260319-122157 | — |
-| 3 | 2026-03-19 | + SSE fix + fuzzy recall (limit 3) | 0.00 | — | eval_results_20260319-122430 | — |
-| 4 | 2026-03-19 | Убрали dense re-score → чистый RRF | 0.15 | — | eval_results_20260319-123202 | — |
-| 5 | 2026-03-19 | + Orig query в subqueries (best RRF) | 0.33 | +0.18 | eval_results_20260319-125400 | 72efb31 |
-| 6 | 2026-03-19 | + MMR post-process (lambda=0.7) | 0.11 | -0.22 | eval_results_20260319-130723 | reverted |
-| 7 | 2026-03-19 | + MMR post-process (lambda=0.9) | 0.11 | -0.22 | eval_results_20260319-131422 | reverted |
-| 8 | 2026-03-19 | Pure RRF + orig query (best so far) | **0.59** | +0.26 | eval_results_20260319-133619 | e0bd871 |
-| 9 | 2026-03-19 | Weighted RRF 3:1 (expired JWT → 0 agent) | 0.00 | broken | eval_results_20260319-174155 | — |
-| 10 | 2026-03-19 | Weighted RRF 3:1 + new JWT | 0.48 | -0.11 | eval_results_20260319-174813 | testing |
-| **11** | **2026-03-19** | **+ Forced search + dynamic tools** | **0.70** | **+0.11** | **eval_results_20260319-175853** | **036e54f** |
-| 12 | 2026-03-19 | Whitening (news_whitened, 512-dim) | 0.56 | -0.14 | eval_results_20260319-* | reverted |
-| **13** | **2026-03-19** | **+ bge-reranker-v2-m3** | **0.70** | 0 | **eval_results_20260319-*** | **4d43183** |
-| 14 | 2026-03-20 | Whitening 1024-dim (без reduction) — ручной тест | — | — | ручной тест, без LLM | — |
-| **15** | **2026-03-20** | **Per-category eval matching (±50 для temporal/multi_hop)** | **0.76** | **+0.06** | **eval_results_20260320-*** | **pending** |
+#### Agent Eval (full pipeline через LLM, ~40с/запрос)
 
-### Подробные результаты лучшего прогона (#11, recall@5=0.70)
+Dataset v1 (10 Qs): factual ×3, temporal ×2, channel ×2, comparative ×1, multi_hop ×1, negative ×1.
+
+| # | Дата | Изменение | Recall@5 | Δ | Файл | Коммит |
+|---|------|-----------|----------|---|------|--------|
+| 1-3 | 2026-03-19 | Baseline (broken SSE, dense re-score) | 0.00 | — | eval_results_20260319-12* | — |
+| 4 | 2026-03-19 | Убрали dense re-score → чистый RRF | 0.15 | — | eval_results_20260319-123202 | — |
+| 5 | 2026-03-19 | + Orig query в subqueries | 0.33 | +0.18 | eval_results_20260319-125400 | 72efb31 |
+| 6-7 | 2026-03-19 | + MMR post-process (0.7/0.9) | 0.11 | -0.22 | eval_results_20260319-13* | reverted |
+| 8 | 2026-03-19 | Pure RRF + orig query | **0.59** | +0.26 | eval_results_20260319-133619 | e0bd871 |
+| **11** | **2026-03-19** | **+ Weighted RRF 3:1 + forced search** | **0.70** | **+0.11** | **eval_results_20260319-175853** | **036e54f** |
+| 12 | 2026-03-19 | + Whitening 512-dim | 0.56 | -0.14 | eval_results_20260319-* | reverted |
+| 13 | 2026-03-19 | + bge-reranker-v2-m3 | 0.70 | 0 | eval_results_20260319-* | 4d43183 |
+| **15** | **2026-03-20** | **+ Per-category matching (±50 temporal)** | **0.76** | **+0.06** | **eval_results_20260320-*** | **b676687** |
+| 16 | 2026-03-20 | + ColBERT rerank (news_colbert) | 0.76 | 0 | eval_results_20260320-* | 6961cab |
+
+Dataset v2 (10 Qs): entity ×1, product ×3, fact_check ×1, cross_channel ×1, recency ×1, numeric ×1, long_tail ×1, negative ×1.
+
+| # | Дата | Изменение | Recall@5 | Файл | Примечание |
+|---|------|-----------|----------|------|------------|
+| **19** | **2026-03-20** | **ColBERT + RRF 3:1 (v2 dataset)** | **0.46** | **eval_results_20260320-*** | Сложнее v1: entity/product/cross-channel |
+
+#### Retrieval Eval (прямые Qdrant queries, без LLM, ~5с/запрос)
+
+Dataset: 100 auto-generated queries из первых предложений документов (35 каналов).
+Тестирует **только retrieval quality**, без LLM query expansion и generation.
+
+| # | Дата | Pipeline | Fusion | Recall@1 | Recall@5 | Recall@10 | Recall@20 | Latency | Файл |
+|---|------|----------|--------|----------|----------|-----------|-----------|---------|------|
+| 17b | 2026-03-20 | BM25+Dense → RRF | RRF (3:1) | 0.36 | 0.55 | 0.64 | 0.70 | 2.5s | retrieval_eval_20260320-155419 |
+| **17** | **2026-03-20** | **BM25+Dense → RRF → ColBERT** | **RRF (3:1)** | **0.71** | **0.73** | **0.73** | **0.74** | **5.0s** | **retrieval_eval_20260320-155000** |
+| 18 | 2026-03-20 | BM25+Dense → DBSF → ColBERT | DBSF | 0.70 | 0.72 | 0.72 | 0.73 | 4.4s | retrieval_eval_20260320-180240 |
+
+**Ключевой результат**: ColBERT rerank удвоил Recall@1 (0.36→0.71, +97%) и дал +33% Recall@5 (0.55→0.73). DBSF чуть хуже RRF — не оправдывает.
+
+### Подробные результаты agent eval v1 (dataset v1, #15, recall@5=0.76)
 
 | Q | Тип | Вопрос | Recall | Cov | Статус | Citations (top-4) |
 |---|-----|--------|--------|-----|--------|-------------------|
-| Q1 | factual | Financial Times ЧГ 2025 | **1.0** | 0.88 | ✅ | ai_ml_big_data:9245 ← exact match |
+| Q1 | factual | Financial Times ЧГ 2025 | **1.0** | 0.88 | ✅ | ai_ml_big_data:9245 |
 | Q2 | factual | GPT OSS параметры | **1.0** | 0.91 | ✅ | rybolos:1563 (±1 от :1562) |
-| Q3 | factual | Meta + Manus AI | **1.0** | 0.83 | ✅ | ai_newz:4355 ← exact match, top-1 |
+| Q3 | factual | Meta + Manus AI | **1.0** | 0.83 | ✅ | ai_newz:4355 |
 | Q4 | temporal | Декабрь 2025 Google/NVIDIA | 0.0 | 0.85 | ✅ ответ | Нашёл декабрьские, но не msg 9245/9226 |
 | Q5 | temporal | Январь 2026 AI-каналы | 0.33 | 0.80 | ✅ partial | boris_again:3703 (±2 от :3701) |
-| Q6 | channel | llm_under_hood reasoning GPT-5 | **1.0** | 0.92 | ✅ | llm_under_hood:648 ← exact match |
-| Q7 | channel | boris_again Gemini 3 Flash | **1.0** | 0.91 | ✅ | boris_again нет в top-4, но в citations |
-| Q8 | comparative | Deep Think vs o3-pro | **1.0** | 0.84 | ✅ | seeallochnaya:2711 ← exact match, top-1 |
-| Q9 | multi_hop | LLM production 2 канала | 0.0 | 0.84 | ✅ ответ | llm_under_hood:641/723 (не :652/:769) |
-| Q10 | negative | GPT-6 | N/A | 0.86 | ❌ корректный отказ | — |
+| Q6 | channel | llm_under_hood reasoning GPT-5 | **1.0** | 0.92 | ✅ | llm_under_hood:648 |
+| Q7 | channel | boris_again Gemini 3 Flash | **1.0** | 0.91 | ✅ | boris_again:3701 |
+| Q8 | comparative | Deep Think vs o3-pro | **1.0** | 0.84 | ✅ | seeallochnaya:2711 |
+| Q9 | multi_hop | LLM production 2 канала | 0.50 | 0.84 | ✅ partial | llm_under_hood:641/723 |
+| Q10 | negative | GPT-6 | N/A | 0.86 | ✅ отказ | — |
 
-**Анализ провалов:**
-- Q4, Q9: retrieval находит **правильный канал и тему**, но другой msg_id (chunk boundary). Fuzzy ±5 не хватает — посты разбиты на чанки с разными msg_id.
-- Q5: partial — нашёл 1 из 3 expected документов (boris_again:3703 ≈ :3701).
+### Подробные результаты agent eval v2 (dataset v2, #19, recall@5=0.46)
+
+| Q | Тип | Вопрос | Recall | Cov | Статус | Анализ |
+|---|-----|--------|--------|-----|--------|--------|
+| Q1 | entity | Карпаты + LLM | 0.50 | 0.85 | ✅ | aioftheday:3655 ✅, не нашёл data_secrets:8021 |
+| Q2 | product | Mamba 3 | **1.0** | 0.86 | ✅ | gonzo_ml:4242 ✅ |
+| Q3 | fact_check | OpenAI лицензия | 0.50 | 0.90 | ✅ | complete_ai:750 ✅, не нашёл rybolos:1562 |
+| Q4 | cross_channel | Meta+Manus каналы | 0.67 | 0.79 | ✅ | ai_newz:4355 ✅, partial |
+| Q5 | product | Granite 4.0 | **1.0** | 0.82 | ✅ | ai_ml_big_data:8680 ✅ |
+| Q6 | recency | NVIDIA начало 2026 | 0.0 | 0.83 | ✅ | Не нашёл boris_again:3693 |
+| Q7 | numeric | Deep Think цена | 0.50 | 0.86 | ✅ | aioftheday:3885 ✅, partial |
+| Q8 | long_tail | Kandinsky 5.0 | 0.0 | 0.75 | ✅ | dendi_math_ai:83 вместо :100 (±17, fuzzy ±5) |
+| Q9 | product | Sora 2 | 0.0 | 0.77 | ✅ | Не нашёл aioftheday:3577 |
+| Q10 | negative | Claude 4 | N/A | 0.84 | ✅ отказ | — |
+
+**Анализ v2 провалов:**
+- Q6 (recency), Q9 (product Sora): retrieval не нашёл нужный пост — проблема в recall
+- Q8 (long_tail): нашёл правильный канал (dendi_math_ai:83 vs :100), fuzzy ±5 слишком strict
+- Q1, Q3, Q4, Q7: partial — нашёл часть expected docs
+- Answer rate **10/10**, coverage **0.83** — pipeline стабилен, проблема в точности retrieval
 
 ### Корневые проблемы (диагностированы)
 
@@ -95,10 +130,8 @@
 
 ### 1.3 DBSF fusion (альтернатива RRF)
 - **Суть**: Distribution-Based Score Fusion — нормализует скоры через mean ± 3σ перед слиянием.
-- **Почему поможет**: когда dense scores сжаты в [0.78-0.83], нормализация растянет их и покажет реальные различия. RRF использует только ранги и теряет magnitude.
-- **Как**: `query=models.FusionQuery(fusion=models.Fusion.DBSF)` вместо `Fusion.RRF`. Проверить: доступна ли DBSF в нашей версии Qdrant.
-- **Ожидание**: неизвестно, нужен A/B тест с RRF
-- **Статус**: [ ] не начато
+- **Результат (2026-03-20, 100 queries)**: DBSF+ColBERT recall@5=0.72 vs RRF+ColBERT recall@5=0.73. **RRF лучше на 1%.** DBSF чуть быстрее (4.4с vs 5.0с) но не оправдывает потерю recall.
+- **Статус**: [x] **Протестировано, RRF остаётся.** DBSF не даёт преимуществ при weighted RRF + ColBERT.
 
 ### 1.4 Channel-based dedup (max 2 docs per channel)
 - **Суть**: ограничить максимум 2 документа из одного канала в результатах.
@@ -187,9 +220,13 @@ STRATEGIES = {
 - **Суть**: per-token matching вместо single-vector cosine. Для каждого query token — MaxSim с document tokens.
 - **Почему поможет**: **фундаментально** решает attractor problem. "Meta купила Manus" и "курс по трансформерам" — совершенно разные token profiles, даже если single-vector cosine одинаковый.
 - **Как**: jina-colbert-v2 (560M, 89 языков, русский включён). Qdrant multi-vector config (MaxSim). Трёхэтапный: BM25+Dense → RRF → ColBERT rerank.
-- **Storage**: ~500MB для 13K docs (100 tokens × 128 dim × float16).
-- **Ожидание**: +6-10% nDCG
-- **Статус**: [ ] не начато
+- **Storage**: ~500MB для 13K docs (100 tokens × 128 dim × float16). Реально: `_colbert_vectors.json` = 5.3 GB (нужно исключить из MCP индексации!).
+- **Ожидание**: +6-10% nDCG → **подтверждено: +33% recall@5 (0.55→0.73) на 100 запросах**
+- **Результат (2026-03-20)**: Recall@1 удвоился (0.36→0.71). ColBERT полностью устраняет attractor documents из top-10. На 10 agent eval вопросах разница не видна (0.76 vs 0.76) — нужен большой датасет.
+- **Реализация**: gpu_server.py загружает jina-colbert-v2 + manual linear projection 1024→128. Endpoint `/colbert-encode`. Коллекция `news_colbert` с 3 named vectors: dense(1024) + sparse + colbert(128, MaxSim). HybridRetriever: 3-stage Qdrant query с fallback на RRF-only.
+- **Зависимости WSL2**: einops, xlm-roberta-flash-implementation (скопировано оффлайн), config.json auto_map исправлен на локальные пути.
+- **Latency**: +2.5с/запрос (5.0с vs 2.5с без ColBERT). Encoding всех 13K docs: ~67 мин на RTX 5060 Ti.
+- **Статус**: [x] **Выполнено**. Коммит: 6961cab, 0919c3b.
 
 ### 3.2 Contextual Retrieval (Anthropic's technique)
 - **Суть**: перед embedding'ом каждого чанка — LLM генерирует 2-3 предложения контекста ("Этот пост из канала X про тему Y"). Этот prefix disambiguates embedding.
@@ -396,19 +433,22 @@ for i, point_id in enumerate(point_ids):
 Текущее состояние: recall@5 = 0.70
   ↓
 ✅ Phase 0 (Done): Weighted RRF 3:1 + forced search + bge-reranker-v2-m3
-  → Achieved: 0.15 → 0.70
+  → Achieved: agent recall 0.15 → 0.70
   ↓
 ✅ Phase 0.5 (Done): Whitening 1024-dim — паритет, dense не bottleneck
   ↓
-Phase 1 (Next): Расширить dataset до 50 вопросов + fix msg_id matching
-  → Expected: более надёжные метрики, recall может вырасти просто от лучшего matching
+✅ Phase 1 (Done): ColBERT reranking (jina-colbert-v2)
+  → Achieved: retrieval recall@5 0.55 → 0.73 (+33%), recall@1 0.36 → 0.71 (+97%)
   ↓
-Phase 2: DBSF fusion test + channel dedup + query classifier
-  → Expected: 0.75-0.80
+✅ Phase 1.5 (Done): Per-category eval matching + retrieval-only eval (100 Qs)
+  → Achieved: agent recall 0.70 → 0.76, retrieval eval infrastructure ready
   ↓
-Phase 3: ColBERT reranking / Jina v3 / Qwen3-Reranker
-  → Expected: 0.80-0.85
+Phase 2 (Next): Расширить dataset (20-30 agent + 100 retrieval) + DBSF fusion + channel dedup
+  → Expected: retrieval 0.78-0.82
   ↓
-Phase 4 (если нужно): BGE-M3 model swap (dense+sparse+ColBERT) / кластеризация
-  → Expected: 0.85+
+Phase 3: Query classifier + entity extraction + contextual retrieval
+  → Expected: 0.82-0.88
+  ↓
+Phase 4 (если нужно): Fine-tune embedding / кластеризация / BGE-M3 swap
+  → Expected: 0.88+
 ```

@@ -1,0 +1,116 @@
+[
+  {
+    "id": "eval_v2_q01",
+    "query": "Что Андрей Карпаты создал в области обучения LLM?",
+    "category": "entity_centric",
+    "expected_answer": "Андрей Карпаты представил проект nanochat — полный стек реализации LLM (аналог ChatGPT) в одном минималистичном репозитории. Можно собрать свой ChatGPT-клон за $100 и 4 часа обучения. Проект станет итоговым заданием курса LLM101n от Eureka Labs.",
+    "expected_documents": [
+      "aioftheday:3655",
+      "data_secrets:8021"
+    ],
+    "answerable": true,
+    "notes": "Entity-centric: поиск по имени персоны. Тестирует NER/entity matching."
+  },
+  {
+    "id": "eval_v2_q02",
+    "query": "Какие характеристики у архитектуры Mamba 3?",
+    "category": "product_specific",
+    "expected_answer": "Mamba 3 — архитектура на основе state-space моделей (SSM), представленная на ICLR 2026. Более быстрая и масштабируемая чем трансформеры, поддерживает длинные контексты. Использует SSM для эффективной обработки последовательностей.",
+    "expected_documents": [
+      "gonzo_ml:4242"
+    ],
+    "answerable": true,
+    "notes": "Product-specific: конкретный продукт/архитектура, один основной пост."
+  },
+  {
+    "id": "eval_v2_q03",
+    "query": "Под какой лицензией OpenAI выпустила свои open-source модели?",
+    "category": "fact_check",
+    "expected_answer": "OpenAI выпустила open-source модели (117B и 21B, обе MoE) под лицензией Apache 2.0, а не MIT или другой. Модели с reasoning, только текст, поддержка tools.",
+    "expected_documents": [
+      "rybolos_channel:1562",
+      "complete_ai:750"
+    ],
+    "answerable": true,
+    "notes": "Fact-check: проверка конкретного факта (лицензия). Агент должен найти точный ответ."
+  },
+  {
+    "id": "eval_v2_q04",
+    "query": "Какие каналы писали про покупку Manus компанией Meta?",
+    "category": "cross_channel",
+    "expected_answer": "Покупку Manus AI за $2 млрд обсуждали минимум 3 канала: ai_newz (подробный разбор), aioftheday (краткая новость), data_secrets (акцент на хайпе Manus). Все посты от 30 декабря 2025.",
+    "expected_documents": [
+      "ai_newz:4355",
+      "aioftheday:3988",
+      "data_secrets:8582"
+    ],
+    "answerable": true,
+    "notes": "Cross-channel synthesis: один факт из нескольких каналов."
+  },
+  {
+    "id": "eval_v2_q05",
+    "query": "Какие характеристики у IBM Granite 4.0?",
+    "category": "product_specific",
+    "expected_answer": "IBM Granite 4.0 — семейство open-weights моделей от 3B до 32B параметров. Включает модели Granite 4.0 H Small и другие. Контекст до 128K токенов. Также есть Granite 4.0 Nano (350M параметров) для работы в составе ИИ-агентов.",
+    "expected_documents": [
+      "ai_machinelearning_big_data:8680"
+    ],
+    "answerable": true,
+    "notes": "Числовые характеристики конкретного продукта."
+  },
+  {
+    "id": "eval_v2_q06",
+    "query": "Что нового представила NVIDIA на CES или в начале 2026?",
+    "category": "recency",
+    "expected_answer": "NVIDIA представила платформу Vera Rubin для датацентров — next-gen архитектуру для AI-вычислений, которая придёт на смену Blackwell.",
+    "expected_documents": [
+      "boris_again:3693"
+    ],
+    "answerable": true,
+    "notes": "Recency: свежие посты, январь 2026."
+  },
+  {
+    "id": "eval_v2_q07",
+    "query": "Сколько стоит подписка Google на Gemini с Deep Think?",
+    "category": "numeric",
+    "expected_answer": "Google Deep Think доступен в подписке Ultra за $250/месяц. В этом режиме Gemini 3 Pro включает несколько потоков параллельных рассуждений.",
+    "expected_documents": [
+      "seeallochnaya:2711",
+      "aioftheday:3885"
+    ],
+    "answerable": true,
+    "notes": "Числовой вопрос: конкретная цена. Ответ в нескольких каналах."
+  },
+  {
+    "id": "eval_v2_q08",
+    "query": "Что известно о моделях Kandinsky 5.0?",
+    "category": "long_tail_channel",
+    "expected_answer": "Команда dendi_math_ai выпустила подробный техрепорт по линейке моделей Kandinsky 5.0. Статья доступна на Хабр на русском и на английском. 10 декабря команда рассказывала о результатах года по всем направлениям разработки Kandinsky.",
+    "expected_documents": [
+      "dendi_math_ai:101",
+      "dendi_math_ai:100"
+    ],
+    "answerable": true,
+    "notes": "Long-tail channel: маленький канал (21 пост). Тестирует retrieval из редких каналов."
+  },
+  {
+    "id": "eval_v2_q09",
+    "query": "Что такое Sora 2 и какие у неё возможности?",
+    "category": "product_specific",
+    "expected_answer": "Sora 2 — обновлённая модель OpenAI для генерации видео. Новые возможности: более реалистичная физика и поведение объектов, синхронный звук и диалоги. Выпущена как отдельное приложение.",
+    "expected_documents": [
+      "aioftheday:3577"
+    ],
+    "answerable": true,
+    "notes": "Product-specific: медиа-продукт, не LLM. Тестирует поиск за пределами основного ML-домена."
+  },
+  {
+    "id": "eval_v2_q10",
+    "query": "Что писали про Claude 4 в телеграм-каналах?",
+    "category": "negative",
+    "expected_answer": null,
+    "expected_documents": [],
+    "answerable": false,
+    "notes": "Negative refined: Claude 4 может не быть в корпусе (данные до марта 2026). Агент должен честно сказать что нет данных."
+  }
+]

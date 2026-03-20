@@ -60,6 +60,7 @@ def search_qdrant(
     sparse_model,
     use_colbert: bool = False,
     top_k: int = 20,
+    fusion: str = "rrf",
 ) -> list[dict]:
     """Поиск в Qdrant: BM25+Dense → RRF (→ ColBERT rerank если доступен)."""
     dense_vec = embed_query(query_text, embedding_url)
@@ -83,7 +84,7 @@ def search_qdrant(
                         {"query": dense_vec, "using": "dense_vector", "limit": 20},
                         {"query": sparse_q, "using": "sparse_vector", "limit": 100},
                     ],
-                    "query": {"fusion": "rrf"},
+                    "query": {"fusion": fusion},
                     "limit": max(top_k * 3, 30),
                 }
             ],
@@ -143,13 +144,14 @@ def main():
     parser.add_argument("--top-k", type=int, default=20)
     parser.add_argument("--no-colbert", action="store_true", help="Disable ColBERT rerank")
     parser.add_argument("--fuzzy", type=int, default=5, help="msg_id fuzzy tolerance")
+    parser.add_argument("--fusion", default="rrf", choices=["rrf", "dbsf"], help="Fusion method")
     args = parser.parse_args()
 
     with open(args.dataset, encoding="utf-8") as f:
         items = json.load(f)
 
     print(f"Dataset: {len(items)} queries, collection: {args.collection}")
-    print(f"ColBERT: {'OFF' if args.no_colbert else 'ON'}, fuzzy: ±{args.fuzzy}")
+    print(f"ColBERT: {'OFF' if args.no_colbert else 'ON'}, Fusion: {args.fusion}, fuzzy: ±{args.fuzzy}")
 
     # Загружаем BM25 sparse model
     from fastembed import SparseTextEmbedding
@@ -169,7 +171,7 @@ def main():
             points = search_qdrant(
                 query, args.embedding_url, args.qdrant_url,
                 args.collection, sparse_model,
-                use_colbert=use_colbert, top_k=args.top_k,
+                use_colbert=use_colbert, top_k=args.top_k, fusion=args.fusion,
             )
         except Exception as e:
             print(f"  [{i+1}] ERROR: {e}")
