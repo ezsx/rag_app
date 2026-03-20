@@ -183,7 +183,7 @@ class HybridRetriever:
                 query_filter=query_filter,
                 with_payload=True,
                 with_vectors=True,
-                limit=plan.k_per_query,
+                limit=plan.k_per_query * 2,  # запрашиваем 2x, dedup сузит
             )
         else:
             # Fallback: BM25+Dense → RRF (без ColBERT)
@@ -211,15 +211,35 @@ class HybridRetriever:
                 query_filter=query_filter,
                 with_payload=True,
                 with_vectors=True,
-                limit=plan.k_per_query,
+                limit=plan.k_per_query * 2,  # запрашиваем 2x, dedup сузит
             )
 
         candidates = self._to_candidates(result.points, dense_vector)
+
+        # Channel dedup: max 2 docs per channel для diversity
+        candidates = self._channel_dedup(candidates, max_per_channel=2)
 
         logger.debug(
             "HybridRetriever: %d результатов для '%s'", len(candidates), query_text[:60]
         )
         return candidates
+
+    @staticmethod
+    def _channel_dedup(
+        candidates: list[Candidate], max_per_channel: int = 2
+    ) -> list[Candidate]:
+        """Ограничить количество документов из одного канала.
+        Сохраняет порядок (по score), но пропускает лишние из того же канала.
+        """
+        channel_counts: dict[str, int] = {}
+        result = []
+        for c in candidates:
+            ch = c.metadata.get("channel", "")
+            count = channel_counts.get(ch, 0)
+            if count < max_per_channel:
+                result.append(c)
+                channel_counts[ch] = count + 1
+        return result
 
     async def _get_colbert_query_vectors(self, query_text: str) -> list[list[float]] | None:
         """Encode query через ColBERT (gpu_server /colbert-encode).
