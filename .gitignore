@@ -17,6 +17,9 @@ __pycache__/
 /chroma-data/
 /bm25-index/
 
+# Large data files (ColBERT vectors, whitening params, etc.)
+datasets/_*
+
 # Telethon sessions
 /sessions/
 
