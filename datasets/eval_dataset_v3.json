@@ -1,0 +1,312 @@
+[
+  {
+    "id": "v3_q01",
+    "query": "Какие новинки были представлены на CES 2026 в области AI?",
+    "category": "temporal",
+    "expected_answer": "На CES 2026 были представлены AI-платформа NVIDIA Rubin, роботакси, ИИ-питомец Moflin от Casio и другие технологии.",
+    "expected_documents": [
+      "aioftheday:4001",
+      "ai_machinelearning_big_data:9363"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q02",
+    "query": "Что произошло в мире AI в декабре 2025?",
+    "category": "temporal",
+    "expected_answer": "В декабре 2025 Лекун и Лебрун анонсировали стартап world model, вышел DeepSeek-V3 с новыми возможностями.",
+    "expected_documents": [
+      "gonzo_ml:4425",
+      "seeallochnaya:3162"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q03",
+    "query": "Какие AI-события произошли в феврале 2026?",
+    "category": "temporal",
+    "expected_answer": "В феврале 2026 вышел Opus 4.6, Себрант обсуждал AI-тренды, танцующие роботы Agibot в Шанхае.",
+    "expected_documents": [
+      "boris_again:3740",
+      "techsparks:5444"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q04",
+    "query": "Что нового появилось в марте 2026 в AI?",
+    "category": "temporal",
+    "expected_answer": "В марте 2026 вышла GPT-5.3/5.4, Y Combinator анонсировал ARC-AGI 3.",
+    "expected_documents": [
+      "seeallochnaya:3445",
+      "ai_machinelearning_big_data:9622"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q05",
+    "query": "Какие AI-релизы были летом 2025?",
+    "category": "temporal",
+    "expected_answer": "Летом 2025 Авито запустили AI лабу, вышли модели DolphinGemma и другие.",
+    "expected_documents": [
+      "ai_newz:4107",
+      "gonzo_ml:3830"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q06",
+    "query": "О чём писал gonzo_ml про трансформеры и рекуррентные сети?",
+    "category": "channel",
+    "expected_answer": "gonzo_ml писал об AlphaGenome от DeepMind и ограничениях рекуррентных нейросетей по сравнению с трансформерами.",
+    "expected_documents": [
+      "gonzo_ml:4885",
+      "gonzo_ml:4667"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q07",
+    "query": "Что llm_under_hood рассказывал про AI агентов?",
+    "category": "channel",
+    "expected_answer": "llm_under_hood делился инсайтами с ERC3 про построение AI агентов и выкатил API симуляции.",
+    "expected_documents": [
+      "llm_under_hood:693",
+      "llm_under_hood:699"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q08",
+    "query": "Что писал techsparks про роботакси и роботов?",
+    "category": "channel",
+    "expected_answer": "techsparks писал про Pony.ai роботакси в Шэньчжэне и танцующих роботов Agibot в Шанхае.",
+    "expected_documents": [
+      "techsparks:5286",
+      "techsparks:5439"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q09",
+    "query": "Что нового у DeepSeek? Какие модели они выпустили?",
+    "category": "entity",
+    "expected_answer": "DeepSeek выпустили V3 с новыми возможностями и mHC (Manifold-Constrained Hyper-Connections) — переосмысление residual stream.",
+    "expected_documents": [
+      "seeallochnaya:3162",
+      "seeallochnaya:3243"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q10",
+    "query": "Какие новости были про Gemini от Google?",
+    "category": "entity",
+    "expected_answer": "Google представила Gemini 2.5 Flash Image для генерации и редактирования изображений.",
+    "expected_documents": [
+      "neurohive:1878"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q11",
+    "query": "Что известно про модель FLUX.2 от Black Forest Labs?",
+    "category": "entity",
+    "expected_answer": "Black Forest Labs выпустили FLUX.2 с возможностью быстрого и консистентного редактирования изображений.",
+    "expected_documents": [
+      "ai_newz:4276"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q12",
+    "query": "Что нового у Anthropic? Какие изменения в конституции Claude?",
+    "category": "entity",
+    "expected_answer": "Anthropic опубликовали новую конституцию Claude с обновлёнными принципами.",
+    "expected_documents": [
+      "ai_machinelearning_big_data:9418"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q13",
+    "query": "Что нового в Segment Anything 3?",
+    "category": "entity",
+    "expected_answer": "На ICLR вышла SAM 3 — zero-shot сегментатор с фокусом на видео. Meta также представила SAM-Audio.",
+    "expected_documents": [
+      "boris_again:3511",
+      "ai_newz:4334"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q14",
+    "query": "Какие возможности у Llama моделей от Meta?",
+    "category": "entity",
+    "expected_answer": "Llama 3.1 8B Instruct используется для SFT и Long-CoT генерации. DolphinGemma использует Llama-архитектуру.",
+    "expected_documents": [
+      "stuffynlp:205",
+      "gonzo_ml:3830"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q15",
+    "query": "Что Борис Цейтлин думает о Claude Opus 4.6?",
+    "category": "channel",
+    "expected_answer": "Борис Цейтлин считает Opus 4.6 самым близким к автономной модели на данный момент.",
+    "expected_documents": [
+      "boris_again:3740"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q16",
+    "query": "Что было на GTC 2026 от NVIDIA?",
+    "category": "temporal",
+    "expected_answer": "На GTC 2026 NVIDIA представила платформу Vera Rubin с GPU нового поколения.",
+    "expected_documents": [
+      "ai_machinelearning_big_data:9678"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q17",
+    "query": "Какие open-source модели для генерации изображений существуют?",
+    "category": "broad",
+    "expected_answer": "FLUX.2 от Black Forest Labs и Kandinsky 5.0 от Сбера — открытые модели генерации изображений.",
+    "expected_documents": [
+      "ai_newz:4276",
+      "data_secrets:8305"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q18",
+    "query": "Как развивается рынок беспилотных автомобилей и роботакси?",
+    "category": "broad",
+    "expected_answer": "Pony.ai запустили роботакси в Шэньчжэне, на CES 2026 показали роботакси от Uber и Nuro.",
+    "expected_documents": [
+      "techsparks:5286",
+      "aioftheday:4001"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q19",
+    "query": "Какие проблемы возникали с DeepSeek в плане безопасности?",
+    "category": "entity",
+    "expected_answer": "Главной целью атак на DeepSeek был сбор датасетов для копирования reasoning и работы с инструментами.",
+    "expected_documents": [
+      "ai_machinelearning_big_data:9583"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q20",
+    "query": "Что обсуждалось на тему gig economy и AI?",
+    "category": "broad",
+    "expected_answer": "Себрант обсуждал влияние AI на gig economy и трансформацию рынка труда.",
+    "expected_documents": [
+      "techsparks:5212"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q21",
+    "query": "Что seeallochnaya писал про GPT-5?",
+    "category": "channel",
+    "expected_answer": "seeallochnaya писал о выходе GPT-5.3 и GPT-5.4 с интервалом в два дня.",
+    "expected_documents": [
+      "seeallochnaya:3445"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q22",
+    "query": "Какие последние новости о Sora 2 от OpenAI?",
+    "category": "entity",
+    "expected_answer": "OpenAI выпустили Sora 2 — модель генерации видео нового поколения.",
+    "expected_documents": [
+      "ai_newz:4200"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q23",
+    "query": "Что нового у OpenAI было в январе 2026?",
+    "category": "temporal",
+    "expected_answer": "В январе 2026 Anthropic обновили конституцию Claude, OpenAI развивали ChatGPT.",
+    "expected_documents": [
+      "ai_machinelearning_big_data:9418"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q24",
+    "query": "Какие AI-стартапы привлекли крупные инвестиции в 2026?",
+    "category": "broad",
+    "expected_answer": "Waabi привлёк миллиард долларов на беспилотные грузоперевозки.",
+    "expected_documents": [
+      "aioftheday:4080"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q25",
+    "query": "Как llm_under_hood описывает работу JSON schema в LLM?",
+    "category": "channel",
+    "expected_answer": "Если JSON схема не добавляется в промпт, промпт будет 20-30 токенов и ответ не будет содержать нужную структуру.",
+    "expected_documents": [
+      "llm_under_hood:684"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q26",
+    "query": "Существует ли модель GPT-7?",
+    "category": "negative",
+    "expected_answer": "",
+    "expected_documents": [],
+    "answerable": false
+  },
+  {
+    "id": "v3_q27",
+    "query": "Какие были релизы Яндекса в области AI?",
+    "category": "entity",
+    "expected_answer": "Яндекс обсуждал появление Sora 2 и её влияние на рынок генерации видео.",
+    "expected_documents": [
+      "techno_yandex:4463"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q28",
+    "query": "Что писали про применение AI в медицине?",
+    "category": "broad",
+    "expected_answer": "Google DeepMind представили мощного AI-математика, Авито запустили AI лабу с прикладным уклоном.",
+    "expected_documents": [
+      "data_secrets:8727"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q29",
+    "query": "Какой телеграм-канал вёл Андрей Себрант и о чём писал?",
+    "category": "channel",
+    "expected_answer": "Андрей Себрант вёл канал techsparks, обсуждал AI-тренды, маркетинг и новогодний спецвыпуск подкаста.",
+    "expected_documents": [
+      "techsparks:5147",
+      "techsparks:5366"
+    ],
+    "answerable": true
+  },
+  {
+    "id": "v3_q30",
+    "query": "Выходила ли модель Bard 3 от Google?",
+    "category": "negative",
+    "expected_answer": "",
+    "expected_documents": [],
+    "answerable": false
+  }
+]

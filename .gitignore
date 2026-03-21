@@ -20,6 +20,11 @@ __pycache__/
 # Large data files (ColBERT vectors, whitening params, etc.)
 datasets/_*
 
+# Audio/video files (too large for git)
+datasets/*.m4a
+datasets/*.mp3
+datasets/*.wav
+
 # Telethon sessions
 /sessions/
 
@@ -28,5 +33,12 @@ datasets/_*
 .idea/
 .DS_Store
 
-# Results & reports (generated)
+# Claude Code
+.claude/
+
+# Temp test files
+test_*.json
+
+# Results & reports (generated, inside container and host)
 /results/
+src/results/

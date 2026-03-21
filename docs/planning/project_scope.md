@@ -1,7 +1,7 @@
 # Project Scope: rag_app как портфолио-проект
 
 > Живой документ. Обновляется по мере продвижения.
-> Последнее обновление: 2026-03-20
+> Последнее обновление: 2026-03-22
 
 ---
 
@@ -332,23 +332,58 @@ Eval-запросы: фактические, аналитические, tempora
 - LLM выбирает `search` (broad) для "Сравни GPT-5 и Claude" → без фильтров ✅
 - Dynamic visibility: 3-4 tools видны LLM вместо 7 → лучший accuracy tool selection
 
-### Phase 3.3: Eval Expansion + Ablation Study [INTERVIEW KILLER]
+### Phase 3.3: Eval перестройка + Ablation Study [INTERVIEW KILLER]
 
-**Eval expansion:**
-- [ ] Расширить до 50+ вопросов (10+ per query type)
-- [ ] Strategy labels для каждого вопроса (expected routing)
-- [ ] RAGAS synthetic generation + ручная верификация
-- [ ] Faithfulness metric (LLM-as-judge или NLI)
+> Strict document matching неадекватна для open-ended вопросов (strict recall=0.167, LLM judge=0.71 на тех же 6 ответах).
+> "Чем больше градусников, тем лучше" — Андрей Соколов, Яндекс (R15).
+> YaC AI Meetup (R15) подтверждает направление, но R15 — анализ конференции, не наш собственный ресерч. Треки из R15 требуют отдельных deep research (R16+) перед реализацией.
 
-**Ablation study:**
-- [ ] LlamaIndex baseline (VectorStoreIndex + Qdrant + тот же корпус)
-- [ ] Ablation table: без ColBERT, без RRF, без multi-query, BM25-only, dense-only
-- [ ] Per-component Δ: вклад каждого компонента в recall, latency
-- [ ] Comparison: adaptive vs linear pipeline per query type
+**Шаг 1 — Multi-criteria LLM judge (заменяет strict recall):**
+- [ ] Прогнать eval v3 (30 Qs) на текущем коде (system prompt fix + hints injection)
+- [ ] Claude как judge оценивает каждый ответ по 4 критериям (0-1): полезность, фактологичность, подтверждённость цитатами, полнота
+- [ ] Каждый критерий оценивается отдельно (Яндекс: LLM judge fails на фактах, если оценивать одним числом)
+- [ ] Strict recall@5 остаётся как вспомогательная метрика для entity/product вопросов
+- **Конкретный результат**: таблица 30 вопросов × 4 критерия + overall score
+- Ref: R15 — Соколов §10 (3 стадии eval), Вихров (LLM judge fails для фактов)
 
-**Для собеса**: "Мой custom pipeline даёт recall 0.7X, LlamaIndex out-of-box — 0.XX. Вот ablation каждого компонента."
+**Шаг 2 — Robustness-метрики:**
+- [ ] **RSR (Retrieval Size Robustness)**: один и тот же вопрос с k=3, 5, 10, 15 — качество должно монотонно расти
+- [ ] **Order robustness**: shuffle top-5 чанков перед генерацией — ответ не должен существенно меняться (lost-in-the-middle)
+- [ ] **NDR (Non-Degradation Rate)**: ответ с контекстом не хуже ответа без контекста
+- **Конкретный результат**: 3 новые метрики в eval pipeline, числа в playbook
+- Ref: R15 — Соколов §6. Требует отдельный deep research (R16) для методологии измерения
 
-### Phase 3.4: Advanced Techniques [WEEK 2+ после Tool Router]
+**Шаг 3 — Ablation study:**
+- [ ] LlamaIndex baseline: VectorStoreIndex + Qdrant + тот же корпус 13K docs
+- [ ] Ablation table: отключаем по одному компоненту (ColBERT, RRF weighting, multi-query, tool selection) и меряем
+- [ ] Per-component Δ: вклад каждого компонента в recall и latency
+- **Конкретный результат**: таблица "с компонентом vs без" с числами
+
+**Для собеса**: "Мой custom pipeline даёт recall 0.7X по 4 критериям, LlamaIndex out-of-box — 0.XX. Вот ablation каждого компонента. Плюс 3 robustness-метрики."
+
+### Phase 3.4: Advanced Techniques [WEEK 2+]
+
+> Треки из R15. Каждый требует отдельного ресерча (R16-R18) перед реализацией.
+
+**RAG Necessity Classifier** — не всем запросам нужен поиск:
+- [ ] Deep research (R16): изучить подходы — perplexity, tool call decision, обратный сигнал (Соколов), irrelevance subset при обучении (Цымбой)
+- [ ] Простая эвристика как proof of concept: conversational queries → skip RAG
+- [ ] Если эвристика работает → обучить быстрый классификатор на логах агента
+- **Target**: -25% latency, +quality (Яндекс достиг этого)
+- Ref: R15 — Соколов §7, Цымбой §irrelevance subset
+
+**SFT/RLHF для RAG и Function Calling:**
+- [ ] Deep research (R17): pipeline синтетических данных для FC (Цымбой: 1.5M сэмплов, Qwen 32B → Claude-level)
+- [ ] Собрать 1K+ трейсов агента из eval прогонов
+- [ ] Если достаточно данных → LoRA/QLoRA Qwen3-30B на V100
+- **Target**: +19% по RAG (Соколов), Claude-level FC accuracy (Цымбой)
+- Ref: R15 — Соколов §8, Цымбой §SFT+GRPO. Яндекс: fine-tune диспетчера НЕ помог (Вихров), но SFT самой модели помог
+
+**NLI Citation Verification** — faithfulness metric:
+- [ ] XLM-RoBERTa-large-xnli (Russian+English, ~400M params, CPU или 5060 Ti)
+- [ ] Decompose ответ на claims → NLI entailment check
+- [ ] Target faithfulness ≥ 0.92
+- Ref: R14-deep §NLI
 
 **NLI Citation Verification** — faithfulness metric:
 - [ ] XLM-RoBERTa-large-xnli (Russian+English, ~400M params, CPU или 5060 Ti)
@@ -415,12 +450,14 @@ Eval-запросы: фактические, аналитические, tempora
 ```
 Phase 3.0: Расширение коллекции (36 каналов, 13124 точки)                    [DONE]
 Phase 3.1: Evaluation + Pipeline Optimization (recall 0.15→0.76)             [DONE]
-Phase 3.2: Adaptive Retrieval + Tool Router                                   [DONE — core, CRAG-lite pending]
-Phase 3.3: Eval Expansion + Ablation Study + LlamaIndex Baseline             [NEXT — приоритет #1]
-Phase 3.4: Advanced Techniques (NLI, Speculative RAG, Compression)           [Week 2+]
+Phase 3.2: Adaptive Retrieval + Tool Router                                   [DONE — LLM tool selection работает]
+Phase 3.3: Eval Revolution + Ablation Study                                   [NEXT — LLM judge + robustness]
+Phase 3.4: Advanced Techniques (RAG classifier, SFT, NLI, Speculative RAG)  [Week 2+]
 Phase 3.5: README + архитектурная диаграмма + comparison tables              [Параллельно с 3.3]
 Phase 3.6: Observability                                                      [После 3.5]
 Phase 3.7: UI polish                                                          [Lowest priority]
+
+Исследовательская база: R01-R15 (15 отчётов, включая R15 — анализ Яндекс RAG конфы)
 ```
 
 ---
