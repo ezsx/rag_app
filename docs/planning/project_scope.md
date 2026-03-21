@@ -246,12 +246,14 @@ Eval-запросы: фактические, аналитические, tempora
 - [x] Channel dedup (max 2/channel)
 - [x] MMR, PCA whitening 512/1024, DBSF — протестированы и отклонены с evidence
 
-**Текущие метрики (2026-03-20):**
+**Текущие метрики (2026-03-21):**
 | Dataset | Recall@5 | Coverage | Тип |
 |---------|----------|----------|-----|
 | v1 (10 Qs) | **0.76** | 0.86 | Agent eval |
-| v2 (10 Qs, сложные) | **0.61** | 0.80 | Agent eval |
+| v2 (10 Qs, сложные) | **0.685** | 0.81 | Agent eval (с LLM tool selection) |
 | 100 Qs, RRF+ColBERT | **0.73** | — | Retrieval eval |
+
+> v2 recall 0.61 → **0.685** (+12.3%) после LLM tool selection. LLM сам выбирает temporal_search/channel_search/broad search. Q8 (long_tail): 0.0→1.0.
 
 **Что НЕ сработало (с evidence):**
 | Техника | Результат | Почему |
@@ -312,16 +314,23 @@ Eval-запросы: фактические, аналитические, tempora
 - Papers: Adaptive-RAG +5-31pp, CRAG +7-37%, RouteRAG 97.6-100% EM accuracy
 
 **Задачи:**
-- [ ] Расширить query_plan JSON schema (strategy enum + filters)
-- [ ] Rule-based hint extraction (dates, channels, entities)
-- [ ] 4 tool wrappers вокруг base_search с Qdrant filters
-- [ ] Dynamic tool visibility по query signals
-- [ ] 3-tier fallback chain (specialized → broadened → broad)
-- [ ] AgentState: strategy, applied_filters, routing_source
+- [x] Расширить query_plan JSON schema (strategy enum + filters)
+- [x] Rule-based hint extraction (dates, channels, entities) — `src/services/query_signals.py`
+- [x] Strategy dispatch с Qdrant filters (temporal: DatetimeRange, channel: MatchValue)
+- [x] 3-tier fallback chain (specialized → broadened → broad)
+- [x] AgentState: strategy, applied_filters, routing_source
+- [x] LLM-visible specialized tools (temporal_search, channel_search) + dynamic visibility
+- [x] LLM сам выбирает tool → v2 recall 0.61→0.685 (+12.3%)
+- **Отложено**: entity inject в queries — ломает round-robin баланс
 - [ ] CRAG-lite: ColBERT scores как quality gate
+- [ ] Обновить eval dataset: альтернативные expected sources
 - [ ] Routing accuracy eval (отдельный от recall)
-- [ ] Per-category recall breakdown (temporal, channel, entity, broad)
-- [ ] Regression test: v1+v2 recall не падает
+
+**Результаты (2026-03-21):**
+- LLM выбирает `temporal_search` для "NVIDIA в начале 2026" → date filter → Vera Rubin найден ✅
+- LLM выбирает `channel_search` для "gonzo_ml про трансформеры" → channel filter ✅
+- LLM выбирает `search` (broad) для "Сравни GPT-5 и Claude" → без фильтров ✅
+- Dynamic visibility: 3-4 tools видны LLM вместо 7 → лучший accuracy tool selection
 
 ### Phase 3.3: Eval Expansion + Ablation Study [INTERVIEW KILLER]
 
@@ -406,8 +415,8 @@ Eval-запросы: фактические, аналитические, tempora
 ```
 Phase 3.0: Расширение коллекции (36 каналов, 13124 точки)                    [DONE]
 Phase 3.1: Evaluation + Pipeline Optimization (recall 0.15→0.76)             [DONE]
-Phase 3.2: Adaptive Retrieval + Tool Router                                   [NEXT — приоритет #1]
-Phase 3.3: Eval Expansion + Ablation Study + LlamaIndex Baseline             [После 3.2]
+Phase 3.2: Adaptive Retrieval + Tool Router                                   [DONE — core, CRAG-lite pending]
+Phase 3.3: Eval Expansion + Ablation Study + LlamaIndex Baseline             [NEXT — приоритет #1]
 Phase 3.4: Advanced Techniques (NLI, Speculative RAG, Compression)           [Week 2+]
 Phase 3.5: README + архитектурная диаграмма + comparison tables              [Параллельно с 3.3]
 Phase 3.6: Observability                                                      [После 3.5]

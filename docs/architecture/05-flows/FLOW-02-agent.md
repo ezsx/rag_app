@@ -23,9 +23,10 @@ Content-Type: application/json
 ### Actors
 - **Client** — browser (Web UI) / evaluate_agent.py
 - **FastAPI** — HTTP layer, SSE stream
-- **AgentService** — ReAct loop owner, native function calling
+- **AgentService** — ReAct loop owner, native function calling, adaptive tool selection
+- **QuerySignals** — rule-based pre-validator (<1ms): extracts dates, channels, entities
 - **ToolRunner** — tool registry + timeout execution
-- **LLM** — Qwen3-30B-A3B GGUF (llama-server, V100; `--jinja --reasoning-budget 0`)
+- **LLM** — Qwen3-30B-A3B GGUF (llama-server, V100; `--jinja --reasoning-budget 0`). Выбирает из search/temporal_search/channel_search
 - **HybridRetriever** — Qdrant: BM25+Dense → weighted RRF 3:1 → ColBERT MaxSim → channel dedup
 - **RerankerService** — bge-reranker-v2-m3 cross-encoder (GPU, RTX 5060 Ti)
 - **QueryPlannerService** — тот же LLM endpoint (не отдельный CPU процесс)
@@ -96,11 +97,25 @@ sequenceDiagram
   end
 ```
 
+### Adaptive Tool Selection
+
+LLM видит **специализированные search tools** и сам выбирает нужный:
+
+| Tool | Когда LLM выбирает | Qdrant filter |
+|------|-------------------|---------------|
+| `search` | Общие/сравнительные запросы (default) | Нет фильтров |
+| `temporal_search` | "в январе 2026", "последние новости" | DatetimeRange по date |
+| `channel_search` | "gonzo_ml про трансформеры" | MatchValue по channel |
+
 ### Dynamic Tool Visibility
 
-- `final_answer` **скрыт** до выполнения `search` — LLM не может пропустить поиск
+Два уровня:
+1. **Post-search**: `final_answer`/`compose_context` **скрыты** до выполнения search
+2. **Query signals**: `temporal_search` скрыт если нет дат в запросе, `channel_search` скрыт если нет каналов → LLM видит 3-4 tools вместо 7
+
 - Если LLM не вызывает tools → **forced search** с оригинальным запросом пользователя
 - Оригинальный запрос **всегда** добавляется в subqueries (BM25 keyword match)
+- Rule-based pre-validator (`query_signals.py`) извлекает даты/каналы/entities за <1ms
 
 ### Multi-Query Search Detail
 

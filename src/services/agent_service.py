@@ -20,6 +20,7 @@ from schemas.agent import (
     ToolResponse,
 )
 from services.qa_service import QAService
+from services.query_signals import extract_query_signals
 from services.tools.tool_runner import ToolRunner
 
 logger = logging.getLogger(__name__)
@@ -71,8 +72,9 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
         "function": {
             "name": "search",
             "description": (
-                "Выполняет гибридный поиск dense+sparse с RRF по коллекции "
-                "Telegram-каналов и возвращает документы."
+                "Широкий поиск по всей базе AI/ML новостей из Telegram-каналов. "
+                "Используй когда НЕ нужен фильтр по дате или каналу, "
+                "или для общих/сравнительных запросов. Это fallback если другие инструменты не подходят."
             ),
             "parameters": {
                 "type": "object",
@@ -80,7 +82,7 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
                     "queries": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Список поисковых запросов (1-5 штук)",
+                        "description": "Список поисковых запросов (2-5 штук)",
                     },
                     "k": {
                         "type": "integer",
@@ -89,6 +91,74 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
                     },
                 },
                 "required": ["queries"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "temporal_search",
+            "description": (
+                "Поиск новостей за конкретный период времени. "
+                "Используй когда в запросе есть даты, месяцы, периоды: "
+                "'в январе 2026', 'последние новости', 'что нового за неделю'. "
+                "НЕ используй для вопросов без привязки ко времени."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "queries": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Список поисковых запросов (2-5 штук)",
+                    },
+                    "date_from": {
+                        "type": "string",
+                        "description": "Начало периода ISO YYYY-MM-DD",
+                    },
+                    "date_to": {
+                        "type": "string",
+                        "description": "Конец периода ISO YYYY-MM-DD",
+                    },
+                    "k": {
+                        "type": "integer",
+                        "description": "Количество результатов",
+                        "default": 15,
+                    },
+                },
+                "required": ["queries", "date_from", "date_to"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "channel_search",
+            "description": (
+                "Поиск в конкретном Telegram-канале. "
+                "Используй когда упоминается канал или автор: "
+                "'gonzo_ml', 'llm_under_hood', 'techsparks', 'Сапунов', 'Себрант'. "
+                "НЕ используй для общих вопросов без указания канала."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "queries": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Список поисковых запросов (2-5 штук)",
+                    },
+                    "channel": {
+                        "type": "string",
+                        "description": "Имя канала: gonzo_ml, llm_under_hood, ai_newz, techsparks, boris_again, seeallochnaya и др.",
+                    },
+                    "k": {
+                        "type": "integer",
+                        "description": "Количество результатов",
+                        "default": 10,
+                    },
+                },
+                "required": ["queries", "channel"],
             },
         },
     },
@@ -213,6 +283,7 @@ class AgentService:
 
         self._current_request_id = request_id
         self._current_query = request.query
+        self._query_signals = extract_query_signals(request.query)
         self._last_search_hits = []
         self._last_search_route = None
         self._last_plan_summary = None
@@ -842,7 +913,13 @@ class AgentService:
                         step=step,
                         error="security_violation",
                     )
-            tool_request = ToolRequest(tool=tool_name, input=normalized)
+            # Специализированные search tools маппятся на "search" в ToolRunner.
+            # Фильтры уже в normalized (из _normalize_tool_params).
+            actual_tool = tool_name
+            if tool_name in ("temporal_search", "channel_search"):
+                actual_tool = "search"
+
+            tool_request = ToolRequest(tool=actual_tool, input=normalized)
             return self.tool_runner.run(request_id, step, tool_request)
         except Exception as exc:
             logger.error("Ошибка выполнения инструмента %s: %s", tool_name, exc)
@@ -863,7 +940,25 @@ class AgentService:
             normalized.setdefault("query", self._current_query or "")
             return normalized
 
-        if tool_name == "search":
+        # temporal_search и channel_search маппятся на search() с фильтрами.
+        # LLM выбирает tool — мы преобразуем в unified search() call.
+        if tool_name == "temporal_search":
+            filters = {}
+            if normalized.get("date_from"):
+                filters["date_from"] = normalized.pop("date_from")
+            if normalized.get("date_to"):
+                filters["date_to"] = normalized.pop("date_to")
+            normalized["filters"] = filters
+            # Fall through to search normalization below
+
+        if tool_name == "channel_search":
+            filters = {}
+            if normalized.get("channel"):
+                filters["channel"] = normalized.pop("channel")
+            normalized["filters"] = filters
+            # Fall through to search normalization below
+
+        if tool_name in ("search", "temporal_search", "channel_search"):
             if not normalized.get("queries"):
                 if normalized.get("query"):
                     normalized["queries"] = [str(normalized.pop("query"))]
@@ -892,11 +987,10 @@ class AgentService:
             )
             normalized.setdefault("route", "hybrid")
 
-            # Прокидываем metadata_filters из query_plan (date_from/date_to, channel и пр.)
+            # Прокидываем metadata_filters из query_plan (если tool не передал свои)
             if not normalized.get("filters") and self._last_plan_summary:
                 plan_filters = self._last_plan_summary.get("metadata_filters")
                 if isinstance(plan_filters, dict):
-                    # Убираем None значения
                     clean_filters = {
                         k: v for k, v in plan_filters.items() if v is not None
                     }
@@ -1020,7 +1114,7 @@ class AgentService:
             self._last_plan_summary = action.output.data.get("plan") or {}
             return
 
-        if action.tool == "search":
+        if action.tool in ("search", "temporal_search", "channel_search"):
             self._last_search_hits = list(action.output.data.get("hits", []) or [])
             self._last_search_route = action.output.data.get("route_used")
             self._agent_state.search_count += 1
@@ -1028,7 +1122,8 @@ class AgentService:
             self._agent_state.strategy = action.output.data.get("strategy", "broad")
             self._agent_state.routing_source = action.output.data.get("routing_source", "default")
             logger.info(
-                "Agent search | strategy=%s | routing_source=%s | hits=%d",
+                "Agent search | tool=%s | strategy=%s | routing_source=%s | hits=%d",
+                action.tool,
                 self._agent_state.strategy,
                 self._agent_state.routing_source,
                 len(self._last_search_hits),
@@ -1381,19 +1476,35 @@ class AgentService:
         except Exception:
             return json.dumps({"error": "serialization_failed"}, ensure_ascii=False)
 
-    @staticmethod
-    def _get_step_tools(agent_state) -> List[Dict[str, Any]]:
+    def _get_step_tools(self, agent_state) -> List[Dict[str, Any]]:
         """Динамический набор tools в зависимости от состояния агента.
 
-        final_answer доступен только после search — архитектурная гарантия
-        что LLM не пропустит поиск. Промпт-инструкции ненадёжны для маленьких
-        моделей (Qwen3-30B, 3B active params).
+        Два уровня visibility:
+        1. final_answer/compose_context скрыты до search (архитектурная гарантия)
+        2. Специализированные search tools скрыты по query signals:
+           - Нет дат → скрыть temporal_search
+           - Нет @каналов → скрыть channel_search
+           → LLM видит 3-4 tools вместо 7, что повышает accuracy (R13-deep "Less is More")
         """
         search_done = agent_state.search_count > 0
+
+        # После search: post-search tools
         if search_done:
-            return AGENT_TOOLS  # все 5 tools
-        # До search: только query_plan, search, rerank (без final_answer и compose_context)
-        return [t for t in AGENT_TOOLS if t["function"]["name"] not in ("final_answer", "compose_context")]
+            return [t for t in AGENT_TOOLS if t["function"]["name"] not in
+                    ("temporal_search", "channel_search")]
+
+        # До search: скрываем post-search tools + фильтруем search tools по signals
+        hidden = {"final_answer", "compose_context"}
+
+        # Dynamic visibility: скрываем irrelevant search tools
+        signals = getattr(self, "_query_signals", None)
+        if signals:
+            if not signals.date_from and signals.strategy_hint != "temporal":
+                hidden.add("temporal_search")
+            if not signals.channels and signals.strategy_hint != "channel":
+                hidden.add("channel_search")
+
+        return [t for t in AGENT_TOOLS if t["function"]["name"] not in hidden]
 
     @staticmethod
     def _trim_messages(
