@@ -110,6 +110,10 @@ class QueryPlannerService:
                 "maximum": 50,
             },
             "fusion": {"type": "string", "enum": ["rrf", "mmr"]},
+            "strategy": {
+                "type": "string",
+                "enum": ["broad", "temporal", "channel", "entity"],
+            },
         },
         "required": [
             "normalized_queries",
@@ -118,6 +122,7 @@ class QueryPlannerService:
             "metadata_filters",
             "k_per_query",
             "fusion",
+            "strategy",
         ],
     }
 
@@ -321,6 +326,30 @@ class QueryPlannerService:
         if len(normalized_queries) > settings.max_plan_subqueries:
             normalized_queries = normalized_queries[: settings.max_plan_subqueries]
 
+        # Strategy: из LLM или rule override
+        strategy = str(raw.get("strategy") or "broad").lower()
+        if strategy not in ("broad", "temporal", "channel", "entity"):
+            strategy = "broad"
+
+        # Rule-based override: если signals с высокой confidence — доверяем regex
+        from services.query_signals import extract_query_signals
+        signals = extract_query_signals(user_query)
+        if signals.strategy_hint and signals.confidence >= 0.8:
+            strategy = signals.strategy_hint
+            logger.debug(
+                "QueryPlanner: rule override strategy=%s (confidence=%.2f)",
+                strategy, signals.confidence,
+            )
+            # Дополняем metadata из signals если LLM не заполнил
+            if not meta_obj:
+                meta_obj = {}
+            if signals.date_from and not meta_obj.get("date_from"):
+                meta_obj["date_from"] = signals.date_from
+            if signals.date_to and not meta_obj.get("date_to"):
+                meta_obj["date_to"] = signals.date_to
+            if signals.channels and not meta_obj.get("channel_usernames"):
+                meta_obj["channel_usernames"] = signals.channels
+
         return SearchPlan(
             normalized_queries=normalized_queries,
             must_phrases=must_phrases,
@@ -328,6 +357,7 @@ class QueryPlannerService:
             metadata_filters=MetadataFilters(**meta_obj) if meta_obj else None,
             k_per_query=k_per_query,
             fusion=fusion,
+            strategy=strategy,
         )
 
     def _call_planner_llm(self, prompt: str) -> Dict[str, Any]:
@@ -453,6 +483,11 @@ class QueryPlannerService:
 - Остальные фильтры (channel_usernames, channel_ids, min_views, reply_to) заполняй только если явно просили.
 - k_per_query разумное значение (по умолчанию {self.settings.search_k_per_query_default}).
 - fusion — "rrf" или "mmr" (по умолчанию {self.settings.fusion_strategy}).
+- strategy — одно из: "broad", "temporal", "channel", "entity":
+  * "temporal" — запрос упоминает конкретные даты, месяцы, периоды, "недавно", "последний"
+  * "channel" — запрос упоминает конкретный Telegram-канал или автора канала
+  * "entity" — запрос о конкретном продукте, компании, человеке, технологии (NVIDIA, GPT-5, Claude)
+  * "broad" — default для общих, сравнительных, обзорных запросов
 
 ПРИМЕР:
 Запрос: "Найди новости про DeepSeek-V3.1: новые цены API, когда вступают" ->
@@ -466,7 +501,8 @@ class QueryPlannerService:
   "should_phrases": ["цены", "стоимость", "дата вступления"],
   "metadata_filters": null,
   "k_per_query": {self.settings.search_k_per_query_default},
-  "fusion": "{self.settings.fusion_strategy}"
+  "fusion": "{self.settings.fusion_strategy}",
+  "strategy": "entity"
 }}
 
 ФОРМАТ ОТВЕТА (ТОЛЬКО JSON):
@@ -483,7 +519,8 @@ class QueryPlannerService:
       "reply_to": 123
   }},
   "k_per_query": {self.settings.search_k_per_query_default},
-  "fusion": "{self.settings.fusion_strategy}"
+  "fusion": "{self.settings.fusion_strategy}",
+  "strategy": "broad"
 }}
 </s>
 <s>user

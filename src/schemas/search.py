@@ -46,6 +46,9 @@ class SearchPlan(BaseModel):
     metadata_filters: Optional[MetadataFilters] = None
     k_per_query: int = Field(..., gt=0)
     fusion: Literal["rrf", "mmr"] = Field("rrf")
+    strategy: Literal["broad", "temporal", "channel", "entity"] = Field(
+        "broad", description="Стратегия поиска: broad|temporal|channel|entity"
+    )
 
     @validator("normalized_queries")
     def non_empty_queries(cls, v: List[str]):

@@ -169,6 +169,10 @@ class AgentState:
         self.max_refinements: int = 2
         self.low_coverage_disclaimer: bool = False
         self.search_count: int = 0
+        # Adaptive retrieval state
+        self.strategy: str = "broad"
+        self.applied_filters: Dict[str, Any] = {}
+        self.routing_source: str = "default"
 
 
 class AgentService:
@@ -1020,6 +1024,15 @@ class AgentService:
             self._last_search_hits = list(action.output.data.get("hits", []) or [])
             self._last_search_route = action.output.data.get("route_used")
             self._agent_state.search_count += 1
+            # Adaptive retrieval state tracking
+            self._agent_state.strategy = action.output.data.get("strategy", "broad")
+            self._agent_state.routing_source = action.output.data.get("routing_source", "default")
+            logger.info(
+                "Agent search | strategy=%s | routing_source=%s | hits=%d",
+                self._agent_state.strategy,
+                self._agent_state.routing_source,
+                len(self._last_search_hits),
+            )
             return
 
         if action.tool == "rerank":

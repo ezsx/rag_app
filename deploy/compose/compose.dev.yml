@@ -53,7 +53,7 @@ services:
       - EMBEDDING_TEI_URL=http://host.docker.internal:8082
       # Reranker — gpu_server.py на том же порту что embedding (WSL2 native, RTX 5060 Ti)
       - RERANKER_TEI_URL=http://host.docker.internal:8082
-      # Qdrant — Docker CPU
+      # Qdrant — compose-managed, порт 16333 снаружи, 6333 внутри
       - QDRANT_URL=http://qdrant:6333
       - QDRANT_COLLECTION=news_colbert
       # Alternatives: news (baseline), news_whitened (PCA 1024, паритет)
@@ -85,7 +85,7 @@ services:
       - PYTHONPATH=/app/src
       - TG_SESSION=/app/sessions/telegram.session
       - QDRANT_URL=http://qdrant:6333
-      - QDRANT_COLLECTION=news
+      - QDRANT_COLLECTION=news_colbert
       - EMBEDDING_TEI_URL=http://host.docker.internal:8082
 
 volumes:

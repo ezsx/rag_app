@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 
 from schemas.search import SearchPlan, MetadataFilters
 from adapters.search.hybrid_retriever import HybridRetriever
+from services.query_signals import extract_query_signals
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,12 @@ def search(
     )
 
     try:
+        # --- Adaptive retrieval: extract signals и определить strategy ---
+        original_query = deduped_queries[0] if deduped_queries else ""
+        signals = extract_query_signals(original_query)
+        strategy = "broad"
+        routing_source = "default"
+
         metadata_filters = None
         if filters:
             channel_value = filters.get("channel")
@@ -113,9 +120,44 @@ def search(
                 reply_to=filters.get("reply_to"),
             )
 
-        logger.debug(
-            "search tool filters | raw=%s | metadata=%s",
-            filters,
+        # Rule-based strategy routing (если LLM не передал фильтры)
+        if signals.strategy_hint and signals.confidence >= 0.8:
+            strategy = signals.strategy_hint
+            routing_source = "rules"
+
+            if not metadata_filters:
+                metadata_filters = MetadataFilters()
+
+            # Temporal: inject dates
+            if strategy == "temporal" and signals.date_from:
+                if not metadata_filters.date_from:
+                    metadata_filters.date_from = signals.date_from
+                if not metadata_filters.date_to:
+                    metadata_filters.date_to = signals.date_to
+
+            # Channel: inject channel filter
+            if strategy == "channel" and signals.channels:
+                if not metadata_filters.channel_usernames:
+                    metadata_filters.channel_usernames = signals.channels
+
+        # Entity: меняем только strategy label (для логирования и будущего routing).
+        # НЕ инжектируем entity names в queries — LLM уже генерирует
+        # subqueries с entities, а regex inject вытесняет разнообразие из round-robin.
+        if signals.entities and (not strategy or strategy == "broad"):
+            strategy = "entity"
+            routing_source = "rules"
+
+        logger.info(
+            "search tool adaptive | strategy=%s | routing_source=%s | signals=%s | filters=%s",
+            strategy,
+            routing_source,
+            {
+                "hint": signals.strategy_hint,
+                "confidence": signals.confidence,
+                "entities": signals.entities[:3],
+                "channels": signals.channels,
+                "date_from": signals.date_from,
+            },
             metadata_filters.dict(exclude_none=True) if metadata_filters else {},
         )
 
@@ -124,6 +166,7 @@ def search(
             metadata_filters=metadata_filters,
             k_per_query=max(1, int(k)),
             fusion="rrf",
+            strategy=strategy,
         )
 
         candidates: List[Any] = []
@@ -163,6 +206,38 @@ def search(
                 len(deduped_queries),
             )
 
+        # Fallback: если strategy != broad и мало результатов → retry без фильтров
+        if len(candidates) < 3 and strategy != "broad" and metadata_filters:
+            logger.info(
+                "search tool fallback | strategy=%s → broad | candidates=%d < 3",
+                strategy, len(candidates),
+            )
+            fallback_plan = SearchPlan(
+                normalized_queries=deduped_queries,
+                metadata_filters=None,
+                k_per_query=max(1, int(k)),
+                fusion="rrf",
+                strategy="broad",
+            )
+            routing_source = "fallback"
+            fallback_results: List[Any] = []
+            for q in deduped_queries:
+                try:
+                    sub = hybrid_retriever.search_with_plan(q, fallback_plan)
+                    fallback_results.append(sub)
+                except Exception as err:
+                    logger.error("Fallback search failed for '%s': %s", q[:60], err)
+            # Merge fallback с existing (existing first — они более targeted)
+            existing_ids = {c.id for c in candidates}
+            max_len_fb = max((len(r) for r in fallback_results), default=0)
+            for rank_idx in range(max_len_fb):
+                for sub_result in fallback_results:
+                    if rank_idx < len(sub_result):
+                        c = sub_result[rank_idx]
+                        if c.id not in existing_ids:
+                            candidates.append(c)
+                            existing_ids.add(c.id)
+
         if not candidates:
             logger.warning(
                 "search tool returned no candidates | total_ms=%s | route=%s",
@@ -173,6 +248,7 @@ def search(
                 "hits": [],
                 "error": "No results",
                 "route_used": route_used,
+                "strategy": strategy,
             }
 
         # Ограничиваем количество результатов
@@ -229,7 +305,13 @@ def search(
             len(hits),
             hybrid_duration_ms,
         )
-        return {"hits": hits, "total_found": len(hits), "route_used": route_used}
+        return {
+            "hits": hits,
+            "total_found": len(hits),
+            "route_used": route_used,
+            "strategy": strategy,
+            "routing_source": routing_source,
+        }
 
     except Exception as e:
         logger.error(f"Error in search tool: {e}")

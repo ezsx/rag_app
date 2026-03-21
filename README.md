@@ -13,7 +13,7 @@ User asks a question → ReAct agent plans sub-queries → hybrid retrieval (BM2
 ```
 Query → query_plan (LLM) → search (BM25+Dense → RRF → ColBERT) → rerank → compose_context → answer
 ```
-
+http://localhost:8001/
 ## Architecture
 
 Full architecture document: [Architecture_ru.md](docs/Architecture_ru.md) (auto-generated from modular sources in `docs/architecture/`).
