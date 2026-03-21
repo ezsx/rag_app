@@ -633,9 +633,9 @@ sequenceDiagram
   autonumber
   participant Op as Operator
   participant CLI as ingest_telegram.py
-  participant TG as Telegram API (Telethon)
-  participant Embed as gpu_server.py (Qwen3-Embedding)
-  participant Sparse as SparseEncoder (Qdrant/bm25)
+  participant TG as Telegram API
+  participant Embed as gpu_server Qwen3-Embedding
+  participant Sparse as SparseEncoder BM25
   participant Qdrant as QdrantClient
 
   Op->>CLI: docker run ingest --channel @name --since 2025-07-01
@@ -645,23 +645,17 @@ sequenceDiagram
   loop по батчам сообщений
     CLI->>TG: iter_messages(channel, offset_date=since, limit=batch_size)
     TG-->>CLI: batch of Message objects
-    CLI->>CLI: _preprocess_message(msg) → text, metadata{id, date, channel, author, url}
-    CLI->>CLI: chunking: posts <1500 chars целиком, >1500 recursive split (target 1200)
+    CLI->>CLI: preprocess + chunking
+    Note over CLI: text + metadata, split >1500 chars
 
-    CLI->>Embed: POST /embed {"inputs": [texts]}
-    Embed-->>CLI: dense_vectors list[float] (1024-dim)
+    CLI->>Embed: POST /embed texts
+    Embed-->>CLI: dense vectors 1024-dim
 
-    CLI->>Sparse: encode_document(text)
-    Sparse-->>CLI: sparse_vectors list[SparseVector]
+    CLI->>Sparse: encode_document
+    Sparse-->>CLI: sparse vectors
 
-    CLI->>Qdrant: upsert(collection=QDRANT_COLLECTION, points=[
-      PointStruct(
-        id=uuid5(NAMESPACE_URL, f"{channel}:{message_id}"),
-        vector={"dense_vector": dense, "sparse_vector": sparse},
-        payload={text, channel, channel_id, message_id, date, author, url}
-      )
-    ])
-    Note over CLI,Qdrant: UUID5 deterministic ID — идемпотентный upsert
+    CLI->>Qdrant: upsert points with dense + sparse vectors
+    Note over CLI,Qdrant: UUID5 deterministic ID, idempotent upsert
     Qdrant-->>CLI: ok
   end
 
@@ -728,62 +722,59 @@ sequenceDiagram
   participant C as Client
   participant API as FastAPI
   participant Agent as AgentService
-  participant LLM as Qwen3-30B-A3B (V100)
+  participant LLM as Qwen3-30B-A3B V100
   participant Tools as ToolRunner
   participant Qdrant as HybridRetriever
 
-  C->>API: POST /v1/agent/stream {query, max_steps}
-  API->>API: require_read(jwt) → user verified
-  API->>Agent: stream_agent_response(AgentRequest)
+  C->>API: POST /v1/agent/stream
+  API->>API: JWT verify
+  API->>Agent: stream_agent_response
 
-  Note over Agent: request_id = uuid4(), AgentState(coverage=0, refinements=0)
+  Note over Agent: request_id, AgentState init
 
-  loop ReAct Cycle (max max_steps iterations)
-    Agent->>LLM: _generate_step(messages, tools=[query_plan,search,rerank,compose_context,...])
-    Note over LLM: Native function calling via /v1/chat/completions<br/>tools parameter + tool_choice
-    LLM-->>Agent: response.choices[0].message.tool_calls
+  loop ReAct Cycle
+    Agent->>LLM: generate_step with tools schema
+    Note over LLM: Native function calling<br/>tools parameter + tool_choice
+    LLM-->>Agent: tool_calls response
 
-    Agent->>Agent: extract tool_call → name, arguments
-    Agent-->>C: SSE: thought {thought, step}
-    Agent-->>C: SSE: tool_invoked {tool, input, step}
+    Agent->>Agent: extract tool name + arguments
+    Agent-->>C: SSE thought + tool_invoked
 
-    Agent->>Tools: run(request_id, step, ToolRequest)
-    Note over Tools: httpx.AsyncClient timeout
+    Agent->>Tools: run tool
 
     alt tool = search
-      Note over Tools: Итерация по ВСЕМ subqueries (round-robin merge)
-      loop for each subquery in plan
-        Tools->>Qdrant: search_with_plan(subquery, search_plan)
-        Note over Qdrant: BM25 top-100 + dense top-20<br/>→ RrfQuery(weights=[1.0, 3.0])<br/>→ ColBERT MaxSim rerank (if available)
-        Qdrant-->>Tools: List[Candidate] per query
+      Note over Tools: All subqueries, round-robin merge
+      loop for each subquery
+        Tools->>Qdrant: search_with_plan
+        Note over Qdrant: BM25 top-100 + dense top-20<br/>weighted RRF 3:1<br/>ColBERT MaxSim rerank
+        Qdrant-->>Tools: candidates per query
       end
-      Tools->>Tools: round-robin merge (interleave, dedup by id)
-      Tools->>Tools: channel_dedup(max 2 per channel)
+      Tools->>Tools: round-robin merge + channel dedup
     else tool = rerank
-      Tools->>Tools: reranker.rerank(query, candidates) via gpu_server /rerank
+      Tools->>Tools: cross-encoder rerank via gpu_server
     else tool = compose_context
-      Tools->>Tools: build prompt + citations from hit_ids
-      Note over Tools: cosine_sim per doc → composite coverage<br/>max_sim×0.25 + mean_top_k×0.20 + ...<br/>(НЕ RRF-скоры)
+      Tools->>Tools: build prompt + citations
+      Note over Tools: composite coverage from cosine similarity
     else tool = final_answer
-      Tools-->>Agent: {answer: "..."}
+      Tools-->>Agent: answer text
     end
 
-    Tools-->>Agent: AgentAction(ok, data, took_ms)
-    Agent-->>C: SSE: observation {output, ok, step}
+    Tools-->>Agent: AgentAction result
+    Agent-->>C: SSE observation
 
-    alt tool = compose_context
-      Agent->>Agent: check composite coverage
-      Agent-->>C: SSE: citations {citations, coverage}
+    alt compose_context done
+      Agent->>Agent: check coverage
+      Agent-->>C: SSE citations
 
-      alt coverage < 0.65 AND refinements < max_refinements (=2)
-        Note over Agent: refinements += 1 → trigger refinement search
-      else coverage < 0.30
-        Note over Agent: abort → "insufficient information" (не галлюцинировать)
+      alt coverage below 0.65 AND refinements left
+        Note over Agent: trigger refinement search
+      else coverage below 0.30
+        Note over Agent: abort, insufficient information
       end
     end
 
-    alt tool = final_answer
-      Agent-->>C: SSE: final {answer, steps, request_id}
+    alt final_answer received
+      Agent-->>C: SSE final
       Note over Agent: break loop
     end
   end
@@ -885,23 +876,23 @@ sequenceDiagram
   autonumber
   participant Op as Operator
   participant Runner as evaluate_agent.py
-  participant Agent as /v1/agent/stream
+  participant Agent as AgentAPI
 
-  Op->>Runner: run(dataset_path, agent_url, api_key)
-  Runner->>Runner: load eval_dataset_quick.json → List[Question]
+  Op->>Runner: run with dataset + agent URL
+  Runner->>Runner: load eval dataset
 
-  loop для каждого Question
-    Runner->>Agent: POST /v1/agent/stream {query}
-    Note over Agent: SSE stream → Runner парсит все события
-    Agent-->>Runner: events: thought, tool_invoked, observation, citations, final
-    Runner->>Runner: extract answer, citations, composite_coverage, latency
+  loop for each question
+    Runner->>Agent: POST /v1/agent/stream
+    Note over Agent: SSE stream, Runner parses all events
+    Agent-->>Runner: thought, tool_invoked, observation, citations, final
+    Runner->>Runner: extract answer + citations + coverage + latency
 
-    Runner->>Runner: compute recall@5
-    Note over Runner: fuzzy matching: ±5 msg_id (factual),<br/>±50 msg_id (temporal/multi_hop)
+    Runner->>Runner: compute recall at 5
+    Note over Runner: fuzzy matching per category
   end
 
-  Runner->>Runner: aggregate: mean recall@5, coverage, latency, answer rate
-  Runner-->>Op: JSON results → results/raw/eval_results_YYYYMMDD-HHMMSS.json
+  Runner->>Runner: aggregate metrics
+  Runner-->>Op: JSON results file
 ```
 
 ### Retrieval Eval Sequence
@@ -913,13 +904,13 @@ sequenceDiagram
   participant Runner as evaluate_retrieval.py
   participant Qdrant as QdrantClient
 
-  Op->>Runner: run(dataset_path, collection, fusion_type)
-  Runner->>Runner: load eval_retrieval_100.json → List[Query]
+  Op->>Runner: run with dataset + collection
+  Runner->>Runner: load retrieval dataset
 
-  loop для каждого Query
-    Runner->>Qdrant: query_points(prefetch=[bm25, dense], query=RrfQuery)
-    Note over Qdrant: BM25 top-100 + Dense top-20 → RRF 3:1<br/>→ ColBERT MaxSim rerank (if --colbert)
-    Qdrant-->>Runner: List[ScoredPoint]
+  loop for each query
+    Runner->>Qdrant: query_points with RRF
+    Note over Qdrant: BM25 top-100 + Dense top-20<br/>RRF 3:1, ColBERT rerank
+    Qdrant-->>Runner: scored points
 
     Runner->>Runner: check expected source in top-1/5/10/20
   end

@@ -24,9 +24,9 @@ sequenceDiagram
   autonumber
   participant Op as Operator
   participant CLI as ingest_telegram.py
-  participant TG as Telegram API (Telethon)
-  participant Embed as gpu_server.py (Qwen3-Embedding)
-  participant Sparse as SparseEncoder (Qdrant/bm25)
+  participant TG as Telegram API
+  participant Embed as gpu_server Qwen3-Embedding
+  participant Sparse as SparseEncoder BM25
   participant Qdrant as QdrantClient
 
   Op->>CLI: docker run ingest --channel @name --since 2025-07-01
@@ -36,23 +36,17 @@ sequenceDiagram
   loop по батчам сообщений
     CLI->>TG: iter_messages(channel, offset_date=since, limit=batch_size)
     TG-->>CLI: batch of Message objects
-    CLI->>CLI: _preprocess_message(msg) → text, metadata{id, date, channel, author, url}
-    CLI->>CLI: chunking: posts <1500 chars целиком, >1500 recursive split (target 1200)
+    CLI->>CLI: preprocess + chunking
+    Note over CLI: text + metadata, split >1500 chars
 
-    CLI->>Embed: POST /embed {"inputs": [texts]}
-    Embed-->>CLI: dense_vectors list[float] (1024-dim)
+    CLI->>Embed: POST /embed texts
+    Embed-->>CLI: dense vectors 1024-dim
 
-    CLI->>Sparse: encode_document(text)
-    Sparse-->>CLI: sparse_vectors list[SparseVector]
+    CLI->>Sparse: encode_document
+    Sparse-->>CLI: sparse vectors
 
-    CLI->>Qdrant: upsert(collection=QDRANT_COLLECTION, points=[
-      PointStruct(
-        id=uuid5(NAMESPACE_URL, f"{channel}:{message_id}"),
-        vector={"dense_vector": dense, "sparse_vector": sparse},
-        payload={text, channel, channel_id, message_id, date, author, url}
-      )
-    ])
-    Note over CLI,Qdrant: UUID5 deterministic ID — идемпотентный upsert
+    CLI->>Qdrant: upsert points with dense + sparse vectors
+    Note over CLI,Qdrant: UUID5 deterministic ID, idempotent upsert
     Qdrant-->>CLI: ok
   end
 

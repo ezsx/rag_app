@@ -28,23 +28,23 @@ sequenceDiagram
   autonumber
   participant Op as Operator
   participant Runner as evaluate_agent.py
-  participant Agent as /v1/agent/stream
+  participant Agent as AgentAPI
 
-  Op->>Runner: run(dataset_path, agent_url, api_key)
-  Runner->>Runner: load eval_dataset_quick.json → List[Question]
+  Op->>Runner: run with dataset + agent URL
+  Runner->>Runner: load eval dataset
 
-  loop для каждого Question
-    Runner->>Agent: POST /v1/agent/stream {query}
-    Note over Agent: SSE stream → Runner парсит все события
-    Agent-->>Runner: events: thought, tool_invoked, observation, citations, final
-    Runner->>Runner: extract answer, citations, composite_coverage, latency
+  loop for each question
+    Runner->>Agent: POST /v1/agent/stream
+    Note over Agent: SSE stream, Runner parses all events
+    Agent-->>Runner: thought, tool_invoked, observation, citations, final
+    Runner->>Runner: extract answer + citations + coverage + latency
 
-    Runner->>Runner: compute recall@5
-    Note over Runner: fuzzy matching: ±5 msg_id (factual),<br/>±50 msg_id (temporal/multi_hop)
+    Runner->>Runner: compute recall at 5
+    Note over Runner: fuzzy matching per category
   end
 
-  Runner->>Runner: aggregate: mean recall@5, coverage, latency, answer rate
-  Runner-->>Op: JSON results → results/raw/eval_results_YYYYMMDD-HHMMSS.json
+  Runner->>Runner: aggregate metrics
+  Runner-->>Op: JSON results file
 ```
 
 ### Retrieval Eval Sequence
@@ -56,13 +56,13 @@ sequenceDiagram
   participant Runner as evaluate_retrieval.py
   participant Qdrant as QdrantClient
 
-  Op->>Runner: run(dataset_path, collection, fusion_type)
-  Runner->>Runner: load eval_retrieval_100.json → List[Query]
+  Op->>Runner: run with dataset + collection
+  Runner->>Runner: load retrieval dataset
 
-  loop для каждого Query
-    Runner->>Qdrant: query_points(prefetch=[bm25, dense], query=RrfQuery)
-    Note over Qdrant: BM25 top-100 + Dense top-20 → RRF 3:1<br/>→ ColBERT MaxSim rerank (if --colbert)
-    Qdrant-->>Runner: List[ScoredPoint]
+  loop for each query
+    Runner->>Qdrant: query_points with RRF
+    Note over Qdrant: BM25 top-100 + Dense top-20<br/>RRF 3:1, ColBERT rerank
+    Qdrant-->>Runner: scored points
 
     Runner->>Runner: check expected source in top-1/5/10/20
   end

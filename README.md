@@ -16,6 +16,8 @@ Query → query_plan (LLM) → search (BM25+Dense → RRF → ColBERT) → reran
 
 ## Architecture
 
+Full architecture document: [Architecture_ru.md](docs/Architecture_ru.md) (auto-generated from modular sources in `docs/architecture/`).
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ Windows Host                                            │

@@ -38,62 +38,59 @@ sequenceDiagram
   participant C as Client
   participant API as FastAPI
   participant Agent as AgentService
-  participant LLM as Qwen3-30B-A3B (V100)
+  participant LLM as Qwen3-30B-A3B V100
   participant Tools as ToolRunner
   participant Qdrant as HybridRetriever
 
-  C->>API: POST /v1/agent/stream {query, max_steps}
-  API->>API: require_read(jwt) → user verified
-  API->>Agent: stream_agent_response(AgentRequest)
+  C->>API: POST /v1/agent/stream
+  API->>API: JWT verify
+  API->>Agent: stream_agent_response
 
-  Note over Agent: request_id = uuid4(), AgentState(coverage=0, refinements=0)
+  Note over Agent: request_id, AgentState init
 
-  loop ReAct Cycle (max max_steps iterations)
-    Agent->>LLM: _generate_step(messages, tools=[query_plan,search,rerank,compose_context,...])
-    Note over LLM: Native function calling via /v1/chat/completions<br/>tools parameter + tool_choice
-    LLM-->>Agent: response.choices[0].message.tool_calls
+  loop ReAct Cycle
+    Agent->>LLM: generate_step with tools schema
+    Note over LLM: Native function calling<br/>tools parameter + tool_choice
+    LLM-->>Agent: tool_calls response
 
-    Agent->>Agent: extract tool_call → name, arguments
-    Agent-->>C: SSE: thought {thought, step}
-    Agent-->>C: SSE: tool_invoked {tool, input, step}
+    Agent->>Agent: extract tool name + arguments
+    Agent-->>C: SSE thought + tool_invoked
 
-    Agent->>Tools: run(request_id, step, ToolRequest)
-    Note over Tools: httpx.AsyncClient timeout
+    Agent->>Tools: run tool
 
     alt tool = search
-      Note over Tools: Итерация по ВСЕМ subqueries (round-robin merge)
-      loop for each subquery in plan
-        Tools->>Qdrant: search_with_plan(subquery, search_plan)
-        Note over Qdrant: BM25 top-100 + dense top-20<br/>→ RrfQuery(weights=[1.0, 3.0])<br/>→ ColBERT MaxSim rerank (if available)
-        Qdrant-->>Tools: List[Candidate] per query
+      Note over Tools: All subqueries, round-robin merge
+      loop for each subquery
+        Tools->>Qdrant: search_with_plan
+        Note over Qdrant: BM25 top-100 + dense top-20<br/>weighted RRF 3:1<br/>ColBERT MaxSim rerank
+        Qdrant-->>Tools: candidates per query
       end
-      Tools->>Tools: round-robin merge (interleave, dedup by id)
-      Tools->>Tools: channel_dedup(max 2 per channel)
+      Tools->>Tools: round-robin merge + channel dedup
     else tool = rerank
-      Tools->>Tools: reranker.rerank(query, candidates) via gpu_server /rerank
+      Tools->>Tools: cross-encoder rerank via gpu_server
     else tool = compose_context
-      Tools->>Tools: build prompt + citations from hit_ids
-      Note over Tools: cosine_sim per doc → composite coverage<br/>max_sim×0.25 + mean_top_k×0.20 + ...<br/>(НЕ RRF-скоры)
+      Tools->>Tools: build prompt + citations
+      Note over Tools: composite coverage from cosine similarity
     else tool = final_answer
-      Tools-->>Agent: {answer: "..."}
+      Tools-->>Agent: answer text
     end
 
-    Tools-->>Agent: AgentAction(ok, data, took_ms)
-    Agent-->>C: SSE: observation {output, ok, step}
+    Tools-->>Agent: AgentAction result
+    Agent-->>C: SSE observation
 
-    alt tool = compose_context
-      Agent->>Agent: check composite coverage
-      Agent-->>C: SSE: citations {citations, coverage}
+    alt compose_context done
+      Agent->>Agent: check coverage
+      Agent-->>C: SSE citations
 
-      alt coverage < 0.65 AND refinements < max_refinements (=2)
-        Note over Agent: refinements += 1 → trigger refinement search
-      else coverage < 0.30
-        Note over Agent: abort → "insufficient information" (не галлюцинировать)
+      alt coverage below 0.65 AND refinements left
+        Note over Agent: trigger refinement search
+      else coverage below 0.30
+        Note over Agent: abort, insufficient information
       end
     end
 
-    alt tool = final_answer
-      Agent-->>C: SSE: final {answer, steps, request_id}
+    alt final_answer received
+      Agent-->>C: SSE final
       Note over Agent: break loop
     end
   end
