@@ -21,6 +21,9 @@
   rate limiting, DI/deps, схемы (schemas):
   - прочитай `agent_context/modules/api.md`
 
+- Если задача про **документацию**, структуру docs/, создание/перемещение файлов:
+  - прочитай `docs/architecture/00-meta/02-documentation-governance.md`
+
 ## Комбинирование
 
 - Если задача затрагивает несколько доменов — читай только нужные модули.
