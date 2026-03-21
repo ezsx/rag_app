@@ -71,6 +71,7 @@ def query_plan(
             "should_phrases": search_plan.should_phrases,
             "k_per_query": search_plan.k_per_query,
             "fusion": search_plan.fusion,
+            "strategy": search_plan.strategy,
         }
 
         # Добавляем фильтры если есть
