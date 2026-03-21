@@ -3,6 +3,7 @@
   "header": "docs/architecture/00-meta/00-header.md",
   "modules": [
     "docs/architecture/00-meta/01-howto.md",
+    "docs/architecture/00-meta/02-documentation-governance.md",
     "docs/architecture/01-scope/scope.md",
     "docs/architecture/02-glossary/glossary.md",
     "docs/architecture/03-invariants/invariants.md",

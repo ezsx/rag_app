@@ -1,15 +1,14 @@
 ## Data Model
 
-### Qdrant Collection Schema (Phase 1 — целевое)
+### Qdrant Collection Schema
 
-**Коллекция**: `news` (по умолчанию, задаётся `QDRANT_COLLECTION`)
+**Коллекция**: `news_colbert` (по умолчанию, задаётся `QDRANT_COLLECTION`)
 
 ```
 Named vectors:
-  dense_vector:   multilingual-e5-large (1024-dim, cosine distance)
-                  prefix при индексировании: "passage: " + text
-  sparse_vector:  Qdrant/bm25 (language="russian", Snowball stemmer)
-                  при поиске: "query: " + query
+  dense_vector:    Qwen3-Embedding-0.6B (1024-dim, cosine distance)
+  sparse_vector:   Qdrant/bm25 (language="russian", Snowball stemmer)
+  colbert_vector:  jina-colbert-v2 (128-dim per token, MaxSim multi-vector)
 
 Payload (per point):
   text:       str    — полный текст сообщения
@@ -20,102 +19,92 @@ Payload (per point):
   author:     str    — имя автора/канала
   url:        str    — ссылка на сообщение (опционально)
 
-Point ID: uuid (Qdrant-generated) или str "{channel_name}:{message_id}" (upsert key)
+Point ID: UUID5 deterministic — uuid5(NAMESPACE_URL, f"{channel}:{message_id}")
 ```
 
-**Hybrid search запрос:**
+**Hybrid search запрос (текущий):**
 ```python
 client.query_points(
     collection_name=QDRANT_COLLECTION,
     prefetch=[
-        Prefetch(query=dense_vector, using="dense_vector", limit=20),
-        Prefetch(query=sparse_vector, using="sparse_vector", limit=20),
+        Prefetch(query=sparse_vector, using="sparse_vector", limit=max(k*10, 100)),
+        Prefetch(query=dense_vector, using="dense_vector", limit=max(k*2, 20)),
     ],
-    query=FusionQuery(fusion=Fusion.RRF),
-    limit=10,
+    query=models.RrfQuery(rrf=models.Rrf(weights=[1.0, 3.0])),  # BM25 weight=3, dense weight=1
+    limit=rrf_limit,
     with_vectors=True,  # ОБЯЗАТЕЛЬНО для composite coverage computation
 )
+```
+
+**ColBERT MaxSim rerank (post-RRF):**
+```python
+# Если colbert_vector есть в коллекции:
+query_tokens = gpu_server.colbert_encode(query)  # per-token 128-dim vectors
+for candidate in rrf_results:
+    doc_tokens = candidate.vector["colbert_vector"]  # stored per-token vectors
+    candidate.colbert_score = maxsim(query_tokens, doc_tokens)
+candidates.sort(key=lambda c: c.colbert_score, reverse=True)
+```
+
+**Channel dedup (post-rerank):**
+```python
+# max 2 docs from same channel → diversity
+_channel_dedup(candidates, max_per_channel=2)
 ```
 
 **Docker**: Qdrant storage — **только named volume** `qdrant_data`. Bind mounts → silent data corruption на Windows.
 
 ---
 
-### Candidate (HybridRetriever output — Phase 1)
+### Candidate (HybridRetriever output)
 
 ```
-ScoredPoint (из Qdrant):
-  id:          str    — point id
-  score:       float  — RRF score (для ранжирования, НЕ для coverage)
-  payload:     dict   — {text, channel, date, author, ...}
-  vector:      dict   — {dense_vector: [...]} (при with_vectors=True)
-
-После извлечения:
-  cosine_sim:  float  — dot(query_vec, doc_vec) [оба L2-нормированы]
-                        используется для composite coverage computation
+Candidate (внутренняя структура):
+  id:            str    — point id (uuid5)
+  text:          str    — текст документа
+  channel:       str    — канал
+  message_id:    int    — Telegram message ID
+  date:          str    — ISO date
+  dense_score:   float  — cosine similarity (для coverage)
+  rrf_score:     float  — RRF score (для ранжирования, НЕ для coverage)
+  colbert_score: float  — MaxSim score (для reranking, если ColBERT available)
+  rerank_score:  float  — cross-encoder score (после bge-reranker-v2-m3)
 ```
 
-После RRF fusion → после MMR (`rescore=MmrQuery(lambda_mult=0.5)`) → после BGE reranker → топ-N.
+Pipeline: BM25+Dense → weighted RRF 3:1 → ColBERT MaxSim rerank → cross-encoder rerank → channel dedup → top-N.
 
 ---
 
-### ChromaDB Schema (Phase 0 — устаревшее, для справки)
+### Eval Dataset Schema (актуально 2026-03-20)
 
-> **Deprecated**: заменяется Qdrant (DEC-0015). Оставлено для понимания migration path.
-
-```
-ChromaDB collection: `news_demo4`
-  id:        str    — "{channel_name}:{message_id}"
-  document:  str    — текст сообщения
-  embedding: float[] — multilingual-e5-large (1024 dims)
-  metadata:  {channel, date, message_id, author, url, type}
-```
-
----
-
-### Eval Dataset Schema (v1.0)
-
-**Файл**: `datasets/eval_dataset.json`
-**Генератор**: `scripts/generate_eval_dataset.py` (из Qdrant)
+**Файлы**:
+- `datasets/eval_dataset_quick.json` — Golden dataset v1 (10 вопросов)
+- `datasets/eval_dataset_quick_v2.json` — Golden dataset v2 (10 вопросов, сложные)
+- `datasets/eval_retrieval_100.json` — Retrieval eval (100 auto-generated queries)
 
 ```json
 {
   "version": "1.0",
-  "created_at": "YYYY-MM-DD",
-  "generation_model": "Qwen3-8B",
-  "statistics": {
-    "total": 200,
-    "by_type": {"factual": 70, "temporal": 40, "aggregation": 40, "negative": 30, "comparative": 20}
-  },
-  "examples": [
+  "questions": [
     {
-      "id":                   "eval_0001",
-      "question":             "str — вопрос на русском",
-      "expected_answer":      "str — ожидаемый ответ",
-      "contexts":             ["str — текст документа"],
-      "expected_document_ids": ["str — qdrant point id"],
-      "question_type":        "factual|temporal|aggregation|negative|comparative",
-      "answerable":           true,
-      "metadata": {
-        "qdrant_point_id": "str",
-        "source":          "str — channel name",
-        "collection":      "str"
-      }
+      "id": "q1",
+      "question": "str — вопрос на русском",
+      "expected_answer": "str — ожидаемый ответ",
+      "expected_sources": [
+        {"channel": "@channel_name", "message_id": 1234}
+      ],
+      "category": "factual|temporal|channel|comparative|multi_hop|entity|product|negative",
+      "answerable": true
     }
   ]
 }
 ```
 
-**Распределение типов (обязательно!):**
-- `factual` 35% — конкретный факт из контекста
-- `temporal` 20% — даты, сроки, хронология
-- `aggregation` 20% — объединение информации из нескольких источников
-- `negative` 15% — вопросы, на которые нельзя ответить из контекста (проверка hallucination)
-- `comparative` 10% — сравнение двух сущностей
+**Распределение типов:**
+- v1: factual ×3, temporal ×2, channel ×2, comparative ×1, multi_hop ×1, negative ×1
+- v2: entity ×1, product ×3, fact_check ×1, cross_channel ×1, recency ×1, numeric ×1, long_tail ×1, negative ×1
 
-> Без принудительного распределения → 95% factual → завышенные метрики (R05, "Know Your RAG" arXiv 2411.19710).
-
-**Минимальный размер**: 200 примеров (margin of error ±5.5% при 95% CI).
+**Eval matching**: fuzzy ±5 message_id для factual, ±50 для temporal/multi_hop.
 
 ---
 
@@ -133,18 +122,19 @@ Algorithm: HS256, secret: `JWT_SECRET_KEY` из `.env`.
 
 ---
 
-### Settings Key Fields (актуально Phase 1)
+### Settings Key Fields (актуально 2026-03-20)
 
-| Переменная | Default (Phase 1) | Описание |
-|-----------|------------------|---------|
-| `LLM_MODEL_KEY` | `qwen3-8b` | Имя модели для llama-server (имя GGUF файла) |
-| `LLM_BASE_URL` | `http://host.docker.internal:8080/v1` | URL llama-server (или vLLM после Proxmox) |
-| `EMBEDDING_MODEL_KEY` | `multilingual-e5-large` | Ключ embedding |
+| Переменная | Default | Описание |
+|-----------|---------|---------|
+| `LLM_MODEL_KEY` | `qwen3-30b-a3b` | Имя модели для llama-server |
+| `LLM_BASE_URL` | `http://host.docker.internal:8080/v1` | URL llama-server |
+| `EMBEDDING_MODEL_KEY` | `qwen3-embedding-0.6b` | Ключ embedding модели |
+| `EMBEDDING_TEI_URL` | `http://host.docker.internal:8082` | URL gpu_server.py (embedding) |
+| `RERANKER_TEI_URL` | `http://host.docker.internal:8082` | URL gpu_server.py (reranker) — тот же порт |
 | `QDRANT_URL` | `http://qdrant:6333` | URL Qdrant в Docker compose |
-| `QDRANT_COLLECTION` | `news` | Имя коллекции Qdrant |
-| `COVERAGE_THRESHOLD` | `0.65` | Порог для refinement (был 0.80) |
-| `MAX_REFINEMENTS` | `2` | Макс. refinement раундов (было 1) |
+| `QDRANT_COLLECTION` | `news_colbert` | Имя коллекции Qdrant |
+| `COVERAGE_THRESHOLD` | `0.65` | Порог для refinement |
+| `MAX_REFINEMENTS` | `2` | Макс. refinement раундов |
 | `HYBRID_ENABLED` | `true` | Включить HybridRetriever |
 | `ENABLE_RERANKER` | `true` | Включить BGE reranker |
 | `AGENT_MAX_STEPS` | `15` | Максимум шагов ReAct |
-| `LLM_CONTEXT_SIZE` | `8192` | Context window (было 10000; 8192 экономит VRAM) |

@@ -1,95 +1,109 @@
 ## FLOW-03: Evaluation Run
 
 ### Problem
-Необходимо количественно измерить качество агента: recall, composite coverage, latency,
-и семантическое качество ответов (faithfulness, relevancy, hallucination).
+Необходимо количественно измерить качество агента и retrieval pipeline: recall, coverage, latency.
 Evaluation должна быть воспроизводимой и сравнимой между версиями.
 
-### Contract
+### Два режима evaluation
+
+**1. Agent Eval** — полный pipeline через LLM (~40с/запрос):
 ```
 python scripts/evaluate_agent.py \
-  --dataset datasets/eval_dataset.json \
-  --agent-url http://localhost:8000 \
-  --api-key $ADMIN_KEY \
-  [--dry-run] [--max-steps 8] [--judge-url http://host.docker.internal:8080/v1]
-
-→ stdout: progress + JSON metrics per query
-→ docs/eval-reports/YYYY-MM-DD-HH-MM.md: Markdown отчёт
+  --dataset datasets/eval_dataset_quick.json \
+  --agent-url http://localhost:8001 \
+  --api-key $ADMIN_KEY
 ```
 
-### Actors
-- **Operator** — запускает скрипт (или CI)
-- **EvalRunner** — `AgentEvaluationRunner` в evaluate_agent.py
-- **AgentAPI** — запущенный `/v1/agent/stream` endpoint
-- **LLMJudge** — Qwen3-8B через llama-server (тот же endpoint), русскоязычные промпты
-- **DeepEval** — CI/CD runner для метрик (BaseMetric wrapper)
+**2. Retrieval Eval** — прямые Qdrant queries, без LLM (~5с/запрос):
+```
+python scripts/evaluate_retrieval.py \
+  --dataset datasets/eval_retrieval_100.json \
+  --collection news_colbert
+```
 
-### Sequence
+### Agent Eval Sequence
 
 ```mermaid
 sequenceDiagram
   autonumber
   participant Op as Operator
-  participant Runner as AgentEvaluationRunner
+  participant Runner as evaluate_agent.py
   participant Agent as /v1/agent/stream
-  participant Judge as LLM-judge (Qwen3-8B)
 
-  Op->>Runner: run(dataset_path, agent_url, judge_url, ...)
-  Runner->>Runner: load eval_dataset.json → List[EvalItem]
-  Note over Runner: 200 примеров: factual 35%, temporal 20%,\naggregation 20%, negative 15%, comparative 10%
+  Op->>Runner: run(dataset_path, agent_url, api_key)
+  Runner->>Runner: load eval_dataset_quick.json → List[Question]
 
-  loop для каждого EvalItem
+  loop для каждого Question
     Runner->>Agent: POST /v1/agent/stream {query}
-    Note over Agent: SSE stream → Runner читает все события
+    Note over Agent: SSE stream → Runner парсит все события
     Agent-->>Runner: events: thought, tool_invoked, observation, citations, final
-    Runner->>Runner: extract answer, top5_hits, composite_coverage, latency
+    Runner->>Runner: extract answer, citations, composite_coverage, latency
 
-    Runner->>Judge: evaluate(query, answer, contexts)
-    Note over Judge: 4 метрики русским промптом:\nfaithfulness, relevance, completeness, citation_accuracy
-    Judge-->>Runner: scores (0-1 или binary)
-
-    Runner->>Runner: _compute_metrics(item, agent_result, judge_result)
-    Note over Runner: recall@5, composite_coverage, latency, judge scores
+    Runner->>Runner: compute recall@5
+    Note over Runner: fuzzy matching: ±5 msg_id (factual),<br/>±50 msg_id (temporal/multi_hop)
   end
 
-  Runner->>Runner: aggregate_results(all_results)
-  Note over Runner: mean/p95 latency, recall@5, judge scores\nбрейкдаун по question_type
-  Runner->>Runner: build_markdown_report(aggregated)
-  Runner-->>Op: report.md + JSON per-query results
+  Runner->>Runner: aggregate: mean recall@5, coverage, latency, answer rate
+  Runner-->>Op: JSON results → results/raw/eval_results_YYYYMMDD-HHMMSS.json
 ```
 
-### Метрики (Phase 1 — retrieval + coverage)
+### Retrieval Eval Sequence
 
-| Метрика | Описание |
-|---------|---------|
-| `recall@5` | Доля expected_documents в топ-5 hits агента |
-| `full_recall` | Все expected_documents найдены |
-| `partial_recall` | Хотя бы один found |
-| `agent_latency_sec` | Время от запроса до final события |
-| `composite_coverage` | Взвешенная сумма 5 сигналов из compose_context (0–1) |
-| `agent_steps` | Количество шагов ReAct цикла |
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Op as Operator
+  participant Runner as evaluate_retrieval.py
+  participant Qdrant as QdrantClient
 
-### Метрики (Phase 2 — LLM-judge, DEC-0020)
+  Op->>Runner: run(dataset_path, collection, fusion_type)
+  Runner->>Runner: load eval_retrieval_100.json → List[Query]
 
-| Метрика | Промпт (RU) | Формат |
-|---------|------------|--------|
-| `faithfulness` | «Все ли утверждения подтверждаются источниками?» | binary 0/1 |
-| `answer_relevancy` | «Отвечает ли ответ именно на заданный вопрос?» | 0–1 |
-| `completeness` | «Использованы ли все релевантные факты из источников?» | 0–1 |
-| `citation_accuracy` | «Соответствуют ли цитаты содержимому документов?» | binary 0/1 |
+  loop для каждого Query
+    Runner->>Qdrant: query_points(prefetch=[bm25, dense], query=RrfQuery)
+    Note over Qdrant: BM25 top-100 + Dense top-20 → RRF 3:1<br/>→ ColBERT MaxSim rerank (if --colbert)
+    Qdrant-->>Runner: List[ScoredPoint]
 
-**Реализация**: custom промпты → DeepEval `BaseMetric`. RAGAS — только для разовых reference-аудитов (нестабилен, EN-only промпты, NaN на vLLM).
+    Runner->>Runner: check expected source in top-1/5/10/20
+  end
 
-### Датасет (OPEN-06)
+  Runner->>Runner: aggregate: recall@1, @5, @10, @20, latency
+  Runner-->>Op: JSON → results/raw/retrieval_eval_YYYYMMDD-HHMMSS.json
+```
 
-- **Файл**: `datasets/eval_dataset.json` — текущий содержит 2 фейковых примера
-- **Генератор**: `scripts/generate_eval_dataset.py` (Phase 1, требует Qdrant):
-  - 400 точек из Qdrant → Qwen3-8B генерирует вопросы → critique-фильтр → ~200 финальных
-  - Принудительное распределение типов (иначе 95% factual → завышенные метрики)
-- **Минимальный размер**: 200 примеров (margin of error ±5.5% при 95% CI)
+### Метрики
+
+| Метрика | Agent Eval | Retrieval Eval | Описание |
+|---------|-----------|----------------|---------|
+| `recall@1` | — | ✅ | Expected doc в топ-1 |
+| `recall@5` | ✅ | ✅ | Expected docs в топ-5 hits |
+| `recall@10` | — | ✅ | Expected doc в топ-10 |
+| `recall@20` | — | ✅ | Expected doc в топ-20 |
+| `composite_coverage` | ✅ | — | Взвешенная сумма 6 cosine-сигналов (0–1) |
+| `agent_latency_sec` | ✅ | — | Время от запроса до final события |
+| `retrieval_latency` | — | ✅ | Время одного Qdrant query |
+| `answer_rate` | ✅ | — | Доля запросов с непустым ответом |
+
+### Текущие результаты (2026-03-20)
+
+| Dataset | Recall@5 | Coverage | Тип |
+|---------|----------|----------|-----|
+| v1 (10 Qs) | **0.76** | 0.86 | Agent eval |
+| v2 (10 Qs, сложные) | **0.61** | 0.80 | Agent eval |
+| 100 Qs, RRF+ColBERT | **0.73** | — | Retrieval eval |
+
+22 эксперимента отслежены в `docs/planning/retrieval_improvement_playbook.md`.
+
+### Датасеты
+
+| Файл | Тип | Вопросов | Описание |
+|------|-----|----------|----------|
+| `eval_dataset_quick.json` | Agent eval | 10 | factual, temporal, channel, comparative, multi_hop, negative |
+| `eval_dataset_quick_v2.json` | Agent eval | 10 | entity, product, fact_check, cross_channel, recency, numeric, long_tail, negative |
+| `eval_retrieval_100.json` | Retrieval eval | 100 | Auto-generated из первых предложений документов, 35 каналов |
 
 ### Техдолг
 
-- Phase 2 (LLM-judge / DeepEval) не реализована — только Phase 1 retrieval метрики
-- `eval_dataset.json` содержит 2 фейковых примера с несуществующими Qdrant IDs
-- `generate_eval_dataset.py` спроектирован (R05), ждёт задеплоенного Qdrant (Phase 1)
+- LLM-judge (faithfulness, relevance) не реализован — только retrieval метрики
+- Dataset < 50 вопросов — недостаточно для статистической значимости
+- Нет автоматического regression testing в CI

@@ -3,36 +3,37 @@
 | Термин | Определение |
 |--------|-------------|
 | **ReAct** | Reasoning + Acting: цикл LLM (Thought → Action → Observation) для агентского поиска |
+| **native function calling** | LLM вызывает tools через `tools` parameter в `/v1/chat/completions` (OpenAI-compatible), без regex-парсинга текста |
 | **SSE** | Server-Sent Events: однонаправленный push от сервера к клиенту (EventSource) |
-| **coverage** | Float 0–1: composite из 5 cosine-сигналов о достаточности контекста. Если < `coverage_threshold` → refinement. Вычисляется в `compose_context`, требует `with_vectors=True` в Qdrant запросе. |
-| **coverage_threshold** | `0.65` — порог для запуска refinement. Был 0.80 (слишком агрессивный). Bias toward retrieval: false-negative (пропущенный поиск) → 66% галлюцинаций. |
+| **coverage** | Float 0–1: composite из 6 cosine-сигналов о достаточности контекста. Если < `coverage_threshold` → refinement. Вычисляется в `compose_context`, требует `with_vectors=True` в Qdrant запросе. |
+| **coverage_threshold** | `0.65` — порог для запуска refinement (DEC-0019). Bias toward retrieval: false-negative → 66% галлюцинаций. |
 | **composite coverage** | Weighted sum: `max_sim×0.25 + mean_top_k×0.20 + term_coverage×0.20 + doc_count_adequacy×0.15 + score_gap×0.15 + above_threshold_ratio×0.05`. Использует cosine similarity, НЕ RRF-скоры. |
 | **refinement** | Дополнительный поисковый раунд при `coverage < coverage_threshold` |
-| **max_refinements** | `2` — максимальное число refinement-раундов. Был 1; F1 растёт до 3 итераций. |
-| **RRF** | Reciprocal Rank Fusion: `score(d) = Σ 1/(k+rank_i)`, k=60. Используется для ранжирования, **не** для coverage estimation (max RRF ≈ 0.0328, не cross-query сравним). |
-| **MMR** | Maximum Marginal Relevance: баланс relevance и diversity. Нативен в Qdrant с v1.15.0 (`rescore: mmr`). |
-| **BGE reranker** | BAAI/bge-reranker-v2-m3: CrossEncoder для финального ранжирования кандидатов |
-| **HybridRetriever** | `src/adapters/search/hybrid_retriever.py`: единый вызов `qdrant_client.query_points()` с prefetch (dense + sparse) + FusionQuery(RRF). Заменил ChromaRetriever + BM25Retriever. |
-| **QdrantRetriever** | Qdrant-based hybrid retriever: dense (`multilingual-e5-large`) + sparse (`Qdrant/bm25`, `language="russian"`) в одной named-vectors коллекции. |
+| **max_refinements** | `2` — максимальное число refinement-раундов (DEC-0019) |
+| **RRF** | Reciprocal Rank Fusion: `score(d) = Σ 1/(k+rank_i)`, k=60. Weighted RRF: BM25 weight=3, dense weight=1. |
+| **ColBERT** | Contextualized Late Interaction over BERT: per-token vectors + MaxSim scoring. Фундаментально решает attractor document problem. |
+| **MaxSim** | ColBERT scoring: для каждого query token — максимальное dot product с document tokens, затем сумма. |
+| **jina-colbert-v2** | ColBERT модель (560M, 89 языков, 128-dim per token). Загружается в gpu_server.py с manual linear projection 1024→128. |
+| **channel dedup** | Post-retrieval: max 2 документа из одного канала. Улучшает diversity, не recall. |
+| **round-robin merge** | Multi-query result interleaving: для rank 0..N, чередуем результаты из каждого subquery. Сохраняет per-query ColBERT ranking. |
+| **attractor document** | Документ с высоким cosine similarity к большинству запросов (из-за embedding anisotropy). ColBERT + weighted RRF решают проблему. |
+| **BGE reranker** | bge-reranker-v2-m3: dedicated cross-encoder reranker. Logit gap 18 (vs 8 у старого bge-m3). Запускается на GPU (RTX 5060 Ti). |
+| **HybridRetriever** | `src/adapters/search/hybrid_retriever.py`: BM25 top-100 + dense top-20 → weighted RRF (3:1) → ColBERT MaxSim rerank → channel dedup. Fallback на RRF-only если ColBERT недоступен. |
+| **gpu_server.py** | `scripts/gpu_server.py`: HTTP-сервер (stdlib http.server + PyTorch cu128) с 3 моделями: Qwen3-Embedding-0.6B + bge-reranker-v2-m3 + jina-colbert-v2. Единый порт :8082. |
+| **Qwen3-30B-A3B** | Основная LLM: MoE модель (30B total, 3B active params). GGUF Q4_K_M через llama-server на V100. Native function calling через `--jinja --reasoning-budget 0`. |
+| **Qwen3-Embedding-0.6B** | Embedding модель (1024-dim). Лидер MTEB Multilingual / MIRACL Russian. Через gpu_server.py на RTX 5060 Ti. |
+| **news_colbert** | Qdrant коллекция: 3 named vectors (dense 1024 + sparse BM25 + colbert 128-dim multi-vector), 13124 точки из 36 каналов. |
 | **AgentService** | `src/services/agent_service.py`: единственный владелец ReAct цикла и SSE стриминга |
-| **ToolRunner** | `src/services/tools/tool_runner.py`: реестр инструментов + единый запуск с timeout и JSON-трейсом |
-| **AgentState** | Внутреннее состояние одного запроса агента: coverage, refinement_count |
-| **compose_context** | Инструмент: собирает контекст из hit_ids → prompt + citations + composite coverage. Принимает `query` для cosine computation. |
-| **verify** | Инструмент: проверяет утверждения через дополнительный поиск в KB |
-| **QueryPlannerService** | `src/services/query_planner_service.py`: LLM разбор запроса на sub-queries + filters. Использует тот же V100 endpoint (не отдельный CPU процесс). |
-| **SearchPlan** | Pydantic модель: normalized_queries + filters из query planner |
+| **ToolRunner** | `src/services/tools/tool_runner.py`: реестр инструментов + единый запуск с timeout |
+| **AgentState** | Внутреннее состояние одного запроса агента: coverage, refinement_count, search_count |
+| **compose_context** | Инструмент: собирает контекст из hit_ids → prompt + citations + composite coverage |
+| **verify** | Системный инструмент (не LLM tool): проверяет утверждения через допоиск в KB |
+| **QueryPlannerService** | `src/services/query_planner_service.py`: LLM разбор запроса на sub-queries. Тот же V100 endpoint. |
+| **SearchPlan** | Pydantic модель: subqueries из query planner |
 | **lru_cache singleton** | Паттерн в `src/core/deps.py`: сервисы создаются один раз, кэшируются через `@lru_cache` |
 | **GGUF** | Формат файлов для llama.cpp: квантованные LLM для CPU/GPU inference |
-| **llama-server** | HTTP-сервер из llama.cpp (`llama-server.exe`), OpenAI-compatible API на хосте. Обращение через `LlamaServerClient` (httpx.AsyncClient). |
-| **LlamaServerClient** | `src/adapters/llm/llama_server_client.py`: async HTTP-обёртка над llama-server. Использует `httpx.AsyncClient`. |
-| **multilingual-e5-large** | HF embedding модель для dense retrieval, поддерживает RU+EN (1024 dims) |
-| **Qdrant** | Vector database: named vectors (dense + sparse), нативный RRF (prefetch+FusionQuery), нативный MMR. Заменяет ChromaDB + BM25IndexManager. |
-| **qdrant_collection** | Qdrant коллекция с новостями: named vectors (dense, sparse), payload {channel, date, author, message_id, text} |
-| **eval_dataset.json** | `datasets/eval_dataset.json`: набор вопросов с expected_documents. Генерируется из Qdrant через `generate_eval_dataset.py`. Минимум 200 примеров, 5 типов с весами. |
-| **AgentStepEvent** | Pydantic схема SSE события: type ∈ {thought, tool_invoked, observation, citations, final} |
-| **Qwen3-8B** | Основная LLM: GGUF (Q8_0 или F16) через llama-server на V100. Заменяет Qwen2.5-7B (agent) и Qwen2.5-3B (planner). Thinking mode ОТКЛЮЧЁН (`/no_think` в system prompt). |
-| **thinking mode** | Режим Qwen3, при котором модель эмитирует `<think>...</think>` блоки перед ответом. **Отключён** — ломает ReAct-парсер и тратит 250–1250 токенов. Управляется через `/no_think` в system prompt (llama-server) или `extra_body={"enable_thinking": False}` (vLLM). |
-| **vLLM** | Целевой LLM-сервер после Proxmox (Phase 2). v0.15.1 pinned для V100 (SM7.0). Даёт xgrammar, prefix caching, нативный Hermes tool calling. Требует Linux. |
-| **Hermes tool calling** | Нативный function calling Qwen3: `<tool_call>` XML теги, `--tool-call-parser hermes`. Требует AgentService rewrite. Целевое состояние после vLLM. |
-| **cosine threshold** | Интерпретация cosine similarity: 0.85+ paraphrase, 0.75–0.85 strong, 0.60–0.75 moderate, 0.45–0.60 tangential, <0.45 irrelevant, <0.30 → abort (insufficient information). |
-| **LLM-judge** | Qwen3-8B как судья для eval: faithfulness, relevance, completeness, citation accuracy. Промпты на русском. Обёртка в DeepEval BaseMetric для CI/CD. |
+| **llama-server** | HTTP-сервер из llama.cpp (`llama-server.exe`), OpenAI-compatible API на V100. |
+| **LlamaServerClient** | `src/adapters/llm/llama_server_client.py`: async HTTP-обёртка над llama-server (httpx.AsyncClient). |
+| **Qdrant** | Vector database: named vectors (dense + sparse + ColBERT), нативный weighted RRF. |
+| **evaluate_agent.py** | Agent eval скрипт: full pipeline через LLM, ~40с/запрос, recall@5 + coverage + latency. |
+| **evaluate_retrieval.py** | Retrieval eval скрипт: прямые Qdrant queries без LLM, ~5с/запрос, recall@1/5/10/20. |

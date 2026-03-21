@@ -16,7 +16,7 @@
   Дополнительная latency оправдана улучшенным качеством ответов.
 
 ### DEC-0003 — coverage_threshold = 0.8, max_refinements = 1
-- **Status:** Accepted
+- **Status:** Superseded by DEC-0019
 - **Context:** нужен детерминированный выход из цикла refinement.
 - **Decision:** фиксированные значения через settings. Более одного refinement
   увеличивает latency непропорционально пользе.
@@ -61,16 +61,15 @@
 - **Decision:** dev endpoint `/v1/auth/admin` + ADMIN_KEY env var → JWT токен.
   Достаточно для демо/одного пользователя.
 
-### DEC-0011 — BGE reranker как CPU-only post-processing
-- **Status:** Accepted
-- **Context:** BGE reranker не требует GPU, но улучшает качество ranking.
-- **Decision:** RerankerService на CPU с batch_size=16. Latency ~200-500ms приемлема.
+### DEC-0011 — BGE reranker как post-processing
+- **Status:** Superseded by DEC-0027
+- **Context:** BGE reranker улучшает качество ranking.
+- **Decision:** Изначально CPU-only. Теперь на GPU (RTX 5060 Ti) через gpu_server.py (DEC-0027).
 
 ### DEC-0012 — multilingual-e5-large для embedding
-- **Status:** Accepted → **Superseded DEC-0026** (2026-03-17, целевая модель изменена)
+- **Status:** Superseded by DEC-0026 (реализовано 2026-03-18)
 - **Context:** русскоязычные Telegram-новости + мультиязычный корпус.
-- **Decision:** intfloat/multilingual-e5-large (1024 dims). Остаётся текущей моделью до
-  реализации DEC-0026 (Qwen3-Embedding). Пересмотр: MTEB 2025 benchmark → Qwen3-Embedding-0.6B.
+- **Decision:** intfloat/multilingual-e5-large (1024 dims). Заменена на Qwen3-Embedding-0.6B.
 
 ### DEC-0013 — язык документации: RU-first
 - **Status:** Accepted
@@ -157,8 +156,8 @@
 - **Decision:** System prompt на английском. Последняя строка: `"Always respond to the user in Russian."` (INV-10).
   Не менять на русский без A/B теста на нашем домене.
 
-### DEC-0026 — Qwen3-Embedding как целевая embedding-модель (R-embed)
-- **Status:** Accepted (2026-03-17), реализация отложена до Qdrant migration
+### DEC-0026 — Qwen3-Embedding-0.6B как embedding-модель
+- **Status:** Implemented (2026-03-18)
 - **Context:** DEC-0012 (multilingual-e5-large) принят с пометкой "пересмотр по MTEB 2025 benchmark".
   Qwen3-Embedding — новое семейство моделей Alibaba (май 2025), специально обученных для retrieval.
   MTEB Multilingual 2025: Qwen3-Embedding-0.6B и 4B занимают лидирующие позиции, включая MIRACL (русский).
@@ -198,15 +197,13 @@
   Docker/nvidia-container-cli (не только себя). Это архитектурное ограничение WSL2 + TCC,
   не решается настройками Docker, CDI specs или device targeting.
   RTX 5060 Ti при этом **полностью доступна** в Ubuntu WSL2 нативно (GPU-PV работает).
-- **Decision:** Embedding (multilingual-e5-large) и Reranker (bge-reranker-v2-m3) запускаются
-  как WSL2-native процессы через TEI (text-embeddings-inference), а не внутри Docker.
-  Docker-контейнеры (api, ingest) обращаются к ним через `host.docker.internal:8082/8083`.
-  `gpus: all` убрано из docker-compose.yml — Docker-сервисы работают на CPU.
-- **Trade-offs:** Нужно запускать два WSL2 сервиса до `docker compose up`. Без автостарта.
-  Долгосрочно: Proxmox VFIO изолирует V100 → Docker Desktop снова получает 5060 Ti.
-- **Порты:** TEI embedding `:8082`, TEI reranker `:8083`
+- **Decision:** Все GPU-модели запускаются как один WSL2-native процесс (`gpu_server.py`)
+  на порту `:8082` (embedding + reranker + ColBERT). Не через TEI, а через custom PyTorch server.
+  Docker-контейнеры обращаются через `host.docker.internal:8082`.
+- **Trade-offs:** Нужно запускать gpu_server.py до `docker compose up`. Без автостарта.
+- **Порт:** `:8082` (единый для всех GPU моделей)
 - **Env vars:** `EMBEDDING_TEI_URL=http://host.docker.internal:8082`,
-  `RERANKER_TEI_URL=http://host.docker.internal:8083`
+  `RERANKER_TEI_URL=http://host.docker.internal:8082`
 - **Связан с:** DEC-0014 (тот же паттерн что V100 → WSL2-native для GPU-сервисов)
 
 ---
@@ -222,3 +219,74 @@
 - **Trade-offs:** llama-server нужно запускать вручную перед `docker compose up`.
   Смена модели = рестарт llama-server (~10-20 сек). Долгосрочная альтернатива: Proxmox + VFIO.
 - **Закрывает:** OPEN-02 (частично — blocking HTTP заменил blocking llama_cpp, но async остаётся вопросом)
+
+---
+
+### DEC-0027 — gpu_server.py заменяет TEI контейнеры (2026-03-18)
+- **Status:** Implemented
+- **Context:** TEI Docker контейнеры невозможно запустить с GPU (DEC-0024, V100 TCC блокирует NVML).
+  CDI mode + TEI image 120-1.9 работает, но hang на compute (Flash Attention sm_120 bug).
+  infinity-emb dependency hell в оффлайн WSL2 (VPN блокирует pip).
+- **Decision:** Кастомный `scripts/gpu_server.py` — stdlib http.server + PyTorch cu128:
+  - Один процесс, один порт `:8082`
+  - 3 модели: Qwen3-Embedding-0.6B + bge-reranker-v2-m3 + jina-colbert-v2
+  - ~4-5 GB VRAM, ~11 GB свободно на RTX 5060 Ti
+  - Endpoints: `/embed`, `/v1/embeddings`, `/rerank`, `/colbert-encode`, `/health`
+  - Venv: `/home/ezsx/infinity-env/` (torch 2.10.0+cu128, transformers 4.57.6)
+- **Обновляет:** DEC-0024 (TEI → gpu_server.py), DEC-0011 (reranker теперь на GPU)
+
+### DEC-0028 — Qwen3-30B-A3B вместо Qwen3-8B (2026-03-18)
+- **Status:** Implemented
+- **Context:** V100 32GB позволяет запустить значительно более мощную модель.
+  Qwen3-30B-A3B — MoE (30B total, 3B active params), Q4_K_M = ~18 GB VRAM.
+  По качеству ≈ Qwen2.5-72B при inference cost как 3B модель.
+- **Decision:** Qwen3-30B-A3B-Q4_K_M через llama-server.
+  `--jinja --reasoning-budget 0 --cache-type-k q8_0 --cache-type-v q8_0 -c 16384 --parallel 2`
+  Native function calling вместо text ReAct parsing.
+- **Обновляет:** DEC-0016 (Qwen3-8B → Qwen3-30B-A3B), DEC-0022 (thinking через --reasoning-budget)
+
+### DEC-0029 — ColBERT reranking (jina-colbert-v2, 2026-03-20)
+- **Status:** Implemented
+- **Context:** Embedding anisotropy (cosine 0.78-0.83 для всех AI текстов) вызывает
+  attractor documents — нерелевантные посты стабильно в top-10. Single-vector cosine
+  не различает "Meta купила Manus" и "курс по трансформерам".
+- **Decision:** 3-stage pipeline: BM25+Dense → RRF → ColBERT MaxSim rerank.
+  jina-colbert-v2 (560M, 128-dim per token, 89 языков).
+  Коллекция `news_colbert` с 3 named vectors.
+  ColBERT vectors хранятся в Qdrant (multi-vector), encoding через gpu_server.py `/colbert-encode`.
+  Manual linear projection 1024→128 (AutoModel не загружает linear.weight).
+  Fallback на RRF-only если ColBERT недоступен.
+- **Результат:** Recall@1 +97% (0.36→0.71), Recall@5 +33% (0.55→0.73) на 100 queries.
+- **Latency:** +2.5с/запрос (5.0с vs 2.5с без ColBERT)
+
+### DEC-0030 — Multi-query search с round-robin merge (2026-03-20)
+- **Status:** Implemented (critical bug fix)
+- **Context:** search tool использовал только ПЕРВЫЙ subquery из query_plan, игнорируя остальные.
+  Bug в `search.py`: `hybrid_retriever.search_with_plan(deduped_queries[0], search_plan)`.
+- **Decision:** Итерация по ВСЕМ subqueries, round-robin merge (не sort by dense_score).
+  Dense sort re-promotes attractor documents, отменяя ColBERT ranking.
+  Original query пользователя всегда добавляется в subqueries.
+- **Результат:** v2 recall 0.46→0.61 (+33%)
+
+### DEC-0031 — bge-reranker-v2-m3 вместо bge-m3 (2026-03-19)
+- **Status:** Implemented
+- **Context:** bge-m3 — bi-encoder, загруженный как seq-cls (logit gap 8).
+  bge-reranker-v2-m3 — dedicated cross-encoder (logit gap 18, confidence 0.37→0.9995).
+- **Decision:** Модель `/home/tei-models/reranker-v2`, gpu_server.py переключён.
+  На малом датасете (10 Qs) recall не изменился, но score separation удвоился.
+
+### DEC-0032 — Weighted RRF (BM25 3:1, 2026-03-19)
+- **Status:** Implemented
+- **Context:** При equal weight dense "магниты" перевешивают BM25 keyword matches.
+  BM25 правильно находит документы с exact keywords, но dense re-promotes generic docs.
+- **Decision:** `models.RrfQuery(rrf=models.Rrf(weights=[1.0, 3.0]))` — BM25 weight=3, dense=1.
+  Asymmetric prefetch: BM25 limit=100, dense limit=20.
+- **Результат:** Recall 0.33→0.59
+
+### DEC-0033 — Channel dedup max 2/channel (2026-03-20)
+- **Status:** Implemented
+- **Context:** Prolific каналы (gonzo_ml, ai_machinelearning_big_data) монополизируют top-10.
+- **Decision:** Post-retrieval `_channel_dedup(candidates, max_per_channel=2)`.
+  Запрашиваем k×2 из Qdrant, dedup сужает до k.
+  Qdrant group_by не работает с multi-stage prefetch — python post-processing.
+- **Результат:** Diversity ↑, recall без изменений (bottleneck = candidate generation)

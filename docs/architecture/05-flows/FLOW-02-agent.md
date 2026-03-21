@@ -21,13 +21,13 @@ Content-Type: application/json
 ```
 
 ### Actors
-- **Client** — browser / evaluate_agent.py
+- **Client** — browser (Web UI) / evaluate_agent.py
 - **FastAPI** — HTTP layer, SSE stream
-- **AgentService** — ReAct loop owner
+- **AgentService** — ReAct loop owner, native function calling
 - **ToolRunner** — tool registry + timeout execution
-- **LLM** — Qwen3-8B GGUF (llama-server, V100; thinking mode отключён)
-- **HybridRetriever** — Qdrant prefetch(dense+sparse) + RRF + MMR
-- **RerankerService** — BGE reranker
+- **LLM** — Qwen3-30B-A3B GGUF (llama-server, V100; `--jinja --reasoning-budget 0`)
+- **HybridRetriever** — Qdrant: BM25+Dense → weighted RRF 3:1 → ColBERT MaxSim → channel dedup
+- **RerankerService** — bge-reranker-v2-m3 cross-encoder (GPU, RTX 5060 Ti)
 - **QueryPlannerService** — тот же LLM endpoint (не отдельный CPU процесс)
 
 ### Sequence
@@ -38,9 +38,9 @@ sequenceDiagram
   participant C as Client
   participant API as FastAPI
   participant Agent as AgentService
-  participant LLM as Qwen3-8B (V100)
+  participant LLM as Qwen3-30B-A3B (V100)
   participant Tools as ToolRunner
-  participant Qdrant as QdrantRetriever
+  participant Qdrant as HybridRetriever
 
   C->>API: POST /v1/agent/stream {query, max_steps}
   API->>API: require_read(jwt) → user verified
@@ -49,11 +49,11 @@ sequenceDiagram
   Note over Agent: request_id = uuid4(), AgentState(coverage=0, refinements=0)
 
   loop ReAct Cycle (max max_steps iterations)
-    Agent->>LLM: _generate_step(conversation_history, system_prompt)
-    Note over LLM: EN system prompt + /no_think\nThought: ...\nAction: tool_name {params}
-    LLM-->>Agent: raw text (без <think> блоков)
+    Agent->>LLM: _generate_step(messages, tools=[query_plan,search,rerank,compose_context,...])
+    Note over LLM: Native function calling via /v1/chat/completions<br/>tools parameter + tool_choice
+    LLM-->>Agent: response.choices[0].message.tool_calls
 
-    Agent->>Agent: _parse_action(text) → ToolRequest
+    Agent->>Agent: extract tool_call → name, arguments
     Agent-->>C: SSE: thought {thought, step}
     Agent-->>C: SSE: tool_invoked {tool, input, step}
 
@@ -61,13 +61,19 @@ sequenceDiagram
     Note over Tools: httpx.AsyncClient timeout
 
     alt tool = search
-      Tools->>Qdrant: query_points(prefetch=[dense,sparse], FusionQuery(RRF))
-      Note over Qdrant: dense+sparse prefetch → RRF → MMR → candidates
-      Qdrant-->>Tools: List[ScoredPoint] с cosine_sim (with_vectors=True)
-      Tools->>Tools: reranker.rerank(query, candidates)
+      Note over Tools: Итерация по ВСЕМ subqueries (round-robin merge)
+      loop for each subquery in plan
+        Tools->>Qdrant: search_with_plan(subquery, search_plan)
+        Note over Qdrant: BM25 top-100 + dense top-20<br/>→ RrfQuery(weights=[1.0, 3.0])<br/>→ ColBERT MaxSim rerank (if available)
+        Qdrant-->>Tools: List[Candidate] per query
+      end
+      Tools->>Tools: round-robin merge (interleave, dedup by id)
+      Tools->>Tools: channel_dedup(max 2 per channel)
+    else tool = rerank
+      Tools->>Tools: reranker.rerank(query, candidates) via gpu_server /rerank
     else tool = compose_context
       Tools->>Tools: build prompt + citations from hit_ids
-      Note over Tools: cosine_sim per doc → composite coverage\nmax_sim×0.25 + mean_top_k×0.20 + ...\n(НЕ RRF-скоры)
+      Note over Tools: cosine_sim per doc → composite coverage<br/>max_sim×0.25 + mean_top_k×0.20 + ...<br/>(НЕ RRF-скоры)
     else tool = final_answer
       Tools-->>Agent: {answer: "..."}
     end
@@ -86,13 +92,37 @@ sequenceDiagram
       end
     end
 
-    alt text contains FinalAnswer:
-      Agent->>LLM: _generate_final(context, query)
-      Note over LLM: verify step (optional)
+    alt tool = final_answer
       Agent-->>C: SSE: final {answer, steps, request_id}
       Note over Agent: break loop
     end
   end
+```
+
+### Dynamic Tool Visibility
+
+- `final_answer` **скрыт** до выполнения `search` — LLM не может пропустить поиск
+- Если LLM не вызывает tools → **forced search** с оригинальным запросом пользователя
+- Оригинальный запрос **всегда** добавляется в subqueries (BM25 keyword match)
+
+### Multi-Query Search Detail
+
+```
+query_plan → subqueries: ["query A", "query B", "query C"]
+  + original user query (всегда добавляется)
+
+for each subquery:
+  → search_with_plan(subquery, plan)
+    → Qdrant: BM25 top-100 + dense top-20 → weighted RRF (3:1)
+    → ColBERT MaxSim rerank (top candidates)
+  → append to per_query_results[]
+
+Round-robin merge:
+  for rank 0..max_len:
+    for each per_query_results:
+      if not seen → append to all_candidates
+
+Channel dedup: max 2 docs from same channel → diversity
 ```
 
 ### Coverage Check Detail
@@ -100,7 +130,7 @@ sequenceDiagram
 ```
 compose_context(hit_ids, query) → composite_coverage (float 0-1)
   │
-  ├── coverage >= 0.65  →  proceed to verify → final_answer
+  ├── coverage >= 0.65  →  proceed to final_answer
   ├── coverage < 0.65 AND refinements < 2
   │     └── refinements += 1 → ещё один search + compose_context
   ├── coverage < 0.65 AND refinements >= 2
@@ -122,13 +152,12 @@ Composite formula (compute в compose_context, НЕ в AgentService):
 
 - RULE 4 (system prompt): FinalAnswer запрещён без предшествующего compose_context
 - `AgentState` живёт ровно столько, сколько один запрос
-- При отключении клиента (`is_disconnected()`) — loop прерывается, генерация останавливается
-- Все tool timeout через `ToolRunner._run_with_timeout()` → никогда не висим вечно
-- `compose_context` получает `query` как параметр (необходим для term_coverage сигнала)
+- При отключении клиента (`is_disconnected()`) — loop прерывается
+- Все tool timeout через `ToolRunner._run_with_timeout()`
+- `compose_context` получает `query` как параметр (необходим для term_coverage)
+- `verify` и `fetch_docs` — системные вызовы внутри AgentService, не LLM tools
 
 ### Техдолг
 
 - `AgentService._current_step` и `_current_request_id` — shared class attributes
   вместо per-request local → `contextvars.ContextVar` (OPEN-01, R06)
-- LLM вызов через httpx.AsyncClient — промежуточный фикс OPEN-02.
-  Финальный фикс: AsyncOpenAI + vLLM после Proxmox (DEC-0021)
