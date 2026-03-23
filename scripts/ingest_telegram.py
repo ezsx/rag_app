@@ -359,9 +359,9 @@ def _build_point_docs_flat(
     """
     Flat-вариант построения PointDocument, где `source_messages[i] ↔ texts[i]`.
 
-    `channel_name` должен быть уже нормализован:
-    - `channel_hint.lstrip("@")`, если канал задан как `@username`
-    - `str(chat_id)`, если username отсутствует
+    `channel_name` должен быть уже нормализован для display/url payload.
+    Для стабильного upsert `point_id` строится только от `channel_id`,
+    чтобы rename канала или разный CLI hint не меняли UUID точки.
     """
     docs: List[PointDocument] = []
     msg_chunk_counter: Dict[int, int] = {}
@@ -374,10 +374,11 @@ def _build_point_docs_flat(
         chunk_idx = msg_chunk_counter.get(message.id, 0)
         msg_chunk_counter[message.id] = chunk_idx + 1
 
+        stable_channel_id = int(message.chat_id)
         if chunk_size > 0 or msg_chunk_totals.get(int(message.id), 0) > 1:
-            point_id = f"{channel_name}:{message.id}:{chunk_idx}"
+            point_id = f"{stable_channel_id}:{int(message.id)}:{chunk_idx}"
         else:
-            point_id = f"{channel_name}:{message.id}"
+            point_id = f"{stable_channel_id}:{int(message.id)}"
 
         author: Optional[str] = None
         sender = getattr(message, "sender", None)
@@ -386,17 +387,24 @@ def _build_point_docs_flat(
             last = getattr(sender, "last_name", None) or ""
             author = (first + " " + last).strip() or None
 
-        payload: Dict[str, Any] = {
-            "text": text,
-            "channel": channel_name,
-            "channel_id": int(message.chat_id),
-            "message_id": int(message.id),
-            "date": _to_utc_naive(message.date).isoformat(),
-        }
-        if author:
-            payload["author"] = author
-        if channel_name:
-            payload["url"] = f"https://t.me/{channel_name}/{message.id}"
+        date_iso = _to_utc_naive(message.date).isoformat()
+        # SPEC-RAG-12: enriched payload с entities, urls, temporal fields
+        import importlib.util as _ilu
+        _spec = _ilu.spec_from_file_location(
+            "payload_enrichment",
+            os.path.join(os.path.dirname(__file__), "payload_enrichment.py"),
+        )
+        _mod = _ilu.module_from_spec(_spec)
+        _spec.loader.exec_module(_mod)
+        build_enriched_payload = _mod.build_enriched_payload
+        payload = build_enriched_payload(
+            text=text,
+            message=message,
+            channel_name=channel_name,
+            date_iso=date_iso,
+            point_id=point_id,
+            author=author,
+        )
 
         sparse = sparse_results[i]
         docs.append(

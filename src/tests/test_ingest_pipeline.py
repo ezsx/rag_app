@@ -62,10 +62,11 @@ class TestBuildPointDocsFlat:
 
         assert len(docs) == 1
         doc = docs[0]
-        assert doc.point_id == "chan:42"
+        assert doc.point_id == "100:42"
         assert doc.payload["message_id"] == 42
         assert doc.payload["channel"] == "chan"
         assert doc.payload["text"] == "hello world"
+        assert doc.payload["root_message_id"] == "100:42"
         assert len(doc.dense_vector) == 1024
 
     def test_two_chunks_same_message(self):
@@ -79,8 +80,8 @@ class TestBuildPointDocsFlat:
         )
 
         assert len(docs) == 2
-        assert docs[0].point_id == "chan:7:0"
-        assert docs[1].point_id == "chan:7:1"
+        assert docs[0].point_id == "100:7:0"
+        assert docs[1].point_id == "100:7:1"
 
     def test_two_chunks_same_message_with_smart_chunk_ids(self):
         mod = _load_ingest_module()
@@ -92,8 +93,8 @@ class TestBuildPointDocsFlat:
             [msg, msg], ["part1", "part2"], dense, sparse, "chan", 0
         )
 
-        assert docs[0].point_id == "chan:8:0"
-        assert docs[1].point_id == "chan:8:1"
+        assert docs[0].point_id == "100:8:0"
+        assert docs[1].point_id == "100:8:1"
 
     def test_payload_fields(self):
         mod = _load_ingest_module()
@@ -107,6 +108,7 @@ class TestBuildPointDocsFlat:
         assert payload["channel"] == "mychan"
         assert payload["channel_id"] == 999
         assert payload["message_id"] == 1
+        assert payload["root_message_id"] == "999:1"
         assert "date" in payload
         assert "text" in payload
         assert "author" not in payload
@@ -208,6 +210,33 @@ class TestIngestBatches:
         point_docs = qdrant_store.upsert.await_args.args[0]
         assert point_docs[0].point_id == "555:10"
         assert point_docs[0].payload["channel"] == "555"
+
+    @pytest.mark.asyncio
+    async def test_username_hint_does_not_affect_stable_point_id(self):
+        mod = _load_ingest_module()
+        messages = [_make_message(11, "text", chat_id=777)]
+
+        embedding_client = AsyncMock()
+        embedding_client.embed_documents = AsyncMock(return_value=[[0.1] * 1024])
+
+        sparse_encoder = MagicMock()
+        sparse_encoder.embed = MagicMock(return_value=iter([_make_sparse_result()]))
+
+        qdrant_store = AsyncMock()
+        qdrant_store.upsert = AsyncMock(return_value=1)
+
+        await mod.ingest_batches(
+            messages=messages,
+            batch_size=10,
+            embedding_client=embedding_client,
+            sparse_encoder=sparse_encoder,
+            qdrant_store=qdrant_store,
+            channel_hint="@renamed_channel",
+        )
+
+        point_docs = qdrant_store.upsert.await_args.args[0]
+        assert point_docs[0].point_id == "777:11"
+        assert point_docs[0].payload["channel"] == "renamed_channel"
 
     @pytest.mark.asyncio
     async def test_retries_embed_timeout_then_succeeds(self, monkeypatch):

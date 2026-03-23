@@ -527,6 +527,24 @@ for i, point_id in enumerate(point_ids):
 
 ---
 
+## Backlog: Entity Dictionary Enrichment (Future)
+
+> **Статус**: отложено. Текущий словарь (95 entities, regex tier-1) покрывает ~80% упоминаний.
+> Расширять когда: tier-2 GLiNER добавлен, или словарь начал пропускать частые entities.
+
+**Готовых AI/ML словарей с русскими aliases не существует** (исследовано 2026-03-24).
+
+Пайплайн для масштабирования до 500-1000 entities:
+1. **Wikidata SPARQL** — компании, модели, конференции + русские labels/aliases. Класс `Q21198342` (LLM), `Q2385804` (conference), filter по AI industry
+2. **HuggingFace API** — top-1000 моделей по downloads → извлечь org names + model families. `GET /api/models?sort=downloads&limit=1000`
+3. **Papers with Code API** — ~1000 методов (Transformer, LoRA, MoE...). `pip install paperswithcode-client`
+4. **LLM-генерация русских aliases** — транслитерация (DeepSeek→дипсик), сленг (GPT→жпт)
+5. **Валидация на корпусе** — frequency scan, фильтрация шума
+
+Источники: исследование в Claude web chat (2026-03-24), R17 §2 NER pipeline.
+
+---
+
 ## Что НЕ работает / НЕ стоит пробовать
 
 | Техника | Почему не работает |
