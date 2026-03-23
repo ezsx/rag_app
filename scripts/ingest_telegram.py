@@ -23,6 +23,10 @@ import httpx
 from dateutil import parser as date_parser
 from dotenv import load_dotenv
 from telethon import TelegramClient, errors as tg_errors
+
+# payload_enrichment — в том же каталоге scripts/
+sys.path.insert(0, os.path.dirname(__file__))
+from payload_enrichment import build_enriched_payload
 from telethon.errors import FloodWaitError, SessionPasswordNeededError
 from telethon.tl.types import Message
 from tqdm.asyncio import tqdm_asyncio
@@ -389,14 +393,6 @@ def _build_point_docs_flat(
 
         date_iso = _to_utc_naive(message.date).isoformat()
         # SPEC-RAG-12: enriched payload с entities, urls, temporal fields
-        import importlib.util as _ilu
-        _spec = _ilu.spec_from_file_location(
-            "payload_enrichment",
-            os.path.join(os.path.dirname(__file__), "payload_enrichment.py"),
-        )
-        _mod = _ilu.module_from_spec(_spec)
-        _spec.loader.exec_module(_mod)
-        build_enriched_payload = _mod.build_enriched_payload
         payload = build_enriched_payload(
             text=text,
             message=message,
