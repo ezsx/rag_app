@@ -266,7 +266,7 @@ Eval-запросы: фактические, аналитические, tempora
 
 **Roadmap:** см. `docs/planning/retrieval_improvement_playbook.md`
 
-### Phase 3.2: Adaptive Retrieval + Tool Router [КЛЮЧЕВОЕ — СЛЕДУЮЩИЙ ПРИОРИТЕТ]
+### Phase 3.2: Adaptive Retrieval + Tool Router [ЗАВЕРШЕНО]
 
 > **Это ГЛАВНОЕ отличие от LlamaIndex/LangChain.** Все 4 исследования (R13-quick, R13-deep, R14-quick, R14-deep) единогласно рекомендуют.
 > Подробный план: `docs/planning/adaptive_retrieval_plan.md`
@@ -332,43 +332,54 @@ Eval-запросы: фактические, аналитические, tempora
 - LLM выбирает `search` (broad) для "Сравни GPT-5 и Claude" → без фильтров ✅
 - Dynamic visibility: 3-4 tools видны LLM вместо 7 → лучший accuracy tool selection
 
-### Phase 3.3: Evaluation Pipeline V2 [ТЕКУЩИЙ ПРИОРИТЕТ]
+### Phase 3.3: Evaluation Pipeline V2 [ЗАВЕРШЕНО — SPEC-RAG-14]
 
 > R18 = целевой evaluation blueprint (release-grade).
-> SPEC-RAG-14 = dev-phase subset для быстрого feedback loop.
-> Принцип: сначала дешёвый и диагностичный golden eval, потом checkpoint/release метрики.
+> SPEC-RAG-14 = dev-phase subset — реализован + P0-P1.5 fixes.
 
-**Что делаем сейчас (SPEC-RAG-14, dev phase):**
-- [ ] Golden dataset v1: 20-30 hand-crafted вопросов
-- [ ] 6 категорий: broad_search, constrained_search, compare_summarize, navigation, negative_refusal, future_baseline
-- [ ] Claude/Codex judge: factual correctness + usefulness
-- [ ] Key tool accuracy из SSE `tool_invoked`
-- [ ] Failure attribution: tool_hidden / tool_selected_wrong / tool_execution_failed / retrieval_empty / generation_wrong / refusal_wrong / judge_uncertain
-- [ ] Calibration subset 5-10 вопросов
-- [ ] Backward-compatible migration path для legacy eval datasets
+**Реализовано (2026-03-24):**
+- [x] Golden dataset v1: 25 hand-crafted вопросов, 6 категорий
+- [x] SSE tool tracking: `step_started` с `visible_tools`, `tool_invoked` → tools_invoked list
+- [x] Key tool accuracy (binary whitelist: key_tools ∪ alternatives, forbidden = hard 0)
+- [x] Failure attribution: tool_hidden/tool_wrong/tool_failed/retrieval_empty/generation_wrong/refusal_wrong/judge_uncertain
+- [x] LLM judge integration (Claude API): factual (0-1) + usefulness (0-2), `--judge claude|skip`
+- [x] Unified JSON report (eval_metadata + aggregate + per_question)
+- [x] Backward-compatible migration path для legacy eval datasets
+- [x] Manual judge: консенсус Claude + Codex → factual=0.52, useful=1.14/2
 
-**Что сознательно НЕ делаем сейчас:**
-- [ ] Robustness metrics (NDR / RSR / ROR)
-- [ ] Full ablation study
-- [ ] Synthetic dataset generation pipeline
-- [ ] Qwen local judge
+**P0-P1.5 fixes (2026-03-24):**
+- [x] Navigation short-circuit: list_channels → skip forced search → key_tool 0→1.0, latency -55%
+- [x] Runtime error fix: context overflow (max_chars 36K→30K, -c 32768), Qwen3 prefill conflict
+- [x] summarize_channel temporal boundary: relative to latest post, not now()
+- [x] Eval error surfacing: runtime markers in answer → tool_execution_failed
+- [x] Refusal hardening: prompt rules + temporal guard + forced search bypass
+- [x] Summarize grounding: prompt hint → compose_context flow stabilized
 
-**Checkpoint phase (после стабилизации golden eval и следующих tools):**
-- [ ] 100-150 вопросов
-- [ ] Citation grounding
-- [ ] RSR quick check
-- [ ] Ablation quick screen
+**Текущие метрики (golden_v1, 2026-03-24):**
+| Метрика | Значение |
+|---------|----------|
+| Key Tool Accuracy | **0.955** |
+| Strict Recall@5 | ~0.43 (занижен: dataset strictness + alternative evidence) |
+| Manual judge factual | **0.52** (консенсус) |
+| Manual judge useful | **1.14/2** (консенсус) |
+| Coverage | ~0.66 |
+| Navigation | key_tool=1.0, latency=7s |
+| Refusal | 1/3 fixed, 2/3 stochastic |
+
+**Оставшиеся задачи (не blocker для Phase 3.4):**
+- [ ] Audit zero-recall cases: true miss / dataset too strict / alternative valid evidence
+- [ ] Soft metric для compare/summarize (channel-level matching)
+- [ ] Stochastic refusal hardening (q19/q20)
+
+**Checkpoint phase (после SPEC-RAG-15):**
+- [ ] 100-150 вопросов (hand-crafted + synthetic)
+- [ ] Citation grounding criterion
+- [ ] RSR quick check, ablation quick screen
 
 **Release phase (portfolio-grade, по R18):**
-- [ ] 450-500 вопросов
+- [ ] 450-500 вопросов, synthetic pipeline + human verification
 - [ ] Полный robustness suite: NDR + RSR + ROR
-- [ ] Deep ablation study
-- [ ] Synthetic pipeline + human verification
-- [ ] Qwen local judge + Claude calibration
-
-**Для собеса**:
-- Dev/Checkpoint: "Есть рабочий golden eval, tool-selection telemetry и failure attribution"
-- Release: "Есть full benchmark, robustness и ablation с доказательством вклада компонентов"
+- [ ] Deep ablation study, Qwen local judge + Claude calibration
 
 ### Phase 3.4: Advanced Techniques [WEEK 2+]
 
@@ -387,12 +398,6 @@ Eval-запросы: фактические, аналитические, tempora
 - [ ] Если достаточно данных → LoRA/QLoRA Qwen3-30B на V100
 - **Target**: +19% по RAG (Соколов), Claude-level FC accuracy (Цымбой)
 - Ref: R15 — Соколов §8, Цымбой §SFT+GRPO. Яндекс: fine-tune диспетчера НЕ помог (Вихров), но SFT самой модели помог
-
-**NLI Citation Verification** — faithfulness metric:
-- [ ] XLM-RoBERTa-large-xnli (Russian+English, ~400M params, CPU или 5060 Ti)
-- [ ] Decompose ответ на claims → NLI entailment check
-- [ ] Target faithfulness ≥ 0.92
-- Ref: R14-deep §NLI
 
 **NLI Citation Verification** — faithfulness metric:
 - [ ] XLM-RoBERTa-large-xnli (Russian+English, ~400M params, CPU или 5060 Ti)
