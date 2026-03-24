@@ -47,9 +47,17 @@ SYSTEM_PROMPT = """Ты — RAG-агент для поиска и анализа
 - При сомнении — используй search
 - Отвечай ТОЛЬКО на русском языке
 - Каждое утверждение подкрепляй ссылкой [1], [2]
-- Если контекст НЕ содержит информации — честно скажи
 - В final_answer ОБЯЗАТЕЛЬНО заполни поле sources
 - После compose_context переходи к final_answer, не ищи повторно
+- После summarize_channel вызови compose_context для формирования ответа с цитатами
+
+ОТКАЗ (ВАЖНО — строго соблюдай):
+- Если запрос про даты ВНЕ июля 2025 — марта 2026 → сразу отвечай "данные за этот период отсутствуют в базе", НЕ ищи
+- Если модель/продукт/сущность НЕ найдена в результатах поиска → скажи "информации об этом нет в базе" и ОСТАНОВИ ответ
+- НЕ подменяй вопрос: если спросили про "Bard 3", а нашлось только "Gemini" — это НЕ ответ, скажи "Bard 3 не найден в базе"
+- НЕ предлагай альтернативы ("но вот похожее Y") — просто отказывай
+- НЕ используй посты, лишь упоминающие объект, как доказательство его существования или отсутствия
+- Если поиск не дал ПРЯМОГО ответа на ТОЧНЫЙ вопрос — отказывай
 """
 
 AGENT_TOOLS: List[Dict[str, Any]] = [
@@ -532,8 +540,12 @@ class AgentService:
                 # Если LLM не вызвала tools и search ещё не был —
                 # принудительно вызываем search с оригинальным запросом.
                 # Qwen3-30B иногда решает ответить "не найдено" без поиска.
-                # НЕ форсим если list_channels уже дал ответ (navigation intent).
-                if not tool_calls and agent_state.search_count == 0 and not agent_state.navigation_answered:
+                # НЕ форсим если:
+                # - list_channels уже дал ответ (navigation intent)
+                # - LLM явно отказывается (refusal — не надо форсить поиск)
+                _refusal_markers = ["нет в базе", "отсутству", "нет данных", "вне периода", "не содержит информац"]
+                is_refusal = content and any(m in content.lower() for m in _refusal_markers)
+                if not tool_calls and agent_state.search_count == 0 and not agent_state.navigation_answered and not is_refusal:
                     logger.warning(
                         "Agent step %d: LLM не вызвала tools, search_count=0 → forced search",
                         step,
@@ -1035,6 +1047,39 @@ class AgentService:
             # Нормализуем ДО security check — rerank/compose_context заполняют
             # данные из внутреннего состояния, а не от пользователя.
             normalized = self._normalize_tool_params(tool_name, safe_params)
+
+            # Temporal guard: если temporal_search запрашивает даты полностью
+            # вне корпуса (июль 2025 — март 2026), возвращаем refusal.
+            # Это предотвращает grounded-looking ответы по косвенным упоминаниям.
+            if tool_name == "temporal_search":
+                _corpus_min = "2025-07-01"
+                _corpus_max = "2026-03-31"
+                # Проверяем safe_params (оригинальные) — normalize уже pop'нул
+                # date_from/date_to из normalized в filters dict.
+                _date_to = str(safe_params.get("date_to", ""))
+                _date_from = str(safe_params.get("date_from", ""))
+                if _date_to and _date_to < _corpus_min:
+                    # Весь запрошенный период ДО корпуса
+                    return AgentAction(
+                        tool=tool_name,
+                        input=safe_params,
+                        output=ToolOutput(
+                            ok=True,
+                            data={"hits": [], "refusal": "Запрошенный период вне диапазона данных базы (июль 2025 — март 2026)."},
+                            meta=ToolOutputMeta(took_ms=0),
+                        ),
+                    )
+                if _date_from and _date_from > _corpus_max:
+                    # Весь запрошенный период ПОСЛЕ корпуса
+                    return AgentAction(
+                        tool=tool_name,
+                        input=safe_params,
+                        output=ToolOutput(
+                            ok=True,
+                            data={"hits": [], "refusal": "Запрошенный период вне диапазона данных базы (июль 2025 — март 2026)."},
+                            meta=ToolOutputMeta(took_ms=0),
+                        ),
+                    )
 
             # Security check только для user-facing полей, не для внутренних docs.
             # rerank и compose_context получают docs из _last_search_hits (системно).
@@ -1693,15 +1738,14 @@ class AgentService:
 
     @staticmethod
     def _trim_messages(
-        messages: list[dict[str, Any]], max_chars: int = 18000
+        messages: list[dict[str, Any]], max_chars: int = 30000
     ) -> list[dict[str, Any]]:
         """Обрезает messages чтобы уложиться в context window LLM.
 
         Стратегия: всегда сохраняем system + user (первые 2 сообщения),
         затем оставляем последние N сообщений по бюджету символов.
-        Бюджет 18K chars ≈ 6K токенов. С --parallel 2 каждый slot = 8192 токена,
-        минус ~1500 (tools schema) минус ~500 (system) минус ~500 (output) = ~5.5K для messages.
-        18K chars даёт ~6K токенов — чуть выше, но _trim обрежет если надо.
+        Бюджет 30K chars ≈ 10K токенов. Context window = 32768 токенов,
+        минус ~1500 (tools schema) минус ~500 (system) минус ~1000 (output) = ~29K.
         """
         total = sum(len(json.dumps(m, ensure_ascii=False, default=str)) for m in messages)
         if total <= max_chars:

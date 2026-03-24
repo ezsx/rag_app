@@ -38,7 +38,7 @@
   Подробности: `docs/research/reports/R10-gpu-docker-wsl2-troubleshooting.md`.
 - **Порядок запуска:**
   1. llama-server.exe на Windows хосте (V100, порт 8080):
-     `--jinja --reasoning-budget 0 --cache-type-k q8_0 --cache-type-v q8_0 -c 16384 --parallel 2`
+     `--jinja --reasoning-budget 0 --cache-type-k q8_0 --cache-type-v q8_0 -c 32768`
   2. gpu_server.py нативно в WSL2 (RTX 5060 Ti, порт 8082):
      `source /home/ezsx/infinity-env/bin/activate && CUDA_VISIBLE_DEVICES=0 python scripts/gpu_server.py`
      Embedding + Reranker + ColBERT в одном процессе. PyTorch cu128 + cuBLAS.

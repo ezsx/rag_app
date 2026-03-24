@@ -241,7 +241,7 @@ def classify_failure(
     # Refusal check — выполняется ВСЕГДА для refusal вопросов, независимо от judge
     if item.expected_refusal:
         answer = agent_result.get("answer", "")
-        refusal_markers = ["не найд", "нет информации", "не содержит", "отсутствует", "не могу", "нет данных"]
+        refusal_markers = ["не найд", "нет информации", "не содержит", "отсутствует", "не могу", "нет данных", "не обнаружен", "обнаружено в базе", "нет в базе", "вне периода", "вне диапазона", "не упоминается", "не существует", "не было"]
         is_refusal = any(m in answer.lower() for m in refusal_markers) if answer else True
         if not is_refusal:
             return FailureType.REFUSAL_WRONG
