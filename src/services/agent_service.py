@@ -26,32 +26,29 @@ from services.tools.tool_runner import ToolRunner
 logger = logging.getLogger(__name__)
 
 
-SYSTEM_PROMPT = """Ты — RAG-агент для поиска информации в базе новостей из Telegram-каналов.
+SYSTEM_PROMPT = """Ты — RAG-агент для поиска и анализа AI/ML новостей из 36 Telegram-каналов.
+База содержит посты с июля 2025 по март 2026. Если нужны даты — используй диапазон 2025-07-01 ... 2026-03-18.
 
 ПОРЯДОК РАБОТЫ:
 1. query_plan — декомпозируй запрос на подзапросы
-2. ВЫБЕРИ ПОДХОДЯЩИЙ инструмент поиска:
-   - temporal_search — если в запросе есть даты, месяцы, периоды ("в январе 2026", "что нового за неделю", "на CES 2026")
-   - channel_search — если упоминается конкретный канал или автор ("gonzo_ml", "Себрант", "llm_under_hood")
-   - search — для общих, сравнительных, entity-запросов без привязки ко времени или каналу
-3. rerank — переранжируй документы по исходному запросу
-4. compose_context — собери контекст из лучших документов (вызывай без параметров)
-5. final_answer — дай итоговый ответ на основе контекста
+2. ВЫБЕРИ ПОДХОДЯЩИЙ инструмент:
+   - temporal_search — даты, периоды ("в январе 2026", "на CES 2026")
+   - channel_search — конкретный канал/автор ("gonzo_ml", "Себрант")
+   - cross_channel_compare — сравнение мнений ("как разные каналы обсуждают X", "X vs Y")
+   - summarize_channel — дайджест канала ("что нового в gonzo_ml за неделю")
+   - list_channels — навигация ("какие каналы есть")
+   - search — общий поиск, entity-запросы, fallback
+3. rerank → compose_context → final_answer
 
-ПРАВИЛА ВЫБОРА ИНСТРУМЕНТА:
-- Если есть дата/период → temporal_search (передай date_from и date_to в ISO формате)
-- Если есть имя канала/автора → channel_search (передай channel)
-- Если нет ни дат, ни каналов → search
+ПОСЛЕ ПОИСКА (если нужно):
+   - related_posts — найти похожие посты к уже найденному
+
+ПРАВИЛА:
 - При сомнении — используй search
-
-ПРАВИЛА ОТВЕТА:
 - Отвечай ТОЛЬКО на русском языке
-- Основывайся на фактах из предоставленного контекста
-- Каждое утверждение подкрепляй ссылкой [1], [2] и т.д.
-- Если контекст содержит релевантную информацию — используй её и дай развёрнутый ответ
-- Если контекст НЕ содержит информации по теме запроса — честно скажи "В источниках не найдено информации по данному вопросу". НЕ приплетай нерелевантные документы ради объёма ответа
-- Не выдавай документы за ответ на вопрос, если они не отвечают на него напрямую
-- В final_answer ОБЯЗАТЕЛЬНО заполни поле sources номерами использованных источников
+- Каждое утверждение подкрепляй ссылкой [1], [2]
+- Если контекст НЕ содержит информации — честно скажи
+- В final_answer ОБЯЗАТЕЛЬНО заполни поле sources
 - После compose_context переходи к final_answer, не ищи повторно
 """
 
@@ -238,6 +235,111 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
             },
         },
     },
+    # ─── SPEC-RAG-13: новые tools ────────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "list_channels",
+            "description": (
+                "Показывает доступные Telegram-каналы и количество постов. "
+                "Используй когда спрашивают какие каналы есть, сколько постов в канале, "
+                "или нужно уточнить название. НЕ используй для поиска по содержимому."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "channel": {
+                        "type": "string",
+                        "description": "Имя конкретного канала (если нужен count одного канала)",
+                    },
+                },
+                "required": [],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "related_posts",
+            "description": (
+                "Находит посты похожие на указанный. "
+                "Используй когда нужно расширить контекст: 'ещё такое же', 'похожие посты'. "
+                "НЕ используй для первичного поиска — сначала search."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "post_id": {
+                        "type": "string",
+                        "description": "ID исходного поста из результатов search",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Количество похожих постов",
+                        "default": 5,
+                    },
+                },
+                "required": ["post_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "cross_channel_compare",
+            "description": (
+                "Сравнивает как разные каналы обсуждают одну тему. "
+                "Используй когда спрашивают 'сравни', 'как разные каналы', "
+                "'мнения экспертов о X', 'X vs Y'. "
+                "Даты не обязательны — без них ищет по всему корпусу. "
+                "НЕ используй для поиска в одном канале."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topic": {
+                        "type": "string",
+                        "description": "Тема для сравнения",
+                    },
+                    "date_from": {
+                        "type": "string",
+                        "description": "Начало периода ISO YYYY-MM-DD",
+                    },
+                    "date_to": {
+                        "type": "string",
+                        "description": "Конец периода ISO YYYY-MM-DD",
+                    },
+                },
+                "required": ["topic"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "summarize_channel",
+            "description": (
+                "Получает последние посты канала за период для составления сводки. "
+                "Используй когда спрашивают 'что нового в канале X', 'дайджест канала'. "
+                "НЕ используй для поиска конкретной темы в канале — для этого channel_search."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "channel": {
+                        "type": "string",
+                        "description": "Имя канала из list_channels",
+                    },
+                    "time_range": {
+                        "type": "string",
+                        "enum": ["day", "week", "month"],
+                        "default": "week",
+                    },
+                },
+                "required": ["channel"],
+            },
+        },
+    },
 ]
 
 
@@ -294,6 +396,7 @@ class AgentService:
 
         self._current_request_id = request_id
         self._current_query = request.query
+        self._original_query = request.query  # SPEC-RAG-13: для visibility keywords
         self._query_signals = extract_query_signals(request.query)
         self._last_search_hits = []
         self._last_search_route = None
@@ -1146,7 +1249,8 @@ class AgentService:
             self._last_plan_summary = action.output.data.get("plan") or {}
             return
 
-        if action.tool in ("search", "temporal_search", "channel_search"):
+        if action.tool in ("search", "temporal_search", "channel_search",
+                          "cross_channel_compare", "summarize_channel"):
             self._last_search_hits = list(action.output.data.get("hits", []) or [])
             self._last_search_route = action.output.data.get("route_used")
             self._agent_state.search_count += 1
@@ -1509,34 +1613,59 @@ class AgentService:
             return json.dumps({"error": "serialization_failed"}, ensure_ascii=False)
 
     def _get_step_tools(self, agent_state) -> List[Dict[str, Any]]:
-        """Динамический набор tools в зависимости от состояния агента.
+        """Phase-based visibility — фиксированные наборы по фазе агента.
 
-        Два уровня visibility:
-        1. final_answer/compose_context скрыты до search (архитектурная гарантия)
-        2. Специализированные search tools скрыты по query signals:
-           - Нет дат → скрыть temporal_search
-           - Нет @каналов → скрыть channel_search
-           → LLM видит 3-4 tools вместо 7, что повышает accuracy (R13-deep "Less is More")
+        SPEC-RAG-13: расширено для 11 tools (7 старых + 4 новых).
+        Фазы:
+        1. PRE-SEARCH: planning + search tools (отфильтрованные по signals)
+        2. POST-SEARCH: enrichment + synthesis
         """
         search_done = agent_state.search_count > 0
-
-        # После search: post-search tools
-        if search_done:
-            return [t for t in AGENT_TOOLS if t["function"]["name"] not in
-                    ("temporal_search", "channel_search")]
-
-        # До search: скрываем post-search tools + фильтруем search tools по signals
-        hidden = {"final_answer", "compose_context"}
-
-        # Dynamic visibility: скрываем irrelevant search tools
         signals = getattr(self, "_query_signals", None)
-        if signals:
-            if not signals.date_from and signals.strategy_hint != "temporal":
-                hidden.add("temporal_search")
-            if not signals.channels and signals.strategy_hint != "channel":
-                hidden.add("channel_search")
+        original_query = getattr(self, "_original_query", "") or ""
+        query_lower = original_query.lower()
 
-        return [t for t in AGENT_TOOLS if t["function"]["name"] not in hidden]
+        if search_done:
+            # POST-SEARCH: rerank, compose_context, final_answer + enrichment
+            visible_names = {
+                "rerank", "compose_context", "final_answer",
+                "related_posts",
+            }
+        else:
+            # PRE-SEARCH: query_plan + fallback search (всегда)
+            visible_names = {"query_plan", "search"}
+
+            # Signal-based: добавляем релевантный specialized search
+            if signals:
+                if signals.date_from or signals.strategy_hint == "temporal":
+                    visible_names.add("temporal_search")
+                if signals.channels or signals.strategy_hint == "channel":
+                    visible_names.add("channel_search")
+                    visible_names.add("summarize_channel")
+
+            # Keyword-based (из original_query)
+            if any(kw in query_lower for kw in
+                   ["сравни", "compare", "vs", "мнени", "разн", "каналы обсужд"]):
+                visible_names.add("cross_channel_compare")
+
+            if any(kw in query_lower for kw in
+                   ["какие каналы", "список каналов", "сколько каналов", "сколько постов"]):
+                visible_names.add("list_channels")
+
+        # Hard cap at 5: убираем по приоритету (lowest priority first)
+        if len(visible_names) > 5:
+            # Убираем generic search если есть specialized
+            if "search" in visible_names:
+                specialized = visible_names - {"search", "query_plan"}
+                if len(specialized) >= 2:
+                    visible_names.discard("search")
+            # Если всё ещё >5 — убираем navigation tools
+            for low_priority in ["list_channels", "summarize_channel"]:
+                if len(visible_names) <= 5:
+                    break
+                visible_names.discard(low_priority)
+
+        return [t for t in AGENT_TOOLS if t["function"]["name"] in visible_names]
 
     @staticmethod
     def _trim_messages(

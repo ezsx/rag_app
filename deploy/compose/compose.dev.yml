@@ -55,7 +55,7 @@ services:
       - RERANKER_TEI_URL=http://host.docker.internal:8082
       # Qdrant — compose-managed, порт 16333 снаружи, 6333 внутри
       - QDRANT_URL=http://qdrant:6333
-      - QDRANT_COLLECTION=news_colbert
+      - QDRANT_COLLECTION=news_colbert_v2
       # Alternatives: news (baseline), news_whitened (PCA 1024, паритет)
       # news_colbert: dense + sparse + ColBERT MaxSim rerank
       # - WHITENING_PARAMS_PATH=datasets/whitening_params.npz
@@ -85,7 +85,7 @@ services:
       - PYTHONPATH=/app/src
       - TG_SESSION=/app/sessions/telegram.session
       - QDRANT_URL=http://qdrant:6333
-      - QDRANT_COLLECTION=news_colbert
+      - QDRANT_COLLECTION=news_colbert_v2
       - EMBEDDING_TEI_URL=http://host.docker.internal:8082
 
 volumes:

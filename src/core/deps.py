@@ -195,6 +195,10 @@ def get_agent_service() -> AgentService:
     from services.tools.router_select import router_select
     from services.tools.search import search
     from services.tools.verify import verify
+    from services.tools.list_channels import list_channels
+    from services.tools.related_posts import related_posts
+    from services.tools.cross_channel_compare import cross_channel_compare
+    from services.tools.summarize_channel import summarize_channel
 
     qdrant_store = get_qdrant_store()
     hybrid_retriever = get_hybrid_retriever()
@@ -234,6 +238,30 @@ def get_agent_service() -> AgentService:
     tool_runner.register("compose_context", compose_context)
     tool_runner.register("verify", verify_wrapper)
     tool_runner.register("final_answer", final_answer)
+
+    # SPEC-RAG-13: новые tools — все через hybrid_retriever sync bridge
+    def list_channels_wrapper(**kwargs):
+        return list_channels(hybrid_retriever=hybrid_retriever, **kwargs)
+
+    def related_posts_wrapper(**kwargs):
+        return related_posts(hybrid_retriever=hybrid_retriever, **kwargs)
+
+    def cross_channel_compare_wrapper(**kwargs):
+        return cross_channel_compare(hybrid_retriever=hybrid_retriever, **kwargs)
+
+    def summarize_channel_wrapper(**kwargs):
+        return summarize_channel(hybrid_retriever=hybrid_retriever, **kwargs)
+
+    tool_runner.register("list_channels", list_channels_wrapper)
+    tool_runner.register("related_posts", related_posts_wrapper)
+    tool_runner.register(
+        "cross_channel_compare", cross_channel_compare_wrapper,
+        timeout_sec=settings.agent_tool_timeout,
+    )
+    tool_runner.register(
+        "summarize_channel", summarize_channel_wrapper,
+        timeout_sec=settings.agent_tool_timeout,
+    )
 
     def _llm_factory():
         return get_llm()
