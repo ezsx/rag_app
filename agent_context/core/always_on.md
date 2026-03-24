@@ -30,8 +30,12 @@
 - Retrieval: `query_plan → search (BM25 top-100 + dense top-20 → RRF 3:1 → ColBERT rerank) → cross-encoder rerank → channel dedup (max 2/channel) → compose_context`.
 - Coverage threshold: **0.65**; max refinements: **2** (DEC-0019; не менять без ресерча).
 - `agent_service.py` — единственный владелец состояния шага; не дублировать логику снаружи.
-- SSE стриминг через `/v1/agent/stream` — не ломать контракт событий (thought/tool_invoked/observation/citations/final).
-- **Recall@5**: v1=0.76, v2=0.61, retrieval=0.73. Roadmap к 0.80+: `docs/planning/retrieval_improvement_playbook.md`.
+- **Navigation short-circuit**: list_channels → `navigation_answered` → skip forced search, NAV-COMPLETE phase.
+- **Refusal policy**: explicit prompt rules + temporal guard в `_execute_action` (dates outside corpus → empty hits).
+- **Forced search bypass**: если LLM content содержит refusal markers → не форсить search.
+- SSE стриминг через `/v1/agent/stream` — не ломать контракт событий (step_started/thought/tool_invoked/observation/citations/final).
+- **Recall@5**: v1=0.76, v2=0.685, golden_v1=~0.43 (strict, занижен). Manual judge: factual=0.52, useful=1.14/2.
+- **Eval pipeline v2** (SPEC-RAG-14): golden dataset 25 Qs, tool tracking, failure attribution, LLM judge. Подробности: `docs/specifications/active/SPEC-RAG-14-evaluation-pipeline.md`.
 
 ## Deploy и запуск
 - **ВАЖНО: Docker GPU НЕ ИСПОЛЬЗУЕТСЯ.** V100 TCC отравляет NVML в WSL2.

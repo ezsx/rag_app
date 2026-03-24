@@ -1,109 +1,111 @@
-## FLOW-03: Evaluation Run
+## FLOW-03: Evaluation Pipeline V2 (SPEC-RAG-14)
 
 ### Problem
-Необходимо количественно измерить качество агента и retrieval pipeline: recall, coverage, latency.
-Evaluation должна быть воспроизводимой и сравнимой между версиями.
+Количественное измерение качества агента: tool selection, answer quality, refusal behavior, retrieval grounding.
+Evaluation должна быть воспроизводимой, сравнимой между версиями, и учитывать multi-criteria quality.
 
-### Два режима evaluation
+### Три режима evaluation
 
-**1. Agent Eval** — полный pipeline через LLM (~40с/запрос):
+**1. Agent Eval V2** — полный pipeline через LLM (~30-40с/запрос):
 ```
 python scripts/evaluate_agent.py \
-  --dataset datasets/eval_dataset_quick.json \
-  --agent-url http://localhost:8001 \
-  --api-key $ADMIN_KEY
+  --dataset datasets/eval_golden_v1.json \
+  --skip-judge \
+  --api-key $TOKEN
 ```
 
-**2. Retrieval Eval** — прямые Qdrant queries, без LLM (~5с/запрос):
+**2. Agent Eval V2 + LLM Judge** — с Claude API judge:
+```
+EVAL_JUDGE_API_KEY=sk-ant-... python scripts/evaluate_agent.py \
+  --dataset datasets/eval_golden_v1.json \
+  --judge claude \
+  --api-key $TOKEN
+```
+
+**3. Retrieval Eval** — прямые Qdrant queries, без LLM (~5с/запрос):
 ```
 python scripts/evaluate_retrieval.py \
   --dataset datasets/eval_retrieval_100.json \
-  --collection news_colbert
+  --collection news_colbert_v2
 ```
 
-### Agent Eval Sequence
+### Agent Eval V2 Sequence
 
-```mermaid
-sequenceDiagram
-  autonumber
-  participant Op as Operator
-  participant Runner as evaluate_agent.py
-  participant Agent as AgentAPI
-
-  Op->>Runner: run with dataset + agent URL
-  Runner->>Runner: load eval dataset
-
-  loop for each question
-    Runner->>Agent: POST /v1/agent/stream
-    Note over Agent: SSE stream, Runner parses all events
-    Agent-->>Runner: thought, tool_invoked, observation, citations, final
-    Runner->>Runner: extract answer + citations + coverage + latency
-
-    Runner->>Runner: compute recall at 5
-    Note over Runner: fuzzy matching per category
-  end
-
-  Runner->>Runner: aggregate metrics
-  Runner-->>Op: JSON results file
+```
+Operator → evaluate_agent.py(dataset, --judge, --api-key)
+  ↓
+Load dataset (auto-detect golden vs legacy format)
+  ↓
+For each question:
+  POST /v1/agent/stream (SSE)
+    Parse: step_started → visible_tools tracking
+    Parse: tool_invoked → tools_invoked list
+    Parse: citations → citation_hits, coverage
+    Parse: final → answer text
+  ↓
+  Compute: recall@5 (fuzzy ±5/±50)
+  Compute: key_tool_accuracy (binary whitelist vs forbidden)
+  Compute: failure_type (tool_hidden/wrong/failed, retrieval_empty, generation_wrong, refusal_wrong)
+  ↓
+  If --judge claude:
+    Claude API: factual_correctness (0.0/0.5/1.0)
+    Claude API: usefulness (0/1/2)
+  ↓
+  POST /v1/qa (baseline comparison)
+  ↓
+Aggregate: recall, key_tool, factual, useful, coverage, latency, failure_breakdown, by_category
+  ↓
+Output: unified JSON (eval_metadata + aggregate + per_question) + Markdown report
 ```
 
-### Retrieval Eval Sequence
+### Метрики V2
 
-```mermaid
-sequenceDiagram
-  autonumber
-  participant Op as Operator
-  participant Runner as evaluate_retrieval.py
-  participant Qdrant as QdrantClient
+| Метрика | Источник | Описание |
+|---------|----------|---------|
+| `recall@5` | Программный | Fuzzy match expected_documents vs citation_hits (±5/±50 по категории) |
+| `key_tool_accuracy` | SSE tool_invoked | Binary: agent вызвал key_tool ∪ alternatives, не вызвал forbidden |
+| `factual_correctness` | LLM Judge (Claude) | 0.0/0.5/1.0 — фактическая корректность vs expected_answer |
+| `usefulness` | LLM Judge (Claude) | 0/1/2 — полезность ответа |
+| `failure_type` | Программный | tool_hidden/tool_wrong/tool_failed/retrieval_empty/generation_wrong/refusal_wrong/judge_uncertain |
+| `coverage` | SSE citations | Взвешенная сумма cosine-сигналов (0–1) |
+| `latency` | Программный | Время от запроса до final события |
 
-  Op->>Runner: run with dataset + collection
-  Runner->>Runner: load retrieval dataset
+### Текущие результаты (2026-03-24)
 
-  loop for each query
-    Runner->>Qdrant: query_points with RRF
-    Note over Qdrant: BM25 top-100 + Dense top-20<br/>RRF 3:1, ColBERT rerank
-    Qdrant-->>Runner: scored points
+| Dataset | Recall@5 | Key Tool | Coverage | Factual* | Useful* | Тип |
+|---------|----------|----------|----------|----------|---------|-----|
+| v1 (10 Qs) | **0.76** | — | 0.86 | — | — | Agent eval legacy |
+| v2 (10 Qs) | **0.685** | — | 0.80 | — | — | Agent eval legacy |
+| **golden_v1 (25 Qs)** | **~0.43** | **0.955** | 0.66 | **0.52** | **1.14/2** | Agent eval v2 |
+| 100 Qs, RRF+ColBERT | **0.73** | — | — | — | — | Retrieval eval |
 
-    Runner->>Runner: check expected source in top-1/5/10/20
-  end
-
-  Runner->>Runner: aggregate: recall@1, @5, @10, @20, latency
-  Runner-->>Op: JSON → results/raw/retrieval_eval_YYYYMMDD-HHMMSS.json
-```
-
-### Метрики
-
-| Метрика | Agent Eval | Retrieval Eval | Описание |
-|---------|-----------|----------------|---------|
-| `recall@1` | — | ✅ | Expected doc в топ-1 |
-| `recall@5` | ✅ | ✅ | Expected docs в топ-5 hits |
-| `recall@10` | — | ✅ | Expected doc в топ-10 |
-| `recall@20` | — | ✅ | Expected doc в топ-20 |
-| `composite_coverage` | ✅ | — | Взвешенная сумма 6 cosine-сигналов (0–1) |
-| `agent_latency_sec` | ✅ | — | Время от запроса до final события |
-| `retrieval_latency` | — | ✅ | Время одного Qdrant query |
-| `answer_rate` | ✅ | — | Доля запросов с непустым ответом |
-
-### Текущие результаты (2026-03-20)
-
-| Dataset | Recall@5 | Coverage | Тип |
-|---------|----------|----------|-----|
-| v1 (10 Qs) | **0.76** | 0.86 | Agent eval |
-| v2 (10 Qs, сложные) | **0.61** | 0.80 | Agent eval |
-| 100 Qs, RRF+ColBERT | **0.73** | — | Retrieval eval |
-
-22 эксперимента отслежены в `docs/planning/retrieval_improvement_playbook.md`.
+*Manual judge (консенсус Claude + Codex). Strict recall@5 на golden_v1 занижен — смешивает dataset strictness и real retrieval misses.
 
 ### Датасеты
 
-| Файл | Тип | Вопросов | Описание |
-|------|-----|----------|----------|
-| `eval_dataset_quick.json` | Agent eval | 10 | factual, temporal, channel, comparative, multi_hop, negative |
-| `eval_dataset_quick_v2.json` | Agent eval | 10 | entity, product, fact_check, cross_channel, recency, numeric, long_tail, negative |
-| `eval_retrieval_100.json` | Retrieval eval | 100 | Auto-generated из первых предложений документов, 35 каналов |
+| Файл | Формат | Вопросов | Описание |
+|------|--------|----------|----------|
+| `eval_golden_v1.json` | **Golden** | 25 | 6 categories, key_tools, forbidden_tools, calibration, future_baseline |
+| `eval_dataset_quick.json` | Legacy | 10 | factual, temporal, channel, comparative, multi_hop, negative |
+| `eval_dataset_quick_v2.json` | Legacy | 10 | entity, product, fact_check, cross_channel, recency |
+| `eval_dataset_v3.json` | Legacy | 30 | temporal, channel, entity, broad, negative |
+| `eval_retrieval_100.json` | Retrieval | 100 | Auto-generated, 35 каналов |
 
-### Техдолг
+### Failure Attribution (P0-P1.5)
 
-- LLM-judge (faithfulness, relevance) не реализован — только retrieval метрики
-- Dataset < 50 вопросов — недостаточно для статистической значимости
-- Нет автоматического regression testing в CI
+| Failure Type | Описание | Trigger |
+|-------------|----------|---------|
+| `tool_hidden` | Key tool не был в visible set | SSE step_started visible_tools |
+| `tool_selected_wrong` | Agent вызвал не тот tool | key_tools/forbidden mismatch |
+| `tool_execution_failed` | Runtime error / 400 в answer | Error markers в final answer |
+| `retrieval_empty` | Поиск не вернул citations | citation_hits пуст |
+| `generation_wrong` | Docs найдены, ответ плохой | factual < 0.5 |
+| `refusal_wrong` | Должен отказать, но ответил | expected_refusal vs actual |
+
+### Следующие шаги (Phase 3.4+)
+
+- Audit zero-recall cases: разделить true miss / dataset too strict / alternative valid evidence
+- Soft metric для compare/summarize (channel-level matching)
+- Stochastic refusal hardening (q19/q20)
+- Release-grade eval: 450-500 Qs, Qwen local judge, robustness (NDR/RSR/ROR), ablation
+- Подробный blueprint: `docs/research/reports/R18-deep-evaluation-methodology-dataset.md`

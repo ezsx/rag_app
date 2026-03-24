@@ -32,13 +32,16 @@
 - **Multi-query search**: все LLM subqueries через round-robin merge.
 - Retrieval: `query_plan → search (BM25 top-100 + dense top-20 → weighted RRF 3:1 → ColBERT rerank) → cross-encoder rerank → channel dedup`.
 - Coverage threshold **0.65**, max **2** refinements (DEC-0019).
-- **Recall@5**: v1=0.76, v2=0.61, retrieval=0.73. Target 0.80+ с adaptive retrieval.
-- Не ломать SSE контракт: `thought/tool_invoked/observation/citations/final`.
+- **Navigation short-circuit**: list_channels → navigation_answered → skip forced search, only final_answer visible.
+- **Refusal policy**: explicit prompt rules (out-of-range, nonexistent entity), temporal guard в _execute_action.
+- **Recall@5**: v1=0.76, v2=0.685, golden_v1=~0.43 (strict, занижен). Manual judge factual=0.52, useful=1.14/2.
+- **Eval pipeline v2** (SPEC-RAG-14): golden dataset 25 Qs, tool tracking, failure attribution, LLM judge.
+- Не ломать SSE контракт: `step_started/thought/tool_invoked/observation/citations/final`.
 
 ### Deploy и запуск
 - **Docker GPU НЕ ИСПОЛЬЗУЕТСЯ.** V100 TCC отравляет NVML.
 - **Порядок запуска**:
-  1. Windows Host: `llama-server.exe` (V100, порт 8080, `--jinja --reasoning-budget 0`)
+  1. Windows Host: `llama-server.exe` (V100, порт 8080, `--jinja --reasoning-budget 0 -c 32768`)
   2. WSL2 native: `gpu_server.py` — embedding + reranker + ColBERT (RTX 5060 Ti, порт 8082)
   3. Docker Desktop (CPU only): `docker compose -f deploy/compose/compose.dev.yml up`
 - Ingest: `docker compose -f deploy/compose/compose.dev.yml run --rm ingest --channel @name --since YYYY-MM-DD --until YYYY-MM-DD`

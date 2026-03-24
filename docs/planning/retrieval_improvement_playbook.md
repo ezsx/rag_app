@@ -2,19 +2,23 @@
 
 > Живой документ. Ответ на вопрос "что дальше пробовать чтобы повысить recall?"
 > Источник: R11-advanced-retrieval-strategies.md + собственные эксперименты.
-> Последнее обновление: 2026-03-19
+> Последнее обновление: 2026-03-24
 
 ---
 
-## Текущее состояние (2026-03-21)
+## Текущее состояние (2026-03-24)
 
 **Agent eval v1**: Recall@5 = **0.76** (10 Qs), Coverage = 0.86, Answer rate = 10/10.
 **Agent eval v2**: Recall@5 = **0.685** (10 Qs, сложные), Coverage = 0.80, Answer rate = 10/10.
-**Agent eval v3 quick**: Strict recall@5 = 0.167 / **LLM judge = 0.71** (6 Qs из 30, temporal+channel).
 **Retrieval eval**: Recall@5 = **0.73** (100 Qs, RRF+ColBERT), Recall@1 = 0.71.
+**Golden eval v1**: Strict recall@5 = **~0.43** / Key Tool Accuracy = **0.955** / Manual judge factual = **0.52**, useful = **1.14/2** (25 Qs, 6 categories).
 
-**Phase 3.2 (Adaptive Retrieval)**: реализовано. LLM выбирает из 3 search tools. System prompt fix + hints injection.
-**Следующий приоритет**: полный eval v3 (30 Qs) с LLM judge, конвертация eval на answer quality вместо strict doc matching.
+**Phase 3.3 (Eval Pipeline V2, SPEC-RAG-14)**: реализовано. Golden dataset 25 Qs, tool tracking, failure attribution, LLM judge integration.
+**Phase 3.4 (Tool Expansion)**: 11 tools с dynamic visibility, navigation short-circuit, temporal guard, refusal hardening.
+
+**Важно**: strict recall@5 на golden_v1 (0.43) занижен — смешивает dataset strictness, alternative valid evidence и real retrieval misses. Manual judge показывает factual=0.52, что ближе к реальному качеству.
+
+**Следующий приоритет**: audit zero-recall cases, soft metric для compare/summarize, stochastic refusal (q19/q20).
 
 ### История экспериментов
 

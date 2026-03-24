@@ -1,6 +1,6 @@
 ## System Overview
 
-### Stack (актуально 2026-03-20)
+### Stack (актуально 2026-03-24)
 
 | Слой | Технология | Где работает |
 |------|-----------|-------------|
@@ -11,7 +11,7 @@
 | **ColBERT** | gpu_server.py → jina-colbert-v2 (128-dim per-token MaxSim) | **WSL2 native** (RTX 5060 Ti) → `:8082` |
 | **Vector Store** | Qdrant HTTP (dense + sparse + ColBERT named vectors) | Docker (CPU) |
 | **Hybrid Retrieval** | Qdrant weighted RRF (BM25 3:1) → ColBERT MaxSim rerank | Docker (CPU) |
-| **Agent** | ReAct loop, native function calling (5 LLM tools) | Docker (CPU) |
+| **Agent** | ReAct loop, native function calling (11 LLM tools, phase-based visibility) | Docker (CPU) |
 | **Query Planner** | JSON-guided LLM via HTTP (тот же endpoint) | Docker → Host |
 | **Auth** | JWT (ADMIN_KEY) | Docker |
 | **Config** | Settings singleton (os.getenv) | Docker |
@@ -71,7 +71,7 @@
 
 ---
 
-### Hardware (актуально 2026-03-20)
+### Hardware (актуально 2026-03-24)
 
 | GPU | CUDA device | Режим | VRAM | Где доступен |
 |-----|------------|-------|------|-------------|
@@ -83,7 +83,7 @@
 > **Текущее решение**: gpu_server.py запускается как WSL2-native процесс.
 
 - **LLM inference**: llama-server.exe на Windows хосте, V100
-  - Qwen3-30B-A3B Q4_K_M: ~18 GB VRAM, `--jinja --reasoning-budget 0 -c 16384 --parallel 2`
+  - Qwen3-30B-A3B Q4_K_M: ~18 GB VRAM, `--jinja --reasoning-budget 0 -c 32768`
 - **GPU server**: gpu_server.py нативно в Ubuntu WSL2, RTX 5060 Ti, порт **:8082**
   - Embedding: Qwen3-Embedding-0.6B (1024-dim)
   - Reranker: bge-reranker-v2-m3 (cross-encoder)

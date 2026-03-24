@@ -2,77 +2,120 @@
 
 ## Ключевые файлы
 
-- `src/services/agent_service.py` — основной класс `AgentService`
+- `src/services/agent_service.py` — основной класс `AgentService`, system prompt, AGENT_TOOLS, dynamic visibility
 - `src/services/tools/tool_runner.py` — `ToolRunner` реестр + запуск с таймаутом
-- `src/services/tools/` — 7 инструментов агента
+- `src/services/tools/` — 11 инструментов агента + 2 системных
 - `src/schemas/agent.py` — схемы: `AgentRequest`, `AgentStepEvent`, `ToolRequest`, `AgentAction`
-- `src/core/deps.py` — DI: `get_agent_service`, `get_tool_runner`
+- `src/core/deps.py` — DI: `get_agent_service`, `get_tool_runner`, wrapper-функции для всех tools
 - `src/api/v1/endpoints/agent.py` — SSE endpoint `/v1/agent/stream`
-- `docs/ai/agent_technical_spec.md` — детальная спецификация
 
-## Цикл ReAct (детерминированный)
+## Цикл ReAct (native function calling)
 
 ```
-Инициализация (AgentState: coverage=0.0, refinement_count=0)
+Инициализация (AgentState: coverage=0.0, refinement_count=0, search_count=0, navigation_answered=False)
     ↓
-Цикл по шагам (до agent_max_steps=15):
-    LLM.generate_step()
-    parse(thought / action / final_answer)
-    emit thought event
-    if final_answer → verify → [refinement?] → emit final
-    if action → ToolRunner.run() → emit tool_invoked → observation
-        if tool == compose_context:
-            check coverage < 0.8 AND refinement_count < 1
-            → auto refinement (k *= 2, max 200)
-        if tool == verify:
-            check confidence < 0.6 → optional refinement
+Цикл по шагам (до max_steps=8):
+    _get_step_tools(agent_state)  — phase-based visibility (max 5 tools)
+    yield step_started {step, visible_tools, request_id}
+    LLM.chat_completion(messages, tools=step_tools)
+    parse(content + tool_calls)
+    emit thought event (если есть content)
+
+    Guard: forced search bypass
+      - если нет tool_calls И search_count==0 И НЕ navigation_answered И НЕ refusal → forced search
+
+    Для каждого tool_call:
+      _normalize_tool_params() — temporal/channel → search с filters
+      temporal guard: если date_from/date_to вне корпуса → refusal
+      _execute_action() → ToolRunner.run()
+      _apply_action_state() — обновляет search_count, hits, coverage, navigation_answered
+      emit tool_invoked, observation
+
+      if compose_context → check coverage, maybe refinement
     ↓
-Fallback (max_steps exceeded): QAService.answer()
+Fallback (max_steps exceeded): error answer
 ```
 
-## 7 инструментов
+## 11 LLM tools + 2 системных (SPEC-RAG-13)
 
+### Pre-search phase
 | Инструмент | Файл | Назначение |
 |-----------|------|-----------|
-| `router_select` | `tools/router_select.py` | Выбрать маршрут bm25/dense/hybrid |
-| `query_plan` | `tools/query_plan.py` | Разложить запрос на под-запросы (GBNF grammar) |
-| `search` | `tools/search.py` | Гибридный поиск (BM25 + Chroma, RRF fusion) |
-| `rerank` | `tools/rerank.py` | BGE-reranker-v2-m3, top-N на CPU |
-| `compose_context` | `tools/compose_context.py` | Собрать контекст, считает citation_coverage |
-| `verify` | `tools/verify.py` | Проверить ответ, возвращает confidence + evidence |
-| `final_answer` | `tools/final_answer.py` | Унифицировать финальный payload |
+| `query_plan` | `tools/query_plan.py` | Декомпозиция запроса на 3-5 подзапросов |
+| `search` | `tools/search.py` | Широкий гибридный поиск (BM25+dense→RRF 3:1→ColBERT) |
+| `temporal_search` | `tools/search.py` | Поиск с date filter (маппится на search + filters) |
+| `channel_search` | `tools/search.py` | Поиск в конкретном канале (маппится на search + filters) |
+| `cross_channel_compare` | `tools/cross_channel_compare.py` | Qdrant query_points_groups по каналам |
+| `summarize_channel` | `tools/summarize_channel.py` | Qdrant scroll + dedup, temporal window от latest post |
+| `list_channels` | `tools/list_channels.py` | Qdrant Facet API на channel field |
+
+### Post-search phase
+| Инструмент | Файл | Назначение |
+|-----------|------|-----------|
+| `rerank` | `tools/rerank.py` | bge-reranker-v2-m3 cross-encoder |
+| `compose_context` | `tools/compose_context.py` | Сборка контекста с цитатами, coverage |
+| `final_answer` | `tools/final_answer.py` | Финальный payload с sources |
+| `related_posts` | `tools/related_posts.py` | Qdrant RecommendQuery — похожие посты |
+
+### Системные (не в LLM schema)
+| Инструмент | Файл | Назначение |
+|-----------|------|-----------|
+| `fetch_docs` | `tools/fetch_docs.py` | Догрузка полных текстов по id |
+| `verify` | `tools/verify.py` | Верификация финального ответа |
+
+## Dynamic Tool Visibility (phase-based)
+
+```python
+if nav_done and not search_done:
+    # NAV-COMPLETE: only final_answer
+    visible = {"final_answer"}
+elif search_done:
+    # POST-SEARCH: synthesis tools
+    visible = {"rerank", "compose_context", "final_answer", "related_posts"}
+else:
+    # PRE-SEARCH: query_plan + search + signal-based specialized
+    visible = {"query_plan", "search"}
+    # + temporal_search (если есть даты в query)
+    # + channel_search, summarize_channel (если есть канал)
+    # + cross_channel_compare (если "сравни", "vs")
+    # + list_channels (если "какие каналы", "сколько постов")
+    # Hard cap: max 5, убираем по priority
+```
+
+## Refusal Policy (P1, 2026-03-24)
+
+System prompt содержит explicit refusal rules:
+- Даты вне июля 2025 — марта 2026 → отказ без поиска
+- Несуществующая сущность не найдена → "нет в базе", без подмены
+- Temporal guard в `_execute_action`: если date_from/date_to полностью вне корпуса → empty hits
+- Forced search bypass: если LLM content содержит refusal markers → не форсить search
 
 ## SSE события (контракт `/v1/agent/stream`)
 
 ```
+step_started   — {step, visible_tools, request_id, max_steps, query}
 thought        — мысль агента (text)
-tool_invoked   — {tool, input}
-observation    — результат инструмента
-citations      — из compose_context
-final          — финальный ответ с метаданными
+tool_invoked   — {tool, input, step}
+observation    — результат инструмента {content, success, took_ms}
+citations      — из compose_context {citations, coverage}
+final          — финальный ответ {answer, citations, coverage, request_id}
 error          — при ошибке
 ```
 
 ## Настройки (settings.py)
 
-```python
+```
 agent_max_steps       = 15
 agent_default_steps   = 8
-agent_tool_timeout    = 15.0
-agent_token_budget    = 2000
-agent_tool_temp       = 0.2    # шаги инструментов
-agent_tool_max_tokens = 64
-agent_final_temp      = 0.3    # финальный ответ
+coverage_threshold    = 0.65     # DEC-0019
+max_refinements       = 2        # DEC-0019
+agent_tool_temp       = 0.2
 agent_final_max_tokens = 512
-coverage_threshold    = 0.8
-max_refinements       = 1
-enable_verify_step    = True
 ```
 
-## Типичные задачи
+## Eval (SPEC-RAG-14, Phase 3.3)
 
-- Добавить новый инструмент: `ToolRunner.register(name, func, timeout_sec)` в `deps.py`
-- Изменить coverage threshold: `settings.coverage_threshold`
-- Поменять промпт: `AgentService.system_prompt` в `agent_service.py`
-- Отладить шаг: JSON trace в stdout/логах (формат `req/step/tool/ok/took_ms`)
-- Тесты: `src/tests/test_agent_service.py`
+- Golden dataset: `datasets/eval_golden_v1.json` (25 Qs, 6 categories)
+- Eval script: `scripts/evaluate_agent.py` — tool tracking, failure attribution, LLM judge
+- Key Tool Accuracy: **0.955** | Strict Recall@5: ~0.43 | Manual judge factual: **0.52**
+- Подробности: `docs/specifications/active/SPEC-RAG-14-evaluation-pipeline.md`
