@@ -25,8 +25,8 @@
 
 ### ReAct агент
 - Оркестрация: native function calling через `/v1/chat/completions`.
-- Tools schema для LLM: `query_plan → search → rerank → compose_context → final_answer`.
-- **Dynamic tools**: `final_answer` скрыт до выполнения `search`.
+- 11 LLM tools: `query_plan`, `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`, `list_channels`, `rerank`, `related_posts`, `compose_context`, `final_answer`.
+- **Dynamic visibility**: phase-based (pre-search / post-search), max 5 видимых, signal + keyword routing.
 - **Forced search**: если LLM не вызывает tools, принудительный search с оригинальным запросом.
 - **Original query injection**: оригинальный запрос пользователя всегда в subqueries (BM25 match).
 - **Multi-query search**: все LLM subqueries через round-robin merge.
@@ -102,7 +102,7 @@ src/
   api/v1/endpoints/   — FastAPI эндпоинты
   core/               — settings, deps, auth, security
   services/           — agent_service, qa_service, query_planner, reranker
-  services/tools/     — LLM tools (query_plan, search, rerank, compose_context, final_answer)
+  services/tools/     — 11 LLM tools (search, cross_channel_compare, summarize_channel, list_channels, related_posts, ...)
   adapters/qdrant/    — QdrantStore
   adapters/search/    — HybridRetriever (Qdrant weighted RRF + ColBERT)
   adapters/tei/       — TEIEmbeddingClient, TEIRerankerClient

@@ -14,15 +14,15 @@
 - Reranker: **bge-reranker-v2-m3** (dedicated cross-encoder) через gpu_server.py (порт 8082).
 - ColBERT: **jina-colbert-v2** (560M, 128-dim per-token MaxSim) через gpu_server.py (порт 8082).
 - Хранилище: **Qdrant** (dense 1024 + sparse BM25 + ColBERT 128-dim, **weighted RRF** BM25 3:1).
-- Коллекция: `news_colbert`.
+- Коллекция: `news_colbert_v2` (enriched payload: entities, arxiv_ids, urls, year_week, lang + 16 payload indexes).
 - **Docker GPU blocker**: RTX 5060 Ti недоступна в Docker Desktop (TCC V100 блокирует NVML).
   Все GPU-модели запускаются нативно через gpu_server.py в Ubuntu WSL2.
   Детали: DEC-0024 в `docs/architecture/11-decisions/decision-log.md`.
 
 ## ReAct агент
 - Оркестрация: native function calling через `/v1/chat/completions`, без regex-парсинга.
-- LLM tools schema: `query_plan → search → rerank → compose_context → final_answer`.
-- **Dynamic tools**: `final_answer` скрыт до выполнения `search`.
+- LLM tools schema: 11 tools — `query_plan`, `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`, `list_channels`, `rerank`, `related_posts`, `compose_context`, `final_answer`.
+- **Dynamic visibility**: phase-based (pre-search / post-search), max 5 видимых. Signal + keyword routing.
 - **Forced search**: если LLM не вызывает tools, принудительный search с оригинальным запросом.
 - **Original query injection**: оригинальный запрос всегда в subqueries для BM25 keyword match.
 - **Multi-query search**: все LLM subqueries через round-robin merge (не только первый!).

@@ -21,15 +21,15 @@ Full architecture document: [Architecture_ru.md](docs/Architecture_ru.md) (auto-
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ Windows Host                                            │
-│   llama-server.exe → V100 SXM2 32GB                    │
-│   Qwen3-30B-A3B (Q4_K_M), port 8080                   │
+│   llama-server.exe → V100 SXM2 32GB                     │
+│   Qwen3-30B-A3B (Q4_K_M), port 8080                     │
 └─────────────────────┬───────────────────────────────────┘
                       │
 ┌─────────────────────┼───────────────────────────────────┐
 │ WSL2 Native         │                                   │
-│   gpu_server.py → RTX 5060 Ti 16GB                     │
-│   Qwen3-Embedding-0.6B + bge-reranker-v2-m3            │
-│   + jina-colbert-v2 (560M), port 8082                  │
+│   gpu_server.py → RTX 5060 Ti 16GB                      │
+│   Qwen3-Embedding-0.6B + bge-reranker-v2-m3             │
+│   + jina-colbert-v2 (560M), port 8082                   │
 └─────────────────────┼───────────────────────────────────┘
                       │
 ┌─────────────────────┼───────────────────────────────────┐
@@ -102,11 +102,19 @@ Research → Specification → Implementation → Evaluation → Documentation
 
 **What this avoids:** orphaned docs nobody reads, "works on my machine" knowledge, regression from agents that don't know project history, accumulating technical debt from undocumented decisions.
 
-## Next: Adaptive Retrieval (Phase 3.2)
+## Current: 11 Tools with Dynamic Visibility (Phase 3.4)
 
-Current pipeline is linear — every query goes through the same path. Temporal, channel, entity queries need different strategies. This is what frameworks like LlamaIndex/LangChain don't do out of the box.
+Agent now has 11 tools with phase-based dynamic visibility (max 5 visible at a time):
+- **Search**: `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`
+- **Planning**: `query_plan`, `list_channels`
+- **Enrichment**: `rerank`, `related_posts`, `compose_context`
+- **Synthesis**: `final_answer`
 
-Planned: Tool Router with 4 specialized search tools, rule-based pre-validator, ColBERT quality gates, 3-tier fallback. Backed by 4 research reports. See [plan](docs/planning/adaptive_retrieval_plan.md).
+Enriched payload (SPEC-RAG-12): 16 indexed fields including NER entities, arxiv IDs, URLs, hashtags, year_week. Collection `news_colbert_v2` with 13K+ points.
+
+## Next: Evaluation Overhaul (Phase 3.3)
+
+Current eval is strict recall@5 against golden documents. Yandex AI Conference (R15) showed this is insufficient — need multi-criteria LLM judge, robustness metrics (RSR, NDR, order), ablation study. Requires deep research first.
 
 ## Project structure
 
@@ -120,7 +128,7 @@ src/                        Application code
 scripts/                    GPU server, evaluation, ingestion
 docs/
   architecture/               Source of truth — current system state
-  research/                   14 research reports (prompts + reports)
+  research/                   17 research reports (prompts + reports)
   specifications/             Implementation specs (active + completed)
   planning/                   Roadmap, playbook, implementation plans
 datasets/                   Evaluation datasets (v1, v2, retrieval-100)
