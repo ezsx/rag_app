@@ -1,7 +1,7 @@
 # Project Scope: rag_app как портфолио-проект
 
 > Живой документ. Обновляется по мере продвижения.
-> Последнее обновление: 2026-03-22
+> Последнее обновление: 2026-03-24
 
 ---
 
@@ -32,7 +32,7 @@ http://localhost:8001/
 - [x] Self-hosted LLM: Qwen3-30B-A3B MoE на V100 SXM2 32GB
 - [x] Self-hosted embedding: Qwen3-Embedding-0.6B через TEI (RTX 5060 Ti)
 - [x] Self-hosted reranker: BGE-M3 через gpu_server.py (временно, целевой — bge-reranker-v2-m3)
-- [x] Telegram ingestion: 36 каналов, 13124 точки с smart chunking
+- [x] Telegram ingestion: 36 каналов, 13088 points в `news_colbert_v2` после payload enrichment + re-ingest
 - [x] gpu_server.py: embedding + reranker в одном HTTP-сервере (PyTorch cu128, RTX 5060 Ti)
 
 ### RAG Pipeline
@@ -47,8 +47,8 @@ http://localhost:8001/
 
 ### Agent
 - [x] Native function calling (не regex-парсинг ReAct)
-- [x] 5 tools: query_plan → search → rerank → compose_context → final_answer
-- [x] Dynamic tool availability: final_answer скрыт до выполнения search
+- [x] 11 tools: query_plan, search, temporal_search, channel_search, cross_channel_compare, summarize_channel, list_channels, rerank, compose_context, final_answer, related_posts
+- [x] Dynamic tool availability: phase-based visibility, max 5 tools visible одновременно
 - [x] Forced search: если LLM пропускает tools, принудительный search с оригинальным запросом
 - [x] Coverage metric: 6-signal composite (cosine similarity based)
 - [x] Auto-refinement: дополнительный поиск при coverage < 0.65
@@ -179,7 +179,7 @@ http://localhost:8001/
 | `@ml_world` | Потерял ML-фокус |
 | `@tproger_official` | Широкий IT, мало оригинального AI-контента |
 
-**Итого: 37 каналов** (5 existing + 32 new). Покрытие 10 тематических областей.
+**Итого: 36 каналов** в актуальной коллекции. Покрытие 10 тематических областей.
 Eval-запросы: фактические, аналитические, temporal, comparative, multi-hop — все покрыты.
 
 ---
@@ -332,34 +332,43 @@ Eval-запросы: фактические, аналитические, tempora
 - LLM выбирает `search` (broad) для "Сравни GPT-5 и Claude" → без фильтров ✅
 - Dynamic visibility: 3-4 tools видны LLM вместо 7 → лучший accuracy tool selection
 
-### Phase 3.3: Eval перестройка + Ablation Study [INTERVIEW KILLER]
+### Phase 3.3: Evaluation Pipeline V2 [ТЕКУЩИЙ ПРИОРИТЕТ]
 
-> Strict document matching неадекватна для open-ended вопросов (strict recall=0.167, LLM judge=0.71 на тех же 6 ответах).
-> "Чем больше градусников, тем лучше" — Андрей Соколов, Яндекс (R15).
-> YaC AI Meetup (R15) подтверждает направление, но R15 — анализ конференции, не наш собственный ресерч. Треки из R15 требуют отдельных deep research (R16+) перед реализацией.
+> R18 = целевой evaluation blueprint (release-grade).
+> SPEC-RAG-14 = dev-phase subset для быстрого feedback loop.
+> Принцип: сначала дешёвый и диагностичный golden eval, потом checkpoint/release метрики.
 
-**Шаг 1 — Multi-criteria LLM judge (заменяет strict recall):**
-- [ ] Прогнать eval v3 (30 Qs) на текущем коде (system prompt fix + hints injection)
-- [ ] Claude как judge оценивает каждый ответ по 4 критериям (0-1): полезность, фактологичность, подтверждённость цитатами, полнота
-- [ ] Каждый критерий оценивается отдельно (Яндекс: LLM judge fails на фактах, если оценивать одним числом)
-- [ ] Strict recall@5 остаётся как вспомогательная метрика для entity/product вопросов
-- **Конкретный результат**: таблица 30 вопросов × 4 критерия + overall score
-- Ref: R15 — Соколов §10 (3 стадии eval), Вихров (LLM judge fails для фактов)
+**Что делаем сейчас (SPEC-RAG-14, dev phase):**
+- [ ] Golden dataset v1: 20-30 hand-crafted вопросов
+- [ ] 6 категорий: broad_search, constrained_search, compare_summarize, navigation, negative_refusal, future_baseline
+- [ ] Claude/Codex judge: factual correctness + usefulness
+- [ ] Key tool accuracy из SSE `tool_invoked`
+- [ ] Failure attribution: tool_hidden / tool_selected_wrong / tool_execution_failed / retrieval_empty / generation_wrong / refusal_wrong / judge_uncertain
+- [ ] Calibration subset 5-10 вопросов
+- [ ] Backward-compatible migration path для legacy eval datasets
 
-**Шаг 2 — Robustness-метрики:**
-- [ ] **RSR (Retrieval Size Robustness)**: один и тот же вопрос с k=3, 5, 10, 15 — качество должно монотонно расти
-- [ ] **Order robustness**: shuffle top-5 чанков перед генерацией — ответ не должен существенно меняться (lost-in-the-middle)
-- [ ] **NDR (Non-Degradation Rate)**: ответ с контекстом не хуже ответа без контекста
-- **Конкретный результат**: 3 новые метрики в eval pipeline, числа в playbook
-- Ref: R15 — Соколов §6. Требует отдельный deep research (R16) для методологии измерения
+**Что сознательно НЕ делаем сейчас:**
+- [ ] Robustness metrics (NDR / RSR / ROR)
+- [ ] Full ablation study
+- [ ] Synthetic dataset generation pipeline
+- [ ] Qwen local judge
 
-**Шаг 3 — Ablation study:**
-- [ ] LlamaIndex baseline: VectorStoreIndex + Qdrant + тот же корпус 13K docs
-- [ ] Ablation table: отключаем по одному компоненту (ColBERT, RRF weighting, multi-query, tool selection) и меряем
-- [ ] Per-component Δ: вклад каждого компонента в recall и latency
-- **Конкретный результат**: таблица "с компонентом vs без" с числами
+**Checkpoint phase (после стабилизации golden eval и следующих tools):**
+- [ ] 100-150 вопросов
+- [ ] Citation grounding
+- [ ] RSR quick check
+- [ ] Ablation quick screen
 
-**Для собеса**: "Мой custom pipeline даёт recall 0.7X по 4 критериям, LlamaIndex out-of-box — 0.XX. Вот ablation каждого компонента. Плюс 3 robustness-метрики."
+**Release phase (portfolio-grade, по R18):**
+- [ ] 450-500 вопросов
+- [ ] Полный robustness suite: NDR + RSR + ROR
+- [ ] Deep ablation study
+- [ ] Synthetic pipeline + human verification
+- [ ] Qwen local judge + Claude calibration
+
+**Для собеса**:
+- Dev/Checkpoint: "Есть рабочий golden eval, tool-selection telemetry и failure attribution"
+- Release: "Есть full benchmark, robustness и ablation с доказательством вклада компонентов"
 
 ### Phase 3.4: Advanced Techniques [WEEK 2+]
 
@@ -450,12 +459,13 @@ Eval-запросы: фактические, аналитические, tempora
 ```
 Phase 3.0: Расширение коллекции (36 каналов, 13124 точки)                    [DONE]
 Phase 3.1: Evaluation + Pipeline Optimization (recall 0.15→0.76)             [DONE]
-Phase 3.2: Adaptive Retrieval + Tool Router                                   [DONE — LLM tool selection работает]
-Phase 3.3: Eval Revolution + Ablation Study                                   [NEXT — LLM judge + robustness]
-Phase 3.4: Advanced Techniques (RAG classifier, SFT, NLI, Speculative RAG)  [Week 2+]
-Phase 3.5: README + архитектурная диаграмма + comparison tables              [Параллельно с 3.3]
-Phase 3.6: Observability                                                      [После 3.5]
-Phase 3.7: UI polish                                                          [Lowest priority]
+Phase 3.2: Adaptive Retrieval + Tool Router                                   [DONE — 11 tools, smoke tests passed]
+Phase 3.3: Evaluation Pipeline V2 (SPEC-RAG-14, dev phase)                    [NEXT]
+Phase 3.4: Release-grade Eval (robustness + ablation + synthetic, по R18)     [После 3.3]
+Phase 3.5: Advanced Techniques (RAG classifier, SFT, NLI, Speculative RAG)    [Week 2+]
+Phase 3.6: README + архитектурная диаграмма + comparison tables               [Параллельно с 3.3/3.4]
+Phase 3.7: Observability                                                       [После 3.6]
+Phase 3.8: UI polish                                                           [Lowest priority]
 
 Исследовательская база: R01-R15 (15 отчётов, включая R15 — анализ Яндекс RAG конфы)
 ```
@@ -494,12 +504,13 @@ Phase 3.7: UI polish                                                          [L
 
 ## Заметки
 
-- Коллекция: `news_colbert` (dense 1024 + sparse BM25 + ColBERT 128-dim MaxSim)
+- Активная коллекция: `news_colbert_v2` (dense 1024 + sparse BM25 + ColBERT 128-dim MaxSim + enriched payload)
 - gpu_server.py: 3 модели (Qwen3-Embedding-0.6B + bge-reranker-v2-m3 + jina-colbert-v2), ~4-5 GB VRAM, ~11GB свободно на 5060 Ti
 - RTX 5060 Ti недоступна в Docker Desktop (V100 TCC блокирует NVML) — DEC-0024
-- Recall@5: 0.15 → 0.76 (v1), 0.61 (v2) через 22 eval прогона
+- Recall@5: 0.15 → 0.76 (v1), 0.685 (v2) через iterative eval + adaptive tools
 - Retrieval recall@5: 0.73 на 100 запросах (ColBERT + RRF)
 - Coverage: 0.86 (v1), 0.80 (v2)
 - Latency: ~30-45с на полный pipeline (LLM inference ~12с × 2-3 calls — основное узкое место)
 - Retrieval improvement playbook: `docs/planning/retrieval_improvement_playbook.md`
 - Adaptive retrieval plan: `docs/planning/adaptive_retrieval_plan.md`
+- Evaluation strategy: `docs/research/reports/R18-deep-evaluation-methodology-dataset.md` (target-state) + `docs/specifications/active/SPEC-RAG-14-evaluation-pipeline.md` (dev phase)

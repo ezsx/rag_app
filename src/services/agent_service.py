@@ -458,6 +458,18 @@ class AgentService:
 
             while step <= max_steps:
                 self._current_step = step
+
+                # Динамический набор tools: final_answer доступен
+                # только после search. Без этого LLM иногда пропускает
+                # поиск и сразу отвечает "не найдено" (особенно Qwen3-30B
+                # с 3B active params — ненадёжно следует сложным промптам).
+                step_tools = self._get_step_tools(agent_state)
+                visible_tool_names = [
+                    t["function"]["name"]
+                    for t in step_tools
+                    if "function" in t
+                ]
+
                 yield AgentStepEvent(
                     type="step_started",
                     data={
@@ -465,6 +477,7 @@ class AgentService:
                         "request_id": request_id,
                         "max_steps": max_steps,
                         "query": request.query,
+                        "visible_tools": visible_tool_names,
                     },
                 )
 
@@ -478,11 +491,6 @@ class AgentService:
                     if expect_final
                     else self.settings.agent_tool_max_tokens
                 )
-                # Динамический набор tools: final_answer доступен
-                # только после search. Без этого LLM иногда пропускает
-                # поиск и сразу отвечает "не найдено" (особенно Qwen3-30B
-                # с 3B active params — ненадёжно следует сложным промптам).
-                step_tools = self._get_step_tools(agent_state)
 
                 response = llm.chat_completion(
                     messages=trimmed_messages,
