@@ -118,8 +118,10 @@ class LlamaServerClient:
             "presence_penalty": presence_penalty,
             # Qwen3 thinking mode конфликтует с tool_calls в history
             # (ошибка "Assistant response prefill is incompatible with enable_thinking").
-            # Для agent pipeline thinking не нужен — отключаем явно.
+            # Для agent pipeline thinking не нужен — отключаем на обоих уровнях:
+            # top-level для llama-server и chat_template_kwargs для jinja template.
             "enable_thinking": False,
+            "chat_template_kwargs": {"enable_thinking": False},
         }
         if self.model:
             payload["model"] = self.model
@@ -135,6 +137,27 @@ class LlamaServerClient:
             json=payload,
             timeout=self.timeout,
         )
+
+        # Retry при 400: context overflow → обрезаем messages,
+        # prefill/thinking конфликт → убираем enable_thinking.
+        if resp.status_code == 400:
+            error_text = resp.text[:500]
+            logger.warning("LLM chat_completion 400 (will retry): %s", error_text)
+
+            # Обрезаем messages до последних 4 (system + user + 2 recent)
+            if len(payload["messages"]) > 4:
+                payload["messages"] = payload["messages"][:2] + payload["messages"][-2:]
+                logger.info("Retrying with trimmed messages: %d → %d", len(messages), 4)
+
+            # Убираем enable_thinking на retry
+            payload.pop("enable_thinking", None)
+
+            resp = self._session.post(
+                f"{self.base_url}/v1/chat/completions",
+                json=payload,
+                timeout=self.timeout,
+            )
+
         if resp.status_code >= 400:
             logger.error(
                 "LLM chat_completion %d: %s",

@@ -39,10 +39,46 @@ def summarize_channel(
 
     store = hybrid_retriever._store
     delta = _TIME_DELTAS.get(time_range, 7)
-    date_from = (datetime.utcnow() - timedelta(days=delta)).isoformat()
     start = time.perf_counter()
 
     from qdrant_client import models
+
+    # Определяем reference date: последний пост канала, а не now.
+    # Stale corpus (corpus заканчивается раньше now) не должен давать
+    # ложное "постов нет" — считаем window от реальной max date.
+    async def _get_latest_date():
+        """Scroll 1 post desc → дата последнего поста канала."""
+        pts, _ = await store._client.scroll(
+            collection_name=store.collection,
+            scroll_filter=models.Filter(must=[
+                models.FieldCondition(
+                    key="channel",
+                    match=models.MatchValue(value=channel),
+                ),
+            ]),
+            order_by=models.OrderBy(key="date", direction="desc"),
+            limit=1,
+            with_payload=["date"],
+            with_vectors=False,
+        )
+        if pts and pts[0].payload.get("date"):
+            return pts[0].payload["date"]
+        return None
+
+    try:
+        latest_date_str = hybrid_retriever._run_sync(_get_latest_date())
+    except Exception:
+        latest_date_str = None
+
+    if latest_date_str:
+        try:
+            ref_date = datetime.fromisoformat(latest_date_str.replace("Z", "+00:00"))
+        except (ValueError, TypeError):
+            ref_date = datetime.utcnow()
+    else:
+        ref_date = datetime.utcnow()
+
+    date_from = (ref_date - timedelta(days=delta)).isoformat()
 
     async def _scroll():
         results, _ = await store._client.scroll(

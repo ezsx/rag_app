@@ -352,6 +352,7 @@ class AgentState:
         self.max_refinements: int = 2
         self.low_coverage_disclaimer: bool = False
         self.search_count: int = 0
+        self.navigation_answered: bool = False  # list_channels дал ответ
         # Adaptive retrieval state
         self.strategy: str = "broad"
         self.applied_filters: Dict[str, Any] = {}
@@ -531,7 +532,8 @@ class AgentService:
                 # Если LLM не вызвала tools и search ещё не был —
                 # принудительно вызываем search с оригинальным запросом.
                 # Qwen3-30B иногда решает ответить "не найдено" без поиска.
-                if not tool_calls and agent_state.search_count == 0:
+                # НЕ форсим если list_channels уже дал ответ (navigation intent).
+                if not tool_calls and agent_state.search_count == 0 and not agent_state.navigation_answered:
                     logger.warning(
                         "Agent step %d: LLM не вызвала tools, search_count=0 → forced search",
                         step,
@@ -1257,6 +1259,10 @@ class AgentService:
             self._last_plan_summary = action.output.data.get("plan") or {}
             return
 
+        if action.tool == "list_channels":
+            self._agent_state.navigation_answered = True
+            return
+
         if action.tool in ("search", "temporal_search", "channel_search",
                           "cross_channel_compare", "summarize_channel"):
             self._last_search_hits = list(action.output.data.get("hits", []) or [])
@@ -1565,10 +1571,16 @@ class AgentService:
     def _assistant_message_for_history(
         self, assistant_message: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Сохраняет assistant message в chat history без искажения tool_calls."""
+        """Сохраняет assistant message в chat history без искажения tool_calls.
+
+        Qwen3 jinja template с --jinja трактует пустой content в assistant
+        message с tool_calls как "response prefill", что конфликтует с
+        enable_thinking. Поэтому content="" не добавляем.
+        """
         message = {"role": "assistant"}
-        if "content" in assistant_message:
-            message["content"] = assistant_message.get("content")
+        content = assistant_message.get("content")
+        if content:  # непустой content — добавляем
+            message["content"] = content
         if "tool_calls" in assistant_message:
             message["tool_calls"] = assistant_message.get("tool_calls")
         return message
@@ -1629,11 +1641,15 @@ class AgentService:
         2. POST-SEARCH: enrichment + synthesis
         """
         search_done = agent_state.search_count > 0
+        nav_done = agent_state.navigation_answered
         signals = getattr(self, "_query_signals", None)
         original_query = getattr(self, "_original_query", "") or ""
         query_lower = original_query.lower()
 
-        if search_done:
+        if nav_done and not search_done:
+            # NAV-COMPLETE: list_channels ответил, search не нужен → сразу final
+            visible_names = {"final_answer"}
+        elif search_done:
             # POST-SEARCH: rerank, compose_context, final_answer + enrichment
             visible_names = {
                 "rerank", "compose_context", "final_answer",
@@ -1677,14 +1693,15 @@ class AgentService:
 
     @staticmethod
     def _trim_messages(
-        messages: list[dict[str, Any]], max_chars: int = 36000
+        messages: list[dict[str, Any]], max_chars: int = 18000
     ) -> list[dict[str, Any]]:
         """Обрезает messages чтобы уложиться в context window LLM.
 
         Стратегия: всегда сохраняем system + user (первые 2 сообщения),
         затем оставляем последние N сообщений по бюджету символов.
-        Бюджет 36K chars ≈ 12K токенов. Context window = 16384 токена,
-        минус ~1500 (tools schema) минус ~500 (system) минус ~1000 (output) = ~13K для messages.
+        Бюджет 18K chars ≈ 6K токенов. С --parallel 2 каждый slot = 8192 токена,
+        минус ~1500 (tools schema) минус ~500 (system) минус ~500 (output) = ~5.5K для messages.
+        18K chars даёт ~6K токенов — чуть выше, но _trim обрежет если надо.
         """
         total = sum(len(json.dumps(m, ensure_ascii=False, default=str)) for m in messages)
         if total <= max_chars:

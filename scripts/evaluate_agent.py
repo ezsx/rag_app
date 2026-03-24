@@ -218,6 +218,16 @@ def classify_failure(
     if agent_result.get("error"):
         return FailureType.TOOL_FAILED
 
+    # Operational error surfacing — runtime error замаскирован в final answer
+    answer_text = (agent_result.get("answer") or "").lower()
+    _error_markers = [
+        "client error", "http error", "traceback", "exception",
+        "произошла ошибка", "ошибка при обработке", "error 4", "error 5",
+        "connectionerror", "timeout",
+    ]
+    if any(marker in answer_text for marker in _error_markers):
+        return FailureType.TOOL_FAILED
+
     # Judge uncertain — judge вернул error/None на answerable вопросе
     if (
         item.answerable
