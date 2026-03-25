@@ -51,8 +51,9 @@ Full architecture document: [Architecture_ru.md](docs/Architecture_ru.md) (auto-
 | **ColBERT** | jina-colbert-v2 (128-dim per-token MaxSim) | RTX 5060 Ti via gpu_server.py |
 | **Vector store** | Qdrant — 3 named vectors: dense, sparse (BM25), ColBERT | Docker |
 | **Fusion** | Weighted RRF (BM25 weight=3, dense weight=1) | — |
-| **Agent** | ReAct loop with native function calling, 5 LLM tools | — |
-| **Data** | 36 Telegram channels, 13124 documents, Jul 2025 — Mar 2026 | — |
+| **Agent** | ReAct loop with native function calling, 13 LLM tools, dynamic visibility | — |
+| **Analytics** | Entity tracker + Arxiv tracker via Qdrant Facet API | — |
+| **Data** | 36 Telegram channels, 13K+ documents, Jul 2025 — Mar 2026 | — |
 
 ## Retrieval pipeline
 
@@ -66,13 +67,15 @@ Multi-query search: LLM generates sub-queries, all executed via round-robin merg
 
 ## Current metrics
 
-| Eval | Recall@5 | Coverage | Questions |
-|------|----------|----------|-----------|
-| Agent v1 (factual, temporal, channel, comparative) | **0.76** | 0.86 | 10 |
-| Agent v2 (entity, product, cross-channel, recency) | **0.61** | 0.80 | 10 |
-| Retrieval-only (direct Qdrant, no LLM) | **0.73** | — | 100 |
+| Eval | Metric | Value | Questions |
+|------|--------|-------|-----------|
+| Golden v1 (post SPEC-RAG-15) | **Factual correctness** | **1.79/2** | 30 |
+| Golden v1 (post SPEC-RAG-15) | **Usefulness** | **1.72/2** | 30 |
+| Golden v1 (post SPEC-RAG-15) | Key tool accuracy | 0.926 | 30 |
+| Agent v1 (legacy) | Recall@5 | 0.76 | 10 |
+| Retrieval-only (direct Qdrant) | Recall@5 | 0.73 | 100 |
 
-Pipeline optimization history: 0.15 → 0.33 → 0.59 → 0.70 → 0.76 across 22 experiments. Details in [playbook](docs/planning/retrieval_improvement_playbook.md).
+Manual judge (Claude Opus 4.6 + Codex GPT-5.4) is the primary metric — strict recall@5 is unreliable for analytics/temporal queries. Pipeline optimization history: 24 experiments across 5 eval datasets. Details in [playbook](docs/planning/retrieval_improvement_playbook.md).
 
 ## What didn't work (with evidence)
 
@@ -92,7 +95,7 @@ This project is built with AI coding agents (Claude Code, Codex) following a str
 Research → Specification → Implementation → Evaluation → Documentation
 ```
 
-**Research phase.** Every non-trivial decision starts with a Deep Research prompt that includes full project context — hardware constraints, current metrics, what was already tried. Produces numbered reports (R01–R14 so far) that become permanent reference. No throwaway ChatGPT threads.
+**Research phase.** Every non-trivial decision starts with a Deep Research prompt that includes full project context — hardware constraints, current metrics, what was already tried. Produces numbered reports (R01–R18 so far) that become permanent reference. No throwaway ChatGPT threads.
 
 **Specification phase.** Research findings are distilled into specs with concrete acceptance criteria (recall targets, latency budgets, specific test queries). Specs live in `docs/specifications/active/` and move to `completed/` after implementation.
 
@@ -102,19 +105,16 @@ Research → Specification → Implementation → Evaluation → Documentation
 
 **What this avoids:** orphaned docs nobody reads, "works on my machine" knowledge, regression from agents that don't know project history, accumulating technical debt from undocumented decisions.
 
-## Current: 11 Tools with Dynamic Visibility (Phase 3.4)
+## Current: 13 Tools with Dynamic Visibility + Analytics (Phase 3.4)
 
-Agent now has 11 tools with phase-based dynamic visibility (max 5 visible at a time):
+Agent has 13 tools with phase-based dynamic visibility (max 5 visible at a time):
 - **Search**: `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`
+- **Analytics**: `entity_tracker` (top/timeline/compare/co-occurrence), `arxiv_tracker` (top/lookup)
 - **Planning**: `query_plan`, `list_channels`
 - **Enrichment**: `rerank`, `related_posts`, `compose_context`
 - **Synthesis**: `final_answer`
 
-Enriched payload (SPEC-RAG-12): 16 indexed fields including NER entities, arxiv IDs, URLs, hashtags, year_week. Collection `news_colbert_v2` with 13K+ points.
-
-## Next: Evaluation Overhaul (Phase 3.3)
-
-Current eval is strict recall@5 against golden documents. Yandex AI Conference (R15) showed this is insufficient — need multi-criteria LLM judge, robustness metrics (RSR, NDR, order), ablation study. Requires deep research first.
+Data-driven routing: tool keywords + agent policies loaded from `datasets/tool_keywords.json`. Enriched payload (SPEC-RAG-12): 16 indexed fields including NER entities (91 AI/ML entities), arxiv IDs, year_week. Collection `news_colbert_v2` with 13K+ points.
 
 ## Project structure
 
@@ -128,10 +128,10 @@ src/                        Application code
 scripts/                    GPU server, evaluation, ingestion
 docs/
   architecture/               Source of truth — current system state
-  research/                   17 research reports (prompts + reports)
+  research/                   20 research prompts + 18 reports
   specifications/             Implementation specs (active + completed)
   planning/                   Roadmap, playbook, implementation plans
-datasets/                   Evaluation datasets (v1, v2, retrieval-100)
+datasets/                   Golden dataset (30 Qs), entity dictionary, tool routing config
 deploy/                     Docker compose files
 ```
 

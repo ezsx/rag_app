@@ -25,6 +25,53 @@ from services.tools.tool_runner import ToolRunner
 
 logger = logging.getLogger(__name__)
 
+# --- Data-driven routing + policies (SPEC-RAG-15) ---
+_ROUTING_DATA: Optional[Dict[str, Any]] = None
+
+
+def _load_routing_data() -> Dict[str, Any]:
+    """Загрузить tool_keywords.json (routing + policies).
+
+    Lazy load + global cache. Структура: {tool_keywords: {...}, agent_policies: {...}}.
+    """
+    global _ROUTING_DATA
+    if _ROUTING_DATA is not None:
+        return _ROUTING_DATA
+    from pathlib import Path
+    base = Path(__file__).resolve().parent
+    for _ in range(5):
+        candidate = base / "datasets" / "tool_keywords.json"
+        if candidate.exists():
+            path = candidate
+            break
+        base = base.parent
+    else:
+        path = Path("datasets/tool_keywords.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            _ROUTING_DATA = json.load(f)
+    except Exception:
+        logger.warning("tool_keywords.json not found, routing/policies disabled")
+        _ROUTING_DATA = {}
+    return _ROUTING_DATA
+
+
+def _load_tool_keywords() -> Dict[str, List[str]]:
+    """Keyword routing: {tool_name: [keywords]}."""
+    data = _load_routing_data()
+    section = data.get("tool_keywords", {})
+    return {
+        tool: entry["keywords"]
+        for tool, entry in section.items()
+        if isinstance(entry, dict) and "keywords" in entry
+    }
+
+
+def _load_policy(name: str) -> List[str]:
+    """Загрузить список values из agent_policies.{name}.values."""
+    data = _load_routing_data()
+    return data.get("agent_policies", {}).get(name, {}).get("values", [])
+
 
 SYSTEM_PROMPT = """Ты — RAG-агент для поиска и анализа AI/ML новостей из 36 Telegram-каналов.
 База содержит посты с июля 2025 по март 2026. Если нужны даты — используй диапазон 2025-07-01 ... 2026-03-18.
@@ -43,10 +90,23 @@ SYSTEM_PROMPT = """Ты — RAG-агент для поиска и анализа
 ПОСЛЕ ПОИСКА (если нужно):
    - related_posts — найти похожие посты к уже найденному
 
+АНАЛИТИКА (агрегации без поиска документов):
+   - entity_tracker — популярность, динамика, сравнение AI/ML сущностей
+     • mode=top: "какие компании/модели популярны"
+     • mode=timeline: "как менялось обсуждение DeepSeek"
+     • mode=compare: "сравни популярность OpenAI и Anthropic"
+     • mode=co_occurrence: "что обычно упоминается с NVIDIA"
+   - arxiv_tracker — arxiv-статьи в каналах
+     • mode=top: "какие papers обсуждались"
+     • mode=lookup: "кто обсуждал paper 2502.13266"
+
 ПРАВИЛА:
 - При сомнении — используй search
 - Отвечай ТОЛЬКО на русском языке
 - Каждое утверждение подкрепляй ссылкой [1], [2]
+- Аналитические ответы (entity_tracker, arxiv_tracker) НЕ требуют цитат — данные получены агрегацией
+- Числа из аналитики приблизительны (point-level, не post-level)
+- Для entity_tracker используй canonical имена: OpenAI (не openai), DeepSeek (не deepseek)
 - В final_answer ОБЯЗАТЕЛЬНО заполни поле sources
 - После compose_context переходи к final_answer, не ищи повторно
 - После summarize_channel вызови compose_context для формирования ответа с цитатами
@@ -348,6 +408,103 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
             },
         },
     },
+    # SPEC-RAG-15: entity analytics tools
+    {
+        "type": "function",
+        "function": {
+            "name": "entity_tracker",
+            "description": (
+                "Аналитика AI/ML сущностей: популярность, динамика, сравнение, связи. "
+                "Используй когда спрашивают 'какие компании/модели популярны', "
+                "'как менялось обсуждение X', 'что связано с X', 'сравни популярность X и Y'. "
+                "Возвращает агрегации (counts), не документы."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "mode": {
+                        "type": "string",
+                        "enum": ["top", "timeline", "compare", "co_occurrence"],
+                        "description": (
+                            "top — топ сущностей по упоминаниям; "
+                            "timeline — динамика одной сущности по неделям; "
+                            "compare — сравнение 2+ сущностей; "
+                            "co_occurrence — что упоминается вместе с сущностью"
+                        ),
+                    },
+                    "entity": {
+                        "type": "string",
+                        "description": "Имя сущности (для timeline, compare, co_occurrence). Примеры: OpenAI, DeepSeek, GPT-5, NVIDIA",
+                    },
+                    "entities": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Список сущностей для compare mode (≥2)",
+                    },
+                    "period_from": {
+                        "type": "string",
+                        "description": "Начало периода ISO date: 2025-11-01",
+                    },
+                    "period_to": {
+                        "type": "string",
+                        "description": "Конец периода ISO date: 2026-03-25",
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": ["org", "model"],
+                        "description": "Фильтр по категории (только для mode=top)",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Количество результатов",
+                    },
+                },
+                "required": ["mode"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "arxiv_tracker",
+            "description": (
+                "Аналитика arxiv-статей: популярные papers, поиск обсуждений конкретной статьи. "
+                "Используй когда спрашивают 'какие статьи обсуждались', "
+                "'кто обсуждал paper X', 'самые популярные arxiv papers'."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "mode": {
+                        "type": "string",
+                        "enum": ["top", "lookup"],
+                        "description": (
+                            "top — самые обсуждаемые papers; "
+                            "lookup — посты обсуждающие конкретную paper"
+                        ),
+                    },
+                    "arxiv_id": {
+                        "type": "string",
+                        "description": "ID arxiv статьи для lookup (например: 2502.13266, 1706.03762)",
+                    },
+                    "period_from": {
+                        "type": "string",
+                        "description": "Начало периода ISO date (только для mode=top): 2025-11-01",
+                    },
+                    "period_to": {
+                        "type": "string",
+                        "description": "Конец периода ISO date (только для mode=top): 2026-03-25",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "default": 10,
+                    },
+                },
+                "required": ["mode"],
+            },
+        },
+    },
 ]
 
 
@@ -361,6 +518,7 @@ class AgentState:
         self.low_coverage_disclaimer: bool = False
         self.search_count: int = 0
         self.navigation_answered: bool = False  # list_channels дал ответ
+        self.analytics_done: bool = False  # entity_tracker/arxiv_tracker ответили
         # Adaptive retrieval state
         self.strategy: str = "broad"
         self.applied_filters: Dict[str, Any] = {}
@@ -542,10 +700,20 @@ class AgentService:
                 # Qwen3-30B иногда решает ответить "не найдено" без поиска.
                 # НЕ форсим если:
                 # - list_channels уже дал ответ (navigation intent)
-                # - LLM явно отказывается (refusal — не надо форсить поиск)
-                _refusal_markers = ["нет в базе", "отсутству", "нет данных", "вне периода", "не содержит информац"]
+                # - analytics_done (entity_tracker/arxiv_tracker ответили)
+                # - LLM явно отказывается И запрос negative-intent
+                #
+                # SPEC-RAG-15 fix (q01/q03): refusal bypass применяется ТОЛЬКО
+                # для явно negative запросов ("существует ли", "выходила ли", out-of-range).
+                # Для обычных factual запросов — всегда форсим search,
+                # даже если LLM сгенерировал refusal markers.
+                _refusal_markers = _load_policy("refusal_markers")
+                _negative_intent_markers = _load_policy("negative_intent_markers")
                 is_refusal = content and any(m in content.lower() for m in _refusal_markers)
-                if not tool_calls and agent_state.search_count == 0 and not agent_state.navigation_answered and not is_refusal:
+                is_negative_intent = any(m in request.query.lower() for m in _negative_intent_markers)
+                # Bypass forced search только для negative intent refusals
+                skip_forced = is_refusal and is_negative_intent
+                if not tool_calls and agent_state.search_count == 0 and not agent_state.navigation_answered and not agent_state.analytics_done and not skip_forced:
                     logger.warning(
                         "Agent step %d: LLM не вызвала tools, search_count=0 → forced search",
                         step,
@@ -810,7 +978,13 @@ class AgentService:
                             answer = str(action.output.data.get("answer", "")).strip()
                             verify_res: Dict[str, Any] = {}
 
-                            if self.settings.enable_verify_step and answer:
+                            # SPEC-RAG-15: skip verify для analytics-only ответов
+                            # (агрегации без документов — verify по документам бессмыслен)
+                            _skip_verify = (
+                                agent_state.analytics_done
+                                and agent_state.search_count == 0
+                            )
+                            if self.settings.enable_verify_step and answer and not _skip_verify:
                                 verify_res = await self._verify_answer(
                                     answer, conversation_history
                                 )
@@ -926,6 +1100,11 @@ class AgentService:
                                     answer += (
                                         " (⚠️ Ответ не подтверждён с высокой уверенностью)"
                                     )
+
+                            # SPEC-RAG-15 fix (q19): deterministic refusal trim.
+                            # Если ответ содержит refusal ("не найден", "нет в базе")
+                            # но потом предлагает альтернативы — обрезать до чистого refusal.
+                            answer = self._trim_refusal_alternatives(answer)
 
                             final_payload = self._build_final_payload(
                                 base_payload=action.output.data,
@@ -1308,6 +1487,15 @@ class AgentService:
             self._agent_state.navigation_answered = True
             return
 
+        # SPEC-RAG-15: analytics tools
+        if action.tool in ("entity_tracker", "arxiv_tracker"):
+            self._agent_state.analytics_done = True
+            # arxiv_tracker(lookup) возвращает hits — search-like, нужен rerank/compose
+            if action.tool == "arxiv_tracker" and action.output.data.get("hits"):
+                self._last_search_hits = list(action.output.data.get("hits", []))
+                self._agent_state.search_count += 1
+            return
+
         if action.tool in ("search", "temporal_search", "channel_search",
                           "cross_channel_compare", "summarize_channel"):
             self._last_search_hits = list(action.output.data.get("hits", []) or [])
@@ -1360,6 +1548,33 @@ class AgentService:
             self._last_coverage = float(
                 action.output.data.get("citation_coverage", 0.0) or 0.0
             )
+
+    @staticmethod
+    def _trim_refusal_alternatives(answer: str) -> str:
+        """Обрезает альтернативы после refusal (q19 fix).
+
+        Если ответ содержит refusal pattern ("не найден", "нет в базе")
+        и потом предлагает альтернативы ("Однако", "Но в базе есть") —
+        обрезаем до чистого refusal. Refusal policy запрещает альтернативы.
+        """
+        answer_lower = answer.lower()
+        _refusal_patterns = _load_policy("refusal_markers")
+        _alt_patterns = _load_policy("refusal_alt_patterns")
+
+        has_refusal = any(p in answer_lower for p in _refusal_patterns)
+        if not has_refusal:
+            return answer
+
+        # Найти позицию первого альтернативного маркера после refusal
+        for alt in _alt_patterns:
+            idx = answer_lower.find(alt)
+            if idx > 0:
+                trimmed = answer[:idx].rstrip(" \n.,;")
+                if len(trimmed) > 20:  # sanity: не обрезать до пустоты
+                    logger.debug("Refusal trim: cut %d chars of alternatives", len(answer) - len(trimmed))
+                    return trimmed
+
+        return answer
 
     def _format_observation(self, tool_response: ToolResponse, tool_name: str = "") -> str:
         """Форматирует результат инструмента для observation SSE."""
@@ -1680,13 +1895,16 @@ class AgentService:
     def _get_step_tools(self, agent_state) -> List[Dict[str, Any]]:
         """Phase-based visibility — фиксированные наборы по фазе агента.
 
-        SPEC-RAG-13: расширено для 11 tools (7 старых + 4 новых).
+        SPEC-RAG-13 + SPEC-RAG-15: 13 tools, max 5 видимых.
         Фазы:
-        1. PRE-SEARCH: planning + search tools (отфильтрованные по signals)
+        1. PRE-SEARCH: planning + search + analytics (keyword-triggered)
         2. POST-SEARCH: enrichment + synthesis
+        3. NAV-COMPLETE: only final_answer
+        4. ANALYTICS-COMPLETE: final_answer + search + analytics
         """
         search_done = agent_state.search_count > 0
         nav_done = agent_state.navigation_answered
+        analytics_done = agent_state.analytics_done
         signals = getattr(self, "_query_signals", None)
         original_query = getattr(self, "_original_query", "") or ""
         query_lower = original_query.lower()
@@ -1694,6 +1912,9 @@ class AgentService:
         if nav_done and not search_done:
             # NAV-COMPLETE: list_channels ответил, search не нужен → сразу final
             visible_names = {"final_answer"}
+        elif analytics_done and not search_done:
+            # ANALYTICS-COMPLETE: можно final_answer или продолжить с search
+            visible_names = {"final_answer", "search", "entity_tracker", "arxiv_tracker"}
         elif search_done:
             # POST-SEARCH: rerank, compose_context, final_answer + enrichment
             visible_names = {
@@ -1712,27 +1933,27 @@ class AgentService:
                     visible_names.add("channel_search")
                     visible_names.add("summarize_channel")
 
-            # Keyword-based (из original_query)
-            if any(kw in query_lower for kw in
-                   ["сравни", "compare", "vs", "мнени", "разн", "каналы обсужд"]):
-                visible_names.add("cross_channel_compare")
+            # Keyword-based routing из datasets/tool_keywords.json
+            tool_kw = _load_tool_keywords()
+            for tool_name, keywords in tool_kw.items():
+                if any(kw in query_lower for kw in keywords):
+                    visible_names.add(tool_name)
 
-            if any(kw in query_lower for kw in
-                   ["какие каналы", "список каналов", "сколько каналов", "сколько постов"]):
-                visible_names.add("list_channels")
-
-        # Hard cap at 5: убираем по приоритету (lowest priority first)
-        if len(visible_names) > 5:
-            # Убираем generic search если есть specialized
-            if "search" in visible_names:
-                specialized = visible_names - {"search", "query_plan"}
-                if len(specialized) >= 2:
-                    visible_names.discard("search")
-            # Если всё ещё >5 — убираем navigation tools
-            for low_priority in ["list_channels", "summarize_channel"]:
-                if len(visible_names) <= 5:
-                    break
-                visible_names.discard(low_priority)
+        # Hard cap at 5: deterministic eviction order (lowest priority first)
+        _EVICTION_ORDER = _load_policy("eviction_order") or [
+            "arxiv_tracker", "entity_tracker", "list_channels",
+            "summarize_channel", "search",
+        ]
+        for tool_name in _EVICTION_ORDER:
+            if len(visible_names) <= 5:
+                break
+            if tool_name in visible_names:
+                # Не убираем search если нет specialized альтернатив
+                if tool_name == "search":
+                    specialized = visible_names - {"search", "query_plan"}
+                    if len(specialized) < 2:
+                        continue
+                visible_names.discard(tool_name)
 
         return [t for t in AGENT_TOOLS if t["function"]["name"] in visible_names]
 

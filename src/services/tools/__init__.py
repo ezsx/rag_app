@@ -13,6 +13,8 @@ from .list_channels import list_channels
 from .related_posts import related_posts
 from .cross_channel_compare import cross_channel_compare
 from .summarize_channel import summarize_channel
+from .entity_tracker import entity_tracker
+from .arxiv_tracker import arxiv_tracker
 
 __all__ = [
     "router_select",
@@ -26,4 +28,6 @@ __all__ = [
     "related_posts",
     "cross_channel_compare",
     "summarize_channel",
+    "entity_tracker",
+    "arxiv_tracker",
 ]

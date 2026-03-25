@@ -25,17 +25,17 @@
 
 ### ReAct агент
 - Оркестрация: native function calling через `/v1/chat/completions`.
-- 11 LLM tools: `query_plan`, `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`, `list_channels`, `rerank`, `related_posts`, `compose_context`, `final_answer`.
-- **Dynamic visibility**: phase-based (pre-search / post-search), max 5 видимых, signal + keyword routing.
-- **Forced search**: если LLM не вызывает tools, принудительный search с оригинальным запросом.
+- 13 LLM tools: `query_plan`, `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`, `list_channels`, `rerank`, `related_posts`, `compose_context`, `final_answer`, `entity_tracker`, `arxiv_tracker`.
+- **Dynamic visibility**: phase-based (pre-search / post-search / analytics-complete / nav-complete), max 5 видимых, data-driven keyword routing из `datasets/tool_keywords.json`.
+- **Forced search**: если LLM не вызывает tools, принудительный search. Bypass только для negative intent.
 - **Original query injection**: оригинальный запрос пользователя всегда в subqueries (BM25 match).
 - **Multi-query search**: все LLM subqueries через round-robin merge.
 - Retrieval: `query_plan → search (BM25 top-100 + dense top-20 → weighted RRF 3:1 → ColBERT rerank) → cross-encoder rerank → channel dedup`.
 - Coverage threshold **0.65**, max **2** refinements (DEC-0019).
 - **Navigation short-circuit**: list_channels → navigation_answered → skip forced search, only final_answer visible.
-- **Refusal policy**: explicit prompt rules (out-of-range, nonexistent entity), temporal guard в _execute_action.
-- **Recall@5**: v1=0.76, v2=0.685, golden_v1=~0.43 (strict, занижен). Manual judge factual=0.52, useful=1.14/2.
-- **Eval pipeline v2** (SPEC-RAG-14): golden dataset 25 Qs, tool tracking, failure attribution, LLM judge.
+- **Refusal policy**: explicit prompt rules + deterministic refusal trim + negative intent guard. Data-driven policies из `datasets/tool_keywords.json`.
+- **Recall@5**: v1=0.76, v2=0.685, golden_v1=0.342 (strict, занижен). **Manual judge: factual=1.79/2, useful=1.72/2** (30 Qs).
+- **Eval pipeline v2** (SPEC-RAG-14): golden dataset 30 Qs (25+5 analytics), tool tracking, failure attribution.
 - Не ломать SSE контракт: `step_started/thought/tool_invoked/observation/citations/final`.
 
 ### Deploy и запуск

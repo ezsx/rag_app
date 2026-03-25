@@ -21,9 +21,10 @@
 
 ## ReAct агент
 - Оркестрация: native function calling через `/v1/chat/completions`, без regex-парсинга.
-- LLM tools schema: 11 tools — `query_plan`, `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`, `list_channels`, `rerank`, `related_posts`, `compose_context`, `final_answer`.
-- **Dynamic visibility**: phase-based (pre-search / post-search), max 5 видимых. Signal + keyword routing.
-- **Forced search**: если LLM не вызывает tools, принудительный search с оригинальным запросом.
+- LLM tools schema: 13 tools — `query_plan`, `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`, `list_channels`, `rerank`, `related_posts`, `compose_context`, `final_answer`, `entity_tracker`, `arxiv_tracker`.
+- **Dynamic visibility**: phase-based (pre-search / post-search / analytics-complete / nav-complete), max 5 видимых. Signal + keyword routing из `datasets/tool_keywords.json`.
+- **Analytics tools** (SPEC-RAG-15): `entity_tracker` (top/timeline/compare/co_occurrence) + `arxiv_tracker` (top/lookup). Facet API, point-level counts. Ответы без citations.
+- **Forced search**: если LLM не вызывает tools, принудительный search. Bypass только для negative intent + refusal (не для обычных factual).
 - **Original query injection**: оригинальный запрос всегда в subqueries для BM25 keyword match.
 - **Multi-query search**: все LLM subqueries через round-robin merge (не только первый!).
 - `verify` и `fetch_docs` вызываются системно внутри `AgentService`, не через schema для модели.
@@ -31,11 +32,12 @@
 - Coverage threshold: **0.65**; max refinements: **2** (DEC-0019; не менять без ресерча).
 - `agent_service.py` — единственный владелец состояния шага; не дублировать логику снаружи.
 - **Navigation short-circuit**: list_channels → `navigation_answered` → skip forced search, NAV-COMPLETE phase.
-- **Refusal policy**: explicit prompt rules + temporal guard в `_execute_action` (dates outside corpus → empty hits).
-- **Forced search bypass**: если LLM content содержит refusal markers → не форсить search.
+- **Analytics short-circuit**: entity_tracker/arxiv_tracker → `analytics_done` → skip forced search, ANALYTICS-COMPLETE phase. Verify bypass для analytics-only ответов.
+- **Refusal policy**: explicit prompt rules + temporal guard + deterministic refusal trim (обрезка альтернатив после отказа).
+- **Forced search bypass**: только для negative intent queries + refusal markers. Data-driven из `datasets/tool_keywords.json` → `agent_policies`.
 - SSE стриминг через `/v1/agent/stream` — не ломать контракт событий (step_started/thought/tool_invoked/observation/citations/final).
-- **Recall@5**: v1=0.76, v2=0.685, golden_v1=~0.43 (strict, занижен). Manual judge: factual=0.52, useful=1.14/2.
-- **Eval pipeline v2** (SPEC-RAG-14): golden dataset 25 Qs, tool tracking, failure attribution, LLM judge. Подробности: `docs/specifications/active/SPEC-RAG-14-evaluation-pipeline.md`.
+- **Recall@5**: v1=0.76, v2=0.685, golden_v1=0.342 (strict, занижен — analytics Qs без source_post_ids). **Manual judge: factual=1.79/2, useful=1.72/2** (30 Qs, post-fix).
+- **Eval pipeline v2** (SPEC-RAG-14): golden dataset 30 Qs (25 original + 5 analytics), tool tracking, failure attribution. Report: `results/reports/eval_judge_20260325_spec15.md`.
 
 ## Deploy и запуск
 - **ВАЖНО: Docker GPU НЕ ИСПОЛЬЗУЕТСЯ.** V100 TCC отравляет NVML в WSL2.

@@ -199,6 +199,8 @@ def get_agent_service() -> AgentService:
     from services.tools.related_posts import related_posts
     from services.tools.cross_channel_compare import cross_channel_compare
     from services.tools.summarize_channel import summarize_channel
+    from services.tools.entity_tracker import entity_tracker
+    from services.tools.arxiv_tracker import arxiv_tracker
 
     qdrant_store = get_qdrant_store()
     hybrid_retriever = get_hybrid_retriever()
@@ -262,6 +264,16 @@ def get_agent_service() -> AgentService:
         "summarize_channel", summarize_channel_wrapper,
         timeout_sec=settings.agent_tool_timeout,
     )
+
+    # SPEC-RAG-15: analytics tools — через hybrid_retriever sync bridge
+    def entity_tracker_wrapper(**kwargs):
+        return entity_tracker(hybrid_retriever=hybrid_retriever, **kwargs)
+
+    def arxiv_tracker_wrapper(**kwargs):
+        return arxiv_tracker(hybrid_retriever=hybrid_retriever, **kwargs)
+
+    tool_runner.register("entity_tracker", entity_tracker_wrapper)
+    tool_runner.register("arxiv_tracker", arxiv_tracker_wrapper)
 
     def _llm_factory():
         return get_llm()
