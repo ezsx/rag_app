@@ -2,6 +2,14 @@
 
 Этот файл должен оставаться коротким. Always-on guardrails и карта контекста.
 
+## Preflight
+
+**ОБЯЗАТЕЛЬНО перед существенной работой**: `agent_context/core/preflight.md`
+
+- Определи `task type`: `debug / implementation / review / docs / research / eval`
+- Подтяни нужные модули по триггерам из `preflight.md`
+- Озвучь первый шаг перед exploration / edits
+
 ## Проект
 
 `rag_app` — FastAPI-платформа RAG с агентским ReAct-пайплайном.
@@ -93,6 +101,8 @@
 
 Читай только нужный модуль:
 
+- `agent_context/modules/debugging_protocol.md` — debugging/failure/unexpected behavior
+- `agent_context/modules/parallel_agents.md` — review/handoff/multi-agent workflow
 - `agent_context/modules/agent.md` — ReAct агент, ToolRunner, инструменты, цикл
 - `agent_context/modules/retrieval.md` — Qdrant, HybridRetriever, TEI embedding/reranker, QueryPlanner
 - `agent_context/modules/ingest_eval.md` — Telegram ingest, evaluation скрипт, датасет
@@ -105,7 +115,7 @@ src/
   api/v1/endpoints/   — FastAPI эндпоинты
   core/               — settings, deps, auth, security
   services/           — agent_service, qa_service, query_planner, reranker
-  services/tools/     — 11 LLM tools (search, cross_channel_compare, summarize_channel, list_channels, related_posts, ...)
+  services/tools/     — 13 LLM tools (search, entity_tracker, arxiv_tracker, cross_channel_compare, ...)
   adapters/qdrant/    — QdrantStore
   adapters/search/    — HybridRetriever (Qdrant weighted RRF + ColBERT)
   adapters/tei/       — TEIEmbeddingClient, TEIRerankerClient
@@ -132,7 +142,7 @@ datasets/
 sessions/             — Telethon session (для Telegram ingest)
 docs/
   architecture/       — Источник правды: текущее состояние системы
-  research/           — Промпты и отчёты исследований (R01-R14)
+  research/           — Промпты и отчёты исследований (R01-R18, prompts 01-21)
   specifications/     — Спецификации (active/ и completed/)
   planning/           — Операционные документы (scope, playbook, планы)
 agent_context/        — Контекст для AI-агентов (Claude/Codex)

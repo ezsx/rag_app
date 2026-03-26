@@ -1,4 +1,5 @@
-TOOL POLICY! always check it befor searching something in repo
+PREFLIGHT! Перед каждой задачей — определи task type и загрузи нужные модули:
+@agent_context/core/preflight.md
 @agent_context/core/always_on.md
 @agent_context/core/tool_policy.md
 @agent_context/claude_router.md
