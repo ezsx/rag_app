@@ -765,16 +765,35 @@ class AgentService:
                     else self.settings.agent_tool_max_tokens
                 )
 
-                response = llm.chat_completion(
-                    messages=trimmed_messages,
-                    tools=step_tools,
-                    max_tokens=step_max_tokens,
-                    temperature=self.settings.agent_tool_temp,
-                    top_p=self.settings.agent_tool_top_p,
-                    top_k=self.settings.agent_tool_top_k,
-                    presence_penalty=self.settings.agent_tool_presence_penalty,
-                    seed=42,
-                )
+                try:
+                    response = llm.chat_completion(
+                        messages=trimmed_messages,
+                        tools=step_tools,
+                        max_tokens=step_max_tokens,
+                        temperature=self.settings.agent_tool_temp,
+                        top_p=self.settings.agent_tool_top_p,
+                        top_k=self.settings.agent_tool_top_k,
+                        presence_penalty=self.settings.agent_tool_presence_penalty,
+                        seed=42,
+                    )
+                except Exception as llm_exc:
+                    # LLM 400/500 — попробуем с агрессивно обрезанными messages
+                    logger.warning(
+                        "LLM call failed at step %d: %s — retrying with trimmed history",
+                        step, llm_exc,
+                    )
+                    # Оставляем только system + user + последние 2 messages
+                    fallback_messages = messages[:2] + messages[-2:]
+                    try:
+                        response = llm.chat_completion(
+                            messages=fallback_messages,
+                            tools=step_tools,
+                            max_tokens=step_max_tokens,
+                            temperature=self.settings.agent_tool_temp,
+                            seed=42,
+                        )
+                    except Exception:
+                        raise llm_exc  # original error если retry тоже failed
 
                 choice = (response.get("choices") or [{}])[0]
                 assistant_message = choice.get("message") or {}
