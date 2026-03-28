@@ -15,6 +15,8 @@ from .cross_channel_compare import cross_channel_compare
 from .summarize_channel import summarize_channel
 from .entity_tracker import entity_tracker
 from .arxiv_tracker import arxiv_tracker
+from .hot_topics import hot_topics
+from .channel_expertise import channel_expertise
 
 __all__ = [
     "router_select",
@@ -30,4 +32,6 @@ __all__ = [
     "summarize_channel",
     "entity_tracker",
     "arxiv_tracker",
+    "hot_topics",
+    "channel_expertise",
 ]

@@ -508,6 +508,62 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
             },
         },
     },
+    # --- SPEC-RAG-16: pre-computed analytics ---
+    {
+        "type": "function",
+        "function": {
+            "name": "hot_topics",
+            "description": (
+                "Возвращает горячие темы за период (неделю/месяц). "
+                "Pre-computed дайджест: trending topics, top entities, burst events. "
+                "Используй для: 'что обсуждали на этой неделе?', 'тренды', 'горячие темы', 'дайджест'."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "period": {
+                        "type": "string",
+                        "description": "Период: 'this_week', 'last_week', 'YYYY-WNN' или 'this_month'",
+                        "default": "this_week",
+                    },
+                    "top_n": {
+                        "type": "integer",
+                        "description": "Количество топ-тем",
+                        "default": 5,
+                    },
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "channel_expertise",
+            "description": (
+                "Возвращает профили каналов: экспертиза, авторитетность, скорость покрытия тем. "
+                "Используй для: 'кто лучше пишет про NLP?', 'профиль канала gonzo_ml', "
+                "'какие каналы самые авторитетные?', 'эксперты по теме'."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "channel": {
+                        "type": "string",
+                        "description": "Конкретный канал (без @) или null для ranking",
+                    },
+                    "topic": {
+                        "type": "string",
+                        "description": "Тема для поиска каналов-экспертов",
+                    },
+                    "metric": {
+                        "type": "string",
+                        "description": "Метрика для ranking: 'authority', 'speed', 'volume', 'breadth'",
+                        "default": "authority",
+                    },
+                },
+            },
+        },
+    },
 ]
 
 
@@ -1541,8 +1597,8 @@ class AgentService:
             self._ctx.agent_state.navigation_answered = True
             return
 
-        # SPEC-RAG-15: analytics tools
-        if action.tool in ("entity_tracker", "arxiv_tracker"):
+        # SPEC-RAG-15/16: analytics tools (все устанавливают analytics_done)
+        if action.tool in ("entity_tracker", "arxiv_tracker", "hot_topics", "channel_expertise"):
             self._ctx.agent_state.analytics_done = True
             # arxiv_tracker(lookup) возвращает hits — search-like, нужен rerank/compose
             if action.tool == "arxiv_tracker" and action.output.data.get("hits"):

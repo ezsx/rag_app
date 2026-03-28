@@ -275,6 +275,13 @@ def get_agent_service() -> AgentService:
     tool_runner.register("entity_tracker", entity_tracker_wrapper)
     tool_runner.register("arxiv_tracker", arxiv_tracker_wrapper)
 
+    # SPEC-RAG-16: pre-computed analytics — свой QdrantClient, не через DI
+    from services.tools.hot_topics import hot_topics
+    from services.tools.channel_expertise import channel_expertise
+
+    tool_runner.register("hot_topics", hot_topics)
+    tool_runner.register("channel_expertise", channel_expertise)
+
     def _llm_factory():
         return get_llm()
 
