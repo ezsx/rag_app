@@ -93,6 +93,12 @@ class ToolRunner:
         started = time.perf_counter()
         ok, data, error = _run_with_timeout(entry.func, effective_timeout, **req.input)
         took_ms = int((time.perf_counter() - started) * 1000)
+
+        # P0 fix: если tool вернул {"error": ...}, это НЕ успех
+        if ok and isinstance(data, dict) and data.get("error"):
+            ok = False
+            error = error or str(data["error"])
+
         meta = ToolMeta(took_ms=took_ms, error=error)
         resp = ToolResponse(ok=ok and error is None, data=data if ok else {}, meta=meta)
         action = AgentAction(step=step, tool=req.tool, input=req.input, output=resp)

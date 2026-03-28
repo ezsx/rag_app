@@ -1477,6 +1477,22 @@ class AgentService:
 
             return normalized
 
+        # hot_topics: нормализация period из query_signals
+        if tool_name == "hot_topics":
+            period = normalized.get("period", "this_week")
+            # Если query_signals извлёк даты — конвертируем в ISO week
+            if self._ctx.query_signals and period in ("this_week", "last_week", None, ""):
+                sig = self._ctx.query_signals
+                if sig.date_from:
+                    try:
+                        from datetime import datetime as _dt
+                        d = _dt.fromisoformat(sig.date_from)
+                        iso = d.isocalendar()
+                        normalized["period"] = f"{iso[0]}-W{iso[1]:02d}"
+                    except (ValueError, TypeError):
+                        pass
+            return normalized
+
         if tool_name == "rerank":
             normalized.setdefault("query", self._ctx.query or "")
             hits = normalized.pop("hits", None) or self._ctx.search_hits
@@ -1755,6 +1771,32 @@ class AgentService:
             if tool_name == "final_answer":
                 answer = str(tool_response.data.get("answer", "")).strip()
                 return f"Final answer prepared ({len(answer)} chars)"
+
+            # SPEC-RAG-16: compact observation для hot_topics/channel_expertise
+            if tool_name == "hot_topics":
+                d = tool_response.data
+                parts = [f"period: {d.get('period', '?')}"]
+                if d.get("fallback_used"):
+                    parts.append(f"(fallback: запрошен {d.get('requested_period')}, показан {d.get('resolved_period')})")
+                parts.append(f"posts: {d.get('post_count', 0)}")
+                summary = (d.get("summary") or "")[:200]
+                if summary:
+                    parts.append(f"summary: {summary}")
+                for t in (d.get("topics") or [])[:5]:
+                    parts.append(f"- {t.get('label', '?')} (score={t.get('hot_score', 0)}, {t.get('post_count', 0)} posts, channels: {','.join((t.get('channels') or [])[:3])})")
+                ents = d.get("top_entities") or []
+                if ents:
+                    parts.append(f"top entities: {', '.join(e['entity']+'('+str(e['count'])+')' for e in ents[:5])}")
+                return "; ".join(parts[:3]) + "\n" + "\n".join(parts[3:])
+
+            if tool_name == "channel_expertise":
+                d = tool_response.data
+                if d.get("channel"):
+                    return f"Channel {d['channel']}: authority={d.get('authority_score', 0)}, summary: {(d.get('profile_summary') or '')[:200]}"
+                channels = d.get("channels") or []
+                return f"Found {len(channels)} channels for topic='{d.get('topic', '')}', metric={d.get('metric', '')}: " + ", ".join(
+                    f"{c.get('channel', '?')}({c.get(d.get('metric','authority')+'_score', 0)})" for c in channels[:5]
+                )
 
             result_parts = []
             for key, value in tool_response.data.items():
@@ -2043,6 +2085,15 @@ class AgentService:
             for tool_name, keywords in tool_kw.items():
                 if any(kw in query_lower for kw in keywords):
                     visible_names.add(tool_name)
+
+            # Conditional gating: убираем tools добавленные keywords если нет нужного signal
+            if not (signals and (signals.channels or signals.strategy_hint == "channel")):
+                # summarize_channel без channel signal — noise от "дайджест"
+                visible_names.discard("summarize_channel")
+            # cross_channel_compare без явного compare intent — noise от "обсуждали"
+            compare_intents = {"сравни", "compare", "vs", "разных канал", "между канал"}
+            if not any(ci in query_lower for ci in compare_intents):
+                visible_names.discard("cross_channel_compare")
 
         # Hard cap at 5: deterministic eviction order (lowest priority first)
         _EVICTION_ORDER = _load_policy("eviction_order") or [

@@ -32,12 +32,13 @@ def _get_client():
 
 def _resolve_period(period: str) -> str:
     """Resolve human-readable period в ISO week label."""
+    from datetime import timedelta
     now = datetime.utcnow()
     if period == "this_week":
         iso = now.isocalendar()
         return f"{iso[0]}-W{iso[1]:02d}"
     elif period == "last_week":
-        last = now - __import__("datetime").timedelta(days=7)
+        last = now - timedelta(days=7)
         iso = last.isocalendar()
         return f"{iso[0]}-W{iso[1]:02d}"
     elif period == "this_month":
@@ -45,6 +46,22 @@ def _resolve_period(period: str) -> str:
     else:
         # Assume ISO week format: 2026-W12
         return period
+
+
+def _get_latest_available(client) -> Optional[str]:
+    """Найти последний доступный digest (для fallback)."""
+    from qdrant_client import models
+    results = client.scroll(
+        collection_name=_DIGEST_COLLECTION,
+        limit=100,
+        with_payload=["period"],
+    )
+    points, _ = results
+    periods = sorted(
+        [(p.payload or {}).get("period", "") for p in points],
+        reverse=True,
+    )
+    return periods[0] if periods else None
 
 
 def hot_topics(
@@ -97,15 +114,49 @@ def _get_week_digest(client, week_label: str, top_n: int) -> Dict[str, Any]:
     points, _ = results
 
     if not points:
+        # Fallback: для this_week/last_week пробуем latest available
+        latest = _get_latest_available(client)
+        if latest and latest != week_label:
+            logger.info("Digest for %s not found, falling back to %s", week_label, latest)
+            return _get_week_digest_inner(client, latest, top_n, fallback_info={
+                "requested_period": week_label,
+                "resolved_period": latest,
+                "fallback_used": True,
+            })
         return {
             "period": week_label,
-            "error": f"Дайджест за {week_label} не найден. Запустите compute_weekly_digest.py --week {week_label}",
+            "error": f"Дайджест за {week_label} не найден. Доступных дайджестов нет.",
         }
+
+    return _get_week_digest_inner(client, week_label, top_n, points=points)
+
+
+def _get_week_digest_inner(
+    client, week_label: str, top_n: int,
+    points=None, fallback_info: Optional[Dict] = None,
+) -> Dict[str, Any]:
+    """Извлечь данные из найденных points."""
+    if points is None:
+        from qdrant_client import models
+        results = client.scroll(
+            collection_name=_DIGEST_COLLECTION,
+            scroll_filter=models.Filter(
+                must=[models.FieldCondition(
+                    key="period",
+                    match=models.MatchValue(value=week_label),
+                )]
+            ),
+            limit=1, with_payload=True,
+        )
+        points, _ = results
+
+    if not points:
+        return {"period": week_label, "error": f"Дайджест за {week_label} не найден"}
 
     payload = points[0].payload or {}
     topics = payload.get("topics", [])[:top_n]
 
-    return {
+    result = {
         "period": payload.get("period", week_label),
         "date_from": payload.get("date_from"),
         "date_to": payload.get("date_to"),
@@ -115,6 +166,9 @@ def _get_week_digest(client, week_label: str, top_n: int) -> Dict[str, Any]:
         "top_entities": payload.get("top_entities", []),
         "burst_events": payload.get("burst_events", []),
     }
+    if fallback_info:
+        result.update(fallback_info)
+    return result
 
 
 def _get_month_digest(client, year_month: str, top_n: int) -> Dict[str, Any]:
