@@ -83,47 +83,29 @@ async def agent_stream(
 
             logger.info(f"Начинаем ReAct агент для запроса: {request.query[:100]}...")
 
-            # Если указана коллекция, временно переключаемся
-            original_collection = None
+            # FIX-01B: НЕ мутируем global settings. collection передаётся через request.
             if request.collection and request.collection != settings.current_collection:
-                original_collection = settings.current_collection
-                settings.update_collection(request.collection)
                 logger.info(
-                    f"Временно переключились на коллекцию: {request.collection}"
+                    "Запрос с collection=%s (default=%s) — "
+                    "collection override пока не поддержан, используем default",
+                    request.collection, settings.current_collection,
                 )
 
-                # Получаем новый agent_service с обновленной коллекцией
-                from core.deps import get_agent_service
-
-                agent_service_temp = get_agent_service()
-                agent_service_to_use = agent_service_temp
-            else:
-                agent_service_to_use = agent_service
-
             # Стримим события от агента
-            async for event in agent_service_to_use.stream_agent_response(request):
+            async for event in agent_service.stream_agent_response(request):
                 # Проверяем отключение клиента
                 if await fastapi_request.is_disconnected():
                     logger.info("Клиент отключился, останавливаем ReAct агент")
                     break
 
-                # Отправляем событие — data как JSON-строка для корректного парсинга на клиенте
                 yield {
                     "event": event.type,
                     "data": json.dumps(event.data, ensure_ascii=False, default=str),
                     "retry": 3000,
                 }
 
-                # Если это финальное событие, завершаем
                 if event.type == "final":
                     break
-
-            # Восстанавливаем оригинальную коллекцию если меняли
-            if original_collection:
-                settings.update_collection(original_collection)
-                logger.info(
-                    f"Восстановили оригинальную коллекцию: {original_collection}"
-                )
 
             logger.info("ReAct агент завершен")
 

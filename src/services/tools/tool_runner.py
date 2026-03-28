@@ -71,7 +71,11 @@ class ToolRunner:
             name=name, func=func, timeout_sec=timeout_sec or self._default_timeout
         )
 
-    def run(self, request_id: str, step: int, req: ToolRequest) -> AgentAction:
+    def run(
+        self, request_id: str, step: int, req: ToolRequest,
+        deadline: Optional[float] = None,
+    ) -> AgentAction:
+        """Запускает tool с timeout. Если deadline задан — min(tool_timeout, remaining)."""
         entry = self._registry.get(req.tool)
         if entry is None:
             meta = ToolMeta(took_ms=0, error=f"tool_not_found:{req.tool}")
@@ -80,8 +84,14 @@ class ToolRunner:
             self._log_trace(request_id, action)
             return action
 
+        # FIX-08: remaining budget из request deadline
+        effective_timeout = entry.timeout_sec
+        if deadline is not None:
+            remaining = max(0.5, deadline - time.monotonic())
+            effective_timeout = min(effective_timeout, remaining)
+
         started = time.perf_counter()
-        ok, data, error = _run_with_timeout(entry.func, entry.timeout_sec, **req.input)
+        ok, data, error = _run_with_timeout(entry.func, effective_timeout, **req.input)
         took_ms = int((time.perf_counter() - started) * 1000)
         meta = ToolMeta(took_ms=took_ms, error=error)
         resp = ToolResponse(ok=ok and error is None, data=data if ok else {}, meta=meta)

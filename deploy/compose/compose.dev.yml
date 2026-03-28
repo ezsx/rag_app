@@ -63,6 +63,9 @@ services:
       # Coverage (DEC-0019)
       - COVERAGE_THRESHOLD=0.65
       - MAX_REFINEMENTS=2
+      # FIX-05/09: dev mode — insecure JWT default + demo auth
+      - RAG_ENV=dev
+      - ENABLE_DEMO_AUTH=true
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --loop uvloop --reload
 
   # ─── Ingest (on-demand) ───────────────────────────────────

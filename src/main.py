@@ -105,8 +105,8 @@ app.add_middleware(
     enable_exponential_backoff=True,
 )
 
-# 4. CORS middleware для разработки
-cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
+# 4. CORS middleware — FIX-07: explicit allowlist вместо wildcard
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:8001").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,

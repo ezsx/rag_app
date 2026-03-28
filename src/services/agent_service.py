@@ -6,7 +6,10 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import uuid
+from contextvars import ContextVar
+from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 
 from core.security import sanitize_for_logging, security_manager
@@ -525,6 +528,33 @@ class AgentState:
         self.routing_source: str = "default"
 
 
+@dataclass
+class RequestContext:
+    """Per-request state — изолирован от других запросов через ContextVar.
+
+    FIX-01 (SPEC-RAG-17): вместо хранения state в self AgentService (singleton),
+    каждый запрос получает свой RequestContext.
+    """
+
+    request_id: str
+    query: str
+    original_query: str
+    query_signals: Any = None
+    agent_state: AgentState = field(default_factory=AgentState)
+    step: int = 1
+    search_hits: List[Dict[str, Any]] = field(default_factory=list)
+    search_route: Optional[str] = None
+    plan_summary: Optional[Dict[str, Any]] = None
+    compose_citations: List[Dict[str, Any]] = field(default_factory=list)
+    coverage_score: float = 0.0
+    deadline: Optional[float] = None  # FIX-08: wall-clock deadline (monotonic)
+
+
+_request_ctx: ContextVar[Optional[RequestContext]] = ContextVar(
+    "agent_request_ctx", default=None
+)
+
+
 class AgentService:
     """Агент с native function calling и SSE-наблюдаемостью."""
 
@@ -539,15 +569,15 @@ class AgentService:
         self.tool_runner = tool_runner
         self.settings = settings
         self.qa_service = qa_service
-        self._current_request_id: Optional[str] = None
-        self._current_step: int = 1
-        self._current_query: Optional[str] = None
-        self._last_search_hits: List[Dict[str, Any]] = []
-        self._last_search_route: Optional[str] = None
-        self._last_plan_summary: Optional[Dict[str, Any]] = None
-        self._last_compose_citations: List[Dict[str, Any]] = []
-        self._last_coverage: float = 0.0
         self.system_prompt = SYSTEM_PROMPT
+
+    @property
+    def _ctx(self) -> RequestContext:
+        """Текущий request context из ContextVar. Raises если вне запроса."""
+        ctx = _request_ctx.get()
+        if ctx is None:
+            raise RuntimeError("No active RequestContext — called outside request scope")
+        return ctx
 
     async def stream_agent_response(
         self, request: AgentRequest
@@ -557,23 +587,20 @@ class AgentService:
         requested_steps = request.max_steps or self.settings.agent_default_steps
         max_steps = min(max(requested_steps, 1), self.settings.agent_max_steps)
         step = 1
-        agent_state = AgentState()
-        self._agent_state = agent_state  # для _get_step_tools и _apply_action_state
         conversation_history = [f"Human: {request.query}"]
 
-        self._current_request_id = request_id
-        self._current_query = request.query
-        self._original_query = request.query  # SPEC-RAG-13: для visibility keywords
-        self._query_signals = extract_query_signals(request.query)
-        self._last_search_hits = []
-        self._last_search_route = None
-        self._last_plan_summary = None
-        self._last_compose_citations = []
-        self._last_coverage = 0.0
+        # FIX-01: per-request state через ContextVar, не self
+        ctx = RequestContext(
+            request_id=request_id,
+            query=request.query,
+            original_query=request.query,
+            query_signals=extract_query_signals(request.query),
+        )
+        _ctx_token = _request_ctx.set(ctx)
 
         # Формируем system prompt с hints из query signals (R13-quick §1.3)
         system_content = self.system_prompt
-        signals = self._query_signals
+        signals = self._ctx.query_signals
         if signals and (signals.strategy_hint or signals.date_from or signals.channels):
             hints_parts = []
             if signals.strategy_hint:
@@ -623,14 +650,37 @@ class AgentService:
                 request_id,
             )
 
+            # FIX-08: cooperative deadline — проверяется между шагами
+            _request_deadline = time.monotonic() + (
+                getattr(self.settings, "agent_request_timeout", None) or 90
+            )
+            ctx.deadline = _request_deadline
+
+            # FIX-01: локальный alias для backward compat с кодом внутри loop
+            agent_state = ctx.agent_state
+
             while step <= max_steps:
-                self._current_step = step
+                # FIX-08: deadline check перед каждым шагом
+                if time.monotonic() > _request_deadline:
+                    logger.warning("Request %s exceeded deadline, aborting", request_id)
+                    yield AgentStepEvent(
+                        type="final",
+                        data={
+                            "answer": "Превышено время обработки запроса.",
+                            "step": step,
+                            "request_id": request_id,
+                            "error": "request_timeout",
+                        },
+                    )
+                    return
+
+                self._ctx.step = step
 
                 # Динамический набор tools: final_answer доступен
                 # только после search. Без этого LLM иногда пропускает
                 # поиск и сразу отвечает "не найдено" (особенно Qwen3-30B
                 # с 3B active params — ненадёжно следует сложным промптам).
-                step_tools = self._get_step_tools(agent_state)
+                step_tools = self._get_step_tools(self._ctx.agent_state)
                 visible_tool_names = [
                     t["function"]["name"]
                     for t in step_tools
@@ -674,7 +724,9 @@ class AgentService:
                 assistant_message = choice.get("message") or {}
                 finish_reason = choice.get("finish_reason", "unknown")
                 content = (assistant_message.get("content") or "").strip()
-                tool_calls = self._extract_tool_calls(assistant_message)
+                tool_calls = self._extract_tool_calls(
+                    assistant_message, visible_tools=set(visible_tool_names)
+                )
 
                 logger.debug(
                     "Agent step %d finish=%s content_len=%d tool_calls=%d",
@@ -805,7 +857,7 @@ class AgentService:
                                 action.output.data.get("citation_coverage", 0.0) or 0.0
                             )
                             agent_state.coverage = coverage
-                            self._last_coverage = coverage
+                            self._ctx.coverage_score = coverage
 
                             yield AgentStepEvent(
                                 type="citations",
@@ -822,7 +874,7 @@ class AgentService:
                             max_sim = max(
                                 (
                                     float(hit.get("dense_score") or 0.0)
-                                    for hit in self._last_search_hits
+                                    for hit in self._ctx.search_hits
                                     if isinstance(hit, dict)
                                 ),
                                 default=0.0,
@@ -830,7 +882,7 @@ class AgentService:
 
                             if max_sim < 0.30 and agent_state.refinement_count == 0:
                                 agent_state.coverage = 0.0
-                                self._last_coverage = 0.0
+                                self._ctx.coverage_score = 0.0
                                 agent_state.low_coverage_disclaimer = True
                                 abort_thought = (
                                     "Релевантные документы почти не найдены. "
@@ -943,7 +995,7 @@ class AgentService:
                                             or 0.0
                                         )
                                         agent_state.coverage = refined_coverage
-                                        self._last_coverage = refined_coverage
+                                        self._ctx.coverage_score = refined_coverage
                                         yield AgentStepEvent(
                                             type="citations",
                                             data={
@@ -1079,7 +1131,7 @@ class AgentService:
                                                 or 0.0
                                             )
                                             agent_state.coverage = refined_coverage
-                                            self._last_coverage = refined_coverage
+                                            self._ctx.coverage_score = refined_coverage
                                             yield AgentStepEvent(
                                                 type="citations",
                                                 data={
@@ -1210,8 +1262,7 @@ class AgentService:
                 },
             )
         finally:
-            self._current_request_id = None
-            self._current_query = None
+            _request_ctx.reset(_ctx_token)
 
     async def _execute_action(
         self,
@@ -1289,7 +1340,9 @@ class AgentService:
                 actual_tool = "search"
 
             tool_request = ToolRequest(tool=actual_tool, input=normalized)
-            return self.tool_runner.run(request_id, step, tool_request)
+            return self.tool_runner.run(
+                request_id, step, tool_request, deadline=self._ctx.deadline
+            )
         except Exception as exc:
             logger.error("Ошибка выполнения инструмента %s: %s", tool_name, exc)
             return self._tool_error_action(
@@ -1306,7 +1359,7 @@ class AgentService:
         normalized = dict(params or {})
 
         if tool_name == "query_plan":
-            normalized.setdefault("query", self._current_query or "")
+            normalized.setdefault("query", self._ctx.query or "")
             return normalized
 
         # temporal_search и channel_search маппятся на search() с фильтрами.
@@ -1331,34 +1384,34 @@ class AgentService:
             if not normalized.get("queries"):
                 if normalized.get("query"):
                     normalized["queries"] = [str(normalized.pop("query"))]
-                elif self._last_plan_summary and self._last_plan_summary.get(
+                elif self._ctx.plan_summary and self._ctx.plan_summary.get(
                     "normalized_queries"
                 ):
                     normalized["queries"] = list(
-                        self._last_plan_summary["normalized_queries"]
+                        self._ctx.plan_summary["normalized_queries"]
                     )
-                elif self._current_query:
-                    normalized["queries"] = [self._current_query]
+                elif self._ctx.query:
+                    normalized["queries"] = [self._ctx.query]
 
             # Всегда добавляем оригинальный запрос пользователя в subqueries.
             # LLM перефразирует запросы и теряет ключевые сущности —
             # оригинал обеспечивает BM25 keyword match по исходным терминам.
-            if self._current_query and normalized.get("queries"):
-                orig = self._current_query.strip()
+            if self._ctx.query and normalized.get("queries"):
+                orig = self._ctx.query.strip()
                 if orig and orig not in normalized["queries"]:
                     normalized["queries"].insert(0, orig)
 
             normalized.setdefault(
                 "k",
                 (
-                    self._last_plan_summary or {}
+                    self._ctx.plan_summary or {}
                 ).get("k_per_query", self.settings.search_k_per_query_default),
             )
             normalized.setdefault("route", "hybrid")
 
             # Прокидываем metadata_filters из query_plan (если tool не передал свои)
-            if not normalized.get("filters") and self._last_plan_summary:
-                plan_filters = self._last_plan_summary.get("metadata_filters")
+            if not normalized.get("filters") and self._ctx.plan_summary:
+                plan_filters = self._ctx.plan_summary.get("metadata_filters")
                 if isinstance(plan_filters, dict):
                     clean_filters = {
                         k: v for k, v in plan_filters.items() if v is not None
@@ -1369,8 +1422,8 @@ class AgentService:
             return normalized
 
         if tool_name == "rerank":
-            normalized.setdefault("query", self._current_query or "")
-            hits = normalized.pop("hits", None) or self._last_search_hits
+            normalized.setdefault("query", self._ctx.query or "")
+            hits = normalized.pop("hits", None) or self._ctx.search_hits
             if not normalized.get("docs") or not any(normalized["docs"]):
                 normalized["docs"] = [
                     str(hit.get("text") or hit.get("snippet") or "")
@@ -1389,12 +1442,12 @@ class AgentService:
             normalized.pop("hits", None)
             normalized.pop("raw_input", None)
             normalized.pop("hit_ids", None)  # Игнорируем LLM-выбранные ID
-            normalized["query"] = self._current_query or ""
+            normalized["query"] = self._ctx.query or ""
 
             # Всегда используем все результаты из _last_search_hits.
             # После rerank они уже отсортированы по релевантности.
             # compose_context сам ограничит по max_tokens_ctx.
-            last_hits = getattr(self, "_last_search_hits", [])
+            last_hits = self._ctx.search_hits
             selected_hits: List[Dict[str, Any]] = [
                 hit for hit in last_hits if isinstance(hit, dict)
             ]
@@ -1425,9 +1478,10 @@ class AgentService:
             if missing_ids:
                 try:
                     fetch_result = self.tool_runner.run(
-                        self._current_request_id or "fetch-docs",
-                        self._current_step,
+                        self._ctx.request_id or "fetch-docs",
+                        self._ctx.step,
                         ToolRequest(tool="fetch_docs", input={"ids": missing_ids}),
+                        deadline=self._ctx.deadline,
                     )
                     if fetch_result.output.ok:
                         fetched_docs = {
@@ -1469,7 +1523,7 @@ class AgentService:
         if tool_name == "verify":
             if "k" in normalized and "top_k" not in normalized:
                 normalized["top_k"] = normalized.pop("k")
-            normalized.setdefault("query", self._current_query or "")
+            normalized.setdefault("query", self._ctx.query or "")
             return normalized
 
         return normalized
@@ -1480,43 +1534,43 @@ class AgentService:
             return
 
         if action.tool == "query_plan":
-            self._last_plan_summary = action.output.data.get("plan") or {}
+            self._ctx.plan_summary = action.output.data.get("plan") or {}
             return
 
         if action.tool == "list_channels":
-            self._agent_state.navigation_answered = True
+            self._ctx.agent_state.navigation_answered = True
             return
 
         # SPEC-RAG-15: analytics tools
         if action.tool in ("entity_tracker", "arxiv_tracker"):
-            self._agent_state.analytics_done = True
+            self._ctx.agent_state.analytics_done = True
             # arxiv_tracker(lookup) возвращает hits — search-like, нужен rerank/compose
             if action.tool == "arxiv_tracker" and action.output.data.get("hits"):
-                self._last_search_hits = list(action.output.data.get("hits", []))
-                self._agent_state.search_count += 1
+                self._ctx.search_hits = list(action.output.data.get("hits", []))
+                self._ctx.agent_state.search_count += 1
             return
 
         if action.tool in ("search", "temporal_search", "channel_search",
                           "cross_channel_compare", "summarize_channel"):
-            self._last_search_hits = list(action.output.data.get("hits", []) or [])
-            self._last_search_route = action.output.data.get("route_used")
-            self._agent_state.search_count += 1
+            self._ctx.search_hits = list(action.output.data.get("hits", []) or [])
+            self._ctx.search_route = action.output.data.get("route_used")
+            self._ctx.agent_state.search_count += 1
             # Adaptive retrieval state tracking
-            self._agent_state.strategy = action.output.data.get("strategy", "broad")
-            self._agent_state.routing_source = action.output.data.get("routing_source", "default")
+            self._ctx.agent_state.strategy = action.output.data.get("strategy", "broad")
+            self._ctx.agent_state.routing_source = action.output.data.get("routing_source", "default")
             logger.info(
                 "Agent search | tool=%s | strategy=%s | routing_source=%s | hits=%d",
                 action.tool,
-                self._agent_state.strategy,
-                self._agent_state.routing_source,
-                len(self._last_search_hits),
+                self._ctx.agent_state.strategy,
+                self._ctx.agent_state.routing_source,
+                len(self._ctx.search_hits),
             )
             return
 
         if action.tool == "rerank":
             indices = action.output.data.get("indices") or []
             scores = action.output.data.get("scores") or []
-            if not isinstance(indices, list) or not self._last_search_hits:
+            if not isinstance(indices, list) or not self._ctx.search_hits:
                 return
 
             ranked_hits: List[Dict[str, Any]] = []
@@ -1524,9 +1578,9 @@ class AgentService:
             for position, raw_idx in enumerate(indices):
                 if not isinstance(raw_idx, int):
                     continue
-                if raw_idx < 0 or raw_idx >= len(self._last_search_hits):
+                if raw_idx < 0 or raw_idx >= len(self._ctx.search_hits):
                     continue
-                hit = dict(self._last_search_hits[raw_idx])
+                hit = dict(self._ctx.search_hits[raw_idx])
                 if position < len(scores):
                     hit["rerank_score"] = scores[position]
                 ranked_hits.append(hit)
@@ -1535,17 +1589,17 @@ class AgentService:
             if ranked_hits:
                 tail_hits = [
                     dict(hit)
-                    for idx, hit in enumerate(self._last_search_hits)
+                    for idx, hit in enumerate(self._ctx.search_hits)
                     if idx not in used_indices
                 ]
-                self._last_search_hits = ranked_hits + tail_hits
+                self._ctx.search_hits = ranked_hits + tail_hits
             return
 
         if action.tool == "compose_context":
-            self._last_compose_citations = list(
+            self._ctx.compose_citations = list(
                 action.output.data.get("citations", []) or []
             )
-            self._last_coverage = float(
+            self._ctx.coverage_score = float(
                 action.output.data.get("citation_coverage", 0.0) or 0.0
             )
 
@@ -1698,8 +1752,8 @@ class AgentService:
                 original_query = "Human: " + original_query
 
             result = self.tool_runner.run(
-                self._current_request_id or "verify",
-                self._current_step,
+                self._ctx.request_id or "verify",
+                self._ctx.step,
                 ToolRequest(
                     tool="verify",
                     input={
@@ -1708,6 +1762,7 @@ class AgentService:
                         "top_k": 3,
                     },
                 ),
+                deadline=self._ctx.deadline,
             )
 
             if result.output.ok:
@@ -1768,9 +1823,13 @@ class AgentService:
         return actions
 
     def _extract_tool_calls(
-        self, assistant_message: Dict[str, Any]
+        self, assistant_message: Dict[str, Any],
+        visible_tools: Optional[set] = None,
     ) -> List[Dict[str, Any]]:
-        """Приводит tool_calls llama-server к единому внутреннему формату."""
+        """Приводит tool_calls llama-server к единому внутреннему формату.
+
+        FIX-04: если visible_tools задан, отбрасывает tool names вне visible set.
+        """
         raw_tool_calls = assistant_message.get("tool_calls") or []
         normalized_calls: List[Dict[str, Any]] = []
 
@@ -1782,6 +1841,14 @@ class AgentService:
                 item.get("function") if isinstance(item.get("function"), dict) else item
             )
             tool_name = function_block.get("name")
+
+            # FIX-04: whitelist по visible set
+            if visible_tools and tool_name and tool_name not in visible_tools:
+                logger.warning(
+                    "LLM вызвала tool '%s' вне visible set %s — пропускаем",
+                    tool_name, visible_tools,
+                )
+                continue
             raw_arguments = function_block.get("arguments", {})
 
             if isinstance(raw_arguments, str):
@@ -1887,8 +1954,8 @@ class AgentService:
         search_done = agent_state.search_count > 0
         nav_done = agent_state.navigation_answered
         analytics_done = agent_state.analytics_done
-        signals = getattr(self, "_query_signals", None)
-        original_query = getattr(self, "_original_query", "") or ""
+        signals = self._ctx.query_signals
+        original_query = self._ctx.original_query or ""
         query_lower = original_query.lower()
 
         if nav_done and not search_done:
@@ -2021,11 +2088,11 @@ class AgentService:
 
         final_payload = dict(base_payload)
         final_payload["answer"] = final_answer
-        final_payload.setdefault("citations", self._last_compose_citations)
+        final_payload.setdefault("citations", self._ctx.compose_citations)
         final_payload["coverage"] = agent_state.coverage
         final_payload["refinements"] = agent_state.refinement_count
-        final_payload["route"] = self._last_search_route
-        final_payload["plan"] = self._last_plan_summary
+        final_payload["route"] = self._ctx.search_route
+        final_payload["plan"] = self._ctx.plan_summary
         if verify_res:
             final_payload["verification"] = {
                 "verified": verify_res.get("verified", False),

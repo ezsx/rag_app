@@ -78,9 +78,12 @@ let token = null;
 
 async function getToken() {
   if (token) return token;
-  const r = await fetch(`${API}/v1/auth/admin`, {
-    method: 'POST', headers: {'Content-Type':'application/json'}, body: '{"key":"1"}'
-  });
+  // FIX-09: demo endpoint (read-only, без admin key)
+  const r = await fetch(`${API}/v1/auth/demo`, {method: 'POST'});
+  if (!r.ok) {
+    // Demo auth отключен — показываем сообщение, не предлагаем admin key
+    throw new Error('Авторизация недоступна. Включите ENABLE_DEMO_AUTH=true для demo-доступа.');
+  }
   const d = await r.json();
   token = d.access_token;
   return token;

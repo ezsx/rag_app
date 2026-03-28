@@ -152,9 +152,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     remaining = int(backoff_seconds - (now - last_violation))
                     return remaining
 
-            # Добавляем текущий запрос
-            request_history.append((now, endpoint))
-            self.requests[client_id] = requests_last_hour  # Сохраняем только за час
+            # FIX-03: добавляем в отфильтрованный список и сохраняем его
+            requests_last_hour.append((now, endpoint))
+            self.requests[client_id] = requests_last_hour
 
             return None
 

@@ -13,8 +13,19 @@ from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
-# Конфигурация
-JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
+# FIX-05: hard fail без explicit dev mode
+_DEV_MODE = os.getenv("RAG_ENV", "production").lower() in ("dev", "development", "local")
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    if _DEV_MODE:
+        JWT_SECRET = "dev-only-insecure-secret"
+        logger.warning("JWT_SECRET not set — using insecure dev default (RAG_ENV=%s)",
+                       os.getenv("RAG_ENV"))
+    else:
+        raise RuntimeError(
+            "JWT_SECRET environment variable is required in production. "
+            "Set RAG_ENV=dev to use insecure default for local development."
+        )
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 

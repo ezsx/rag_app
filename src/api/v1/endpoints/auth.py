@@ -55,3 +55,29 @@ def admin_login(body: AdminLoginRequest) -> TokenResponse:
 
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return TokenResponse(access_token=token)
+
+
+# FIX-09: demo endpoint — read-only token без admin key, только при ENABLE_DEMO_AUTH=true
+_DEMO_AUTH_ENABLED = os.getenv("ENABLE_DEMO_AUTH", "").lower() in ("true", "1")
+
+
+@router.post("/auth/demo", tags=["auth"], response_model=TokenResponse)
+def demo_login() -> TokenResponse:
+    """
+    Read-only demo token, не требует ключа.
+    Доступен только при ENABLE_DEMO_AUTH=true.
+    """
+    if not _DEMO_AUTH_ENABLED:
+        raise HTTPException(status_code=403, detail="Demo auth отключен")
+
+    now = datetime.utcnow()
+    payload: dict[str, Any] = {
+        "sub": "demo",
+        "iat": now,
+        "exp": now + timedelta(hours=1),
+        "scopes": ["read"],
+        "metadata": {"auth_method": "demo"},
+    }
+
+    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return TokenResponse(access_token=token, expires_in_hours=1)

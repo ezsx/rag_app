@@ -75,7 +75,7 @@ def _query_term_coverage(query: str, docs: List[Dict[str, Any]]) -> float:
         if len(token) >= 3 and token.lower() not in _STOP_WORDS
     ]
     if not tokens:
-        return 1.0
+        return 0.5  # FIX-02: нейтральное значение, не "идеально покрыто"
 
     all_text = " ".join(str(doc.get("text", "")).lower() for doc in docs)
     covered = sum(1 for token in tokens if token in all_text)

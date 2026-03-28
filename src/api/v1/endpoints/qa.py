@@ -14,9 +14,12 @@ from core.deps import (
     get_retriever,
     get_query_planner,
 )
+from core.auth import require_scopes, TokenData
 from core.settings import get_settings, Settings
 from services.qa_service import QAService
 from schemas.qa import QARequest, QAResponse, QAResponseWithContext, ContextItem
+
+require_read = require_scopes("read")
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -58,6 +61,7 @@ async def save_to_cache(redis_client, cache_key: str, data: dict, ttl: int):
 )
 async def answer_question(
     request: QARequest,
+    _user: TokenData = Depends(require_read),  # FIX-06
     qa_service: QAService = Depends(get_qa_service),
     redis_client=Depends(get_redis_client),
     settings: Settings = Depends(get_settings),
@@ -74,31 +78,17 @@ async def answer_question(
     try:
         logger.info(f"Получен QA запрос: {request.query[:100]}...")
 
-        # Если указана коллекция, временно переключаемся
-        original_collection = None
+        # FIX-01B: НЕ мутируем global settings для collection override
         if request.collection and request.collection != settings.current_collection:
-            original_collection = settings.current_collection
-            settings.update_collection(request.collection)
-            # Получаем новый qa_service с обновленной коллекцией
-            from core.deps import get_retriever
-
-            retriever = get_retriever()
-            llm = qa_service.llm  # Переиспользуем LLM
-            planner = get_query_planner() if settings.enable_query_planner else None
-            from core.deps import get_reranker
-
-            reranker = get_reranker() if settings.enable_reranker else None
-            qa_service = QAService(
-                retriever,
-                llm,
-                qa_service.top_k,
-                settings=settings,
-                planner=planner,
-                reranker=reranker,
+            logger.info(
+                "QA запрос с collection=%s (default=%s) — "
+                "collection override пока не поддержан, используем default",
+                request.collection, settings.current_collection,
             )
 
         # Подготовка ключа кеша
-        cache_key = f"qa:{hash(request.query + str(request.include_context) + (request.collection or settings.current_collection))}"
+        # FIX-01B: cache key привязан к фактической (default) коллекции
+        cache_key = f"qa:{hash(request.query + str(request.include_context) + settings.current_collection)}"
 
         # Проверяем кеш
         if settings.redis_enabled:
@@ -168,10 +158,6 @@ async def answer_question(
                     redis_client, cache_key, cache_data, settings.cache_ttl
                 )
 
-        # Восстанавливаем оригинальную коллекцию если меняли
-        if original_collection:
-            settings.update_collection(original_collection)
-
         return response
 
     except ValidationError as e:
@@ -198,6 +184,7 @@ async def answer_question(
 async def qa_stream(
     request: QARequest,
     fastapi_request: Request,
+    _user: TokenData = Depends(require_read),  # FIX-06
     qa_service: QAService = Depends(get_qa_service),
     settings: Settings = Depends(get_settings),
 ) -> EventSourceResponse:
@@ -215,49 +202,24 @@ async def qa_stream(
         try:
             logger.info(f"Начинаем SSE стрим для запроса: {request.query[:100]}...")
 
-            # Если указана коллекция, временно переключаемся
-            original_collection = None
+            # FIX-01B: НЕ мутируем global settings
             if request.collection and request.collection != settings.current_collection:
-                original_collection = settings.current_collection
-                settings.update_collection(request.collection)
-                # Получаем новый qa_service с обновленной коллекцией
-                from core.deps import get_retriever
-
-                retriever = get_retriever()
-                llm = qa_service.llm  # Переиспользуем LLM
-                planner = get_query_planner() if settings.enable_query_planner else None
-                from core.deps import get_reranker
-
-                reranker = get_reranker() if settings.enable_reranker else None
-                qa_service_temp = QAService(
-                    retriever,
-                    llm,
-                    qa_service.top_k,
-                    settings=settings,
-                    planner=planner,
-                    reranker=reranker,
+                logger.info(
+                    "QA stream с collection=%s — collection override не поддержан",
+                    request.collection,
                 )
-                qa_service_to_use = qa_service_temp
-            else:
-                qa_service_to_use = qa_service
 
             token_count = 0
 
-            # Стримим токены от LLM
-            async for token in qa_service_to_use.stream_answer(
+            async for token in qa_service.stream_answer(
                 request.query, request.include_context
             ):
-                # Проверяем отключение клиента
                 if await fastapi_request.is_disconnected():
                     logger.info("Клиент отключился, останавливаем стрим")
                     break
 
                 token_count += 1
                 yield {"event": "token", "data": token, "retry": 3000}
-
-            # Восстанавливаем оригинальную коллекцию если меняли
-            if original_collection:
-                settings.update_collection(original_collection)
 
             # Отправляем завершающий токен
             yield {"event": "end", "data": "[DONE]", "retry": 3000}
