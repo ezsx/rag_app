@@ -1,12 +1,18 @@
 """
-HybridRetriever Phase 1 — нативный RRF + MMR через Qdrant prefetch.
+HybridRetriever — текущий runtime retrieval pipeline.
 
-Двухэтапный pipeline:
-  1. prefetch: dense (cosine) + sparse (BM25) → RRF fusion → кандидаты
-  2. финальный query: MMR по dense_vector для разнообразия результатов
+Основной путь:
+  1. dense (cosine) + sparse (BM25) prefetch
+  2. weighted RRF fusion (BM25 weight=3, dense weight=1)
+  3. ColBERT MaxSim rerank через named vector `colbert_vector` (если доступен)
+  4. channel dedup: max 2 документа на канал
+
+Fallback путь при недоступном ColBERT:
+  dense + sparse → weighted RRF → channel dedup.
 
 dense_score каждого кандидата — cosine similarity с query vector,
 а не RRF score (RRF scores неинтерпретируемы для coverage metric).
+Legacy MMR helper сохранён только для compatibility/testing путей.
 """
 
 from __future__ import annotations

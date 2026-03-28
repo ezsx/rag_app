@@ -59,7 +59,7 @@ sequenceDiagram
 
     Agent->>Tools: run tool
 
-    alt tool = search
+    alt tool = search / temporal_search / channel_search / cross_channel_compare / summarize_channel
       Note over Tools: All subqueries, round-robin merge
       loop for each subquery
         Tools->>Qdrant: search_with_plan
@@ -67,6 +67,14 @@ sequenceDiagram
         Qdrant-->>Tools: candidates per query
       end
       Tools->>Tools: round-robin merge + channel dedup
+    else tool = entity_tracker / arxiv_tracker(top)
+      Tools->>Qdrant: Facet API / point-level aggregations
+      Qdrant-->>Tools: analytics summary + data
+      Note over Agent: analytics_done=True<br/>forced search bypass
+    else tool = arxiv_tracker(lookup)
+      Tools->>Qdrant: Scroll / filter by arxiv_id
+      Qdrant-->>Tools: hits[] deduped by root_message_id
+      Note over Agent: analytics_done=True,<br/>search_count++ for rerank/compose path
     else tool = rerank
       Tools->>Tools: cross-encoder rerank via gpu_server
     else tool = compose_context
@@ -79,7 +87,10 @@ sequenceDiagram
     Tools-->>Agent: AgentAction result
     Agent-->>C: SSE observation
 
-    alt compose_context done
+    alt analytics-only answer ready
+      Agent-->>C: SSE final
+      Note over Agent: final_answer without compose_context/citations
+    else compose_context done
       Agent->>Agent: check coverage
       Agent-->>C: SSE citations
 
@@ -99,21 +110,26 @@ sequenceDiagram
 
 ### Adaptive Tool Selection
 
-LLM видит **специализированные search tools** и сам выбирает нужный:
+LLM видит **специализированные search и analytics tools** и сам выбирает нужный:
 
 | Tool | Когда LLM выбирает | Qdrant filter |
 |------|-------------------|---------------|
 | `search` | Общие/сравнительные запросы (default) | Нет фильтров |
 | `temporal_search` | "в январе 2026", "последние новости" | DatetimeRange по date |
 | `channel_search` | "gonzo_ml про трансформеры" | MatchValue по channel |
+| `entity_tracker` | "кто чаще упоминается", "динамика", "что упоминается вместе" | Facet по entities[] / year_week |
+| `arxiv_tracker` | "какие статьи обсуждали", "кто обсуждал paper 1706..." | Facet/Scroll по arxiv_ids[] |
 
 ### Dynamic Tool Visibility
 
-Два уровня:
-1. **Post-search**: `final_answer`/`compose_context` **скрыты** до выполнения search
-2. **Query signals**: `temporal_search` скрыт если нет дат в запросе, `channel_search` скрыт если нет каналов → LLM видит 3-4 tools вместо 7
+Четыре фазы:
+1. **PRE-SEARCH**: `query_plan` + `search` + signal/keyword-routed specialized tools
+2. **POST-SEARCH**: `rerank`, `compose_context`, `final_answer`, `related_posts`
+3. **NAV-COMPLETE**: `list_channels` ответил, search не нужен → только `final_answer`
+4. **ANALYTICS-COMPLETE**: `entity_tracker`/`arxiv_tracker` уже ответили → `final_answer` доступен без search
 
-- Если LLM не вызывает tools → **forced search** с оригинальным запросом пользователя
+- Hard cap: максимум 5 видимых tools, лишние убираются по eviction priority из `datasets/tool_keywords.json`
+- Если LLM не вызывает tools → **forced search** с оригинальным запросом пользователя, кроме negative intent / analytics short-circuit
 - Оригинальный запрос **всегда** добавляется в subqueries (BM25 keyword match)
 - Rule-based pre-validator (`query_signals.py`) извлекает даты/каналы/entities за <1ms
 

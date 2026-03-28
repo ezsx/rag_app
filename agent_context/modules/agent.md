@@ -4,7 +4,7 @@
 
 - `src/services/agent_service.py` — основной класс `AgentService`, system prompt, AGENT_TOOLS, dynamic visibility
 - `src/services/tools/tool_runner.py` — `ToolRunner` реестр + запуск с таймаутом
-- `src/services/tools/` — 11 инструментов агента + 2 системных
+- `src/services/tools/` — 13 LLM-visible инструментов + 2 системных
 - `src/schemas/agent.py` — схемы: `AgentRequest`, `AgentStepEvent`, `ToolRequest`, `AgentAction`
 - `src/core/deps.py` — DI: `get_agent_service`, `get_tool_runner`, wrapper-функции для всех tools
 - `src/api/v1/endpoints/agent.py` — SSE endpoint `/v1/agent/stream`
@@ -12,7 +12,7 @@
 ## Цикл ReAct (native function calling)
 
 ```
-Инициализация (AgentState: coverage=0.0, refinement_count=0, search_count=0, navigation_answered=False)
+Инициализация (AgentState: coverage=0.0, refinement_count=0, search_count=0, navigation_answered=False, analytics_done=False)
     ↓
 Цикл по шагам (до max_steps=8):
     _get_step_tools(agent_state)  — phase-based visibility (max 5 tools)
@@ -22,21 +22,22 @@
     emit thought event (если есть content)
 
     Guard: forced search bypass
-      - если нет tool_calls И search_count==0 И НЕ navigation_answered И НЕ refusal → forced search
+      - если нет tool_calls И search_count==0 И НЕ navigation_answered И НЕ analytics_done И НЕ refusal → forced search
 
     Для каждого tool_call:
       _normalize_tool_params() — temporal/channel → search с filters
       temporal guard: если date_from/date_to вне корпуса → refusal
       _execute_action() → ToolRunner.run()
-      _apply_action_state() — обновляет search_count, hits, coverage, navigation_answered
+      _apply_action_state() — обновляет search_count, hits, coverage, navigation_answered, analytics_done
       emit tool_invoked, observation
 
       if compose_context → check coverage, maybe refinement
+      if analytics_done and hits не нужны → final_answer доступен без search
     ↓
 Fallback (max_steps exceeded): error answer
 ```
 
-## 11 LLM tools + 2 системных (SPEC-RAG-13)
+## 13 LLM tools + 2 системных (SPEC-RAG-13 + SPEC-RAG-15)
 
 ### Pre-search phase
 | Инструмент | Файл | Назначение |
@@ -56,6 +57,8 @@ Fallback (max_steps exceeded): error answer
 | `compose_context` | `tools/compose_context.py` | Сборка контекста с цитатами, coverage |
 | `final_answer` | `tools/final_answer.py` | Финальный payload с sources |
 | `related_posts` | `tools/related_posts.py` | Qdrant RecommendQuery — похожие посты |
+| `entity_tracker` | `tools/entity_tracker.py` | Facet analytics по сущностям: top, timeline, compare, co_occurrence |
+| `arxiv_tracker` | `tools/arxiv_tracker.py` | Facet/lookup по arxiv-статьям: top papers, кто обсуждал |
 
 ### Системные (не в LLM schema)
 | Инструмент | Файл | Назначение |
@@ -69,17 +72,21 @@ Fallback (max_steps exceeded): error answer
 if nav_done and not search_done:
     # NAV-COMPLETE: only final_answer
     visible = {"final_answer"}
+elif analytics_done and not search_done:
+    # ANALYTICS-COMPLETE: можно сразу отвечать или продолжить с search
+    visible = {"final_answer", "search", "entity_tracker", "arxiv_tracker"}
 elif search_done:
     # POST-SEARCH: synthesis tools
     visible = {"rerank", "compose_context", "final_answer", "related_posts"}
 else:
-    # PRE-SEARCH: query_plan + search + signal-based specialized
+    # PRE-SEARCH: query_plan + search + signal-based + keyword-routed specialized
     visible = {"query_plan", "search"}
     # + temporal_search (если есть даты в query)
     # + channel_search, summarize_channel (если есть канал)
     # + cross_channel_compare (если "сравни", "vs")
     # + list_channels (если "какие каналы", "сколько постов")
-    # Hard cap: max 5, убираем по priority
+    # + entity_tracker, arxiv_tracker (если keywords из datasets/tool_keywords.json)
+    # Hard cap: max 5, убираем по eviction priority
 ```
 
 ## Refusal Policy (P1, 2026-03-24)

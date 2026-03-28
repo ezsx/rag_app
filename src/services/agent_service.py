@@ -1663,36 +1663,17 @@ class AgentService:
             return str(tool_response.data)[:500]
 
     def get_available_tools(self) -> Dict[str, Any]:
-        """Возвращает обзор LLM-visible и системных инструментов агента."""
-        tools_info = {
-            "query_plan": {
-                "description": "Декомпозирует пользовательский запрос на подзапросы",
-                "parameters": {"query": "string"},
-            },
-            "search": {
-                "description": "Выполняет гибридный поиск по Qdrant",
-                "parameters": {"queries": "array<string>", "k": "integer"},
-            },
-            "rerank": {
-                "description": "Переранжирует найденные документы",
-                "parameters": {
-                    "query": "string",
-                    "docs": "array<string>",
-                    "top_n": "integer",
-                },
-            },
-            "compose_context": {
-                "description": "Собирает prompt с цитатами и coverage",
-                "parameters": {"hit_ids": "array<string>?"},
-            },
-            "final_answer": {
-                "description": "Формирует финальный ответ пользователю",
-                "parameters": {
-                    "answer": "string",
-                    "sources": "array<int>",
-                },
-            },
-        }
+        """Возвращает полный обзор LLM-visible и системных инструментов агента."""
+        tools_info: Dict[str, Any] = {}
+        for tool in AGENT_TOOLS:
+            function = tool.get("function", {})
+            name = function.get("name")
+            if not name:
+                continue
+            tools_info[name] = {
+                "description": function.get("description", ""),
+                "parameters_schema": function.get("parameters", {}),
+            }
 
         system_tools = {
             "fetch_docs": "Системная догрузка полных текстов по id",
@@ -1703,7 +1684,8 @@ class AgentService:
             "tools": tools_info,
             "system_tools": system_tools,
             "total": len(tools_info),
-            "note": "LLM видит только 5 tools schema; verify и fetch_docs вызываются системно.",
+            "max_visible_per_step": 5,
+            "note": "AGENT_TOOLS содержит полный набор из 13 LLM-visible schema; _get_step_tools показывает не более 5 на шаг.",
         }
 
     async def _verify_answer(

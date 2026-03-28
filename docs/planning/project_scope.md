@@ -47,9 +47,10 @@ http://localhost:8001/
 
 ### Agent
 - [x] Native function calling (не regex-парсинг ReAct)
-- [x] 11 tools: query_plan, search, temporal_search, channel_search, cross_channel_compare, summarize_channel, list_channels, rerank, compose_context, final_answer, related_posts
-- [x] Dynamic tool availability: phase-based visibility, max 5 tools visible одновременно
+- [x] 13 tools: query_plan, search, temporal_search, channel_search, cross_channel_compare, summarize_channel, list_channels, rerank, compose_context, final_answer, related_posts, entity_tracker, arxiv_tracker
+- [x] Dynamic tool availability: phase-based visibility (PRE-SEARCH / POST-SEARCH / NAV-COMPLETE / ANALYTICS-COMPLETE), max 5 tools visible одновременно
 - [x] Forced search: если LLM пропускает tools, принудительный search с оригинальным запросом
+- [x] Analytics short-circuit: entity_tracker/arxiv_tracker → analytics_done → можно отвечать без search; arxiv lookup может перейти в rerank/compose
 - [x] Coverage metric: 6-signal composite (cosine similarity based)
 - [x] Auto-refinement: дополнительный поиск при coverage < 0.65
 - [x] Grounding: citation-forced generation, source validation
@@ -271,10 +272,12 @@ Eval-запросы: фактические, аналитические, tempora
 > Реализовано в SPEC-RAG-11 (adaptive retrieval) + SPEC-RAG-13 (tool expansion).
 
 **Текущая архитектура:**
-- **11 LLM-visible tools**: query_plan, search, temporal_search, channel_search, cross_channel_compare, summarize_channel, list_channels, rerank, compose_context, final_answer, related_posts
-- **Phase-based dynamic visibility**: PRE-SEARCH (planning + search tools) → POST-SEARCH (synthesis tools). Max 5 visible. Signal + keyword routing
+- **Базовый runtime из SPEC-RAG-13**: 11 LLM-visible tools (без analytics)
+- **Текущий runtime после SPEC-RAG-15**: 13 LLM-visible tools, добавлены `entity_tracker` и `arxiv_tracker`
+- **Phase-based dynamic visibility**: PRE-SEARCH → POST-SEARCH → NAV-COMPLETE → ANALYTICS-COMPLETE. Max 5 visible. Signal + keyword routing
 - **Forced search**: если LLM пропускает tools, принудительный search с оригинальным запросом
 - **Navigation short-circuit**: list_channels → navigation_answered → skip forced search, NAV-COMPLETE
+- **Analytics short-circuit**: entity_tracker/arxiv_tracker → analytics_done → skip forced search, ANALYTICS-COMPLETE
 - **Refusal policy**: prompt rules + temporal guard в _execute_action + forced search bypass
 
 **Результаты:**
@@ -345,43 +348,68 @@ Eval-запросы: фактические, аналитические, tempora
 
 > R16 (generic tools) + R17 (domain-specific tools) завершены. SPEC-RAG-12/13 реализованы.
 
-**Реализовано (SPEC-RAG-12 + SPEC-RAG-13):**
+**Реализовано до SPEC-RAG-15 (foundation):**
 - [x] Payload enrichment: entities[], arxiv_ids[], urls[], lang, year_week, year_month + 16 payload indexes
 - [x] Entity dictionary: 95 AI/ML entities, 6 categories, case_sensitive, regex NER
 - [x] Collection migration: news_colbert → news_colbert_v2 (enriched payload, 13088 points)
 - [x] 4 new tools: list_channels, related_posts, cross_channel_compare, summarize_channel
 - [x] Phase-based dynamic visibility (max 5 visible, signal + keyword routing)
 
-**Следующий шаг — SPEC-RAG-15: Entity Analytics Tools:**
-- [ ] `entity_tracker` — Facet API на entities[] + year_week (timeline, compare, co-occurrence)
-- [ ] `arxiv_tracker` — Facet API на arxiv_ids[] (popular papers, lookup, кто обсуждал)
-- Golden dataset уже содержит 3 future_baseline вопроса для замера before/after
+**Реализовано в runtime + eval (SPEC-RAG-15, 2026-03-25):**
+- [x] `entity_tracker` — Facet API на entities[] + year_week (top, timeline, compare, co_occurrence)
+- [x] `arxiv_tracker` — Facet API на arxiv_ids[] (top, lookup, кто обсуждал)
+- [x] Agent state: `analytics_done`, ANALYTICS-COMPLETE phase, forced search bypass
+- [x] Golden dataset расширен до 30 вопросов (25 original + 5 analytics)
+- [x] Manual judge: factual **1.79/2**, useful **1.72/2**, key tool accuracy **0.926**
+
+**Осталось для закрытия фазы:**
+- [ ] Unit tests для analytics tools и state machine
+- [ ] Обновить stale docs: architecture flow, agent module, planning, decision log
 - Enriched payload + indexes готовы, effort низкий
 
 **Будущее (SPEC-RAG-16, опциональное):**
 - [ ] `hot_topics` — pre-computed weekly digests (BERTopic cron + auxiliary collection)
 - [ ] `channel_expertise` — pre-computed channel profiles, authority ranking
 
-### Phase 3.5: Advanced Techniques [FUTURE]
+### Phase 3.5: Production-Grade Quality [СЛЕДУЮЩИЙ ПОСЛЕ hot_topics]
 
-> Треки из R15 (Яндекс). Каждый требует отдельного spec.
+> 5 research tracks для перехода от demo к production. Каждый = deep research → spec → implementation.
+> Порядок выбран по зависимостям: observability даёт числа для всех остальных.
 
-**RAG Necessity Classifier:**
-- Conversational queries → skip RAG. Perplexity-based или LLM tool call decision
-- Target: -25% latency. Ref: R15 — Соколов §7
+**Track 1 — Observability + Latency Budget (2-3 дня):**
+- Structured logging: OpenTelemetry-style spans per tool, per retrieval stage
+- P50/P95/P99 latency distribution, token usage tracking per request
+- Bottleneck analysis → SLO design (target <20s P95)
+- **Делать первым** — даёт baseline числа для всех последующих треков
+- Ref: production patterns из R18 §7
 
-**SFT/RLHF для RAG и Function Calling:**
-- LoRA/QLoRA Qwen3-30B на V100 с трейсами агента
-- Target: +19% по RAG (Соколов), Claude-level FC accuracy (Цымбой: 1.5M samples)
-- Ref: R15 — Соколов §8, Цымбой §SFT+GRPO
+**Track 2 — NLI Citation Faithfulness (research 2-3 дня + impl 2-3 дня):**
+- Decompose-then-verify: atomic claims → NLI check vs cited chunks
+- XLM-RoBERTa-large-xnli (~1.3GB) влезает на 5060 Ti рядом с остальными моделями
+- Target: faithfulness ≥ 0.92. **Killer feature** для interview
+- Ref: R14-deep §NLI, Яндекс R15 предупреждение "LLM judge не работает для factual correctness"
 
-**NLI Citation Verification:**
-- XLM-RoBERTa-large-xnli, decompose-then-verify
-- Target: faithfulness ≥ 0.92. Ref: R14-deep §NLI
+**Track 3 — Retrieval Robustness NDR/RSR/ROR (3-5 дней):**
+- NDR: добавление контекста улучшает или ухудшает ответ?
+- RSR: k=3,5,10,15,20 — монотонное улучшение или lost-in-the-middle?
+- ROR: порядок чанков в compose_context — влияет на Qwen3-30B-A3B (3B active)?
+- Ref: R15 (Яндекс — ключевой трек конференции), R18 §robustness
 
-**Speculative RAG / Context Compression:**
-- Drafter на 5060 Ti + Verifier на V100 (Google ICLR 2025: +12.97%, -50.83% latency)
-- Qwen2.5-1.5B compressor (CORE 2025: 3.6% tokens, +3.2 EM)
+**Track 4 — CRAG-lite / Quality-Gated Retrieval (2-3 дня):**
+- ColBERT MaxSim scores уже доступны — zero overhead quality signal
+- Calibration: ColBERT score × factual correctness → threshold
+- 3 действия: Correct (answer) / Re-query (другая стратегия) / Refuse
+- Зависит от данных Track 3. Ref: R13-deep §3, CRAG paper (+7% PopQA, +37% PubHealth)
+
+**Track 5 — RAG Necessity / Adaptive Pipeline Depth (1-2 дня):**
+- Query complexity classification: no-RAG / simple-RAG / full-pipeline
+- Яндекс: ~25% queries не нужен RAG → -25% latency
+- Ref: R15 — Соколов §7
+
+**Отложено (не приоритет из-за constraints):**
+- SFT/RLHF: нужно 200+ FC samples, 10K RAG samples. Описать в README как future work
+- Speculative RAG: сложная dual-GPU orchestration, marginal gain
+- Context Compression: отдельная модель (Qwen2.5-1.5B), marginal gain при текущем compose_context
 
 ### Phase 3.6: README + Архитектурная диаграмма [КРИТИЧНО для первого впечатления]
 - [ ] Mermaid диаграмма полного pipeline (включая adaptive routing)
@@ -418,7 +446,7 @@ Eval-запросы: фактические, аналитические, tempora
 | Agent design | Tool calling, loops, when to stop | ✅ Function calling + coverage threshold |
 | Scaling | Batching, caching, context management | ✅ Sub-batching, trim_messages |
 | Trade-offs | RAG vs fine-tune, dense vs sparse | ✅ Есть research docs с анализом |
-| Infra | Deployment, monitoring | ⚠️ Docker есть, observability нужна |
+| Infra | Deployment, monitoring | ⚠️ Docker есть, observability запланирована (Track 1, Phase 3.5) |
 | LLM internals | Attention, tokenization, inference | ⚠️ Понимание есть, нужно уметь объяснить |
 
 ---
@@ -428,13 +456,18 @@ Eval-запросы: фактические, аналитические, tempora
 ```
 Phase 3.0: Расширение коллекции (36 каналов, 13088 точек)                     [DONE]
 Phase 3.1: Evaluation + Pipeline Optimization (recall 0.15→0.76)              [DONE]
-Phase 3.2: Adaptive Retrieval + Tool Router (11 tools, dynamic visibility)    [DONE]
+Phase 3.2: Adaptive Retrieval + Tool Router (base runtime + dynamic visibility) [DONE]
 Phase 3.3: Evaluation Pipeline V2 (SPEC-RAG-14 + P0-P1.5 fixes)              [DONE]
-Phase 3.4: Tool Expansion + Entity Analytics (SPEC-RAG-12/13 done, 15 next)  [IN PROGRESS]
-Phase 3.5: Advanced Techniques (RAG classifier, SFT, NLI, Speculative RAG)   [FUTURE]
-Phase 3.6: README + архитектурная диаграмма + comparison tables               [Параллельно]
-Phase 3.7: Observability                                                       [FUTURE]
-Phase 3.8: UI polish                                                           [Lowest priority]
+Phase 3.4: Tool Expansion + Entity Analytics (SPEC-RAG-15 runtime done)       [CLOSEOUT — unit tests + docs]
+  → hot_topics + channel_expertise (SPEC-RAG-16)                              [NEXT]
+Phase 3.5: Production-Grade Quality (5 research tracks)                        [AFTER hot_topics]
+  → Track 1: Observability + Latency Budget
+  → Track 2: NLI Citation Faithfulness
+  → Track 3: Retrieval Robustness NDR/RSR/ROR
+  → Track 4: CRAG-lite Quality Gate
+  → Track 5: RAG Necessity Classifier
+Phase 3.6: README + архитектурная диаграмма + ablation tables                 [Параллельно]
+Phase 3.7: UI polish                                                           [Lowest priority]
 
 Исследовательская база: R01-R18 (18 отчётов)
 ```
