@@ -406,15 +406,19 @@ Eval-запросы: фактические, аналитические, tempora
 - 3 действия: Correct (answer) / Re-query (другая стратегия) / Refuse
 - Зависит от данных Track 3. Ref: R13-deep §3, CRAG paper (+7% PopQA, +37% PubHealth)
 
-**Track 5 — RAG Necessity / Adaptive Pipeline Depth (1-2 дня):**
-- Query complexity classification: no-RAG / simple-RAG / full-pipeline
-- Яндекс: ~25% queries не нужен RAG → -25% latency
-- Ref: R15 — Соколов §7
+**Track 5 — RAG Necessity Classifier (R21 готов, impl ~0.5 дня):**
+- **Подход**: Tier 1 regex (greetings/thanks/meta) + Tier 2 domain keyword check — <1ms, zero dependencies
+- **Реалистичная оценка**: для нашего demo UI с целевыми AI/ML пользователями non-RAG queries = **5-10%** (не 25% как у Алисы). Приоритет низкий, но для собеса показывает production thinking
+- **Суть**: retrieval реально вредит на запросах которые LLM знает — нерелевантные docs отвлекают модель
+- **Integration**: pre-filter перед agent loop, conservative (при сомнении — ищем)
+- **Phase 2 (после NDR)**: shadow mode → accumulate labeled pairs → Phase 3: ruBERT-tiny classifier
+- Ref: R21-deep-rag-necessity-classifier.md, R15 §7, Self-RAG, Adaptive-RAG
 
 **Отложено (не приоритет из-за constraints):**
 - SFT/RLHF: нужно 200+ FC samples, 10K RAG samples. Описать в README как future work
 - Speculative RAG: сложная dual-GPU orchestration, marginal gain
 - Context Compression: отдельная модель (Qwen2.5-1.5B), marginal gain при текущем compose_context
+- **Conversation history / multi-turn**: сейчас 1 вопрос → 1 ответ, нет памяти разговора. V100 32K context позволяет. Очевидное направление, протестировать как работает на длинном контексте
 
 ### Phase 3.6: README + Архитектурная диаграмма [КРИТИЧНО для первого впечатления]
 - [ ] Mermaid диаграмма полного pipeline (включая adaptive routing)
@@ -466,10 +470,10 @@ Phase 3.3: Evaluation Pipeline V2 (SPEC-RAG-14 + P0-P1.5 fixes)              [DO
 Phase 3.4: Tool Expansion + Entity Analytics (SPEC-RAG-15 runtime done)       [DONE]
   → hot_topics + channel_expertise (SPEC-RAG-16)                              [DONE — runtime + cron tested]
   → SPEC-RAG-17: Production Hardening (9 fixes)                               [DONE]
-Phase 3.5: Production-Grade Quality (3 research tracks)                        [IN PROGRESS]
-  → Track 2: NLI Citation Faithfulness — R19 ready, spec next
-  → Track 3: Retrieval Robustness NDR/RSR/ROR — R20 ready, spec next
-  → Track 5: RAG Necessity Classifier — R21 in progress
+Phase 3.5: Production-Grade Quality (3 research tracks)                        [RESEARCH DONE, IMPL NEXT]
+  → Track 2: NLI Citation Faithfulness — R19 ready, impl ~1-2 дня
+  → Track 3: Retrieval Robustness NDR/RSR/ROR — R20 ready, impl ~1 день + 6.5h compute
+  → Track 5: RAG Necessity Classifier — R21 ready, impl ~0.5 дня (low priority for demo)
   → Track 1 (Observability): deprioritized — engineering, not research
   → Track 4 (CRAG-lite): dropped — redundant with Track 5
 Phase 3.6: README + архитектурная диаграмма + ablation tables                 [Параллельно]
@@ -498,6 +502,7 @@ Phase 3.7: UI polish                                                           [
 | **R18** | `reports/R18-deep-evaluation-methodology-dataset.md` | Evaluation methodology | LLM judge, robustness (NDR/RSR/ROR), synthetic pipeline, 500Q dataset |
 | **R19** | `reports/R19-deep-nli-citation-faithfulness.md` | NLI Faithfulness | Hybrid approach C (Qwen3 decomposition + XLM-RoBERTa NLI), 83.5% Russian accuracy, 1.12GB FP16 |
 | **R20** | `reports/R20-deep-retrieval-robustness-ndr-rsr-ror.md` | Retrieval Robustness | Cao et al. adapted: 50Q/650 calls vs 1500Q/55K, two-stage sequential protocol, k=[3,5,10,20] |
+| **R21** | `reports/R21-deep-rag-necessity-classifier.md` | RAG Necessity | Rule-based tiers (<1ms), LLM classifier неоправдан (12s/call), 10-20% non-RAG, conservative fallback |
 
 ### Ключевые papers (для собеседования)
 
