@@ -49,10 +49,10 @@ services:
       - LLM_BASE_URL=http://host.docker.internal:8080
       - LLM_MODEL_NAME=qwen3-30b-a3b
       - LLM_REQUEST_TIMEOUT=120
-      # Embedding TEI — WSL2 native, RTX 5060 Ti
-      - EMBEDDING_TEI_URL=http://host.docker.internal:8082
-      # Reranker — gpu_server.py на том же порту что embedding (WSL2 native, RTX 5060 Ti)
-      - RERANKER_TEI_URL=http://host.docker.internal:8082
+      # Embedding TEI — через Windows relay (Docker не видит WSL native :8082 напрямую)
+      - EMBEDDING_TEI_URL=http://host.docker.internal:18082
+      # Reranker — тот же relay
+      - RERANKER_TEI_URL=http://host.docker.internal:18082
       # Qdrant — compose-managed, порт 16333 снаружи, 6333 внутри
       - QDRANT_URL=http://qdrant:6333
       - QDRANT_COLLECTION=news_colbert_v2
