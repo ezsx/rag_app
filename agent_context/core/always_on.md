@@ -15,15 +15,17 @@
 - ColBERT: **jina-colbert-v2** (560M, 128-dim per-token MaxSim) через gpu_server.py (порт 8082).
 - Хранилище: **Qdrant** (dense 1024 + sparse BM25 + ColBERT 128-dim, **weighted RRF** BM25 3:1).
 - Коллекция: `news_colbert_v2` (enriched payload: entities, arxiv_ids, urls, year_week, lang + 16 payload indexes).
+- Вспомогательные коллекции: `weekly_digests` (горячие темы по неделям), `channel_profiles` (экспертиза каналов).
 - **Docker GPU blocker**: RTX 5060 Ti недоступна в Docker Desktop (TCC V100 блокирует NVML).
   Все GPU-модели запускаются нативно через gpu_server.py в Ubuntu WSL2.
   Детали: DEC-0024 в `docs/architecture/11-decisions/decision-log.md`.
 
 ## ReAct агент
 - Оркестрация: native function calling через `/v1/chat/completions`, без regex-парсинга.
-- LLM tools schema: 13 tools — `query_plan`, `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`, `list_channels`, `rerank`, `related_posts`, `compose_context`, `final_answer`, `entity_tracker`, `arxiv_tracker`.
+- LLM tools schema: 15 tools — `query_plan`, `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`, `list_channels`, `rerank`, `related_posts`, `compose_context`, `final_answer`, `entity_tracker`, `arxiv_tracker`, `hot_topics`, `channel_expertise`.
 - **Dynamic visibility**: phase-based (pre-search / post-search / analytics-complete / nav-complete), max 5 видимых. Signal + keyword routing из `datasets/tool_keywords.json`.
 - **Analytics tools** (SPEC-RAG-15): `entity_tracker` (top/timeline/compare/co_occurrence) + `arxiv_tracker` (top/lookup). Facet API, point-level counts. Ответы без citations.
+- **Digest tools** (SPEC-RAG-16): `hot_topics` (weekly digest из `weekly_digests` коллекции) + `channel_expertise` (профиль канала из `channel_profiles` коллекции). ANALYTICS-COMPLETE phase.
 - **Forced search**: если LLM не вызывает tools, принудительный search. Bypass только для negative intent + refusal (не для обычных factual).
 - **Original query injection**: оригинальный запрос всегда в subqueries для BM25 keyword match.
 - **Multi-query search**: все LLM subqueries через round-robin merge (не только первый!).
@@ -31,8 +33,9 @@
 - Retrieval: `query_plan → search (BM25 top-100 + dense top-20 → RRF 3:1 → ColBERT rerank) → cross-encoder rerank → channel dedup (max 2/channel) → compose_context`.
 - Coverage threshold: **0.65**; max refinements: **2** (DEC-0019; не менять без ресерча).
 - `agent_service.py` — единственный владелец состояния шага; не дублировать логику снаружи.
+- **Request isolation** (SPEC-RAG-17 FIX-01): `RequestContext` на `ContextVar` — per-request state вместо instance-level. Каждый запрос изолирован.
 - **Navigation short-circuit**: list_channels → `navigation_answered` → skip forced search, NAV-COMPLETE phase.
-- **Analytics short-circuit**: entity_tracker/arxiv_tracker → `analytics_done` → skip forced search, ANALYTICS-COMPLETE phase. Verify bypass для analytics-only ответов.
+- **Analytics short-circuit**: entity_tracker/arxiv_tracker/hot_topics/channel_expertise → `analytics_done` → skip forced search, ANALYTICS-COMPLETE phase. Verify bypass для analytics-only ответов.
 - **Refusal policy**: explicit prompt rules + temporal guard + deterministic refusal trim (обрезка альтернатив после отказа).
 - **Forced search bypass**: только для negative intent queries + refusal markers. Data-driven из `datasets/tool_keywords.json` → `agent_policies`.
 - SSE стриминг через `/v1/agent/stream` — не ломать контракт событий (step_started/thought/tool_invoked/observation/citations/final).

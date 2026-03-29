@@ -26,7 +26,7 @@ Content-Type: application/json
 - **AgentService** — ReAct loop owner, native function calling, adaptive tool selection
 - **QuerySignals** — rule-based pre-validator (<1ms): extracts dates, channels, entities
 - **ToolRunner** — tool registry + timeout execution
-- **LLM** — Qwen3-30B-A3B GGUF (llama-server, V100; `--jinja --reasoning-budget 0`). Выбирает из search/temporal_search/channel_search
+- **LLM** — Qwen3-30B-A3B GGUF (llama-server, V100; `--jinja --reasoning-budget 0`). Выбирает из 15 LLM tools (search/temporal_search/channel_search/entity_tracker/arxiv_tracker/hot_topics/channel_expertise/...)
 - **HybridRetriever** — Qdrant: BM25+Dense → weighted RRF 3:1 → ColBERT MaxSim → channel dedup
 - **RerankerService** — bge-reranker-v2-m3 cross-encoder (GPU, RTX 5060 Ti)
 - **QueryPlannerService** — тот же LLM endpoint (не отдельный CPU процесс)
@@ -75,6 +75,14 @@ sequenceDiagram
       Tools->>Qdrant: Scroll / filter by arxiv_id
       Qdrant-->>Tools: hits[] deduped by root_message_id
       Note over Agent: analytics_done=True,<br/>search_count++ for rerank/compose path
+    else tool = hot_topics
+      Tools->>Qdrant: Scroll weekly_digests collection
+      Qdrant-->>Tools: topic clusters + trends
+      Note over Agent: analytics_done=True<br/>forced search bypass
+    else tool = channel_expertise
+      Tools->>Qdrant: Scroll channel_profiles collection
+      Qdrant-->>Tools: channel profile + expertise areas
+      Note over Agent: analytics_done=True<br/>forced search bypass
     else tool = rerank
       Tools->>Tools: cross-encoder rerank via gpu_server
     else tool = compose_context
@@ -119,6 +127,8 @@ LLM видит **специализированные search и analytics tools*
 | `channel_search` | "gonzo_ml про трансформеры" | MatchValue по channel |
 | `entity_tracker` | "кто чаще упоминается", "динамика", "что упоминается вместе" | Facet по entities[] / year_week |
 | `arxiv_tracker` | "какие статьи обсуждали", "кто обсуждал paper 1706..." | Facet/Scroll по arxiv_ids[] |
+| `hot_topics` | "главные темы недели", "тренды за последний месяц" | Scroll по weekly_digests collection |
+| `channel_expertise` | "на чём специализируется канал", "профиль gonzo_ml" | Scroll по channel_profiles collection |
 
 ### Dynamic Tool Visibility
 
@@ -126,7 +136,7 @@ LLM видит **специализированные search и analytics tools*
 1. **PRE-SEARCH**: `query_plan` + `search` + signal/keyword-routed specialized tools
 2. **POST-SEARCH**: `rerank`, `compose_context`, `final_answer`, `related_posts`
 3. **NAV-COMPLETE**: `list_channels` ответил, search не нужен → только `final_answer`
-4. **ANALYTICS-COMPLETE**: `entity_tracker`/`arxiv_tracker` уже ответили → `final_answer` доступен без search
+4. **ANALYTICS-COMPLETE**: `entity_tracker`/`arxiv_tracker`/`hot_topics`/`channel_expertise` уже ответили → `final_answer` доступен без search
 
 - Hard cap: максимум 5 видимых tools, лишние убираются по eviction priority из `datasets/tool_keywords.json`
 - Если LLM не вызывает tools → **forced search** с оригинальным запросом пользователя, кроме negative intent / analytics short-circuit
@@ -185,7 +195,7 @@ Composite formula (compute в compose_context, НЕ в AgentService):
 - `compose_context` получает `query` как параметр (необходим для term_coverage)
 - `verify` и `fetch_docs` — системные вызовы внутри AgentService, не LLM tools
 
-### Техдолг
+### Request Isolation
 
-- `AgentService._current_step` и `_current_request_id` — shared class attributes
-  вместо per-request local → `contextvars.ContextVar` (OPEN-01, R06)
+`AgentService` использует `contextvars.ContextVar` для per-request изоляции состояния
+(`_current_step`, `_current_request_id`). Реализовано в SPEC-RAG-17 — заменяет прежние shared class attributes (бывший OPEN-01).

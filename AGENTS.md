@@ -33,7 +33,7 @@
 
 ### ReAct агент
 - Оркестрация: native function calling через `/v1/chat/completions`.
-- 13 LLM tools: `query_plan`, `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`, `list_channels`, `rerank`, `related_posts`, `compose_context`, `final_answer`, `entity_tracker`, `arxiv_tracker`.
+- 15 LLM tools: `query_plan`, `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`, `list_channels`, `rerank`, `related_posts`, `compose_context`, `final_answer`, `entity_tracker`, `arxiv_tracker`, `hot_topics`, `channel_expertise`.
 - **Dynamic visibility**: phase-based (pre-search / post-search / analytics-complete / nav-complete), max 5 видимых, data-driven keyword routing из `datasets/tool_keywords.json`.
 - **Forced search**: если LLM не вызывает tools, принудительный search. Bypass только для negative intent.
 - **Original query injection**: оригинальный запрос пользователя всегда в subqueries (BM25 match).
@@ -44,6 +44,8 @@
 - **Refusal policy**: explicit prompt rules + deterministic refusal trim + negative intent guard. Data-driven policies из `datasets/tool_keywords.json`.
 - **Recall@5**: v1=0.76, v2=0.685, golden_v1=0.342 (strict, занижен). **Manual judge: factual=1.79/2, useful=1.72/2** (30 Qs).
 - **Eval pipeline v2** (SPEC-RAG-14): golden dataset 30 Qs (25+5 analytics), tool tracking, failure attribution.
+- **Hot topics** (SPEC-RAG-16): BERTopic cron pipeline → Qdrant `topic_clusters` collection. `hot_topics` tool for trend queries.
+- **Channel expertise** (SPEC-RAG-17): `channel_expertise` tool — per-channel topic profiles from BERTopic clusters.
 - Не ломать SSE контракт: `step_started/thought/tool_invoked/observation/citations/final`.
 
 ### Deploy и запуск
@@ -115,7 +117,7 @@ src/
   api/v1/endpoints/   — FastAPI эндпоинты
   core/               — settings, deps, auth, security
   services/           — agent_service, qa_service, query_planner, reranker
-  services/tools/     — 13 LLM tools (search, entity_tracker, arxiv_tracker, cross_channel_compare, ...)
+  services/tools/     — 15 LLM tools (search, entity_tracker, arxiv_tracker, hot_topics, channel_expertise, ...)
   adapters/qdrant/    — QdrantStore
   adapters/search/    — HybridRetriever (Qdrant weighted RRF + ColBERT)
   adapters/tei/       — TEIEmbeddingClient, TEIRerankerClient

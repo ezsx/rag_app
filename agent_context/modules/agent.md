@@ -3,8 +3,9 @@
 ## Ключевые файлы
 
 - `src/services/agent_service.py` — основной класс `AgentService`, system prompt, AGENT_TOOLS, dynamic visibility
+  - **RequestContext** (ContextVar) — per-request state isolation (SPEC-RAG-17 FIX-01)
 - `src/services/tools/tool_runner.py` — `ToolRunner` реестр + запуск с таймаутом
-- `src/services/tools/` — 13 LLM-visible инструментов + 2 системных
+- `src/services/tools/` — 15 LLM-visible инструментов + 2 системных
 - `src/schemas/agent.py` — схемы: `AgentRequest`, `AgentStepEvent`, `ToolRequest`, `AgentAction`
 - `src/core/deps.py` — DI: `get_agent_service`, `get_tool_runner`, wrapper-функции для всех tools
 - `src/api/v1/endpoints/agent.py` — SSE endpoint `/v1/agent/stream`
@@ -37,7 +38,7 @@
 Fallback (max_steps exceeded): error answer
 ```
 
-## 13 LLM tools + 2 системных (SPEC-RAG-13 + SPEC-RAG-15)
+## 15 LLM tools + 2 системных (SPEC-RAG-13 + SPEC-RAG-15 + SPEC-RAG-16)
 
 ### Pre-search phase
 | Инструмент | Файл | Назначение |
@@ -59,6 +60,8 @@ Fallback (max_steps exceeded): error answer
 | `related_posts` | `tools/related_posts.py` | Qdrant RecommendQuery — похожие посты |
 | `entity_tracker` | `tools/entity_tracker.py` | Facet analytics по сущностям: top, timeline, compare, co_occurrence |
 | `arxiv_tracker` | `tools/arxiv_tracker.py` | Facet/lookup по arxiv-статьям: top papers, кто обсуждал |
+| `hot_topics` | `tools/hot_topics.py` | Горячие темы за неделю из коллекции `weekly_digests` |
+| `channel_expertise` | `tools/channel_expertise.py` | Профиль экспертизы канала из коллекции `channel_profiles` |
 
 ### Системные (не в LLM schema)
 | Инструмент | Файл | Назначение |
@@ -86,6 +89,8 @@ else:
     # + cross_channel_compare (если "сравни", "vs")
     # + list_channels (если "какие каналы", "сколько постов")
     # + entity_tracker, arxiv_tracker (если keywords из datasets/tool_keywords.json)
+    # + hot_topics (если "тренды", "горячие темы", "дайджест")
+    # + channel_expertise (если "экспертиза канала", "о чём пишет")
     # Hard cap: max 5, убираем по eviction priority
 ```
 
@@ -108,6 +113,11 @@ citations      — из compose_context {citations, coverage}
 final          — финальный ответ {answer, citations, coverage, request_id}
 error          — при ошибке
 ```
+
+## Вспомогательные коллекции Qdrant (SPEC-RAG-16)
+
+- `weekly_digests` — горячие темы по неделям (используется `hot_topics` tool)
+- `channel_profiles` — профили экспертизы каналов (используется `channel_expertise` tool)
 
 ## Настройки (settings.py)
 

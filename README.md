@@ -51,8 +51,9 @@ Full architecture document: [Architecture_ru.md](docs/Architecture_ru.md) (auto-
 | **ColBERT** | jina-colbert-v2 (128-dim per-token MaxSim) | RTX 5060 Ti via gpu_server.py |
 | **Vector store** | Qdrant — 3 named vectors: dense, sparse (BM25), ColBERT | Docker |
 | **Fusion** | Weighted RRF (BM25 weight=3, dense weight=1) | — |
-| **Agent** | ReAct loop with native function calling, 13 LLM tools, dynamic visibility | — |
+| **Agent** | ReAct loop with native function calling, 15 LLM tools, dynamic visibility | — |
 | **Analytics** | Entity tracker + Arxiv tracker via Qdrant Facet API | — |
+| **Topics** | BERTopic cron pipeline → hot_topics + channel_expertise tools | — |
 | **Data** | 36 Telegram channels, 13K+ documents, Jul 2025 — Mar 2026 | — |
 
 ## Retrieval pipeline
@@ -105,16 +106,17 @@ Research → Specification → Implementation → Evaluation → Documentation
 
 **What this avoids:** orphaned docs nobody reads, "works on my machine" knowledge, regression from agents that don't know project history, accumulating technical debt from undocumented decisions.
 
-## Current: 13 Tools with Dynamic Visibility + Analytics (Phase 3.4)
+## Current: 15 Tools with Dynamic Visibility + Analytics + Topics (Phase 3.5 in progress)
 
-Agent has 13 tools with phase-based dynamic visibility (max 5 visible at a time):
+Agent has 15 tools with phase-based dynamic visibility (max 5 visible at a time):
 - **Search**: `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`
 - **Analytics**: `entity_tracker` (top/timeline/compare/co-occurrence), `arxiv_tracker` (top/lookup)
+- **Topics**: `hot_topics` (BERTopic trend clusters), `channel_expertise` (per-channel topic profiles)
 - **Planning**: `query_plan`, `list_channels`
 - **Enrichment**: `rerank`, `related_posts`, `compose_context`
 - **Synthesis**: `final_answer`
 
-Data-driven routing: tool keywords + agent policies loaded from `datasets/tool_keywords.json`. Enriched payload (SPEC-RAG-12): 16 indexed fields including NER entities (91 AI/ML entities), arxiv IDs, year_week. Collection `news_colbert_v2` with 13K+ points.
+Data-driven routing: tool keywords + agent policies loaded from `datasets/tool_keywords.json`. Enriched payload (SPEC-RAG-12): 16 indexed fields including NER entities (91 AI/ML entities), arxiv IDs, year_week. Collection `news_colbert_v2` with 13K+ points. BERTopic cron pipeline (SPEC-RAG-16) clusters documents into `topic_clusters` collection for trend/expertise queries.
 
 ## Project structure
 

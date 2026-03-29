@@ -1,6 +1,6 @@
 ## System Overview
 
-### Stack (актуально 2026-03-24)
+### Stack (актуально 2026-03-28)
 
 | Слой | Технология | Где работает |
 |------|-----------|-------------|
@@ -11,7 +11,7 @@
 | **ColBERT** | gpu_server.py → jina-colbert-v2 (128-dim per-token MaxSim) | **WSL2 native** (RTX 5060 Ti) → `:8082` |
 | **Vector Store** | Qdrant HTTP (dense + sparse + ColBERT named vectors) | Docker (CPU) |
 | **Hybrid Retrieval** | Qdrant weighted RRF (BM25 3:1) → ColBERT MaxSim rerank | Docker (CPU) |
-| **Agent** | ReAct loop, native function calling (11 LLM tools, phase-based visibility) | Docker (CPU) |
+| **Agent** | ReAct loop, native function calling (15 LLM tools, phase-based visibility) | Docker (CPU) |
 | **Query Planner** | JSON-guided LLM via HTTP (тот же endpoint) | Docker → Host |
 | **Auth** | JWT (ADMIN_KEY) | Docker |
 | **Config** | Settings singleton (os.getenv) | Docker |
@@ -48,7 +48,7 @@
   │
   [FastAPI API] ──────────────────────────────── [JWT verify]
       │
-      [AgentService]  (native function calling, не text ReAct parsing)
+      [AgentService]  (native function calling, 15 LLM tools, ContextVar isolation)
           │ httpx.AsyncClient /v1/chat/completions (tools parameter)
           ├─ LLM calls ─────────────────────────► [llama-server @ host.docker.internal:8080]
           │
@@ -71,7 +71,7 @@
 
 ---
 
-### Hardware (актуально 2026-03-24)
+### Hardware (актуально 2026-03-28)
 
 | GPU | CUDA device | Режим | VRAM | Где доступен |
 |-----|------------|-------|------|-------------|
@@ -139,3 +139,22 @@ Venv: `/home/ezsx/infinity-env/` (Python 3.11, torch 2.10.0+cu128, transformers 
 
 > **Удалено**: `./chroma-data` (ChromaDB), `./bm25-index` (BM25 disk index) — заменены Qdrant.
 > **Удалено**: `./models` bind mount — модели на Linux FS (`/home/tei-models/`), не в docker-compose.
+
+---
+
+### Qdrant Collections
+
+| Коллекция | Назначение | Размер |
+|-----------|-----------|--------|
+| `news_colbert_v2` | Основная: enriched Telegram posts (dense 1024 + sparse BM25 + ColBERT 128-dim) | ~тысячи points |
+| `weekly_digests` | BERTopic topic clusters, агрегированные по неделям (`hot_topics` tool) | ~38 points |
+| `channel_profiles` | Профили каналов: expertise areas, статистика (`channel_expertise` tool) | 36 points |
+
+Auxiliary collections (`weekly_digests`, `channel_profiles`) генерируются **BERTopic cron pipeline** (`scripts/bertopic_pipeline.py`) и обновляются периодически.
+
+---
+
+### Request Isolation
+
+`AgentService` использует `contextvars.ContextVar` для per-request изоляции состояния
+(`_current_step`, `_current_request_id`). Реализовано в SPEC-RAG-17 — заменяет прежние shared class attributes.

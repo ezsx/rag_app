@@ -290,3 +290,33 @@
   Запрашиваем k×2 из Qdrant, dedup сужает до k.
   Qdrant group_by не работает с multi-stage prefetch — python post-processing.
 - **Результат:** Diversity ↑, recall без изменений (bottleneck = candidate generation)
+
+### DEC-0034 — Pre-computed analytics: hot_topics + BERTopic cron (2026-03-28)
+- **Status:** Implemented (SPEC-RAG-16)
+- **Context:** "Что обсуждали на этой неделе?" невозможно ответить real-time — нужна кластеризация всего корпуса.
+- **Decision:** Weekly cron: BERTopic fit на 13K+ docs (pre-computed embeddings из Qdrant) → hot_score → LLM summary → auxiliary collection `weekly_digests`. Tool `hot_topics` scrolls pre-computed digests (<10ms). CountVectorizer без pymorphy2 (AI/ML текст ~50% English, BERTopic labels дополняются LLM labeling).
+- **Результат:** 113 topics, 34s BERTopic fit, 90s total cron. Fallback to latest available digest.
+
+### DEC-0035 — Pre-computed analytics: channel_expertise + monthly cron (2026-03-28)
+- **Status:** Implemented (SPEC-RAG-16)
+- **Context:** "Кто лучше пишет про NLP?" требует агрегации по всем 36 каналам.
+- **Decision:** Monthly cron: per-channel aggregation → authority/speed/breadth/volume scores → LLM profile summary → auxiliary collection `channel_profiles` (36 points). Authority = 0.4×entity_coverage + 0.3×consistency + 0.2×uniqueness + 0.1×volume.
+- **Результат:** 36 profiles за 169s. Top: ai_machinelearning_big_data (0.595), data_secrets (0.573).
+
+### DEC-0036 — Request isolation via ContextVar (2026-03-28)
+- **Status:** Implemented (SPEC-RAG-17, FIX-01)
+- **Context:** AgentService — singleton через @lru_cache, но писал request state в self._*. При параллельных запросах — cross-request data bleed (citations одного запроса попадают в другой).
+- **Decision:** `RequestContext` dataclass + `contextvars.ContextVar`. AgentService stateless, request state изолирован. Collection override через settings.update_collection() убран из request path.
+- **Альтернативы:** Thread-local storage (не работает с async), new service instance per request (ломает DI cache).
+
+### DEC-0037 — Production hardening: 9 fixes (2026-03-28)
+- **Status:** Implemented (SPEC-RAG-17)
+- **Context:** Independent review Claude + Codex GPT-5.4 нашёл 9 конкретных багов/gaps.
+- **Decision:** FIX-01 request isolation, FIX-02 coverage metric bug, FIX-03 rate limiter overwrite, FIX-04 tool name whitelist by visible set, FIX-05 JWT hard fail, FIX-06 auth on qa/search, FIX-07 CORS allowlist, FIX-08 cooperative deadline (90s), FIX-09 demo auth endpoint (feature-flagged).
+- **Результат:** 3 rounds Codex review, all findings resolved.
+
+### DEC-0038 — Docker compose: relay :18082 для embedding/reranker (2026-03-29)
+- **Status:** Implemented
+- **Context:** Docker containers не видят WSL2-native gpu_server на :8082 (mirrored networking limitation). Search failures и 400 errors в agent loop.
+- **Decision:** Windows relay на :18082 проксирует к WSL-native :8082. compose.dev.yml переключён на relay URL.
+- **Альтернативы:** Откат mirrored networking (ломает VPN), netsh portproxy (требует admin).
