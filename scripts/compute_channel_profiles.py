@@ -358,9 +358,11 @@ def main():
     post_topic_map: Dict[str, int] = {}  # key = "channel:message_id"
     total_topic_count = 1
     if topic_model is not None:
-        logger.info("Assigning topics via BERTopic model...")
+        logger.info("Assigning topics via BERTopic model (with pre-computed embeddings)...")
+        # Scroll с embeddings для transform
         all_texts = []
         all_keys = []
+        all_embeddings = []
         for ch, posts in channels_data.items():
             for p in posts:
                 text = p.get("text", "")
@@ -368,12 +370,44 @@ def main():
                 if text:
                     all_texts.append(text)
                     all_keys.append(f"{ch}:{msg_id}")
-        if all_texts:
-            predicted_topics, _ = topic_model.transform(all_texts)
-            for key, topic_id in zip(all_keys, predicted_topics):
+
+        # Нужны embeddings — scroll с vectors
+        import numpy as np
+        logger.info("Loading embeddings for %d posts...", len(all_texts))
+        key_to_idx = {k: i for i, k in enumerate(all_keys)}
+        all_embeddings = [None] * len(all_keys)
+        offset = None
+        while True:
+            result = client.scroll(
+                collection_name=SOURCE_COLLECTION,
+                limit=256, offset=offset,
+                with_vectors=["dense_vector"], with_payload=["channel", "message_id"],
+            )
+            points, next_offset = result
+            if not points:
+                break
+            for p in points:
+                vec = p.vector.get("dense_vector") if isinstance(p.vector, dict) else None
+                ch = (p.payload or {}).get("channel", "")
+                mid = (p.payload or {}).get("message_id", "")
+                key = f"{ch}:{mid}"
+                idx = key_to_idx.get(key)
+                if vec and idx is not None:
+                    all_embeddings[idx] = vec
+            offset = next_offset
+            if offset is None:
+                break
+
+        # Filter out posts without embeddings
+        valid = [(t, k, e) for t, k, e in zip(all_texts, all_keys, all_embeddings) if e is not None]
+        if valid:
+            v_texts, v_keys, v_embs = zip(*valid)
+            emb_array = np.array(v_embs, dtype=np.float32)
+            predicted_topics, _ = topic_model.transform(list(v_texts), emb_array)
+            for key, topic_id in zip(v_keys, predicted_topics):
                 post_topic_map[key] = topic_id
             total_topic_count = max(len(set(t for t in predicted_topics if t != -1)), 1)
-            logger.info("Assigned topics to %d posts, %d unique topics", len(all_texts), total_topic_count)
+            logger.info("Assigned topics to %d posts, %d unique topics", len(v_texts), total_topic_count)
 
     # Process each channel
     from qdrant_client import models
