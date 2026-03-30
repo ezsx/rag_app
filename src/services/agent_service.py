@@ -530,7 +530,7 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
                 "properties": {
                     "period": {
                         "type": "string",
-                        "description": "Период: 'this_week', 'last_week', 'YYYY-WNN' или 'this_month'",
+                        "description": "Период: 'this_week', 'last_week', 'YYYY-WNN' (неделя), 'this_month', или 'YYYY-MM' (месяц, напр. '2026-03')",
                         "default": "this_week",
                     },
                     "top_n": {

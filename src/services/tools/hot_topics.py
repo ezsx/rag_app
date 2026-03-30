@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -43,6 +44,9 @@ def _resolve_period(period: str) -> str:
         return f"{iso[0]}-W{iso[1]:02d}"
     elif period == "this_month":
         return f"month:{now.strftime('%Y-%m')}"
+    elif re.match(r"^\d{4}-\d{2}$", period):
+        # YYYY-MM format → month aggregation
+        return f"month:{period}"
     else:
         # Assume ISO week format: 2026-W12
         return period
