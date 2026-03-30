@@ -316,7 +316,25 @@
 - **Результат:** 3 rounds Codex review, all findings resolved.
 
 ### DEC-0038 — Docker compose: relay :18082 для embedding/reranker (2026-03-29)
-- **Status:** Implemented
+- **Status:** Superseded by DEC-0041
 - **Context:** Docker containers не видят WSL2-native gpu_server на :8082 (mirrored networking limitation). Search failures и 400 errors в agent loop.
 - **Decision:** Windows relay на :18082 проксирует к WSL-native :8082. compose.dev.yml переключён на relay URL.
 - **Альтернативы:** Откат mirrored networking (ломает VPN), netsh portproxy (требует admin).
+
+### DEC-0039 — Qwen3.5-35B-A3B вместо Qwen3-30B-A3B (2026-03-30)
+- **Status:** Implemented
+- **Context:** Qwen3-30B давала стохастические отказы (q01 false refusal, q21 hallucination, q33 wrong tool). Qwen3.5 (Feb 2026, Gated Delta Networks + 256 MoE experts) — drop-in замена с лучшими бенчмарками.
+- **Decision:** Swap на Qwen3.5-35B-A3B-Q4_K_M. Фиксит 3/4 eval failures без изменений кода.
+
+### DEC-0040 — Langfuse v3 для observability (SPEC-RAG-19, 2026-03-30)
+- **Status:** Implemented (MVP)
+- **Context:** Zero structured metrics per component. R25 top finding: невозможно определить bottleneck, token usage, tool latency.
+- **Decision:** Self-hosted Langfuse v3 (6 Docker containers). 7 instrumentation points: agent root, LLM calls, tools, retrieval, rerank, planner. Lazy imports + SafeSpan для graceful degradation.
+- **Альтернативы:** Phoenix (lighter, 1 container) — отклонён: нет eval integration, слабее portfolio signal. structlog — отклонён: нет UI, нет LLM-aware tracing.
+- **TODO:** Parent-child span propagation через ThreadPoolExecutor, eval tagging (session_id/tags).
+
+### DEC-0041 — WSL mirrored networking отключён по умолчанию (2026-03-30)
+- **Status:** Implemented
+- **Context:** `networkingMode=mirrored` в .wslconfig ломает Docker Desktop port forwarding — ни один Docker порт не виден на Windows localhost. Mirrored нужен только для VPN (AmneziaWG) в WSL.
+- **Decision:** Mirrored закомментирован по умолчанию. Включать только для VPN: `scripts/wsl-vpn-on.cmd`, выключать обратно: `scripts/wsl-vpn-off.cmd`. Docker порты работают нормально без mirrored.
+- **Supersedes:** DEC-0038 (relay больше не нужен для Docker↔Docker, но wsl_tei_relay.py остаётся для gpu_server WSL→Docker).

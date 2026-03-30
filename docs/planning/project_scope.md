@@ -474,7 +474,7 @@ Eval-запросы: фактические, аналитические, tempora
 | Agent design | Tool calling, loops, when to stop | ✅ Function calling + coverage threshold |
 | Scaling | Batching, caching, context management | ✅ Sub-batching, trim_messages |
 | Trade-offs | RAG vs fine-tune, dense vs sparse | ✅ Есть research docs с анализом |
-| Infra | Deployment, monitoring | ⚠️ Docker есть, observability запланирована в Phase 3.5 |
+| Infra | Deployment, monitoring | ✅ Docker + Langfuse v3 observability (SPEC-RAG-19) |
 | LLM internals | Attention, tokenization, inference | ⚠️ Понимание есть, нужно уметь объяснить |
 
 ---
