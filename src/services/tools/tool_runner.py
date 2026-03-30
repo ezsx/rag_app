@@ -23,14 +23,18 @@ def _run_with_timeout(
 ) -> Tuple[bool, Dict[str, Any], Optional[str]]:
     """Выполняет функцию с таймаутом в отдельном потоке. Возвращает (ok, data, error)."""
     import concurrent.futures as _fut
+    import contextvars
 
     start = time.perf_counter()
     error_msg: Optional[str] = None
     ok = True
     data: Dict[str, Any] = {}
 
+    # copy_context() пробрасывает ContextVars (включая Langfuse trace context)
+    # в дочерний поток — без этого child spans создают отдельные traces
+    ctx = contextvars.copy_context()
     with _fut.ThreadPoolExecutor(max_workers=1) as pool:
-        future = pool.submit(func, *args, **kwargs)
+        future = pool.submit(ctx.run, func, *args, **kwargs)
         try:
             data = future.result(timeout=max(0.001, float(timeout_sec))) or {}
         except _fut.TimeoutError:
@@ -91,8 +95,10 @@ class ToolRunner:
             remaining = max(0.5, deadline - time.monotonic())
             effective_timeout = min(effective_timeout, remaining)
 
+        _system_tools = {"verify", "fetch_docs"}
+        _tool_prefix = "tool:" if req.tool not in _system_tools else "tool[system]:"
         with observe_span(
-            f"tool:{req.tool}", input=req.input, metadata={"step": step},
+            f"{_tool_prefix}{req.tool}", input=req.input, metadata={"step": step},
         ) as span:
             started = time.perf_counter()
             ok, data, error = _run_with_timeout(entry.func, effective_timeout, **req.input)

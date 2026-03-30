@@ -707,6 +707,10 @@ class AgentEvaluationRunner:
             payload["collection"] = self.collection
         if not self.planner_enabled:
             payload["planner"] = False
+        # Langfuse tagging: eval session + question ID + trace name
+        payload["session_id"] = f"eval-{time.strftime('%Y%m%d-%H%M')}"
+        payload["tags"] = [item.id, "eval"]
+        payload["trace_name"] = f"agent_request_{item.id.replace('golden_', '')}"
 
         last_error: Optional[str] = None
 

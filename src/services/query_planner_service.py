@@ -378,11 +378,36 @@ class QueryPlannerService:
 
         timeout_sec = max(float(self.settings.planner_timeout), 0.1)
 
+        import contextvars
+        ctx = contextvars.copy_context()
+
+        # Используем chat_completion вместо completions (__call__)
+        # чтобы не сбрасывать KV cache Qwen3.5 Gated Delta Networks
+        # при переключении между endpoints (DEC-0039 follow-up)
+        use_chat = hasattr(self.llm, "chat_completion")
+
         def _invoke_llm():
-            return self.llm(prompt, **kwargs)
+            if use_chat:
+                system_msg, user_msg = self._split_prompt_to_messages(prompt)
+                resp = self.llm.chat_completion(
+                    messages=[
+                        {"role": "system", "content": system_msg},
+                        {"role": "user", "content": user_msg},
+                    ],
+                    max_tokens=kwargs.get("max_tokens", 512),
+                    temperature=kwargs.get("temperature", 0.3),
+                    top_p=kwargs.get("top_p", 0.9),
+                    top_k=kwargs.get("top_k", 40),
+                    seed=42,
+                )
+                # Адаптируем формат ответа к completions-compatible
+                content = resp.get("choices", [{}])[0].get("message", {}).get("content", "")
+                return {"choices": [{"text": content}], "usage": resp.get("usage", {})}
+            else:
+                return self.llm(prompt, **kwargs)
 
         with ThreadPoolExecutor(max_workers=1) as pool:
-            future = pool.submit(_invoke_llm)
+            future = pool.submit(ctx.run, _invoke_llm)
             try:
                 return future.result(timeout=timeout_sec)
             except FuturesTimeoutError:
@@ -400,13 +425,25 @@ class QueryPlannerService:
 
             raw_text = response["choices"][0]["text"].strip()
 
-            # Извлекаем JSON блок
-            json_match = re.search(r"\{.*\}", raw_text, re.DOTALL)
-            if not json_match:
-                logger.warning("No JSON found in LLM response, using fallback")
+            # Извлекаем первый валидный JSON объект из ответа LLM.
+            # Qwen3.5 иногда добавляет лишний текст после JSON.
+            raw_json = None
+            for match in re.finditer(r"\{", raw_text):
+                try:
+                    candidate = json.loads(raw_text[match.start():])
+                    raw_json = candidate
+                    break
+                except json.JSONDecodeError:
+                    # json.loads с лишним текстом после JSON — пробуем decoder
+                    decoder = json.JSONDecoder()
+                    try:
+                        raw_json, _ = decoder.raw_decode(raw_text, match.start())
+                        break
+                    except json.JSONDecodeError:
+                        continue
+            if raw_json is None:
+                logger.warning("No valid JSON found in LLM response, using fallback")
                 return self._fallback_plan(query)
-
-            raw_json = json.loads(json_match.group(0))
 
             # Применяем post_validate для санитизации
             plan = self.post_validate(raw_json, query, self.settings)
@@ -479,6 +516,17 @@ class QueryPlannerService:
                 plan.should_phrases,
             )
             return plan
+
+    @staticmethod
+    def _split_prompt_to_messages(prompt: str):
+        """Разбивает raw completions prompt (<s>system...<s>user...<s>bot) на system + user."""
+        # Извлекаем system content между <s>system и <s>user
+        import re
+        system_match = re.search(r"<s>system\s*\n(.*?)<s>user", prompt, re.DOTALL)
+        user_match = re.search(r"<s>user\s*\n(.*?)(?:<s>bot|$)", prompt, re.DOTALL)
+        system = system_match.group(1).strip() if system_match else ""
+        user = user_match.group(1).strip() if user_match else prompt
+        return system, user
 
     def _build_prompt(self, query: str) -> str:
         return f"""<s>system

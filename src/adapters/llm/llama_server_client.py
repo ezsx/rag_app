@@ -97,10 +97,12 @@ class LlamaServerClient:
             if span:
                 usage = data.get("usage", {})
                 span.update(
+                    model=data.get("model", self.model),
                     output=data.get("choices", [{}])[0].get("text", "")[:500],
                     usage={
                         "input": usage.get("prompt_tokens", 0),
                         "output": usage.get("completion_tokens", 0),
+                        "total": usage.get("total_tokens", 0),
                     },
                 )
             return data
@@ -190,10 +192,12 @@ class LlamaServerClient:
             if span:
                 usage = data.get("usage", {})
                 span.update(
+                    model=data.get("model", self.model),
                     output=data.get("choices", [{}])[0].get("message", {}),
                     usage={
                         "input": usage.get("prompt_tokens", 0),
                         "output": usage.get("completion_tokens", 0),
+                        "total": usage.get("total_tokens", 0),
                     },
                 )
             return data

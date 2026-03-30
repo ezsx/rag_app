@@ -91,7 +91,16 @@ class HybridRetriever:
         ) as span:
             results = self._run_sync(self._async_search(query_text, plan))
             if span:
-                span.update(output={"num_results": len(results)})
+                # Top-3 результата для видимости в trace
+                top_docs = [
+                    {"id": c.id, "text": c.text[:150], "score": round(getattr(c, "score", 0.0), 4)}
+                    for c in results[:3]
+                ]
+                span.update(output={
+                    "num_results": len(results),
+                    "queries": plan.normalized_queries,
+                    "top_docs": top_docs,
+                })
             return results
 
     def search(self, query: str, k: int = 10, **_kwargs) -> list[dict[str, Any]]:

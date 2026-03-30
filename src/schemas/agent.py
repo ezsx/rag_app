@@ -65,6 +65,10 @@ class AgentRequest(BaseModel):
     )
     planner: bool = Field(True, description="Использовать ли планировщик запросов")
     max_steps: int = Field(8, description="Максимальное количество шагов", ge=1, le=15)
+    # Langfuse observability (опционально)
+    session_id: Optional[str] = Field(None, description="Session ID для группировки traces в Langfuse")
+    tags: Optional[List[str]] = Field(None, description="Теги для фильтрации в Langfuse (напр. ['q01', 'eval'])")
+    trace_name: Optional[str] = Field(None, description="Имя trace в Langfuse (напр. 'agent_request_q01')")
 
 
 class AgentResponse(BaseModel):

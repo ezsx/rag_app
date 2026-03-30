@@ -12,7 +12,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 
-from core.observability import get_langfuse
+from core.observability import get_langfuse, observe_trace, observe_span
 from core.security import sanitize_for_logging, security_manager
 from core.settings import Settings
 from schemas.agent import (
@@ -90,6 +90,9 @@ SYSTEM_PROMPT = """Ты — RAG-агент для поиска и анализа
    - list_channels — навигация ("какие каналы есть")
    - search — общий поиск, entity-запросы, fallback
 3. rerank → compose_context → final_answer
+
+КРИТИЧЕСКИ ВАЖНО: после search/temporal_search/channel_search ты ОБЯЗАН вызвать rerank → compose_context → final_answer.
+НИКОГДА не отвечай текстом напрямую после поиска. Всегда используй compose_context для формирования ответа с цитатами.
 
 ПОСЛЕ ПОИСКА (если нужно):
    - related_posts — найти похожие посты к уже найденному
@@ -657,22 +660,24 @@ class AgentService:
         )
         _ctx_token = _request_ctx.set(ctx)
 
-        # Langfuse root span — explicit enter/exit (SSE async safety)
-        # Храним cm и span отдельно: __enter__() может вернуть другой объект
+        # Langfuse root trace — explicit enter/exit (SSE async safety)
+        # observe_trace создаёт OTel span с as_root=True + trace-level атрибуты
         _langfuse = get_langfuse()
-        _root_span_cm = None  # context manager
-        _root_span = None     # результат __enter__()
+        _root_trace_cm = None
+        _root_span = None
         if _langfuse:
             try:
-                _root_span_cm = _langfuse.start_as_current_observation(
-                    as_type="span",
-                    name="agent_request",
-                    input={"query": request.query, "request_id": request_id},
+                _root_trace_cm = observe_trace(
+                    name=request.trace_name or "agent_request",
+                    session_id=request.session_id,
+                    tags=request.tags,
+                    input_data={"query": request.query},
+                    metadata={"request_id": request_id, "max_steps": max_steps},
                 )
-                _root_span = _root_span_cm.__enter__()
+                _root_span = _root_trace_cm.__enter__()
             except Exception as e:
-                logger.warning("Langfuse root span init failed: %s", e)
-                _root_span_cm = None
+                logger.warning("Langfuse root trace init failed: %s", e)
+                _root_trace_cm = None
                 _root_span = None
 
         # Формируем system prompt с hints из query signals (R13-quick §1.3)
@@ -793,16 +798,21 @@ class AgentService:
                 )
 
                 try:
-                    response = llm.chat_completion(
-                        messages=trimmed_messages,
-                        tools=step_tools,
-                        max_tokens=step_max_tokens,
-                        temperature=self.settings.agent_tool_temp,
-                        top_p=self.settings.agent_tool_top_p,
-                        top_k=self.settings.agent_tool_top_k,
-                        presence_penalty=self.settings.agent_tool_presence_penalty,
-                        seed=42,
-                    )
+                    llm_span_name = f"llm_step_{step}" + ("_final" if expect_final else "")
+                    with observe_span(llm_span_name, metadata={
+                        "step": step, "expect_final": expect_final,
+                        "visible_tools": [t["function"]["name"] for t in step_tools] if step_tools else [],
+                    }):
+                        response = llm.chat_completion(
+                            messages=trimmed_messages,
+                            tools=step_tools,
+                            max_tokens=step_max_tokens,
+                            temperature=self.settings.agent_tool_temp,
+                            top_p=self.settings.agent_tool_top_p,
+                            top_k=self.settings.agent_tool_top_k,
+                            presence_penalty=self.settings.agent_tool_presence_penalty,
+                            seed=42,
+                        )
                 except Exception as llm_exc:
                     # LLM 400/500 — попробуем с агрессивно обрезанными messages
                     logger.warning(
@@ -1375,9 +1385,9 @@ class AgentService:
                     })
                 except Exception:
                     pass
-            if _root_span_cm is not None:
+            if _root_trace_cm is not None:
                 try:
-                    _root_span_cm.__exit__(None, None, None)
+                    _root_trace_cm.__exit__(None, None, None)
                 except Exception:
                     pass  # Не crash'им на observability cleanup
             if _langfuse:

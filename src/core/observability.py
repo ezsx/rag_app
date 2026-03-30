@@ -3,7 +3,7 @@ Langfuse observability — lazy imports, graceful degradation.
 
 Все Langfuse imports сосредоточены ТОЛЬКО в этом модуле.
 Runtime модули импортируют:
-    from core.observability import observe_span, observe_llm_call, get_langfuse
+    from core.observability import observe_trace, observe_span, observe_llm_call, get_langfuse
 
 Если langfuse не установлен или сервер недоступен — все функции
 возвращают nullcontext/None, zero impact на runtime.
@@ -12,9 +12,11 @@ Runtime модули импортируют:
 исключение в production path. Все ошибки SDK логируются и глотаются.
 """
 
+import json
 import logging
 import sys
 from contextlib import contextmanager
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +68,13 @@ class _SafeSpan:
         except Exception as e:
             logger.debug("Langfuse span.update() failed (ignored): %s", e)
 
+    def set_attribute(self, key, value):
+        """Устанавливает OTel атрибут на underlying span."""
+        try:
+            self._inner.set_attribute(key, value)
+        except Exception as e:
+            logger.debug("Langfuse span.set_attribute(%s) failed (ignored): %s", key, e)
+
     def __getattr__(self, name):
         """Проксируем остальные атрибуты с защитой."""
         attr = getattr(self._inner, name)
@@ -91,15 +100,85 @@ def _safe_exit(cm, exc_info=None):
         logger.debug("Langfuse cm.__exit__() failed (ignored): %s", e)
 
 
+def _set_trace_attributes(span, *, name=None, session_id=None, tags=None,
+                          input_data=None, output_data=None, metadata=None):
+    """Устанавливает trace-level OTel атрибуты на span.
+
+    Langfuse SDK v4 читает эти атрибуты для формирования trace в UI:
+    - langfuse.trace.name → имя trace
+    - session.id → группировка по сессии
+    - langfuse.trace.tags → теги для фильтрации
+    - langfuse.trace.input/output → вход/выход trace
+    - langfuse.trace.metadata → произвольные метаданные
+    """
+    try:
+        from langfuse import LangfuseOtelSpanAttributes as Attr
+        if name:
+            span.set_attribute(Attr.TRACE_NAME, name)
+        if session_id:
+            span.set_attribute(Attr.TRACE_SESSION_ID, session_id)
+        if tags:
+            span.set_attribute(Attr.TRACE_TAGS, json.dumps(tags))
+        if input_data:
+            span.set_attribute(Attr.TRACE_INPUT, json.dumps(input_data, ensure_ascii=False, default=str))
+        if output_data:
+            span.set_attribute(Attr.TRACE_OUTPUT, json.dumps(output_data, ensure_ascii=False, default=str))
+        if metadata:
+            span.set_attribute(Attr.TRACE_METADATA, json.dumps(metadata, ensure_ascii=False, default=str))
+    except Exception as e:
+        logger.debug("Failed to set trace attributes: %s", e)
+
+
+@contextmanager
+def observe_trace(
+    name: str,
+    *,
+    session_id: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    input_data: Optional[Dict[str, Any]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+):
+    """Root trace context manager. Все child observe_span/observe_llm_call вложатся внутрь.
+
+    Создаёт OTel span с as_root=True — Langfuse группирует все дочерние
+    spans под одним trace в UI.
+    """
+    client = get_langfuse()
+    if client is None:
+        yield None
+        return
+    try:
+        cm = client.start_as_current_observation(
+            as_type="span", name=name,
+        )
+        raw_span = cm.__enter__()
+        # Помечаем как root trace
+        try:
+            from langfuse import LangfuseOtelSpanAttributes as Attr
+            raw_span.set_attribute(Attr.AS_ROOT, True)
+        except Exception:
+            pass
+        # Trace-level атрибуты
+        _set_trace_attributes(
+            raw_span, name=name, session_id=session_id,
+            tags=tags, input_data=input_data, metadata=metadata,
+        )
+    except Exception as e:
+        logger.warning("Langfuse observe_trace(%s) init failed: %s", name, e)
+        yield None
+        return
+    try:
+        yield _SafeSpan(raw_span)
+    except BaseException:
+        _safe_exit(cm, sys.exc_info())
+        raise
+    else:
+        _safe_exit(cm)
+
+
 @contextmanager
 def observe_span(name, **kwargs):
-    """Context manager для span. Graceful: yield None если Langfuse недоступен.
-
-    Гарантии:
-    - Ошибка при создании span → yield None, продолжаем без tracing
-    - Ошибка при update/exit → логируем, не бросаем
-    - Исключение изнутри тела (yield) → пробрасываем, span закрываем best-effort
-    """
+    """Context manager для child span. Вкладывается в текущий active trace/span."""
     client = get_langfuse()
     if client is None:
         yield None
@@ -128,8 +207,6 @@ def observe_llm_call(name="llm_call", model="", **kwargs):
 
     Создаёт Langfuse generation span с типом 'generation' —
     автоматически трейсит input/output/usage/model.
-
-    Те же гарантии graceful degradation что и observe_span.
     """
     client = get_langfuse()
     if client is None:
