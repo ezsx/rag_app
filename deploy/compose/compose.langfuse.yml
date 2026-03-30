@@ -1,0 +1,145 @@
+# compose.langfuse.yml — Langfuse v3 self-hosted observability.
+#
+# Запуск:
+#   docker compose -f deploy/compose/compose.langfuse.yml up -d
+#
+# UI: http://localhost:3000
+# Первый запуск: 2-3 минуты на миграции БД.
+#
+# НЕ конфликтует с compose.dev.yml:
+#   - compose.dev.yml: порты 16333, 16334, 8001
+#   - compose.langfuse.yml: порты 3100 (web UI), 9010 (MinIO)
+#   - 3000 занят starfall Grafana, 9090 — starfall Prometheus
+
+name: rag-langfuse
+
+services:
+
+  langfuse-web:
+    image: langfuse/langfuse:3
+    restart: always
+    depends_on:
+      langfuse-postgres: { condition: service_healthy }
+      langfuse-clickhouse: { condition: service_healthy }
+      langfuse-redis: { condition: service_healthy }
+      langfuse-minio: { condition: service_healthy }
+    ports:
+      - "3100:3000"
+    environment: &langfuse-env
+      # Next.js должен слушать на 0.0.0.0, иначе доступен только внутри контейнера
+      HOSTNAME: "0.0.0.0"
+      DATABASE_URL: postgresql://langfuse:changeme@langfuse-postgres:5432/langfuse
+      NEXTAUTH_URL: http://localhost:3100
+      NEXTAUTH_SECRET: ${LF_SECRET:-mysecret-change-in-production}
+      SALT: ${LF_SALT:-mysalt-change-in-production}
+      ENCRYPTION_KEY: ${LF_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      CLICKHOUSE_MIGRATION_URL: clickhouse://langfuse-clickhouse:9000
+      CLICKHOUSE_URL: http://langfuse-clickhouse:8123
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: changeme
+      REDIS_HOST: langfuse-redis
+      REDIS_PORT: "6379"
+      REDIS_AUTH: changeme
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: changeme123
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: "us-east-1"
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse-media
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: changeme123
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: "us-east-1"
+      TELEMETRY_ENABLED: "false"
+      # Auto-create org, project, and API keys on first boot
+      LANGFUSE_INIT_ORG_ID: "rag-app-org"
+      LANGFUSE_INIT_ORG_NAME: "RAG App"
+      LANGFUSE_INIT_PROJECT_ID: "rag-app-project"
+      LANGFUSE_INIT_PROJECT_NAME: "rag-app"
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: "pk-lf-rag-app-dev"
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: "sk-lf-rag-app-dev"
+      LANGFUSE_INIT_USER_EMAIL: "admin@local.dev"
+      LANGFUSE_INIT_USER_NAME: "admin"
+      LANGFUSE_INIT_USER_PASSWORD: "Admin123!@#"
+
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3
+    restart: always
+    depends_on:
+      langfuse-postgres: { condition: service_healthy }
+      langfuse-clickhouse: { condition: service_healthy }
+      langfuse-redis: { condition: service_healthy }
+      langfuse-minio: { condition: service_healthy }
+    environment: *langfuse-env
+
+  langfuse-postgres:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: langfuse
+      TZ: UTC
+      PGTZ: UTC
+    volumes:
+      - lf_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  langfuse-clickhouse:
+    image: clickhouse/clickhouse-server
+    restart: always
+    user: "101:101"
+    environment:
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: changeme
+    volumes:
+      - lf_clickhouse:/var/lib/clickhouse
+      - ./clickhouse-config.xml:/etc/clickhouse-server/config.d/keeper.xml:ro
+    healthcheck:
+      test: wget --spider -q http://localhost:8123/ping
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  langfuse-redis:
+    image: redis:7
+    restart: always
+    command: --requirepass changeme --maxmemory-policy noeviction
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "changeme", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  langfuse-minio:
+    image: cgr.dev/chainguard/minio
+    restart: always
+    entrypoint: sh
+    command: -c 'mkdir -p /data/langfuse && mkdir -p /data/langfuse-media && minio server --address ":9000" /data'
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: changeme123
+    ports:
+      - "9010:9000"
+    volumes:
+      - lf_minio:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  lf_postgres:
+  lf_clickhouse:
+  lf_minio:
+
+networks:
+  default:
+    name: langfuse-net

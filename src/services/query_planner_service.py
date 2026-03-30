@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeou
 from datetime import datetime
 from typing import Optional, Any, Dict, List
 
+from core.observability import observe_span
 from core.settings import Settings, get_settings
 from utils.gbnf import get_searchplan_grammar, get_string_array_grammar, gbnf_selfcheck
 from schemas.search import SearchPlan, SearchPlanRequest, MetadataFilters
@@ -454,21 +455,30 @@ class QueryPlannerService:
             self.settings.enable_hybrid_retriever,
             self.settings.enforce_router_route,
         )
-        start_ts = time.perf_counter()
-        try:
-            plan = self._generate_plan(query)
-        except Exception as exc:
-            logger.error("QueryPlannerService.make_plan failed: %s", exc, exc_info=True)
-            raise
-        took_ms = int((time.perf_counter() - start_ts) * 1000)
-        logger.debug(
-            "QueryPlannerService.make_plan success | took_ms=%s | normalized=%s | must=%s | should=%s",
-            took_ms,
-            plan.normalized_queries,
-            plan.must_phrases,
-            plan.should_phrases,
-        )
-        return plan
+        with observe_span(
+            "query_planner", input={"query": query[:200]},
+        ) as span:
+            start_ts = time.perf_counter()
+            try:
+                plan = self._generate_plan(query)
+            except Exception as exc:
+                logger.error("QueryPlannerService.make_plan failed: %s", exc, exc_info=True)
+                raise
+            took_ms = int((time.perf_counter() - start_ts) * 1000)
+            if span:
+                span.update(output={
+                    "num_subqueries": len(plan.normalized_queries),
+                    "strategy": getattr(plan, "strategy", None),
+                    "took_ms": took_ms,
+                })
+            logger.debug(
+                "QueryPlannerService.make_plan success | took_ms=%s | normalized=%s | must=%s | should=%s",
+                took_ms,
+                plan.normalized_queries,
+                plan.must_phrases,
+                plan.should_phrases,
+            )
+            return plan
 
     def _build_prompt(self, query: str) -> str:
         return f"""<s>system

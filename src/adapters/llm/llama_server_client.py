@@ -19,6 +19,8 @@ from typing import Any, Dict, List, Optional
 
 import requests
 
+from core.observability import observe_llm_call
+
 logger = logging.getLogger(__name__)
 
 
@@ -82,13 +84,26 @@ class LlamaServerClient:
                 [int(tid), float(bias)] for tid, bias in logit_bias.items()
             ]
 
-        resp = self._session.post(
-            f"{self.base_url}/v1/completions",
-            json=payload,
-            timeout=self.timeout,
-        )
-        resp.raise_for_status()
-        return resp.json()
+        with observe_llm_call(
+            name="llm_completion", model=self.model, input=prompt[:500],
+        ) as span:
+            resp = self._session.post(
+                f"{self.base_url}/v1/completions",
+                json=payload,
+                timeout=self.timeout,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            if span:
+                usage = data.get("usage", {})
+                span.update(
+                    output=data.get("choices", [{}])[0].get("text", "")[:500],
+                    usage={
+                        "input": usage.get("prompt_tokens", 0),
+                        "output": usage.get("completion_tokens", 0),
+                    },
+                )
+            return data
 
     def chat_completion(
         self,
@@ -132,40 +147,56 @@ class LlamaServerClient:
         if seed is not None:
             payload["seed"] = seed
 
-        resp = self._session.post(
-            f"{self.base_url}/v1/chat/completions",
-            json=payload,
-            timeout=self.timeout,
-        )
-
-        # Retry при 400: context overflow → обрезаем messages,
-        # prefill/thinking конфликт → убираем enable_thinking.
-        if resp.status_code == 400:
-            error_text = resp.text[:500]
-            logger.warning("LLM chat_completion 400 (will retry): %s", error_text)
-
-            # Обрезаем messages до последних 4 (system + user + 2 recent)
-            if len(payload["messages"]) > 4:
-                payload["messages"] = payload["messages"][:2] + payload["messages"][-2:]
-                logger.info("Retrying with trimmed messages: %d → %d", len(messages), 4)
-
-            # Убираем enable_thinking на retry
-            payload.pop("enable_thinking", None)
-
+        with observe_llm_call(
+            name="llm_chat_completion",
+            model=self.model,
+            input=messages,
+            metadata={"tools_count": len(tools) if tools else 0},
+        ) as span:
             resp = self._session.post(
                 f"{self.base_url}/v1/chat/completions",
                 json=payload,
                 timeout=self.timeout,
             )
 
-        if resp.status_code >= 400:
-            logger.error(
-                "LLM chat_completion %d: %s",
-                resp.status_code,
-                resp.text[:500],
-            )
-        resp.raise_for_status()
-        return resp.json()
+            # Retry при 400: context overflow → обрезаем messages,
+            # prefill/thinking конфликт → убираем enable_thinking.
+            if resp.status_code == 400:
+                error_text = resp.text[:500]
+                logger.warning("LLM chat_completion 400 (will retry): %s", error_text)
+
+                # Обрезаем messages до последних 4 (system + user + 2 recent)
+                if len(payload["messages"]) > 4:
+                    payload["messages"] = payload["messages"][:2] + payload["messages"][-2:]
+                    logger.info("Retrying with trimmed messages: %d → %d", len(messages), 4)
+
+                # Убираем enable_thinking на retry
+                payload.pop("enable_thinking", None)
+
+                resp = self._session.post(
+                    f"{self.base_url}/v1/chat/completions",
+                    json=payload,
+                    timeout=self.timeout,
+                )
+
+            if resp.status_code >= 400:
+                logger.error(
+                    "LLM chat_completion %d: %s",
+                    resp.status_code,
+                    resp.text[:500],
+                )
+            resp.raise_for_status()
+            data = resp.json()
+            if span:
+                usage = data.get("usage", {})
+                span.update(
+                    output=data.get("choices", [{}])[0].get("message", {}),
+                    usage={
+                        "input": usage.get("prompt_tokens", 0),
+                        "output": usage.get("completion_tokens", 0),
+                    },
+                )
+            return data
 
     def tokenize(self, text: bytes, add_bos: bool = True) -> List[int]:
         """Токенизирует текст через /tokenize endpoint.

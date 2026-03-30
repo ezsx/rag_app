@@ -28,6 +28,7 @@ from fastembed import SparseTextEmbedding
 from qdrant_client import models
 
 from adapters.qdrant.store import QdrantStore
+from core.observability import observe_span
 from adapters.tei.embedding_client import TEIEmbeddingClient
 from core.settings import Settings
 from schemas.search import Candidate, MetadataFilters, SearchPlan
@@ -84,7 +85,14 @@ class HybridRetriever:
 
     def search_with_plan(self, query_text: str, plan: SearchPlan) -> list[Candidate]:
         """Выполняет hybrid search и возвращает список Candidate."""
-        return self._run_sync(self._async_search(query_text, plan))
+        with observe_span(
+            "hybrid_retrieval",
+            input={"query": query_text[:200], "strategy": getattr(plan, "strategy", None)},
+        ) as span:
+            results = self._run_sync(self._async_search(query_text, plan))
+            if span:
+                span.update(output={"num_results": len(results)})
+            return results
 
     def search(self, query: str, k: int = 10, **_kwargs) -> list[dict[str, Any]]:
         """Compatibility shim для QAService и /v1/search."""

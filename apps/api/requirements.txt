@@ -19,3 +19,5 @@ qdrant-client>=1.9.0
 fastembed>=0.3.0
 pytest
 pytest-asyncio
+# Observability (optional — graceful degradation если не установлен)
+langfuse>=3.0.0

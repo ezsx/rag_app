@@ -15,6 +15,8 @@ from typing import List
 
 import httpx
 
+from core.observability import observe_span
+
 logger = logging.getLogger(__name__)
 
 
@@ -67,32 +69,42 @@ class TEIRerankerClient:
             return []
 
         try:
-            response = await self._client.post(
-                "/rerank",
-                json={
-                    "query": query,
-                    "texts": passages,
-                    "raw_scores": True,
-                    "truncate": True,
-                },
-            )
-            response.raise_for_status()
+            with observe_span(
+                "rerank",
+                input={"query": query[:200], "num_passages": len(passages)},
+            ) as span:
+                response = await self._client.post(
+                    "/rerank",
+                    json={
+                        "query": query,
+                        "texts": passages,
+                        "raw_scores": True,
+                        "truncate": True,
+                    },
+                )
+                response.raise_for_status()
 
-            # TEI возвращает [{"index": i, "score": f}, ...] sorted by score desc.
-            # Восстанавливаем порядок по index, чтобы scores[i] ↔ passages[i].
-            results = response.json()
-            scores = [0.0] * len(passages)
-            for item in results:
-                scores[item["index"]] = item["score"]
+                # TEI возвращает [{"index": i, "score": f}, ...] sorted by score desc.
+                # Восстанавливаем порядок по index, чтобы scores[i] ↔ passages[i].
+                results = response.json()
+                scores = [0.0] * len(passages)
+                for item in results:
+                    scores[item["index"]] = item["score"]
 
-            logger.debug(
-                "TEI rerank: query=%r, %d passages → scores [%.3f..%.3f]",
-                query[:50],
-                len(passages),
-                min(scores),
-                max(scores),
-            )
-            return scores
+                if span:
+                    span.update(output={
+                        "top_score": max(scores) if scores else 0.0,
+                        "num_passages": len(passages),
+                    })
+
+                logger.debug(
+                    "TEI rerank: query=%r, %d passages → scores [%.3f..%.3f]",
+                    query[:50],
+                    len(passages),
+                    min(scores),
+                    max(scores),
+                )
+                return scores
 
         except httpx.ConnectError as exc:
             logger.error("TEI reranker недоступен (%s): %s", self.base_url, exc)
