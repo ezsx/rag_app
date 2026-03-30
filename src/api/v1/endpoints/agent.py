@@ -10,7 +10,6 @@ from sse_starlette.sse import EventSourceResponse
 
 from core.deps import get_agent_service
 from core.settings import get_settings, Settings
-from core.auth import get_current_user, require_read, TokenData
 from schemas.agent import AgentRequest
 from services.agent_service import AgentService
 
@@ -24,7 +23,6 @@ async def agent_stream(
     fastapi_request: Request,
     agent_service: AgentService = Depends(get_agent_service),
     settings: Settings = Depends(get_settings),
-    current_user: TokenData = Depends(require_read),
 ) -> EventSourceResponse:
     """
     Пошаговый ReAct агент с SSE стримингом и детерминированной логикой
@@ -139,7 +137,6 @@ async def agent_stream(
 @router.get("/agent/tools", tags=["agent"])
 async def list_tools(
     agent_service: AgentService = Depends(get_agent_service),
-    current_user: TokenData = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """
     Список доступных инструментов агента
@@ -179,7 +176,6 @@ async def list_tools(
 @router.get("/agent/status", tags=["agent"])
 async def agent_status(
     settings: Settings = Depends(get_settings),
-    current_user: TokenData = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """
     Статус и конфигурация агента

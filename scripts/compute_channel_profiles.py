@@ -75,9 +75,20 @@ def _load_entity_dictionary() -> Dict[str, str]:
             with open(p, encoding="utf-8") as f:
                 data = json.load(f)
             all_entities = set()
+
+            # Current format: flat dictionary keyed by canonical entity name.
+            if isinstance(data, dict) and "categories" not in data:
+                for canonical in data.keys():
+                    if isinstance(canonical, str) and canonical.strip():
+                        all_entities.add(canonical.strip())
+
+            # Legacy format: {"categories": {"org": {"entities": [{"canonical": ...}]}}}
             for category in data.get("categories", {}).values():
                 for ent in category.get("entities", []):
-                    all_entities.add(ent.get("canonical", ""))
+                    canonical = ent.get("canonical", "")
+                    if canonical:
+                        all_entities.add(canonical)
+
             all_entities.discard("")
             logger.info("Loaded %d canonical entities from dictionary", len(all_entities))
             return {e: e for e in all_entities}

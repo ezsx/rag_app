@@ -12,10 +12,12 @@ Evaluation pipeline v2 для ReAct-агента (SPEC-RAG-14).
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import logging
 import math
 import os
+import re
 import sys
 import time
 from dataclasses import dataclass, field
@@ -37,6 +39,9 @@ DEFAULT_AGENT_URL = "http://localhost:8001/v1/agent/stream"
 DEFAULT_QA_URL = "http://localhost:8001/v1/qa"
 
 logger = logging.getLogger(__name__)
+
+SEARCH_TYPE_TOOLS = {"search", "temporal_search", "channel_search", "related_posts"}
+ANALYTICS_TOOLS = {"entity_tracker", "arxiv_tracker", "hot_topics", "channel_expertise"}
 
 
 # ─── Failure types (SPEC-RAG-14 §3.4) ────────────────────────────
@@ -60,6 +65,7 @@ class EvalItem:
     """Единица датасета — поддерживает и legacy и golden формат."""
 
     id: str
+    version: str
     query: str
     category: str
     answerable: bool
@@ -76,15 +82,66 @@ class EvalItem:
     expected_refusal: bool = False
     refusal_reason: Optional[str] = None
     source_post_ids: List[str] = field(default_factory=list)
-    future_tool_flag: bool = False
-    future_key_tools: Optional[List[str]] = None
     calibration: bool = False
     difficulty: str = "medium"
+    eval_mode: str = "retrieval_evidence"
+    required_claims: List[str] = field(default_factory=list)
+    expected_entities: List[str] = field(default_factory=list)
+    expected_topics: List[str] = field(default_factory=list)
+    expected_channels: List[str] = field(default_factory=list)
+    acceptable_evidence_sets: List[List[str]] = field(default_factory=list)
+    strict_anchor_recall_eligible: bool = False
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     @property
     def is_golden(self) -> bool:
         """Auto-detect golden vs legacy формат."""
-        return bool(self.key_tools) or self.expected_refusal
+        return bool(self.key_tools) or self.expected_refusal or self.eval_mode != "retrieval_evidence"
+
+    def dataset_contract(self) -> Dict[str, Any]:
+        """Нормализованный контракт вопроса для offline judge packet."""
+        return {
+            "id": self.id,
+            "version": self.version,
+            "eval_mode": self.eval_mode,
+            "answerable": self.answerable,
+            "expected_refusal": self.expected_refusal,
+            "refusal_reason": self.refusal_reason,
+            "key_tools": self.key_tools,
+            "forbidden_tools": self.forbidden_tools,
+            "acceptable_alternatives": self.acceptable_alternatives,
+            "required_claims": self.required_claims,
+            "expected_answer": self.expected_answer,
+            "expected_entities": self.expected_entities,
+            "expected_topics": self.expected_topics,
+            "expected_channels": self.expected_channels,
+            "source_post_ids": self.source_post_ids,
+            "acceptable_evidence_sets": self.acceptable_evidence_sets,
+            "strict_anchor_recall_eligible": self.strict_anchor_recall_eligible,
+            "calibration": self.calibration,
+            "difficulty": self.difficulty,
+            "notes": self.notes,
+            "metadata": self.metadata,
+        }
+
+
+def infer_eval_mode(record: Dict[str, Any]) -> str:
+    """Пытается вывести eval_mode для legacy/golden_v1 записей."""
+    explicit = record.get("eval_mode")
+    if explicit:
+        return str(explicit)
+
+    category = str(record.get("category", ""))
+    if category == "navigation":
+        return "navigation"
+    if category == "negative_refusal":
+        return "refusal"
+
+    key_tools = set(record.get("key_tools") or [])
+    if key_tools & ANALYTICS_TOOLS:
+        return "analytics"
+
+    return "retrieval_evidence"
 
 
 def load_dataset(path: Path) -> List[EvalItem]:
@@ -111,8 +168,14 @@ def load_dataset(path: Path) -> List[EvalItem]:
 
     items: List[EvalItem] = []
     for record in records:
+        eval_mode = infer_eval_mode(record)
+        strict_recall_eligible = record.get("strict_anchor_recall_eligible")
+        if strict_recall_eligible is None:
+            strict_recall_eligible = bool(record.get("source_post_ids")) and eval_mode == "retrieval_evidence"
+
         item = EvalItem(
             id=str(record.get("id") or len(items) + 1),
+            version=str(record.get("version", "1.0")),
             query=record["query"],
             category=record.get("category", "unknown"),
             answerable=bool(record.get("answerable", True)),
@@ -125,10 +188,18 @@ def load_dataset(path: Path) -> List[EvalItem]:
             expected_refusal=bool(record.get("expected_refusal", False)),
             refusal_reason=record.get("refusal_reason"),
             source_post_ids=list(record.get("source_post_ids", [])),
-            future_tool_flag=bool(record.get("future_tool_flag", False)),
-            future_key_tools=record.get("future_key_tools"),
             calibration=bool(record.get("calibration", False)),
             difficulty=record.get("difficulty", "medium"),
+            eval_mode=eval_mode,
+            required_claims=list(record.get("required_claims", [])),
+            expected_entities=list(record.get("expected_entities", [])),
+            expected_topics=list(record.get("expected_topics", [])),
+            expected_channels=list(record.get("expected_channels") or record.get("source_channels") or []),
+            acceptable_evidence_sets=[
+                list(evidence_set) for evidence_set in record.get("acceptable_evidence_sets", [])
+            ],
+            strict_anchor_recall_eligible=bool(strict_recall_eligible),
+            metadata=dict(record.get("metadata", {})),
         )
         items.append(item)
 
@@ -138,6 +209,75 @@ def load_dataset(path: Path) -> List[EvalItem]:
         len(items), source_path, golden_count, len(items) - golden_count,
     )
     return items
+
+
+def compact_thought(text: str, limit: int = 200) -> Optional[str]:
+    """Очищает thought event до компактного judge-friendly вида."""
+    cleaned = (text or "").replace("</think>", " ").strip()
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    if not cleaned:
+        return None
+    return cleaned[:limit]
+
+
+def normalize_citation(citation: Dict[str, Any]) -> Dict[str, Any]:
+    """Приводит citation к компактному стабильному формату."""
+    metadata = citation.get("metadata", {}) if isinstance(citation, dict) else {}
+    channel = (
+        citation.get("channel")
+        or metadata.get("channel")
+        or metadata.get("source")
+        or citation.get("source")
+    )
+    message_id = citation.get("message_id") or metadata.get("message_id")
+    url = citation.get("url") or metadata.get("url")
+    return {
+        "id": citation.get("id") if isinstance(citation, dict) else None,
+        "channel": channel,
+        "message_id": message_id,
+        "url": url,
+        "score": citation.get("score") if isinstance(citation, dict) else None,
+        "text_excerpt": citation.get("text_excerpt") if isinstance(citation, dict) else None,
+        "source": citation.get("source") if isinstance(citation, dict) else None,
+    }
+
+
+def extract_doc_ids_from_observation(content: str) -> List[str]:
+    """Пытается извлечь doc IDs из search observation строки."""
+    match = re.search(r"Use these IDs for compose_context:\s*(\[[^\]]*\])", content or "")
+    if not match:
+        return []
+    try:
+        ids = ast.literal_eval(match.group(1))
+    except (SyntaxError, ValueError):
+        return []
+    if not isinstance(ids, list):
+        return []
+    return [str(doc_id) for doc_id in ids if isinstance(doc_id, (str, int))]
+
+
+def extract_search_docs_from_observation(tool_name: str, content: str) -> List[Dict[str, Any]]:
+    """Best-effort извлечение retrieved docs из observation без новых SSE событий."""
+    if tool_name not in SEARCH_TYPE_TOOLS:
+        return []
+    doc_ids = extract_doc_ids_from_observation(content)
+    docs: List[Dict[str, Any]] = []
+    for doc_id in doc_ids[:20]:
+        channel = None
+        message_id = None
+        if ":" in doc_id:
+            channel, message_id = doc_id.split(":", 1)
+        docs.append(
+            {
+                "id": doc_id,
+                "channel": channel,
+                "message_id": message_id,
+                "text_excerpt": None,
+                "score": None,
+                "source": "sse_observation",
+            }
+        )
+    return docs
 
 
 # ─── SSE parsing ──────────────────────────────────────────────────
@@ -451,6 +591,7 @@ class AgentEvaluationRunner:
         judge: Optional[ClaudeJudge] = None,
         dry_run: bool = False,
         limit: int = 0,
+        run_baseline: bool = False,
     ) -> None:
         self.dataset = dataset
         self.agent_url = agent_url
@@ -466,6 +607,7 @@ class AgentEvaluationRunner:
         self.judge = judge
         self.dry_run = dry_run
         self.limit = min(limit, len(dataset)) if limit > 0 else len(dataset)
+        self.run_baseline = run_baseline
 
         self._headers: Dict[str, str] = {}
         if api_key:
@@ -479,7 +621,10 @@ class AgentEvaluationRunner:
                 idx + 1, self.limit, item.id, item.category, item.difficulty,
             )
             agent_result = self._fake_agent_result() if self.dry_run else self._call_agent(item)
-            baseline_result = self._fake_baseline_result() if self.dry_run else self._call_baseline(item)
+            baseline_result = (
+                self._fake_baseline_result() if (self.dry_run or not self.run_baseline)
+                else self._call_baseline(item)
+            )
 
             # Judge scores
             judge_scores = self._run_judge(item, agent_result) if self.judge and not self.dry_run else {}
@@ -495,23 +640,65 @@ class AgentEvaluationRunner:
                 key_tool_acc=metrics.get("key_tool_accuracy"),
             )
 
+            offline_judge_packet = self._build_offline_judge_packet(
+                item=item,
+                agent_result=agent_result,
+                metrics=metrics,
+            )
+
             results.append({
                 "query_id": item.id,
                 "query": item.query,
+                "version": item.version,
                 "category": item.category,
+                "eval_mode": item.eval_mode,
                 "difficulty": item.difficulty,
                 "answerable": item.answerable,
                 "expected_answer": item.expected_answer,
                 "calibration": item.calibration,
-                "future_tool_flag": item.future_tool_flag,
+                "dataset_contract": item.dataset_contract(),
+                "required_claims": item.required_claims,
                 "agent": agent_result,
                 "baseline": baseline_result,
                 "judge": judge_scores,
                 "metrics": metrics,
                 "failure_type": failure,
                 "status": self._status(agent_result, baseline_result),
+                "offline_judge_packet": offline_judge_packet,
             })
         return results
+
+    @staticmethod
+    def _build_offline_judge_packet(
+        *,
+        item: EvalItem,
+        agent_result: Dict[str, Any],
+        metrics: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Строит самодостаточный packet для offline judge review."""
+        return {
+            "query_id": item.id,
+            "query": item.query,
+            "eval_mode": item.eval_mode,
+            "category": item.category,
+            "answer": agent_result.get("answer"),
+            "status": "error" if agent_result.get("error") else "ok",
+            "latency_sec": agent_result.get("latency_sec"),
+            "coverage": agent_result.get("coverage"),
+            "tools_invoked": agent_result.get("tools_invoked", []),
+            "visible_tools_history": agent_result.get("visible_tools_history", []),
+            "agent_thoughts": agent_result.get("agent_thoughts", []),
+            "tool_observations": agent_result.get("tool_observations", []),
+            "citations": agent_result.get("citations_detailed", []),
+            "citation_hits": agent_result.get("citation_hits", []),
+            "retrieved_docs": agent_result.get("retrieved_docs", []),
+            "dataset_contract": item.dataset_contract(),
+            "diagnostic_metrics": {
+                "strict_anchor_recall": metrics.get("strict_anchor_recall"),
+                "acceptable_set_hit": metrics.get("acceptable_set_hit"),
+                "key_tool_accuracy": metrics.get("key_tool_accuracy"),
+            },
+        }
 
     def _call_agent(self, item: EvalItem) -> Dict[str, Any]:
         """Вызов агента через SSE. Собирает tools_invoked и visible_tools."""
@@ -527,9 +714,14 @@ class AgentEvaluationRunner:
             citation_hits: List[str] = []
             tools_invoked: List[str] = []
             visible_tools_history: List[List[str]] = []
+            citations_detailed: List[Dict[str, Any]] = []
+            tool_observations: List[Dict[str, Any]] = []
+            agent_thoughts: List[str] = []
+            retrieved_docs: List[Dict[str, Any]] = []
             final_payload: Optional[Dict[str, Any]] = None
             coverage: Optional[float] = None
             refinements: int = 0
+            pending_observation_tool: Optional[str] = None
 
             try:
                 start = time.perf_counter()
@@ -550,9 +742,33 @@ class AgentEvaluationRunner:
                                 tool_name = decoded.get("tool") or decoded.get("name", "")
                                 if tool_name:
                                     tools_invoked.append(tool_name)
+                                    pending_observation_tool = tool_name
+
+                            elif event_name == "observation":
+                                observation_text = str(decoded.get("content", "") or "")
+                                observation_tool = pending_observation_tool or "unknown"
+                                tool_observations.append(
+                                    {
+                                        "tool": observation_tool,
+                                        "summary": observation_text[:500],
+                                        "success": bool(decoded.get("success", False)),
+                                        "took_ms": decoded.get("took_ms"),
+                                        "system_generated": bool(decoded.get("system_generated", False)),
+                                        "refinement": bool(decoded.get("refinement", False)),
+                                        "verification_refinement": bool(decoded.get("verification_refinement", False)),
+                                    }
+                                )
+                                if observation_tool in SEARCH_TYPE_TOOLS:
+                                    for doc in extract_search_docs_from_observation(observation_tool, observation_text):
+                                        if doc["id"] not in {d["id"] for d in retrieved_docs}:
+                                            retrieved_docs.append(doc)
+                                pending_observation_tool = None
 
                             elif event_name == "citations":
                                 for cit in decoded.get("citations", []):
+                                    normalized = normalize_citation(cit)
+                                    if normalized["id"] and normalized["id"] not in {c["id"] for c in citations_detailed if c.get("id")}:
+                                        citations_detailed.append(normalized)
                                     meta = cit.get("metadata", {})
                                     ch = meta.get("channel", "")
                                     msg = meta.get("message_id", "")
@@ -565,7 +781,10 @@ class AgentEvaluationRunner:
                                     coverage = cov
 
                             elif event_name == "thought":
-                                content = decoded.get("content", "")
+                                content = decoded.get("content", "") or ""
+                                compact = compact_thought(content)
+                                if compact:
+                                    agent_thoughts.append(compact)
                                 if "недостаточно" in content.lower() or "дополнительный" in content.lower():
                                     refinements += 1
 
@@ -591,6 +810,10 @@ class AgentEvaluationRunner:
                     "citation_hits": citation_hits,
                     "tools_invoked": tools_invoked,
                     "visible_tools_history": visible_tools_history,
+                    "citations_detailed": citations_detailed,
+                    "tool_observations": tool_observations,
+                    "agent_thoughts": agent_thoughts,
+                    "retrieved_docs": retrieved_docs,
                     "latency_sec": latency,
                     "error": False,
                 }
@@ -601,7 +824,8 @@ class AgentEvaluationRunner:
         return {
             "error": True, "error_message": last_error,
             "latency_sec": None, "citation_hits": [], "tools_invoked": [],
-            "visible_tools_history": [],
+            "visible_tools_history": [], "citations_detailed": [],
+            "tool_observations": [], "agent_thoughts": [], "retrieved_docs": [],
         }
 
     def _call_baseline(self, item: EvalItem) -> Dict[str, Any]:
@@ -651,16 +875,16 @@ class AgentEvaluationRunner:
         baseline_result: Dict[str, Any],
         judge_scores: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """Recall@5 + key_tool_accuracy + judge scores."""
+        """Primary + grounding + diagnostic metrics."""
         citation_hits = agent_result.get("citation_hits") or []
         expected = item.expected_documents or item.source_post_ids or []
-        recall = None
+        strict_anchor_recall = None
 
-        # Fuzzy recall (совместим с legacy)
+        # Legacy strict/fuzzy recall — diagnostic only.
         broad_categories = {"temporal", "multi_hop", "constrained_search", "future_baseline"}
         fuzzy_tolerance = 50 if item.category in broad_categories else 5
 
-        if item.answerable and expected:
+        if item.answerable and expected and item.strict_anchor_recall_eligible:
             matched = 0
             for exp_doc in expected:
                 parts = exp_doc.split(":", 1)
@@ -678,7 +902,12 @@ class AgentEvaluationRunner:
                     if h_ch == exp_ch and abs(h_msg - exp_msg) <= fuzzy_tolerance:
                         matched += 1
                         break
-            recall = matched / len(expected) if expected else None
+            strict_anchor_recall = matched / len(expected) if expected else None
+
+        acceptable_set_hit = None
+        if item.acceptable_evidence_sets:
+            hit_set = set(citation_hits)
+            acceptable_set_hit = 1.0 if any(set(evidence_set).issubset(hit_set) for evidence_set in item.acceptable_evidence_sets) else 0.0
 
         # Key tool accuracy
         tools_invoked = agent_result.get("tools_invoked", [])
@@ -692,7 +921,11 @@ class AgentEvaluationRunner:
             "agent_latency_sec": agent_result.get("latency_sec"),
             "baseline_latency_sec": baseline_result.get("latency_sec"),
             "agent_coverage": agent_result.get("coverage"),
-            "recall_at_5": recall,
+            "strict_anchor_recall": strict_anchor_recall,
+            "strict_anchor_recall_eligible": item.strict_anchor_recall_eligible,
+            "acceptable_set_hit": acceptable_set_hit,
+            "retrieval_sufficiency_score": None,
+            "evidence_support_score": None,
             "key_tool_accuracy": key_tool_acc,
             "factual_correctness": factual,
             "usefulness": usefulness,
@@ -707,6 +940,8 @@ class AgentEvaluationRunner:
             "answer": "[dry-run]", "citations": [], "coverage": None,
             "refinements": 0, "verification": None, "fallback": False,
             "citation_hits": [], "tools_invoked": [], "visible_tools_history": [],
+            "citations_detailed": [], "tool_observations": [], "agent_thoughts": [],
+            "retrieved_docs": [],
             "latency_sec": None, "error": True, "error_message": "dry_run",
         }
 
@@ -735,7 +970,10 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     agent_latencies = [r["metrics"]["agent_latency_sec"] for r in results if r["metrics"].get("agent_latency_sec") is not None]
     baseline_latencies = [r["metrics"]["baseline_latency_sec"] for r in results if r["metrics"].get("baseline_latency_sec") is not None]
     coverages = [r["metrics"]["agent_coverage"] for r in results if r["metrics"].get("agent_coverage") is not None]
-    recalls = [r["metrics"]["recall_at_5"] for r in results if r["metrics"].get("recall_at_5") is not None]
+    strict_recalls = [r["metrics"]["strict_anchor_recall"] for r in results if r["metrics"].get("strict_anchor_recall") is not None]
+    acceptable_hits = [r["metrics"]["acceptable_set_hit"] for r in results if r["metrics"].get("acceptable_set_hit") is not None]
+    retrieval_sufficiency_scores = [r["metrics"]["retrieval_sufficiency_score"] for r in results if r["metrics"].get("retrieval_sufficiency_score") is not None]
+    evidence_support_scores = [r["metrics"]["evidence_support_score"] for r in results if r["metrics"].get("evidence_support_score") is not None]
     key_tool_accs = [r["metrics"]["key_tool_accuracy"] for r in results if r["metrics"].get("key_tool_accuracy") is not None]
     factual_scores = [r["metrics"]["factual_correctness"] for r in results if r["metrics"].get("factual_correctness") is not None]
     usefulness_scores = [r["metrics"]["usefulness"] for r in results if r["metrics"].get("usefulness") is not None]
@@ -752,11 +990,21 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     for r in results:
         cat = r["category"]
         if cat not in by_category:
-            by_category[cat] = {"queries": 0, "recall": [], "key_tool": [], "factual": [], "useful": [], "latency": []}
+            by_category[cat] = {
+                "queries": 0,
+                "strict_recall": [],
+                "acceptable_set_hit": [],
+                "key_tool": [],
+                "factual": [],
+                "useful": [],
+                "latency": [],
+            }
         by_category[cat]["queries"] += 1
         m = r["metrics"]
-        if m.get("recall_at_5") is not None:
-            by_category[cat]["recall"].append(m["recall_at_5"])
+        if m.get("strict_anchor_recall") is not None:
+            by_category[cat]["strict_recall"].append(m["strict_anchor_recall"])
+        if m.get("acceptable_set_hit") is not None:
+            by_category[cat]["acceptable_set_hit"].append(m["acceptable_set_hit"])
         if m.get("key_tool_accuracy") is not None:
             by_category[cat]["key_tool"].append(m["key_tool_accuracy"])
         if m.get("factual_correctness") is not None:
@@ -770,7 +1018,8 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     for cat, vals in by_category.items():
         by_cat_summary[cat] = {
             "queries": vals["queries"],
-            "recall_at_5_mean": safe_mean(vals["recall"]),
+            "strict_anchor_recall_mean": safe_mean(vals["strict_recall"]),
+            "acceptable_set_hit_mean": safe_mean(vals["acceptable_set_hit"]),
             "key_tool_accuracy_mean": safe_mean(vals["key_tool"]),
             "factual_correctness_mean": safe_mean(vals["factual"]),
             "usefulness_mean": safe_mean(vals["useful"]),
@@ -783,34 +1032,55 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
         "total_queries": len(results),
         "answerable_queries": sum(1 for r in results if r["answerable"]),
         "negative_queries": sum(1 for r in results if not r["answerable"]),
-        "golden_queries": sum(1 for r in results if any(r["metrics"].get("key_tool_accuracy") is not None for _ in [1])),
+        "golden_queries": sum(1 for r in results if r["metrics"].get("key_tool_accuracy") is not None),
         "errors": {
             "agent": sum(1 for s in statuses if "agent" in s),
             "baseline": sum(1 for s in statuses if "baseline" in s),
         },
-        "recall_at_5": {
-            "mean": safe_mean(recalls),
-            "full": sum(1 for r in recalls if r == 1.0),
-            "zero": sum(1 for r in recalls if r == 0.0),
+        "primary": {
+            "key_tool_accuracy": {
+                "mean": safe_mean(key_tool_accs),
+                "total_evaluated": len(key_tool_accs),
+            },
+            "factual_correctness": {
+                "mean": safe_mean(factual_scores),
+                "total_evaluated": len(factual_scores),
+            },
+            "usefulness": {
+                "mean": safe_mean(usefulness_scores),
+                "total_evaluated": len(usefulness_scores),
+            },
+            "failure_breakdown": failure_counts,
         },
-        "key_tool_accuracy": {
-            "mean": safe_mean(key_tool_accs),
-            "total_evaluated": len(key_tool_accs),
+        "retrieval_grounding": {
+            "acceptable_set_hit": {
+                "mean": safe_mean(acceptable_hits),
+                "total_evaluated": len(acceptable_hits),
+            },
+            "retrieval_sufficiency_score": {
+                "mean": safe_mean(retrieval_sufficiency_scores),
+                "total_evaluated": len(retrieval_sufficiency_scores),
+                "pending_offline_judge": len(retrieval_sufficiency_scores) == 0,
+            },
+            "evidence_support_score": {
+                "mean": safe_mean(evidence_support_scores),
+                "total_evaluated": len(evidence_support_scores),
+                "pending_offline_judge": len(evidence_support_scores) == 0,
+            },
         },
-        "factual_correctness": {
-            "mean": safe_mean(factual_scores),
-            "total_evaluated": len(factual_scores),
+        "diagnostic": {
+            "strict_anchor_recall": {
+                "mean": safe_mean(strict_recalls),
+                "full": sum(1 for r in strict_recalls if r == 1.0),
+                "zero": sum(1 for r in strict_recalls if r == 0.0),
+                "total_evaluated": len(strict_recalls),
+            },
+            "coverage": {"mean": safe_mean(coverages)},
+            "latency": {
+                "agent": {"mean": safe_mean(agent_latencies), "p95": percentile(agent_latencies, 95)},
+                "baseline": {"mean": safe_mean(baseline_latencies), "p95": percentile(baseline_latencies, 95)},
+            },
         },
-        "usefulness": {
-            "mean": safe_mean(usefulness_scores),
-            "total_evaluated": len(usefulness_scores),
-        },
-        "coverage": {"mean": safe_mean(coverages)},
-        "latency": {
-            "agent": {"mean": safe_mean(agent_latencies), "p95": percentile(agent_latencies, 95)},
-            "baseline": {"mean": safe_mean(baseline_latencies), "p95": percentile(baseline_latencies, 95)},
-        },
-        "failure_breakdown": failure_counts,
         "by_category": by_cat_summary,
     }
 
@@ -825,24 +1095,34 @@ def build_markdown_report(
     judge_model: Optional[str],
 ) -> str:
     """Markdown отчёт с failure breakdown и per-category."""
+    primary = agg["primary"]
+    grounding = agg["retrieval_grounding"]
+    diagnostic = agg["diagnostic"]
     lines = [
         "# Agent Evaluation Report (v2)",
         f"**Date:** {timestamp.isoformat()}",
         f"**Dataset:** {dataset_path} ({agg['total_queries']} queries)",
         f"**Judge:** {judge_model or 'disabled'}",
         "",
-        "## Overall Metrics",
-        f"- Recall@5: **{fmt(agg['recall_at_5']['mean'])}** (full={agg['recall_at_5']['full']}, zero={agg['recall_at_5']['zero']})",
-        f"- Key Tool Accuracy: **{fmt(agg['key_tool_accuracy']['mean'])}** ({agg['key_tool_accuracy']['total_evaluated']} evaluated)",
-        f"- Factual Correctness: **{fmt(agg['factual_correctness']['mean'])}** ({agg['factual_correctness']['total_evaluated']} evaluated)",
-        f"- Usefulness: **{fmt(agg['usefulness']['mean'])}** ({agg['usefulness']['total_evaluated']} evaluated)",
-        f"- Coverage: {fmt(agg['coverage']['mean'])}",
-        f"- Agent Latency: mean={fmt(agg['latency']['agent']['mean'], 1)}s, p95={fmt(agg['latency']['agent']['p95'], 1)}s",
+        "## Primary Metrics",
+        f"- Key Tool Accuracy: **{fmt(primary['key_tool_accuracy']['mean'])}** ({primary['key_tool_accuracy']['total_evaluated']} evaluated)",
+        f"- Factual Correctness: **{fmt(primary['factual_correctness']['mean'])}** ({primary['factual_correctness']['total_evaluated']} evaluated)",
+        f"- Usefulness: **{fmt(primary['usefulness']['mean'])}** ({primary['usefulness']['total_evaluated']} evaluated)",
+        "",
+        "## Retrieval Grounding",
+        f"- Acceptable Set Hit: **{fmt(grounding['acceptable_set_hit']['mean'])}** ({grounding['acceptable_set_hit']['total_evaluated']} evaluated)",
+        f"- Retrieval Sufficiency Score: {fmt(grounding['retrieval_sufficiency_score']['mean'])} ({grounding['retrieval_sufficiency_score']['total_evaluated']} evaluated)",
+        f"- Evidence Support Score: {fmt(grounding['evidence_support_score']['mean'])} ({grounding['evidence_support_score']['total_evaluated']} evaluated)",
+        "",
+        "## Diagnostic Metrics",
+        f"- Strict Anchor Recall: **{fmt(diagnostic['strict_anchor_recall']['mean'])}** (full={diagnostic['strict_anchor_recall']['full']}, zero={diagnostic['strict_anchor_recall']['zero']})",
+        f"- Coverage: {fmt(diagnostic['coverage']['mean'])}",
+        f"- Agent Latency: mean={fmt(diagnostic['latency']['agent']['mean'], 1)}s, p95={fmt(diagnostic['latency']['agent']['p95'], 1)}s",
         "",
     ]
 
     # Failure breakdown
-    failures = agg.get("failure_breakdown", {})
+    failures = primary.get("failure_breakdown", {})
     if failures:
         lines.extend(["## Failure Breakdown", "| Type | Count |", "|------|-------|"])
         for ft, count in sorted(failures.items(), key=lambda x: -x[1]):
@@ -852,13 +1132,14 @@ def build_markdown_report(
     # By category
     lines.extend([
         "## By Category",
-        "| Category | Qs | Recall@5 | KeyTool | Factual | Useful | Latency |",
-        "|----------|-----|----------|---------|---------|--------|---------|",
+        "| Category | Qs | StrictRecall | AcceptableSet | KeyTool | Factual | Useful | Latency |",
+        "|----------|-----|--------------|---------------|---------|---------|--------|---------|",
     ])
     for cat, stats in sorted(agg["by_category"].items()):
         lines.append(
             f"| {cat} | {stats['queries']} | "
-            f"{fmt(stats['recall_at_5_mean'])} | "
+            f"{fmt(stats['strict_anchor_recall_mean'])} | "
+            f"{fmt(stats['acceptable_set_hit_mean'])} | "
             f"{fmt(stats['key_tool_accuracy_mean'])} | "
             f"{fmt(stats['factual_correctness_mean'])} | "
             f"{fmt(stats['usefulness_mean'])} | "
@@ -866,6 +1147,112 @@ def build_markdown_report(
         )
 
     return "\n".join(lines)
+
+
+def chunked(seq: Sequence[Any], size: int) -> Iterator[Sequence[Any]]:
+    """Разбивает последовательность на батчи фиксированного размера."""
+    for i in range(0, len(seq), size):
+        yield seq[i:i + size]
+
+
+def build_offline_judge_markdown(batch: Sequence[Dict[str, Any]], batch_no: int) -> str:
+    """Строит markdown packet для offline judge review."""
+    lines = [
+        f"# Offline Judge Batch {batch_no:02d}",
+        "",
+        f"Questions: {len(batch)}",
+        "",
+    ]
+    for item in batch:
+        packet = item["offline_judge_packet"]
+        contract = packet["dataset_contract"]
+        lines.extend(
+            [
+                f"## {packet['query_id']} — {packet['query']}",
+                f"- Eval mode: `{packet['eval_mode']}`",
+                f"- Category: `{packet['category']}`",
+                f"- Answerable: `{contract['answerable']}`",
+                f"- Key tools: `{', '.join(contract['key_tools']) or '-'}`",
+                f"- Forbidden tools: `{', '.join(contract['forbidden_tools']) or '-'}`",
+                f"- Tools invoked: `{', '.join(packet['tools_invoked']) or '-'}`",
+                f"- Coverage: `{packet.get('coverage')}`",
+                "",
+                "**Expected answer**",
+                "",
+                contract.get("expected_answer") or "_N/A_",
+                "",
+                "**Required claims**",
+                "",
+            ]
+        )
+        claims = contract.get("required_claims") or []
+        if claims:
+            lines.extend([f"- {claim}" for claim in claims])
+        else:
+            lines.append("- _none_")
+        lines.extend(["", "**Agent answer**", "", packet.get("answer") or "_empty_", ""])
+
+        lines.extend(["**Agent thoughts**", ""])
+        thoughts = packet.get("agent_thoughts") or []
+        if thoughts:
+            lines.extend([f"- {thought}" for thought in thoughts])
+        else:
+            lines.append("- _none_")
+        lines.append("")
+
+        lines.extend(["**Tool observations**", ""])
+        observations = packet.get("tool_observations") or []
+        if observations:
+            for obs in observations:
+                lines.append(f"- `{obs.get('tool', 'unknown')}`: {obs.get('summary', '')}")
+        else:
+            lines.append("- _none_")
+        lines.append("")
+
+        lines.extend(["**Citations**", ""])
+        citations = packet.get("citations") or []
+        if citations:
+            for cit in citations:
+                lines.append(
+                    f"- `{cit.get('id') or '-'} | {cit.get('channel') or '-'}:{cit.get('message_id') or '-'}` "
+                    f"{cit.get('url') or ''}"
+                )
+        else:
+            lines.append("- _none_")
+        lines.append("")
+
+        lines.extend(["**Retrieved docs**", ""])
+        retrieved = packet.get("retrieved_docs") or []
+        if retrieved:
+            for doc in retrieved[:20]:
+                lines.append(f"- `{doc.get('id')}` score={doc.get('score')} excerpt={doc.get('text_excerpt') or 'N/A'}")
+        else:
+            lines.append("- _none_")
+        lines.extend(["", "---", ""])
+
+    return "\n".join(lines)
+
+
+def export_offline_judge_batches(
+    *,
+    results: Sequence[Dict[str, Any]],
+    output_dir: Path,
+    eval_id: str,
+    batch_size: int,
+) -> List[Path]:
+    """Экспортирует judging packets батчами в JSON и Markdown."""
+    judge_dir = output_dir / "judge_batches" / eval_id
+    ensure_dirs(judge_dir)
+    written: List[Path] = []
+    for batch_index, batch in enumerate(chunked(results, batch_size), start=1):
+        batch_name = f"judge_batch_{batch_index:02d}"
+        batch_json = judge_dir / f"{batch_name}.json"
+        batch_md = judge_dir / f"{batch_name}.md"
+        batch_payload = [item["offline_judge_packet"] for item in batch]
+        write_json(batch_json, batch_payload)
+        batch_md.write_text(build_offline_judge_markdown(batch, batch_index), encoding="utf-8")
+        written.extend([batch_json, batch_md])
+    return written
 
 
 # ─── CLI ──────────────────────────────────────────────────────────
@@ -885,10 +1272,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--disable-planner", action="store_true", help="Отключить query planner")
     parser.add_argument("--agent-timeout", type=float, default=90.0, help="Таймаут агента (сек)")
     parser.add_argument("--agent-retries", type=int, default=2, help="Повторы при ошибке")
+    parser.add_argument("--run-baseline", action="store_true", help="Запустить baseline /v1/qa (по умолчанию выключен)")
     parser.add_argument("--baseline-timeout", type=float, default=30.0, help="Таймаут baseline")
     parser.add_argument("--baseline-retries", type=int, default=1, help="Повторы baseline")
     parser.add_argument("--limit", type=int, default=0, help="Макс. число запросов (0 = все)")
-    parser.add_argument("--api-key", default=None, help="API ключ для агента (Bearer)")
+    parser.add_argument("--api-key", default=None, help="(deprecated, auth removed) API ключ для агента")
 
     # Judge
     parser.add_argument(
@@ -899,6 +1287,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--judge-model", default=None, help="Модель judge (default: claude-sonnet-4-6-20250514)")
 
     # Other
+    parser.add_argument("--export-offline-judge", action="store_true", help="Экспортировать offline judge packets батчами")
+    parser.add_argument("--judge-batch-size", type=int, default=30, help="Размер judge batch для offline review")
     parser.add_argument("--skip-markdown", action="store_true", help="Не сохранять Markdown")
     parser.add_argument("--dry-run", action="store_true", help="Пропустить API вызовы")
     parser.add_argument("--verbose", action="store_true", help="Подробное логирование")
@@ -966,6 +1356,7 @@ def main() -> int:
         judge=judge,
         dry_run=args.dry_run,
         limit=args.limit,
+        run_baseline=args.run_baseline,
     )
 
     try:
@@ -985,11 +1376,12 @@ def main() -> int:
     ensure_dirs(args.output_dir, raw_dir, reports_dir)
 
     ts_str = f"{timestamp:%Y%m%d-%H%M%S}"
+    eval_id = f"eval_{ts_str}"
 
     # Единый JSON report (SPEC-RAG-14 §3.8)
     unified_report = {
         "eval_metadata": {
-            "eval_id": f"eval_{ts_str}",
+            "eval_id": eval_id,
             "timestamp": timestamp.isoformat(),
             "dataset": str(args.dataset),
             "judge_model": judge_model,
@@ -1014,10 +1406,21 @@ def main() -> int:
         md = build_markdown_report(aggregated, timestamp, args.dataset, judge_model)
         markdown_path.write_text(md, encoding="utf-8")
 
+    exported_batches: List[Path] = []
+    if args.export_offline_judge:
+        exported_batches = export_offline_judge_batches(
+            results=raw_results,
+            output_dir=args.output_dir,
+            eval_id=eval_id,
+            batch_size=max(1, args.judge_batch_size),
+        )
+
     logger.info("Raw: %s", raw_path)
     logger.info("Report: %s", report_path)
     if markdown_path:
         logger.info("Markdown: %s", markdown_path)
+    for batch_path in exported_batches:
+        logger.info("Offline judge artifact: %s", batch_path)
 
     print(json.dumps(aggregated, ensure_ascii=False, indent=2))
     return 0

@@ -74,20 +74,6 @@
 
 <script>
 const API = window.location.origin;
-let token = null;
-
-async function getToken() {
-  if (token) return token;
-  // FIX-09: demo endpoint (read-only, без admin key)
-  const r = await fetch(`${API}/v1/auth/demo`, {method: 'POST'});
-  if (!r.ok) {
-    // Demo auth отключен — показываем сообщение, не предлагаем admin key
-    throw new Error('Авторизация недоступна. Включите ENABLE_DEMO_AUTH=true для demo-доступа.');
-  }
-  const d = await r.json();
-  token = d.access_token;
-  return token;
-}
 
 function esc(s) {
   const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
@@ -214,10 +200,9 @@ async function sendQuery(query) {
   addMessage('user', query);
   createAgentBlock();
 
-  const t = await getToken();
   const resp = await fetch(`${API}/v1/agent/stream`, {
     method: 'POST',
-    headers: {'Authorization': `Bearer ${t}`, 'Content-Type': 'application/json'},
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({query, max_steps: 8})
   });
 

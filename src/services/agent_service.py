@@ -12,6 +12,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 
+from core.observability import get_langfuse
 from core.security import sanitize_for_logging, security_manager
 from core.settings import Settings
 from schemas.agent import (
@@ -514,9 +515,11 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
         "function": {
             "name": "hot_topics",
             "description": (
-                "Возвращает горячие темы за период (неделю/месяц). "
+                "Возвращает горячие темы и тренды за период (неделю/месяц). "
                 "Pre-computed дайджест: trending topics, top entities, burst events. "
-                "Используй для: 'что обсуждали на этой неделе?', 'тренды', 'горячие темы', 'дайджест'."
+                "Используй для: 'что обсуждали на этой неделе?', 'тренды', 'горячие темы', "
+                "'дайджест', 'какие темы были в марте?', 'что было популярно?'. "
+                "ПРЕДПОЧТИ этот tool над temporal_search когда вопрос про тренды/темы/дайджест."
             ),
             "parameters": {
                 "type": "object",
@@ -654,6 +657,24 @@ class AgentService:
         )
         _ctx_token = _request_ctx.set(ctx)
 
+        # Langfuse root span — explicit enter/exit (SSE async safety)
+        # Храним cm и span отдельно: __enter__() может вернуть другой объект
+        _langfuse = get_langfuse()
+        _root_span_cm = None  # context manager
+        _root_span = None     # результат __enter__()
+        if _langfuse:
+            try:
+                _root_span_cm = _langfuse.start_as_current_observation(
+                    as_type="span",
+                    name="agent_request",
+                    input={"query": request.query, "request_id": request_id},
+                )
+                _root_span = _root_span_cm.__enter__()
+            except Exception as e:
+                logger.warning("Langfuse root span init failed: %s", e)
+                _root_span_cm = None
+                _root_span = None
+
         # Формируем system prompt с hints из query signals (R13-quick §1.3)
         system_content = self.system_prompt
         signals = self._ctx.query_signals
@@ -756,9 +777,15 @@ class AgentService:
 
                 llm = self.llm_factory()
                 trimmed_messages = self._trim_messages(messages)
-                # После compose_context LLM будет генерировать final_answer
-                # с длинным текстом — нужен больший бюджет токенов.
-                expect_final = agent_state.coverage > 0
+                # После compose_context И после analytics/navigation short-circuit
+                # LLM может сразу генерировать финальный ответ текстом.
+                # Для таких шагов нужен больший budget, иначе получаем
+                # finish_reason=length и зацикливание с assistant messages подряд.
+                expect_final = (
+                    agent_state.coverage > 0
+                    or agent_state.analytics_done
+                    or agent_state.navigation_answered
+                )
                 step_max_tokens = (
                     self.settings.agent_final_max_tokens
                     if expect_final
@@ -1337,7 +1364,43 @@ class AgentService:
                 },
             )
         finally:
-            _request_ctx.reset(_ctx_token)
+            # Langfuse root span cleanup — до ContextVar reset
+            if _root_span is not None:
+                try:
+                    _root_span.update(output={
+                        "steps": step,
+                        "coverage": ctx.coverage_score,
+                        "search_count": ctx.agent_state.search_count,
+                        "analytics_done": ctx.agent_state.analytics_done,
+                    })
+                except Exception:
+                    pass
+            if _root_span_cm is not None:
+                try:
+                    _root_span_cm.__exit__(None, None, None)
+                except Exception:
+                    pass  # Не crash'им на observability cleanup
+            if _langfuse:
+                try:
+                    _langfuse.flush()
+                except Exception:
+                    pass
+
+            # При закрытии SSE async-generator cleanup может выполниться уже
+            # в другом Context (например, через GeneratorExit после финального yield).
+            # В таком случае reset(original_token) бросает ValueError.
+            # Для request-scope это не критично: исходный context уже уходит,
+            # а здесь важно не шуметь ложной ошибкой в логах.
+            try:
+                _request_ctx.reset(_ctx_token)
+            except ValueError:
+                current_ctx = _request_ctx.get()
+                if current_ctx is ctx:
+                    _request_ctx.set(None)
+                logger.debug(
+                    "Skip ContextVar reset for request %s: cleanup runs in different async context",
+                    request_id,
+                )
 
     async def _execute_action(
         self,

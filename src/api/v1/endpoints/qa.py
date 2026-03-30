@@ -14,12 +14,9 @@ from core.deps import (
     get_retriever,
     get_query_planner,
 )
-from core.auth import require_scopes, TokenData
 from core.settings import get_settings, Settings
 from services.qa_service import QAService
 from schemas.qa import QARequest, QAResponse, QAResponseWithContext, ContextItem
-
-require_read = require_scopes("read")
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -61,7 +58,7 @@ async def save_to_cache(redis_client, cache_key: str, data: dict, ttl: int):
 )
 async def answer_question(
     request: QARequest,
-    _user: TokenData = Depends(require_read),  # FIX-06
+
     qa_service: QAService = Depends(get_qa_service),
     redis_client=Depends(get_redis_client),
     settings: Settings = Depends(get_settings),
@@ -184,7 +181,7 @@ async def answer_question(
 async def qa_stream(
     request: QARequest,
     fastapi_request: Request,
-    _user: TokenData = Depends(require_read),  # FIX-06
+
     qa_service: QAService = Depends(get_qa_service),
     settings: Settings = Depends(get_settings),
 ) -> EventSourceResponse:

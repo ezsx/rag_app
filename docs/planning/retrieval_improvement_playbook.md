@@ -1,7 +1,7 @@
 # Retrieval Improvement Playbook
 
 > Операционный документ. "Что попробовали, где мы сейчас, что дальше."
-> Последнее обновление: 2026-03-25
+> Последнее обновление: 2026-03-30
 
 ---
 
@@ -11,13 +11,15 @@
 
 | Eval | Factual | Useful | KTA | Questions | Report |
 |------|---------|--------|-----|-----------|--------|
-| **Golden v1 + SPEC-RAG-15** | **1.79/2** | **1.72/2** | 0.926 | 30 | [eval_judge_20260325_spec15.md](../../results/reports/eval_judge_20260325_spec15.md) |
+| **Golden v2 baseline (SPEC-RAG-18)** | **~0.80/1** | **~1.53/2** | **1.000** | 36 | [R26-golden-v2-eval-baseline.md](../research/reports/R26-golden-v2-eval-baseline.md) |
+| Golden v1 + SPEC-RAG-15 | 1.79/2 | 1.72/2 | 0.926 | 30 | [eval_judge_20260325_spec15.md](../../results/reports/eval_judge_20260325_spec15.md) |
 | Agent v1 (legacy) | — | — | — | 10, recall@5=0.76 | [details](experiment_history.md#agent-eval-v1) |
 | Agent v2 (legacy) | — | — | — | 10, recall@5=0.685 | [details](experiment_history.md#agent-eval-v2) |
 | Retrieval-only | — | — | — | 100, recall@5=0.73 | [details](experiment_history.md#retrieval-eval) |
 
-**Текущий pipeline**: 13 tools, dynamic visibility (max 5), data-driven routing (`datasets/tool_keywords.json`).
-**Analytics tools** (SPEC-RAG-15): entity_tracker (top/timeline/compare/co_occurrence) + arxiv_tracker (top/lookup). KTA=100%, Facet <100ms.
+**Текущий pipeline**: 15 tools, dynamic visibility (max 5), data-driven routing (`datasets/tool_keywords.json`).
+**Analytics / precomputed tools**: entity_tracker, arxiv_tracker, hot_topics, channel_expertise. Analytics short-circuit включён, cron-backed tools работают через auxiliary collections.
+**Eval pipeline**: SPEC-RAG-18 golden_v2 (36 Qs, 4 eval_modes, offline judge workflow, batch review). Consensus judge: Claude Opus 4.6 + Codex GPT-5.4.
 
 ### Что реализовано
 
@@ -27,15 +29,20 @@
 | 3.2 | Simple tools (list_channels, related, compare, summarize) | SPEC-RAG-13 | 11 tools, dynamic visibility |
 | 3.3 | Eval pipeline v2 | SPEC-RAG-14 | Golden dataset, tool tracking, failure attribution |
 | 3.4 | Entity analytics tools | SPEC-RAG-15 | 13 tools, analytics state machine, data-driven routing |
+| 3.4 | Precomputed analytics tools | SPEC-RAG-16 | 15 tools, weekly digests, channel profiles, BERTopic cron pipeline |
+| 3.4 | Production hardening | SPEC-RAG-17 | Request isolation, auth hardening, cooperative deadline, rate limiter fix |
 
 ### Remaining issues
 
 | # | Проблема | Impact | Fix direction |
 |---|----------|--------|---------------|
-| 1 | q01: Qwen3 false refusal (refuses after seeing docs) | Factual 0/2 | LLM-level: prompt engineering или SFT. Forced search уже работает — LLM не использует результаты |
-| 2 | q27: "С согласия NVIDIA" — phrasing | Useful 1/2 | Qwen3 generation quality, не tools |
-| 3 | Strict recall@5 = 0.342 | Misleading metric | Analytics Qs не имеют source_post_ids. Manual judge = primary |
-| 4 | Unit tests для analytics | Tech debt | entity normalization, arxiv dedup, state machine tests |
+| 1 | **q33**: monthly hot_topics path даёт fallback на одну неделю вместо month aggregation | Quality | Debug monthly digest end-to-end |
+| 2 | **q36**: channel_expertise routing miss — LLM выбирает list_channels вместо channel_expertise | Routing | Keyword/description fix + убрать list_channels из acceptable_alternatives |
+| 3 | **q21**: out-of-timerange refusal не срабатывает — агент генерирует нерелевантный ответ | Refusal | Deterministic temporal guard |
+| 4 | **q01**: Qwen3 false refusal → ungrounded direct answer (coverage=0, нет citations) | LLM limitation | Known issue, не чиним сейчас |
+| 5 | Stale tests | Proof layer gap | Удалить dead tests, покрыть analytics/state machine |
+| 6 | Данные устарели / weekly digests частичные | Demo reliability | Re-ingest + full weekly digests + profile re-compute |
+| 7 | required_claims не decomposed (q01-q25) | Eval quality | Декомпозировать при expansion до 100 Qs |
 
 ---
 
@@ -86,21 +93,24 @@
 
 ### Ближайшие приоритеты
 
-1. **Unit tests** для analytics state machine (entity normalization, arxiv dedup, visibility)
-2. **q01 false refusal** — исследовать: prompt tuning, reasoning budget, альтернативный LLM
-3. **Soft recall metric** — заменить strict document matching на semantic overlap
+1. **P1 fixes** — q33 monthly hot_topics + q36 channel_expertise routing
+2. **P2 fix** — q21 deterministic out-of-range refusal
+3. **Clean baseline rerun** — full 36 Qs after P1+P2, зафиксировать как canonical
+4. **Data refresh** — re-ingest свежих постов, пересчёт weekly digests и channel profiles
+5. **Eval expansion** — 36→100+ вопросов (decompose required_claims, add navigation/refusal)
+6. **Unit tests cleanup** — удалить мёртвые тесты, покрыть analytics/state machine
+7. **Ablation study** — ColBERT / reranker / RRF weights
 
 ### Backlog (исследовано, не реализовано)
 
 | Technique | Expected impact | Effort | Reference |
 |-----------|----------------|--------|-----------|
-| Contextual Retrieval | +10-20% recall | 3-5 days | Anthropic technique, R11 |
-| Fine-tune Qwen3-Embedding | +5-15% recall | 3-7 days | Hard negatives from our data |
-| CRAG (Corrective RAG) | +10-15% на сложных | 2-3 days | R11 §3 |
-| BM25-based diversity | +2-4% recall | 1 day | R11 §2 |
-| Reranker-as-fusion | Unknown | 1-2 days | R11 §2 |
-| Hot topics (BERTopic) | New capability | 2-3 days | R17 T2 |
-| Channel expertise | New capability | 1-2 days | R17 T5 |
-| Arxiv full-text ingest | New capability | 2-3 days | SPEC-RAG-15 future ideas |
+| NLI citation faithfulness | Hallucination / grounding metric | 1-2 days | R19 |
+| NDR / RSR / ROR robustness | Production confidence in retrieval | 1 day + compute | R20 |
+| CRAG-lite quality gate | Better fail-safe behavior | 2-3 days | R25 + CRAG |
+| Prompt injection defense | Security hardening | 0.5 day | R25 |
+| GPT-4o comparison | External baseline / credibility | 0.5 day | R25 |
+| Health/readiness endpoints | Ops hygiene | 10-30 min | R25 |
+| RAG necessity classifier | Latency / avoid unnecessary retrieval | 0.5 day | R21 |
 
 Подробные описания техник: [experiment_history.md](experiment_history.md) → Tier 1/2/3 секции.

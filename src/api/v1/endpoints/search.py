@@ -21,12 +21,10 @@ from schemas.search import (
     SearchRequest,
     SearchResponse,
 )
-from core.auth import require_scopes, TokenData
 from utils.ranking import rrf_merge, mmr_select, _get_item_id
 import numpy as np
 
 logger = logging.getLogger(__name__)
-require_read = require_scopes("read")
 router = APIRouter()
 
 
@@ -102,7 +100,7 @@ async def save_to_cache(redis_client, cache_key: str, data: dict, ttl: int):
 @router.post("/search/plan", response_model=SearchPlan, tags=["search"])
 async def build_plan(
     request: SearchPlanRequest,
-    _user: TokenData = Depends(require_read),  # FIX-06
+
     planner=Depends(get_query_planner),
     settings: Settings = Depends(get_settings),
 ) -> SearchPlan:
@@ -114,7 +112,7 @@ async def build_plan(
 @router.post("/search", response_model=SearchResponse, tags=["search"])
 async def semantic_search(
     request: SearchRequest,
-    _user: TokenData = Depends(require_read),  # FIX-06
+
     retriever=Depends(get_retriever),
     planner=Depends(get_query_planner),
     redis_client=Depends(get_redis_client),

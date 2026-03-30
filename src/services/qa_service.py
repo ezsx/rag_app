@@ -191,11 +191,11 @@ class QAService:
             # Проверяем кеш фьюжна
             fusion_key = f"fusion:{hash(query + plan.json())}"
             cached = self.planner.get_cached_fusion(fusion_key)
+            merged_items: List[Dict[str, Any]] = []
             if cached is not None:
                 merged = cached  # type: ignore
             else:
                 # Если включен гибрид — используем его единый список кандидатов
-                merged_items = []
                 if self.settings.hybrid_enabled and self.hybrid is not None:
                     try:
                         candidates = self.hybrid.search_with_plan(query, plan)

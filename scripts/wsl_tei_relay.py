@@ -19,7 +19,7 @@ UPSTREAM = os.environ.get("WSL_TEI_RELAY_UPSTREAM", "http://127.0.0.1:8082").rst
 
 
 def _run_wsl_curl(method: str, path: str, body: bytes | None = None) -> tuple[int, bytes]:
-    """Проксировать HTTP-запрос в WSL через curl."""
+    """Проксировать HTTP-запрос в WSL через curl с сохранением status code."""
 
     target = f"{UPSTREAM}{path}"
     curl_cmd = [
@@ -29,6 +29,8 @@ def _run_wsl_curl(method: str, path: str, body: bytes | None = None) -> tuple[in
         method,
         "-H",
         "Content-Type: application/json",
+        "-w",
+        "__STATUS__:%{http_code}",
         target,
     ]
     if body is not None:
@@ -47,11 +49,34 @@ def _run_wsl_curl(method: str, path: str, body: bytes | None = None) -> tuple[in
             "stderr": result.stderr.decode("utf-8", "replace"),
         }
         return 502, json.dumps(error, ensure_ascii=False).encode("utf-8")
-    return 200, result.stdout
+
+    marker = b"__STATUS__:"
+    body_bytes, _, status_bytes = result.stdout.rpartition(marker)
+    if not status_bytes:
+        error = {
+            "error": "wsl relay upstream missing status marker",
+        }
+        return 502, json.dumps(error, ensure_ascii=False).encode("utf-8")
+
+    try:
+        status = int(status_bytes.decode("ascii", "strict").strip())
+    except ValueError:
+        error = {
+            "error": "wsl relay invalid upstream status",
+            "raw_status": status_bytes.decode("utf-8", "replace"),
+        }
+        return 502, json.dumps(error, ensure_ascii=False).encode("utf-8")
+
+    return status, body_bytes
 
 
 class Handler(BaseHTTPRequestHandler):
-    """Минимальный relay-handler для TEI/gpu_server endpoints."""
+    """Минимальный relay-handler для gpu_server endpoints.
+
+    Прозрачно проксирует все JSON GET/POST пути к WSL-local upstream.
+    Это важно для /rerank и /colbert-encode: они не должны требовать
+    отдельного ручного allowlist в relay.
+    """
 
     server_version = "wsl-tei-relay/1.0"
 
@@ -63,16 +88,10 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self) -> None:
-        if self.path != "/health":
-            self._send(404, b'{"error":"not found"}')
-            return
         status, body = _run_wsl_curl("GET", self.path)
         self._send(status, body)
 
     def do_POST(self) -> None:
-        if self.path not in {"/v1/embeddings", "/embed"}:
-            self._send(404, b'{"error":"not found"}')
-            return
         length = int(self.headers.get("Content-Length", "0"))
         body = self.rfile.read(length) if length else b""
         status, response = _run_wsl_curl("POST", self.path, body)

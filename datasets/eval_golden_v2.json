@@ -1,0 +1,1747 @@
+[
+  {
+    "id": "golden_q01",
+    "version": "2.0",
+    "query": "Кого Financial Times назвала человеком года в 2025?",
+    "expected_answer": "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии.",
+    "category": "broad_search",
+    "difficulty": "easy",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "search"
+    ],
+    "forbidden_tools": [
+      "temporal_search",
+      "summarize_channel",
+      "list_channels"
+    ],
+    "acceptable_alternatives": [],
+    "source_post_ids": [
+      "ai_machinelearning_big_data:9245"
+    ],
+    "source_channels": [
+      "ai_machinelearning_big_data"
+    ],
+    "calibration": true,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "nvidia",
+        "jensen_huang",
+        "factual"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "ai_machinelearning_big_data"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "ai_machinelearning_big_data:9245"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q02",
+    "version": "2.0",
+    "query": "Какие параметры у open-source моделей GPT от OpenAI?",
+    "expected_answer": "OpenAI выпустила две open-source модели под Apache 2.0: 120B (117 млрд параметров, 5.1 млрд активных, MoE) и 20B (21 млрд параметров, 3.6 млрд активных, MoE). Используется 4-бит квантизация mxfp4.",
+    "category": "broad_search",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "search"
+    ],
+    "forbidden_tools": [
+      "temporal_search",
+      "list_channels"
+    ],
+    "acceptable_alternatives": [],
+    "source_post_ids": [
+      "rybolos_channel:1562"
+    ],
+    "source_channels": [
+      "rybolos_channel"
+    ],
+    "calibration": true,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "openai",
+        "open_source",
+        "parameters"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "OpenAI выпустила две open-source модели под Apache 2.0: 120B (117 млрд параметров, 5.1 млрд активных, MoE) и 20B (21 млрд параметров, 3.6 млрд активных, MoE). Используется 4-бит квантизация mxfp4."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "rybolos_channel"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "rybolos_channel:1562"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q03",
+    "version": "2.0",
+    "query": "За сколько Meta купила Manus AI?",
+    "expected_answer": "Meta купила Manus AI за $2 млрд. Manus — это агент с возможностями управления браузером и deep research, с выручкой более $100 млн в год.",
+    "category": "broad_search",
+    "difficulty": "easy",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "search"
+    ],
+    "forbidden_tools": [
+      "temporal_search",
+      "summarize_channel"
+    ],
+    "acceptable_alternatives": [],
+    "source_post_ids": [
+      "ai_newz:4355"
+    ],
+    "source_channels": [
+      "ai_newz"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "meta",
+        "manus",
+        "acquisition"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "Meta купила Manus AI за $2 млрд. Manus — это агент с возможностями управления браузером и deep research, с выручкой более $100 млн в год."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "ai_newz"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "ai_newz:4355"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q04",
+    "version": "2.0",
+    "query": "Что нового у DeepSeek? Какие модели они выпустили?",
+    "expected_answer": "DeepSeek выпустили V3 с новыми возможностями и mHC (Manifold-Constrained Hyper-Connections) — переосмысление residual stream.",
+    "category": "broad_search",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "search"
+    ],
+    "forbidden_tools": [
+      "list_channels",
+      "summarize_channel"
+    ],
+    "acceptable_alternatives": [],
+    "source_post_ids": [
+      "seeallochnaya:3162",
+      "seeallochnaya:3243"
+    ],
+    "source_channels": [
+      "seeallochnaya"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "deepseek",
+        "entity"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "DeepSeek выпустили V3 с новыми возможностями и mHC (Manifold-Constrained Hyper-Connections) — переосмысление residual stream."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "seeallochnaya"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "seeallochnaya:3162",
+        "seeallochnaya:3243"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q05",
+    "version": "2.0",
+    "query": "Какие open-source модели для генерации изображений существуют?",
+    "expected_answer": "FLUX.2 от Black Forest Labs и Kandinsky 5.0 от Сбера — открытые модели генерации изображений.",
+    "category": "broad_search",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "search"
+    ],
+    "forbidden_tools": [
+      "temporal_search",
+      "channel_search"
+    ],
+    "acceptable_alternatives": [],
+    "source_post_ids": [
+      "ai_newz:4276",
+      "data_secrets:8305"
+    ],
+    "source_channels": [
+      "ai_newz",
+      "data_secrets"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "image_generation",
+        "flux",
+        "kandinsky"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "FLUX.2 от Black Forest Labs и Kandinsky 5.0 от Сбера — открытые модели генерации изображений."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "ai_newz",
+      "data_secrets"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "ai_newz:4276",
+        "data_secrets:8305"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q06",
+    "version": "2.0",
+    "query": "Что обсуждалось в AI-каналах в январе 2026?",
+    "expected_answer": "В январе 2026 обсуждались: агенты для автоматизации ИИ-исследований и эффект Франкенштейна в gonzo_ml; результаты Gemini 3 Flash Preview на бенчмарке any2json в boris_again.",
+    "category": "constrained_search",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "temporal_search"
+    ],
+    "forbidden_tools": [
+      "channel_search",
+      "list_channels",
+      "summarize_channel"
+    ],
+    "acceptable_alternatives": [
+      "search"
+    ],
+    "source_post_ids": [
+      "gonzo_ml:4656",
+      "boris_again:3701"
+    ],
+    "source_channels": [
+      "gonzo_ml",
+      "boris_again"
+    ],
+    "calibration": true,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "temporal",
+        "january_2026"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "В январе 2026 обсуждались: агенты для автоматизации ИИ-исследований и эффект Франкенштейна в gonzo_ml; результаты Gemini 3 Flash Preview на бенчмарке any2json в boris_again."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "gonzo_ml",
+      "boris_again"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "gonzo_ml:4656",
+        "boris_again:3701"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q07",
+    "version": "2.0",
+    "query": "Что было на GTC 2026 от NVIDIA?",
+    "expected_answer": "На GTC 2026 NVIDIA представила платформу Vera Rubin с GPU нового поколения.",
+    "category": "constrained_search",
+    "difficulty": "easy",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "temporal_search"
+    ],
+    "forbidden_tools": [
+      "channel_search",
+      "list_channels"
+    ],
+    "acceptable_alternatives": [
+      "search"
+    ],
+    "source_post_ids": [
+      "ai_machinelearning_big_data:9678"
+    ],
+    "source_channels": [
+      "ai_machinelearning_big_data"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "nvidia",
+        "gtc",
+        "temporal"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "На GTC 2026 NVIDIA представила платформу Vera Rubin с GPU нового поколения."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "ai_machinelearning_big_data"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "ai_machinelearning_big_data:9678"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q08",
+    "version": "2.0",
+    "query": "Какие AI-события произошли в феврале 2026?",
+    "expected_answer": "В феврале 2026 вышел Opus 4.6, Себрант обсуждал AI-тренды, танцующие роботы Agibot в Шанхае.",
+    "category": "constrained_search",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "temporal_search"
+    ],
+    "forbidden_tools": [
+      "channel_search",
+      "list_channels"
+    ],
+    "acceptable_alternatives": [
+      "search"
+    ],
+    "source_post_ids": [
+      "boris_again:3740",
+      "techsparks:5444"
+    ],
+    "source_channels": [
+      "boris_again",
+      "techsparks"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "temporal",
+        "february_2026"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "В феврале 2026 вышел Opus 4.6, Себрант обсуждал AI-тренды, танцующие роботы Agibot в Шанхае."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "boris_again",
+      "techsparks"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "boris_again:3740",
+        "techsparks:5444"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q09",
+    "version": "2.0",
+    "query": "Что писал llm_under_hood про отключение reasoning у GPT-5?",
+    "expected_answer": "Автор llm_under_hood описал способ отключения reasoning у GPT-5 через developer role инструкцию. Juice — интенсивность работы ризонера.",
+    "category": "constrained_search",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "channel_search"
+    ],
+    "forbidden_tools": [
+      "temporal_search",
+      "list_channels",
+      "summarize_channel"
+    ],
+    "acceptable_alternatives": [
+      "search"
+    ],
+    "source_post_ids": [
+      "llm_under_hood:648"
+    ],
+    "source_channels": [
+      "llm_under_hood"
+    ],
+    "calibration": true,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "channel",
+        "llm_under_hood",
+        "gpt5"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "Автор llm_under_hood описал способ отключения reasoning у GPT-5 через developer role инструкцию. Juice — интенсивность работы ризонера."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "llm_under_hood"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "llm_under_hood:648"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q10",
+    "version": "2.0",
+    "query": "О чём писал gonzo_ml про трансформеры и рекуррентные сети?",
+    "expected_answer": "gonzo_ml писал об AlphaGenome от DeepMind и ограничениях рекуррентных нейросетей по сравнению с трансформерами.",
+    "category": "constrained_search",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "channel_search"
+    ],
+    "forbidden_tools": [
+      "temporal_search",
+      "list_channels"
+    ],
+    "acceptable_alternatives": [
+      "search"
+    ],
+    "source_post_ids": [
+      "gonzo_ml:4885",
+      "gonzo_ml:4667"
+    ],
+    "source_channels": [
+      "gonzo_ml"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "channel",
+        "gonzo_ml",
+        "transformers"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "gonzo_ml писал об AlphaGenome от DeepMind и ограничениях рекуррентных нейросетей по сравнению с трансформерами."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "gonzo_ml"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "gonzo_ml:4885",
+        "gonzo_ml:4667"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q11",
+    "version": "2.0",
+    "query": "Что Борис Цейтлин думает о Claude Opus 4.6?",
+    "expected_answer": "Борис Цейтлин считает Opus 4.6 самым близким к автономной модели на данный момент.",
+    "category": "constrained_search",
+    "difficulty": "easy",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "channel_search"
+    ],
+    "forbidden_tools": [
+      "temporal_search",
+      "list_channels"
+    ],
+    "acceptable_alternatives": [
+      "search"
+    ],
+    "source_post_ids": [
+      "boris_again:3740"
+    ],
+    "source_channels": [
+      "boris_again"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "channel",
+        "boris_again",
+        "claude"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "Борис Цейтлин считает Opus 4.6 самым близким к автономной модели на данный момент."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "boris_again"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "boris_again:3740"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q12",
+    "version": "2.0",
+    "query": "Что seeallochnaya писал про GPT-5?",
+    "expected_answer": "seeallochnaya писал о выходе GPT-5.3 и GPT-5.4 с интервалом в два дня.",
+    "category": "constrained_search",
+    "difficulty": "easy",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "channel_search"
+    ],
+    "forbidden_tools": [
+      "temporal_search",
+      "list_channels"
+    ],
+    "acceptable_alternatives": [
+      "search"
+    ],
+    "source_post_ids": [
+      "seeallochnaya:3445"
+    ],
+    "source_channels": [
+      "seeallochnaya"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "channel",
+        "seeallochnaya",
+        "gpt5"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "seeallochnaya писал о выходе GPT-5.3 и GPT-5.4 с интервалом в два дня."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "seeallochnaya"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "seeallochnaya:3445"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q13",
+    "version": "2.0",
+    "query": "Как разные каналы обсуждали покупку Manus компанией Meta?",
+    "expected_answer": "Покупку Manus AI за $2 млрд обсуждали минимум 3 канала: ai_newz (подробный разбор), aioftheday (краткая новость), data_secrets (акцент на хайпе).",
+    "category": "compare_summarize",
+    "difficulty": "hard",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "cross_channel_compare"
+    ],
+    "forbidden_tools": [
+      "list_channels",
+      "summarize_channel"
+    ],
+    "acceptable_alternatives": [
+      "search"
+    ],
+    "source_post_ids": [
+      "ai_newz:4355",
+      "aioftheday:3988",
+      "data_secrets:8582"
+    ],
+    "source_channels": [
+      "ai_newz",
+      "aioftheday",
+      "data_secrets"
+    ],
+    "calibration": true,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "cross_channel",
+        "manus",
+        "meta"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "Покупку Manus AI за $2 млрд обсуждали минимум 3 канала: ai_newz (подробный разбор), aioftheday (краткая новость), data_secrets (акцент на хайпе)."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "ai_newz",
+      "aioftheday",
+      "data_secrets"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "ai_newz:4355",
+        "aioftheday:3988",
+        "data_secrets:8582"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q14",
+    "version": "2.0",
+    "query": "Сравни как разные каналы обсуждали DeepSeek — какие мнения?",
+    "expected_answer": "DeepSeek обсуждался широко: seeallochnaya — технические детали V3 и mHC, ai_machinelearning_big_data — безопасность и атаки, другие — общие новости релизов.",
+    "category": "compare_summarize",
+    "difficulty": "hard",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "cross_channel_compare"
+    ],
+    "forbidden_tools": [
+      "list_channels"
+    ],
+    "acceptable_alternatives": [
+      "search"
+    ],
+    "source_post_ids": [
+      "seeallochnaya:3162",
+      "ai_machinelearning_big_data:9583"
+    ],
+    "source_channels": [
+      "seeallochnaya",
+      "ai_machinelearning_big_data"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "cross_channel",
+        "deepseek"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "DeepSeek обсуждался широко: seeallochnaya — технические детали V3 и mHC, ai_machinelearning_big_data — безопасность и атаки, другие — общие новости релизов."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "seeallochnaya",
+      "ai_machinelearning_big_data"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "seeallochnaya:3162",
+        "ai_machinelearning_big_data:9583"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q15",
+    "version": "2.0",
+    "query": "Что нового в канале techsparks за последнюю неделю?",
+    "expected_answer": "Дайджест последних постов techsparks — Себрант обсуждал AI-тренды, роботакси, маркетинг.",
+    "category": "compare_summarize",
+    "difficulty": "easy",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "summarize_channel"
+    ],
+    "forbidden_tools": [
+      "cross_channel_compare",
+      "list_channels"
+    ],
+    "acceptable_alternatives": [
+      "channel_search"
+    ],
+    "source_post_ids": [
+      "techsparks:5444",
+      "techsparks:5439"
+    ],
+    "source_channels": [
+      "techsparks"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "summarize",
+        "techsparks"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "Дайджест последних постов techsparks — Себрант обсуждал AI-тренды, роботакси, маркетинг."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "techsparks"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "techsparks:5444",
+        "techsparks:5439"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q16",
+    "version": "2.0",
+    "query": "Дай дайджест канала gonzo_ml за последний месяц",
+    "expected_answer": "gonzo_ml за последний месяц публиковал о трансформерах, рекуррентных сетях, AlphaGenome, и других ML-темах.",
+    "category": "compare_summarize",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "summarize_channel"
+    ],
+    "forbidden_tools": [
+      "cross_channel_compare",
+      "list_channels"
+    ],
+    "acceptable_alternatives": [
+      "channel_search"
+    ],
+    "source_post_ids": [
+      "gonzo_ml:4885"
+    ],
+    "source_channels": [
+      "gonzo_ml"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "summarize",
+        "gonzo_ml"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "gonzo_ml за последний месяц публиковал о трансформерах, рекуррентных сетях, AlphaGenome, и других ML-темах."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "gonzo_ml"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "gonzo_ml:4885"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q17",
+    "version": "2.0",
+    "query": "Какие каналы у вас есть?",
+    "expected_answer": "В базе 36 Telegram-каналов: ai_machinelearning_big_data (1705 постов), xor_journal (1346), data_secrets (1262), seeallochnaya (1029), aioftheday (970), gonzo_ml (820) и другие.",
+    "category": "navigation",
+    "difficulty": "easy",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "list_channels"
+    ],
+    "forbidden_tools": [
+      "search",
+      "temporal_search",
+      "channel_search",
+      "cross_channel_compare",
+      "rerank"
+    ],
+    "acceptable_alternatives": [],
+    "source_post_ids": [],
+    "source_channels": [],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "navigation",
+        "list_channels"
+      ]
+    },
+    "eval_mode": "navigation",
+    "required_claims": [
+      "Ответ должен использовать navigation/meta capability без обычного retrieval path",
+      "В базе 36 Telegram-каналов: ai_machinelearning_big_data (1705 постов), xor_journal (1346), data_secrets (1262), seeallochnaya (1029), aioftheday (970), gonzo_ml (820) и другие."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q18",
+    "version": "2.0",
+    "query": "Сколько постов в канале llm_under_hood?",
+    "expected_answer": "В канале llm_under_hood 261 пост.",
+    "category": "navigation",
+    "difficulty": "easy",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "list_channels"
+    ],
+    "forbidden_tools": [
+      "search",
+      "temporal_search",
+      "cross_channel_compare"
+    ],
+    "acceptable_alternatives": [],
+    "source_post_ids": [],
+    "source_channels": [
+      "llm_under_hood"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "navigation",
+        "list_channels",
+        "count"
+      ]
+    },
+    "eval_mode": "navigation",
+    "required_claims": [
+      "Ответ должен использовать navigation/meta capability без обычного retrieval path",
+      "В канале llm_under_hood 261 пост."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "llm_under_hood"
+    ],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q19",
+    "version": "2.0",
+    "query": "Существует ли модель GPT-7?",
+    "expected_answer": "",
+    "category": "negative_refusal",
+    "difficulty": "easy",
+    "answerable": false,
+    "expected_refusal": true,
+    "refusal_reason": "out_of_database",
+    "key_tools": [],
+    "forbidden_tools": [],
+    "acceptable_alternatives": [],
+    "source_post_ids": [],
+    "source_channels": [],
+    "calibration": true,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "negative",
+        "nonexistent"
+      ]
+    },
+    "eval_mode": "refusal",
+    "required_claims": [
+      "Агент должен корректно отказаться: out_of_database"
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q20",
+    "version": "2.0",
+    "query": "Выходила ли модель Bard 3 от Google?",
+    "expected_answer": "",
+    "category": "negative_refusal",
+    "difficulty": "easy",
+    "answerable": false,
+    "expected_refusal": true,
+    "refusal_reason": "out_of_database",
+    "key_tools": [],
+    "forbidden_tools": [],
+    "acceptable_alternatives": [],
+    "source_post_ids": [],
+    "source_channels": [],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "negative",
+        "nonexistent"
+      ]
+    },
+    "eval_mode": "refusal",
+    "required_claims": [
+      "Агент должен корректно отказаться: out_of_database"
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q21",
+    "version": "2.0",
+    "query": "Что обсуждалось в AI-каналах в апреле 2024?",
+    "expected_answer": "",
+    "category": "negative_refusal",
+    "difficulty": "medium",
+    "answerable": false,
+    "expected_refusal": true,
+    "refusal_reason": "out_of_timerange",
+    "key_tools": [],
+    "forbidden_tools": [],
+    "acceptable_alternatives": [],
+    "source_post_ids": [],
+    "source_channels": [],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "negative",
+        "out_of_timerange"
+      ]
+    },
+    "eval_mode": "refusal",
+    "required_claims": [
+      "Агент должен корректно отказаться: out_of_timerange"
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q22",
+    "version": "2.0",
+    "query": "Как менялось обсуждение OpenAI в каналах за последние 3 месяца?",
+    "expected_answer": "OpenAI — одна из самых упоминаемых сущностей (~1600 упоминаний). Динамика по неделям показывает стабильно высокий интерес с пиками на фоне крупных релизов.",
+    "category": "future_baseline",
+    "difficulty": "hard",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "entity_tracker"
+    ],
+    "forbidden_tools": [],
+    "acceptable_alternatives": [
+      "temporal_search",
+      "search"
+    ],
+    "source_post_ids": [
+      "seeallochnaya:3445",
+      "rybolos_channel:1562"
+    ],
+    "source_channels": [
+      "seeallochnaya",
+      "rybolos_channel"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "future",
+        "entity_tracker",
+        "openai",
+        "timeline"
+      ]
+    },
+    "eval_mode": "analytics",
+    "required_claims": [
+      "Ответ должен опираться на analytics tool output, а не на обычный search path",
+      "OpenAI — одна из самых упоминаемых сущностей (~1600 упоминаний). Динамика по неделям показывает стабильно высокий интерес с пиками на фоне крупных релизов."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "seeallochnaya",
+      "rybolos_channel"
+    ],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q23",
+    "version": "2.0",
+    "query": "Какие arxiv-статьи больше всего обсуждались в каналах?",
+    "expected_answer": "В каналах упоминаются ~50-70 уникальных arxiv papers. Наиболее обсуждаемые: arxiv:2502.13266 (4 упоминания) и другие. Максимум 4 упоминания на статью.",
+    "category": "future_baseline",
+    "difficulty": "hard",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "arxiv_tracker"
+    ],
+    "forbidden_tools": [],
+    "acceptable_alternatives": [
+      "search"
+    ],
+    "source_post_ids": [
+      "gonzo_ml:4242",
+      "seeallochnaya:3162"
+    ],
+    "source_channels": [
+      "gonzo_ml",
+      "seeallochnaya"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "future",
+        "arxiv_tracker",
+        "papers"
+      ]
+    },
+    "eval_mode": "analytics",
+    "required_claims": [
+      "Ответ должен опираться на analytics tool output, а не на обычный search path",
+      "В каналах упоминаются ~50-70 уникальных arxiv papers. Наиболее обсуждаемые: arxiv:2502.13266 (4 упоминания) и другие. Максимум 4 упоминания на статью."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "gonzo_ml",
+      "seeallochnaya"
+    ],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q24",
+    "version": "2.0",
+    "query": "Какой канал специализируется на робототехнике и роботакси?",
+    "expected_answer": "techsparks (Андрей Себрант) часто пишет про роботакси — Pony.ai в Шэньчжэне, танцующие роботы Agibot.",
+    "category": "future_baseline",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "channel_expertise"
+    ],
+    "forbidden_tools": [],
+    "acceptable_alternatives": [
+      "search",
+      "channel_search"
+    ],
+    "source_post_ids": [
+      "techsparks:5286",
+      "techsparks:5439"
+    ],
+    "source_channels": [
+      "techsparks"
+    ],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-24",
+      "created_by": "human",
+      "tags": [
+        "channel_expertise",
+        "robotics"
+      ]
+    },
+    "eval_mode": "analytics",
+    "required_claims": [
+      "Назван как минимум один канал специализирующийся на робототехнике/роботакси",
+      "techsparks или другой канал с фактическим покрытием темы"
+    ],
+    "expected_entities": [],
+    "expected_topics": [
+      "робототехника",
+      "роботакси"
+    ],
+    "expected_channels": [
+      "techsparks"
+    ],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q25",
+    "version": "2.0",
+    "query": "Какие подходы к использованию LLM в production обсуждались в каналах llm_under_hood и boris_again?",
+    "expected_answer": "llm_under_hood: Schema-Guided Reasoning для извлечения сущностей из PDF; boris_again: бенчмарк any2json для тестирования моделей на конвертацию в JSON, курс Technical AI Safety.",
+    "category": "broad_search",
+    "difficulty": "hard",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "search"
+    ],
+    "forbidden_tools": [
+      "list_channels"
+    ],
+    "acceptable_alternatives": [
+      "cross_channel_compare",
+      "channel_search"
+    ],
+    "source_post_ids": [
+      "llm_under_hood:652",
+      "boris_again:3701",
+      "boris_again:3756"
+    ],
+    "source_channels": [
+      "llm_under_hood",
+      "boris_again"
+    ],
+    "calibration": true,
+    "metadata": {
+      "created_at": "2026-03-25",
+      "created_by": "human",
+      "tags": [
+        "multi_hop",
+        "production",
+        "llm"
+      ]
+    },
+    "eval_mode": "retrieval_evidence",
+    "required_claims": [
+      "llm_under_hood: Schema-Guided Reasoning для извлечения сущностей из PDF; boris_again: бенчмарк any2json для тестирования моделей на конвертацию в JSON, курс Technical AI Safety."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [
+      "llm_under_hood",
+      "boris_again"
+    ],
+    "acceptable_evidence_sets": [
+      [
+        "llm_under_hood:652",
+        "boris_again:3701",
+        "boris_again:3756"
+      ]
+    ],
+    "strict_anchor_recall_eligible": true
+  },
+  {
+    "id": "golden_q26",
+    "version": "2.0",
+    "query": "Какие AI-компании чаще всего упоминаются в каналах?",
+    "expected_answer": "Топ AI-компаний по упоминаниям (point-level): OpenAI, Google, Anthropic, NVIDIA, DeepSeek, Meta AI, Mistral AI и другие.",
+    "category": "future_baseline",
+    "difficulty": "easy",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "entity_tracker"
+    ],
+    "forbidden_tools": [
+      "search",
+      "temporal_search",
+      "channel_search"
+    ],
+    "acceptable_alternatives": [],
+    "source_post_ids": [],
+    "source_channels": [],
+    "calibration": true,
+    "metadata": {
+      "created_at": "2026-03-25",
+      "created_by": "human+claude",
+      "tags": [
+        "entity_tracker",
+        "top"
+      ]
+    },
+    "eval_mode": "analytics",
+    "required_claims": [
+      "Ответ должен опираться на analytics tool output, а не на обычный search path",
+      "Топ AI-компаний по упоминаниям (point-level): OpenAI, Google, Anthropic, NVIDIA, DeepSeek, Meta AI, Mistral AI и другие."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q27",
+    "version": "2.0",
+    "query": "Что обычно упоминается вместе с NVIDIA в каналах?",
+    "expected_answer": "Вместе с NVIDIA чаще всего упоминаются другие сущности из dictionary: OpenAI, Google, Anthropic, Gemini и другие AI-компании и модели (co-occurrence из entity payload).",
+    "category": "future_baseline",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "entity_tracker"
+    ],
+    "forbidden_tools": [
+      "search",
+      "temporal_search"
+    ],
+    "acceptable_alternatives": [],
+    "source_post_ids": [],
+    "source_channels": [],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-25",
+      "created_by": "human+claude",
+      "tags": [
+        "entity_tracker",
+        "co_occurrence",
+        "nvidia"
+      ]
+    },
+    "eval_mode": "analytics",
+    "required_claims": [
+      "Ответ должен опираться на analytics tool output, а не на обычный search path",
+      "Вместе с NVIDIA чаще всего упоминаются другие сущности из dictionary: OpenAI, Google, Anthropic, Gemini и другие AI-компании и модели (co-occurrence из entity payload)."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q28",
+    "version": "2.0",
+    "query": "Сравни популярность OpenAI и DeepSeek — кого обсуждают больше?",
+    "expected_answer": "OpenAI упоминается значительно чаще DeepSeek. DeepSeek имел выраженный пик в конце ноября 2025 на фоне выхода V3. Числа — point-level counts.",
+    "category": "future_baseline",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "entity_tracker"
+    ],
+    "forbidden_tools": [
+      "search",
+      "list_channels"
+    ],
+    "acceptable_alternatives": [],
+    "source_post_ids": [],
+    "source_channels": [],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-25",
+      "created_by": "human+claude",
+      "tags": [
+        "entity_tracker",
+        "compare",
+        "openai",
+        "deepseek"
+      ]
+    },
+    "eval_mode": "analytics",
+    "required_claims": [
+      "Ответ должен опираться на analytics tool output, а не на обычный search path",
+      "OpenAI упоминается значительно чаще DeepSeek. DeepSeek имел выраженный пик в конце ноября 2025 на фоне выхода V3. Числа — point-level counts."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q29",
+    "version": "2.0",
+    "query": "Какие arxiv-статьи чаще всего цитировались в каналах?",
+    "expected_answer": "Наиболее обсуждаемые arxiv papers по point-level counts: arxiv:2502.13266 и другие. Корпус содержит десятки уникальных arxiv IDs, данные sparse (max ~4 упоминания на paper).",
+    "category": "future_baseline",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "arxiv_tracker"
+    ],
+    "forbidden_tools": [
+      "search",
+      "temporal_search"
+    ],
+    "acceptable_alternatives": [],
+    "source_post_ids": [],
+    "source_channels": [],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-25",
+      "created_by": "human+claude",
+      "tags": [
+        "arxiv_tracker",
+        "top"
+      ]
+    },
+    "eval_mode": "analytics",
+    "required_claims": [
+      "Ответ должен опираться на analytics tool output, а не на обычный search path",
+      "Наиболее обсуждаемые arxiv papers по point-level counts: arxiv:2502.13266 и другие. Корпус содержит десятки уникальных arxiv IDs, данные sparse (max ~4 упоминания на paper)."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_q30",
+    "version": "2.0",
+    "query": "Кто обсуждал arxiv paper 1706.03762?",
+    "expected_answer": "Paper arxiv:1706.03762 (Attention Is All You Need) упоминалась в нескольких постах. Конкретные каналы и контекст обсуждений доступны через lookup.",
+    "category": "future_baseline",
+    "difficulty": "hard",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "key_tools": [
+      "arxiv_tracker"
+    ],
+    "forbidden_tools": [
+      "list_channels"
+    ],
+    "acceptable_alternatives": [
+      "search"
+    ],
+    "source_post_ids": [],
+    "source_channels": [],
+    "calibration": false,
+    "metadata": {
+      "created_at": "2026-03-25",
+      "created_by": "human+claude",
+      "tags": [
+        "arxiv_tracker",
+        "lookup",
+        "attention"
+      ]
+    },
+    "eval_mode": "analytics",
+    "required_claims": [
+      "Ответ должен опираться на analytics tool output, а не на обычный search path",
+      "Paper arxiv:1706.03762 (Attention Is All You Need) упоминалась в нескольких постах. Конкретные каналы и контекст обсуждений доступны через lookup."
+    ],
+    "expected_entities": [],
+    "expected_topics": [],
+    "expected_channels": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false
+  },
+  {
+    "id": "golden_v2_q31",
+    "version": "2.0",
+    "query": "Какие горячие темы были на неделе 2026-W10?",
+    "expected_answer": "В неделю 2026-W10 среди горячих тем фигурировали Apple (iPhone 17, AirPods), GPT-5.4 и Codex, а также связанные обсуждения вокруг code review и безопасности.",
+    "category": "analytics_hot_topics",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "eval_mode": "analytics",
+    "key_tools": [
+      "hot_topics"
+    ],
+    "forbidden_tools": [
+      "search",
+      "temporal_search"
+    ],
+    "acceptable_alternatives": [],
+    "required_claims": [
+      "Ответ должен использовать hot_topics для периода 2026-W10",
+      "Ответ должен назвать минимум две реальные горячие темы недели"
+    ],
+    "expected_entities": [
+      "OpenAI",
+      "Claude",
+      "Anthropic"
+    ],
+    "expected_topics": [
+      "GPT-5.4",
+      "Codex",
+      "iPhone 17",
+      "AirPods"
+    ],
+    "expected_channels": [],
+    "source_post_ids": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false,
+    "calibration": false,
+    "notes": "analytics tool, judge checks period resolution and topic coverage",
+    "metadata": {
+      "created_at": "2026-03-30",
+      "created_by": "human+codex",
+      "tags": [
+        "hot_topics",
+        "w10"
+      ]
+    }
+  },
+  {
+    "id": "golden_v2_q32",
+    "version": "2.0",
+    "query": "Что обсуждали на неделе 2026-W11? Какие были тренды?",
+    "expected_answer": "На неделе 2026-W11 среди заметных трендов были Codex и RFC, Eval/ground truth, Amazon AI/AWS AI, а также связанные обсуждения вокруг NeurIPS и legal topics.",
+    "category": "analytics_hot_topics",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "eval_mode": "analytics",
+    "key_tools": [
+      "hot_topics"
+    ],
+    "forbidden_tools": [
+      "search",
+      "temporal_search"
+    ],
+    "acceptable_alternatives": [],
+    "required_claims": [
+      "Ответ должен использовать hot_topics для периода 2026-W11",
+      "Ответ должен перечислить минимум две реальные темы из weekly digest за эту неделю"
+    ],
+    "expected_entities": [
+      "Claude",
+      "OpenAI",
+      "Anthropic"
+    ],
+    "expected_topics": [
+      "Codex",
+      "Eval",
+      "ground truth",
+      "Amazon AI"
+    ],
+    "expected_channels": [],
+    "source_post_ids": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false,
+    "calibration": false,
+    "notes": "analytics tool, weekly digest query",
+    "metadata": {
+      "created_at": "2026-03-30",
+      "created_by": "human+codex",
+      "tags": [
+        "hot_topics",
+        "w11"
+      ]
+    }
+  },
+  {
+    "id": "golden_v2_q33",
+    "version": "2.0",
+    "query": "Какие горячие темы были в марте 2026?",
+    "expected_answer": "В марте 2026 среди горячих тем выделялись GPT-5.4 и Codex, Apple-related announcements, Amazon AI/AWS AI и обсуждения eval/ground truth.",
+    "category": "analytics_hot_topics",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "eval_mode": "analytics",
+    "key_tools": [
+      "hot_topics"
+    ],
+    "forbidden_tools": [
+      "search",
+      "temporal_search"
+    ],
+    "acceptable_alternatives": [],
+    "required_claims": [
+      "Ответ должен использовать hot_topics для month aggregation",
+      "Ответ должен назвать минимум две темы, реально попавшие в мартовский digest"
+    ],
+    "expected_entities": [
+      "OpenAI",
+      "Claude",
+      "Anthropic",
+      "Google"
+    ],
+    "expected_topics": [
+      "GPT-5.4",
+      "Codex",
+      "Amazon AI",
+      "Eval"
+    ],
+    "expected_channels": [],
+    "source_post_ids": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false,
+    "calibration": false,
+    "notes": "analytics month aggregation",
+    "metadata": {
+      "created_at": "2026-03-30",
+      "created_by": "human+codex",
+      "tags": [
+        "hot_topics",
+        "month"
+      ]
+    }
+  },
+  {
+    "id": "golden_v2_q34",
+    "version": "2.0",
+    "query": "Какие каналы эксперты по NLP? Кто лучше разбирается в NLP?",
+    "expected_answer": "Среди сильных каналов по NLP должны появляться xor_journal, ai_newz и gonzo_ml; ответ должен опираться на channel_expertise ranking, а не на обычный search.",
+    "category": "analytics_channel_expertise",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "eval_mode": "analytics",
+    "key_tools": [
+      "channel_expertise"
+    ],
+    "forbidden_tools": [
+      "search",
+      "temporal_search"
+    ],
+    "acceptable_alternatives": [
+      "list_channels"
+    ],
+    "required_claims": [
+      "Ответ должен использовать topic mode инструмента channel_expertise",
+      "Ответ должен назвать минимум два релевантных канала из топа по NLP"
+    ],
+    "expected_entities": [],
+    "expected_topics": [
+      "NLP"
+    ],
+    "expected_channels": [
+      "xor_journal",
+      "ai_newz",
+      "gonzo_ml"
+    ],
+    "source_post_ids": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false,
+    "calibration": false,
+    "notes": "topic ranking for NLP",
+    "metadata": {
+      "created_at": "2026-03-30",
+      "created_by": "human+codex",
+      "tags": [
+        "channel_expertise",
+        "nlp"
+      ]
+    }
+  },
+  {
+    "id": "golden_v2_q35",
+    "version": "2.0",
+    "query": "В чём экспертиза канала gonzo_ml?",
+    "expected_answer": "Ответ должен вернуть профиль gonzo_ml: темы канала, top_topics и общий профиль экспертизы без обычного retrieval path.",
+    "category": "analytics_channel_expertise",
+    "difficulty": "easy",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "eval_mode": "analytics",
+    "key_tools": [
+      "channel_expertise"
+    ],
+    "forbidden_tools": [
+      "search",
+      "temporal_search",
+      "channel_search"
+    ],
+    "acceptable_alternatives": [
+      "list_channels"
+    ],
+    "required_claims": [
+      "Ответ должен использовать profile lookup режима channel_expertise",
+      "Ответ должен описать экспертизу конкретного канала gonzo_ml"
+    ],
+    "expected_entities": [],
+    "expected_topics": [
+      "architecture",
+      "papers",
+      "training"
+    ],
+    "expected_channels": [
+      "gonzo_ml"
+    ],
+    "source_post_ids": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false,
+    "calibration": false,
+    "notes": "direct channel profile lookup",
+    "metadata": {
+      "created_at": "2026-03-30",
+      "created_by": "human+codex",
+      "tags": [
+        "channel_expertise",
+        "profile",
+        "gonzo_ml"
+      ]
+    }
+  },
+  {
+    "id": "golden_v2_q36",
+    "version": "2.0",
+    "query": "Какие каналы лучше пишут про робототехнику и роботакси?",
+    "expected_answer": "Среди релевантных каналов по робототехнике и роботакси должен фигурировать techsparks; ответ должен использовать channel_expertise как ranking/profile tool.",
+    "category": "analytics_channel_expertise",
+    "difficulty": "medium",
+    "answerable": true,
+    "expected_refusal": false,
+    "refusal_reason": null,
+    "eval_mode": "analytics",
+    "key_tools": [
+      "channel_expertise"
+    ],
+    "forbidden_tools": [
+      "search",
+      "temporal_search"
+    ],
+    "acceptable_alternatives": [],
+    "required_claims": [
+      "Ответ должен использовать topic mode инструмента channel_expertise",
+      "Ответ должен назвать минимум один канал, релевантный теме робототехники/роботакси"
+    ],
+    "expected_entities": [],
+    "expected_topics": [
+      "robotics",
+      "robotaxi"
+    ],
+    "expected_channels": [
+      "techsparks"
+    ],
+    "source_post_ids": [],
+    "acceptable_evidence_sets": [],
+    "strict_anchor_recall_eligible": false,
+    "calibration": false,
+    "notes": "topic ranking for robotics / robotaxi. list_channels removed from alternatives — it gives empty nav response instead of topic ranking",
+    "metadata": {
+      "created_at": "2026-03-30",
+      "created_by": "human+codex",
+      "tags": [
+        "channel_expertise",
+        "robotics",
+        "robotaxi"
+      ]
+    }
+  }
+]

@@ -13,7 +13,6 @@ from api.v1.endpoints import (
     models,
     ingest,
     agent,
-    auth,
 )
 
 # Создаем главный роутер для API v1
@@ -27,4 +26,3 @@ router.include_router(search.router, tags=["search"])
 router.include_router(models.router, tags=["models"])
 router.include_router(ingest.router, tags=["ingest"])
 router.include_router(agent.router, tags=["agent"])
-router.include_router(auth.router, tags=["auth"])
