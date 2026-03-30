@@ -334,8 +334,8 @@ Eval-запросы: фактические, аналитические, tempora
 | Метрика | Значение |
 |---------|----------|
 | Key Tool Accuracy | 0.970 (35/36) |
-| Judge factual | 0.889 (32/36) |
-| Judge useful | 1.722/2 |
+| Consensus factual | 0.833 (30/36) |
+| Consensus useful | 1.611/2 |
 | Mean latency | 26.4s |
 | Eval run time | 15.8 min (36 Qs) |
 | Model | Qwen3.5-35B-A3B Q4_K_M |

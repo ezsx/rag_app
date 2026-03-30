@@ -50,46 +50,49 @@
 | q35 | analytics | 1.0 | 2.0 | channel_expertise only. Fixed: no unnecessary search pipeline. |
 | q36 | analytics | 1.0 | 2.0 | xor_journal for robotics. Correct channel_expertise data. |
 
-## Aggregate Metrics (after q32/q35 rerun)
+## Consensus Metrics (Claude + Codex, after q24/q33 rerun)
 
-- factual 1.0: 28 questions
-- factual 0.5: 8 questions (q05,q06,q08,q10,q12,q17,q24,q25)
-- factual 0: 0
+Conservative consensus: min(Claude, Codex) per question.
 
-**Factual: (28×1.0 + 8×0.5) / 36 = 32/36 = 0.889**
+Factual consensus (min of two judges):
+- 1.0: q01,q02,q03,q07,q09,q11,q13,q18,q19,q20,q21,q22,q23,q26,q27,q28,q29,q30,q31,q32,q33,q34,q35,q36 = 24
+- 0.5: q04,q05,q06,q08,q10,q12,q14,q15,q16,q17,q24,q25 = 12
+- 0.0: 0
 
-- useful 2.0: 27 questions (+q32, +q35 after fix)
-- useful 1.0: 8 questions (q05,q06,q08,q10,q12,q21,q24,q25)
-- useful 0.0: 1 question (q17)
+**Consensus Factual: (24×1.0 + 12×0.5) / 36 = 30/36 = 0.833**
 
-**Usefulness: (27×2 + 8×1 + 1×0) / 36 = 62/72 = 1.722**
+Useful consensus (min of two judges):
+- 2.0: q01,q02,q03,q07,q09,q11,q13,q18,q19,q20,q22,q23,q26,q27,q28,q29,q30,q31,q32,q33,q34,q35,q36 = 23
+- 1.0: q04,q05,q06,q08,q10,q12,q14,q15,q16,q21,q24,q25 = 12
+- 0.0: q17 = 1
+
+**Consensus Useful: (23×2 + 12×1 + 1×0) / 36 = 58/72 = 1.611**
 
 ## Summary
 
-| Metric | Qwen3 baseline | Qwen3.5 + observability + fixes |
-|--------|----------------|----------------------------------|
-| Factual | ~0.80 | **0.889** (+11%) |
-| Usefulness | ~1.53 | **1.722** (+13%) |
-| KTA | 1.000 | **0.970** (35/36, only q17 miss) |
+| Metric | Qwen3 baseline | Qwen3.5 + fixes (consensus) |
+|--------|----------------|-------------------------------|
+| Factual | ~0.80 | **0.833** (+4%) |
+| Usefulness | ~1.53 | **1.611** (+5%) |
+| KTA | 1.000 | **0.970** (35/36) |
 | Mean Latency | N/A (timeout'ы) | **26.4s** |
 | P95 Latency | N/A | **47.5s** |
 | Eval run time | ~40+ min | **15.8 min** |
+| Hallucinations | unknown | **0** |
 | Planner works | ❌ (39s timeout) | ✅ (4s) |
 | Subqueries | ❌ (fallback 1q) | ✅ (3-5 subqueries) |
-| Post-search pipeline | Sometimes skipped | ✅ (prompt enforced) |
 | Observability | ❌ none | ✅ Langfuse traces |
 
 ## Key improvements vs previous run
-1. Factual +11% — fewer hallucinations, better grounding
-2. Usefulness +13% — more complete answers with subqueries
-3. KTA 0.970 — only q17 (list_channels hidden) remains
-4. Planner actually works (chat_completion fix, 39s → 4s)
-5. Multi-query retrieval produces richer search results
-6. All traces visible in Langfuse with parent-child structure
-7. Eval run 2.5x faster (15.8 min vs ~40+ min)
+1. Zero hallucinations across all 36 questions
+2. Planner 10x faster (chat_completion fix, 39s → 4s)
+3. Multi-query retrieval (3-5 subqueries vs 1 fallback)
+4. Eval run 2.5x faster (15.8 min vs ~40+ min)
+5. Full Langfuse observability with parent-child trace trees
+6. Analytics tools work correctly (month aggregation, channel expertise)
 
 ## Remaining issues
 1. q17: list_channels tool hidden — visibility routing issue (1 KTA miss)
-2. q21: correct refusal but unnecessary search first (useful 1.0 not 2.0)
-3. 8 partial answers (factual 0.5) — missing specific expected claims, not hallucination
-4. Zero hallucinations across all 36 questions
+2. q24: model hedges on channel_expertise output (partial pass)
+3. 12 partial answers (factual 0.5) — missing specific expected claims, not hallucination
+4. Codex stricter on retrieval claims coverage (q04,q14,q15,q16)
