@@ -1,140 +1,173 @@
 # rag_app
 
-> **Work in progress.** Active development — architecture, retrieval pipeline, and evaluation are evolving rapidly.
-
-Self-hosted RAG system with an agentic ReAct pipeline over a curated collection of 36 Russian-language Telegram channels about AI/ML.
-
-No managed APIs. No frameworks. Custom retrieval pipeline built from scratch — hybrid search, ColBERT reranking, adaptive tool selection, all running on local hardware.
+Self-hosted RAG system with an agentic ReAct pipeline over 36 Russian-language Telegram channels about AI/ML. No managed APIs, no frameworks — custom retrieval pipeline on local hardware.
 
 ## What it does
 
-User asks a question → ReAct agent plans sub-queries → hybrid retrieval (BM25 + dense + ColBERT) over 13K documents → cross-encoder reranking → grounded answer with citations via SSE streaming.
+User asks a question. ReAct agent plans sub-queries, runs hybrid retrieval (BM25 + dense + ColBERT) over 13K+ documents, reranks with cross-encoder, produces a grounded answer with citations via SSE streaming.
 
 ```
-Query → query_plan (LLM) → search (BM25+Dense → RRF → ColBERT) → rerank → compose_context → answer
+Query → query_plan (3-5 subqueries) → search (BM25+Dense → RRF → ColBERT) → rerank → compose_context → answer
 ```
-http://localhost:8001/
+
 ## Architecture
 
-Full architecture document: [Architecture_ru.md](docs/Architecture_ru.md) (auto-generated from modular sources in `docs/architecture/`).
-
 ```
-┌─────────────────────────────────────────────────────────┐
-│ Windows Host                                            │
-│   llama-server.exe → V100 SXM2 32GB                     │
-│   Qwen3-30B-A3B (Q4_K_M), port 8080                     │
-└─────────────────────┬───────────────────────────────────┘
-                      │
-┌─────────────────────┼───────────────────────────────────┐
-│ WSL2 Native         │                                   │
-│   gpu_server.py → RTX 5060 Ti 16GB                      │
-│   Qwen3-Embedding-0.6B + bge-reranker-v2-m3             │
-│   + jina-colbert-v2 (560M), port 8082                   │
-└─────────────────────┼───────────────────────────────────┘
-                      │
-┌─────────────────────┼───────────────────────────────────┐
-│ Docker (CPU only)   │                                   │
-│   FastAPI + Web UI  │  Qdrant (dense + sparse + ColBERT)│
-│   port 8001         │  port 6333                        │
-└─────────────────────┴───────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ Windows Host                                                │
+│   llama-server.exe → V100 SXM2 32GB (TCC)                  │
+│   Qwen3.5-35B-A3B (Q4_K_M), port 8080                      │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+┌──────────────────────────┼──────────────────────────────────┐
+│ WSL2 Native              │                                  │
+│   gpu_server.py → RTX 5060 Ti 16GB                          │
+│   Qwen3-Embedding-0.6B + bge-reranker-v2-m3                │
+│   + jina-colbert-v2 (560M), port 8082                       │
+└──────────────────────────┼──────────────────────────────────┘
+                           │
+┌──────────────────────────┼──────────────────────────────────┐
+│ Docker (CPU only)        │                                  │
+│   FastAPI + Web UI (:8001)  Qdrant (:16333)                 │
+│   Langfuse v3 (:3100) — observability                       │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Why no Docker GPU?** V100 in TCC mode poisons NVML in WSL2 — nvidia-container-cli crashes for all GPUs. GPU workloads run natively via PyTorch in WSL2. See [decision log](docs/architecture/11-decisions/decision-log.md).
+V100 in TCC mode poisons NVML in WSL2 — Docker GPU unavailable. All GPU workloads run natively. See [decision log](docs/architecture/11-decisions/decision-log.md).
 
 ## Key components
 
 | Component | What | Where |
 |-----------|------|-------|
-| **LLM** | Qwen3-30B-A3B MoE (3B active) | V100 via llama-server |
+| **LLM** | Qwen3.5-35B-A3B MoE (3B active, Gated Delta Networks) | V100 via llama-server |
 | **Embedding** | Qwen3-Embedding-0.6B (1024-dim) | RTX 5060 Ti via gpu_server.py |
 | **Reranker** | bge-reranker-v2-m3 (cross-encoder) | RTX 5060 Ti via gpu_server.py |
 | **ColBERT** | jina-colbert-v2 (128-dim per-token MaxSim) | RTX 5060 Ti via gpu_server.py |
 | **Vector store** | Qdrant — 3 named vectors: dense, sparse (BM25), ColBERT | Docker |
 | **Fusion** | Weighted RRF (BM25 weight=3, dense weight=1) | — |
-| **Agent** | ReAct loop with native function calling, 15 LLM tools, dynamic visibility | — |
-| **Analytics** | Entity tracker + Arxiv tracker via Qdrant Facet API | — |
-| **Topics** | BERTopic cron pipeline → hot_topics + channel_expertise tools | — |
+| **Agent** | ReAct loop, native function calling, 15 tools, dynamic visibility | — |
+| **Analytics** | Entity/arxiv tracking via Qdrant Facet API, BERTopic trends | — |
+| **Observability** | Langfuse v3 — per-request traces with parent-child spans | Docker |
 | **Data** | 36 Telegram channels, 13K+ documents, Jul 2025 — Mar 2026 | — |
 
 ## Retrieval pipeline
 
 ```
 BM25 top-100 ──┐
-               ├── Weighted RRF (3:1) ── ColBERT rerank ── Cross-encoder rerank ── Channel dedup
+               ├── Weighted RRF (3:1) ── ColBERT rerank ── Cross-encoder rerank ── Channel dedup (max 2/ch)
 Dense top-20 ──┘
 ```
 
-Multi-query search: LLM generates sub-queries, all executed via round-robin merge. Original user query always included for BM25 keyword match.
+Multi-query: LLM generates 3-5 sub-queries via query planner, each runs independent hybrid retrieval, results merged via round-robin. Original user query always included for BM25 keyword match.
 
-## Current metrics
+## Agent tools (15)
 
-| Eval | Metric | Value | Questions |
-|------|--------|-------|-----------|
-| Golden v1 (post SPEC-RAG-15) | **Factual correctness** | **1.79/2** | 30 |
-| Golden v1 (post SPEC-RAG-15) | **Usefulness** | **1.72/2** | 30 |
-| Golden v1 (post SPEC-RAG-15) | Key tool accuracy | 0.926 | 30 |
-| Agent v1 (legacy) | Recall@5 | 0.76 | 10 |
-| Retrieval-only (direct Qdrant) | Recall@5 | 0.73 | 100 |
+Phase-based dynamic visibility (max 5 visible at a time), data-driven keyword routing.
 
-Manual judge (Claude Opus 4.6 + Codex GPT-5.4) is the primary metric — strict recall@5 is unreliable for analytics/temporal queries. Pipeline optimization history: 24 experiments across 5 eval datasets. Details in [playbook](docs/planning/retrieval_improvement_playbook.md).
+| Category | Tools |
+|----------|-------|
+| **Search** | `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel` |
+| **Analytics** | `entity_tracker` (top/timeline/compare/co-occurrence), `arxiv_tracker` (top/lookup) |
+| **Topics** | `hot_topics` (weekly/monthly trend digest), `channel_expertise` (per-channel profiles) |
+| **Planning** | `query_plan`, `list_channels` |
+| **Enrichment** | `rerank`, `related_posts`, `compose_context` |
+| **Synthesis** | `final_answer` |
+
+## Eval metrics
+
+Consensus judge: Claude Opus 4.6 + Codex GPT-5.4 (independent, then min).
+
+| Metric | Value |
+|--------|-------|
+| **Factual correctness** | **0.833** (24 full + 12 partial, 0 hallucinations) |
+| **Usefulness** | **1.611 / 2** |
+| **Key Tool Accuracy** | **0.970** (35/36) |
+| **Mean latency** | 26.4s |
+| **P95 latency** | 47.5s |
+| **Eval dataset** | 36 questions, 4 eval modes (retrieval, analytics, navigation, refusal) |
+
+24 experiments tracked in the [playbook](docs/planning/retrieval_improvement_playbook.md). Full eval history and per-question analysis available.
+
+## Observability
+
+Self-hosted Langfuse v3 (SPEC-RAG-19). Every agent request produces a trace tree:
+
+```
+agent_request (root)
+├── llm_step_1 → llm_chat_completion
+├── tool:query_plan → query_planner → llm_completion
+├── llm_step_2 → llm_chat_completion
+├── tool:search → hybrid_retrieval (per subquery)
+├── tool:rerank → rerank (cross-encoder)
+├── tool:compose_context
+├── llm_step_N_final → llm_chat_completion
+├── tool:final_answer
+└── tool[system]:verify → hybrid_retrieval
+```
+
+Session grouping, tags, per-question eval trace naming (`agent_request_q01..q36`).
 
 ## What didn't work (with evidence)
 
 | Technique | Result | Why |
 |-----------|--------|-----|
-| Cosine MMR | recall 0.70 → 0.11 | Re-promotes attractor documents |
-| Dense re-score after RRF | recall 0.33 → 0.15 | Erases BM25 contribution |
-| PCA whitening 1024→512 | recall 0.70 → 0.56 | Too aggressive dimensionality cut |
-| Whitening 1024→1024 | parity | Dense isn't bottleneck at BM25 3:1 |
+| Cosine MMR | recall 0.70 -> 0.11 | Re-promotes attractor documents |
+| Dense re-score after RRF | recall 0.33 -> 0.15 | Erases BM25 contribution |
+| PCA whitening 1024->512 | recall 0.70 -> 0.56 | Too aggressive dimensionality cut |
 | DBSF fusion | 0.72 vs RRF 0.73 | RRF slightly better |
 
 ## Development workflow
 
-This project is built with AI coding agents (Claude Code, Codex) following a structured engineering process — not prompt-and-pray vibe coding.
+Built with AI coding agents (Claude Code, Codex) following a structured process.
 
 ```
-Research → Specification → Implementation → Evaluation → Documentation
+Research (28 reports) → Specification (19 specs) → Implementation → Evaluation → Documentation
 ```
 
-**Research phase.** Every non-trivial decision starts with a Deep Research prompt that includes full project context — hardware constraints, current metrics, what was already tried. Produces numbered reports (R01–R18 so far) that become permanent reference. No throwaway ChatGPT threads.
+- **Research**: deep research prompts with full project context, numbered reports (R01-R28)
+- **Specifications**: concrete acceptance criteria, move to `completed/` after implementation
+- **Evaluation-driven**: every change measured against golden dataset before committing
+- **Architecture docs**: mirror current codebase, not aspirational
+- **Decision log**: 41 ADR entries documenting every architectural choice
 
-**Specification phase.** Research findings are distilled into specs with concrete acceptance criteria (recall targets, latency budgets, specific test queries). Specs live in `docs/specifications/active/` and move to `completed/` after implementation.
+## Quick start
 
-**Evaluation-driven development.** Every pipeline change is measured against golden datasets before committing. 22 experiments tracked in the [playbook](docs/planning/retrieval_improvement_playbook.md) with per-question analysis. Single-query verification before full eval runs (7 min each).
+```bash
+# 1. LLM on V100 (PowerShell)
+$env:CUDA_VISIBLE_DEVICES = "0"
+llama-server.exe -m models/Qwen3.5-35B-A3B-Q4_K_M.gguf --jinja --reasoning-budget 0 --cache-type-k q8_0 --cache-type-v q8_0 -c 32768
 
-**Documentation as source of truth.** `docs/architecture/` mirrors the current codebase — not aspirational, not historical. Agent context files (`CLAUDE.md`, `AGENTS.md`, `agent_context/`) enforce consistency across sessions. Governance rules in [02-documentation-governance.md](docs/architecture/00-meta/02-documentation-governance.md) prevent doc sprawl.
+# 2. Embedding + Reranker on RTX 5060 Ti (WSL2)
+source /home/ezsx/infinity-env/bin/activate
+CUDA_VISIBLE_DEVICES=0 python scripts/gpu_server.py
 
-**What this avoids:** orphaned docs nobody reads, "works on my machine" knowledge, regression from agents that don't know project history, accumulating technical debt from undocumented decisions.
+# 3. Langfuse observability (Docker)
+docker compose -f deploy/compose/compose.langfuse.yml up -d
 
-## Current: 15 Tools with Dynamic Visibility + Analytics + Topics (Phase 3.5 in progress)
+# 4. API + Qdrant (Docker)
+docker compose -f deploy/compose/compose.dev.yml up -d
 
-Agent has 15 tools with phase-based dynamic visibility (max 5 visible at a time):
-- **Search**: `search`, `temporal_search`, `channel_search`, `cross_channel_compare`, `summarize_channel`
-- **Analytics**: `entity_tracker` (top/timeline/compare/co-occurrence), `arxiv_tracker` (top/lookup)
-- **Topics**: `hot_topics` (BERTopic trend clusters), `channel_expertise` (per-channel topic profiles)
-- **Planning**: `query_plan`, `list_channels`
-- **Enrichment**: `rerank`, `related_posts`, `compose_context`
-- **Synthesis**: `final_answer`
-
-Data-driven routing: tool keywords + agent policies loaded from `datasets/tool_keywords.json`. Enriched payload (SPEC-RAG-12): 16 indexed fields including NER entities (91 AI/ML entities), arxiv IDs, year_week. Collection `news_colbert_v2` with 13K+ points. BERTopic cron pipeline (SPEC-RAG-16) clusters documents into `topic_clusters` collection for trend/expertise queries.
+# UI: http://localhost:8001
+# Langfuse: http://localhost:3100 (admin@local.dev / Admin123!@#)
+```
 
 ## Project structure
 
 ```
-src/                        Application code
-  adapters/                   Qdrant, LLM, TEI, hybrid retriever
-  api/                        FastAPI endpoints + SSE streaming
-  services/                   Agent service, tools, query planner, reranker
-  core/                       Settings, DI, auth
-  schemas/                    Pydantic models
-scripts/                    GPU server, evaluation, ingestion
+src/
+  adapters/           Qdrant, LLM (llama-server), TEI, hybrid retriever
+  api/                FastAPI endpoints + SSE streaming
+  services/           Agent service, 15 tools, query planner, reranker
+  core/               Settings, DI, observability (Langfuse)
+  schemas/            Pydantic models
+scripts/              GPU server, evaluation, ingestion, WSL networking helpers
 docs/
-  architecture/               Source of truth — current system state
-  research/                   20 research prompts + 18 reports
-  specifications/             Implementation specs (active + completed)
-  planning/                   Roadmap, playbook, implementation plans
-datasets/                   Golden dataset (30 Qs), entity dictionary, tool routing config
-deploy/                     Docker compose files
+  architecture/       Source of truth — current system state (41 decisions)
+  research/           30 prompts + 28 reports
+  specifications/     19 specs (active + completed)
+  planning/           Roadmap, playbook
+datasets/             Golden dataset (36 Qs), entity dictionary, tool routing config
+deploy/               Docker compose (dev, langfuse, test)
 ```
 
 ## License
