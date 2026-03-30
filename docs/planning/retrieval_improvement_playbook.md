@@ -11,7 +11,8 @@
 
 | Eval | Factual | Useful | KTA | Questions | Report |
 |------|---------|--------|-----|-----------|--------|
-| **Golden v2 baseline (SPEC-RAG-18)** | **~0.80/1** | **~1.53/2** | **1.000** | 36 | [R26-golden-v2-eval-baseline.md](../research/reports/R26-golden-v2-eval-baseline.md) |
+| **Qwen3.5 + observability (2026-03-30)** | **0.889** | **1.722** | **0.970** | 36 | [claude_judge_verdicts.md](../../results/eval_qwen35_langfuse/claude_judge_verdicts.md) |
+| Golden v2 baseline (Qwen3, SPEC-RAG-18) | ~0.80 | ~1.53 | 1.000 | 36 | [R26-golden-v2-eval-baseline.md](../research/reports/R26-golden-v2-eval-baseline.md) |
 | Golden v1 + SPEC-RAG-15 | 1.79/2 | 1.72/2 | 0.926 | 30 | [eval_judge_20260325_spec15.md](../../results/reports/eval_judge_20260325_spec15.md) |
 | Agent v1 (legacy) | — | — | — | 10, recall@5=0.76 | [details](experiment_history.md#agent-eval-v1) |
 | Agent v2 (legacy) | — | — | — | 10, recall@5=0.685 | [details](experiment_history.md#agent-eval-v2) |

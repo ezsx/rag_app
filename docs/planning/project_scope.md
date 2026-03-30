@@ -333,9 +333,13 @@ Eval-запросы: фактические, аналитические, tempora
 **Предыдущие метрики (golden_v1, 2026-03-25, SPEC-RAG-15):**
 | Метрика | Значение |
 |---------|----------|
-| Key Tool Accuracy | 0.926 |
-| Manual judge factual | 1.79/2 |
-| Manual judge useful | 1.72/2 |
+| Key Tool Accuracy | 0.970 (35/36) |
+| Judge factual | 0.889 (32/36) |
+| Judge useful | 1.722/2 |
+| Mean latency | 26.4s |
+| Eval run time | 15.8 min (36 Qs) |
+| Model | Qwen3.5-35B-A3B Q4_K_M |
+| Observability | Langfuse v3 (SPEC-RAG-19) |
 
 **Оставшиеся задачи (не blocker для Phase 3.4):**
 - [ ] Audit zero-recall cases: true miss / dataset too strict / alternative valid evidence

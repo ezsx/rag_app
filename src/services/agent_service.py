@@ -93,6 +93,7 @@ SYSTEM_PROMPT = """Ты — RAG-агент для поиска и анализа
 
 КРИТИЧЕСКИ ВАЖНО: после search/temporal_search/channel_search ты ОБЯЗАН вызвать rerank → compose_context → final_answer.
 НИКОГДА не отвечай текстом напрямую после поиска. Всегда используй compose_context для формирования ответа с цитатами.
+ИСКЛЮЧЕНИЕ: после аналитических tools (entity_tracker, arxiv_tracker, hot_topics, channel_expertise) сразу вызывай final_answer — им НЕ нужен rerank/compose_context.
 
 ПОСЛЕ ПОИСКА (если нужно):
    - related_posts — найти похожие посты к уже найденному
