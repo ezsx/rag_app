@@ -105,7 +105,8 @@ def load_nli():
     try:
         logger.info("Загрузка NLI: %s", NLI_MODEL_PATH)
         t0 = time.time()
-        nli_tokenizer = AutoTokenizer.from_pretrained(NLI_MODEL_PATH)
+        from transformers import XLMRobertaTokenizer
+        nli_tokenizer = XLMRobertaTokenizer.from_pretrained(NLI_MODEL_PATH)
         nli_model = AutoModelForSequenceClassification.from_pretrained(
             NLI_MODEL_PATH, torch_dtype=torch.float16,
         ).cuda().eval()
