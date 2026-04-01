@@ -723,10 +723,10 @@ class AgentEvaluationRunner:
                             cid = cit.get("id")
                             if cid and str(cid) in text_map:
                                 full_text = text_map[str(cid)]
-                            if len(full_text) > 1500:
-                                cit["text"] = full_text[:1500] + "... [ОБРЕЗАНО, полный текст длиннее]"
-                            else:
-                                cit["text"] = full_text
+                                if len(full_text) > 1500:
+                                    cit["text"] = full_text[:1500] + "... [ОБРЕЗАНО, полный текст длиннее]"
+                                else:
+                                    cit["text"] = full_text
                         logger.info("Enriched %d/%d citations with Qdrant texts", len(text_map), len(point_ids))
             except Exception as exc:
                 logger.warning("Qdrant citation enrichment failed: %s", exc)

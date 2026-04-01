@@ -1,15 +1,18 @@
 """
-Минимальный GPU-сервер для embedding и reranking.
+Минимальный GPU-сервер для embedding, reranking и NLI.
 Без FastAPI/pydantic — только stdlib http.server + torch + transformers.
 
-Модели (март 2026):
+Модели (апрель 2026):
   - Embedding: pplx-embed-v1-0.6B (Perplexity, mean pooling, 1024-dim)
   - Reranker: Qwen3-Reranker-0.6B-seq-cls (Tom Aarsen conversion, chat template)
   - ColBERT: jina-colbert-v2 (128-dim per-token MaxSim)
+  - NLI: XLM-RoBERTa-large-xnli (560M, 3-way classification, lazy loaded)
 
 Запуск:
     source /home/ezsx/infinity-env/bin/activate
     CUDA_VISIBLE_DEVICES=0 python /mnt/c/llms/rag/rag_app/scripts/gpu_server.py
+    # С предзагрузкой NLI:
+    CUDA_VISIBLE_DEVICES=0 python /mnt/c/llms/rag/rag_app/scripts/gpu_server.py --with-nli
 """
 
 import json
@@ -34,6 +37,9 @@ RERANKER_MODEL_PATH = os.environ.get(
 COLBERT_MODEL_PATH = os.environ.get(
     "COLBERT_MODEL_PATH", "/home/tei-models/jina-colbert-v2"
 )
+NLI_MODEL_PATH = os.environ.get(
+    "NLI_MODEL_PATH", "/mnt/c/llms/models/xlm-roberta-large-xnli"
+)
 
 emb_tokenizer = None
 emb_model = None
@@ -42,6 +48,10 @@ rer_model = None
 col_tokenizer = None
 col_model = None
 col_linear = None  # projection 1024→128
+nli_tokenizer = None
+nli_model = None
+# Single-threaded HTTPServer — safe. Добавить threading.Lock при переходе на ThreadingHTTPServer.
+_nli_loading = False
 
 
 def load_models():
@@ -84,6 +94,30 @@ def load_models():
     logger.info("ColBERT загружен за %.1f сек", time.time() - t0)
 
 
+def load_nli():
+    """Lazy loading NLI модели — вызывается при первом запросе к /nli."""
+    global nli_tokenizer, nli_model, _nli_loading
+    if nli_model is not None:
+        return
+    if _nli_loading:
+        raise RuntimeError("NLI model is currently loading")
+    _nli_loading = True
+    try:
+        logger.info("Загрузка NLI: %s", NLI_MODEL_PATH)
+        t0 = time.time()
+        nli_tokenizer = AutoTokenizer.from_pretrained(NLI_MODEL_PATH)
+        nli_model = AutoModelForSequenceClassification.from_pretrained(
+            NLI_MODEL_PATH, torch_dtype=torch.float16,
+        ).cuda().eval()
+        logger.info("NLI загружен за %.1f сек, labels: %s",
+                     time.time() - t0, nli_model.config.id2label)
+    except Exception:
+        nli_model = None
+        raise
+    finally:
+        _nli_loading = False
+
+
 class Handler(BaseHTTPRequestHandler):
     def _send_json(self, data, status=200):
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
@@ -115,6 +149,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send_json(self._rerank(data))
             elif self.path == "/colbert-encode":
                 self._send_json(self._colbert_encode(data))
+            elif self.path == "/nli":
+                self._send_json(self._nli(data))
             else:
                 self._send_json({"error": "not found"}, 404)
         except Exception as e:
@@ -229,12 +265,66 @@ class Handler(BaseHTTPRequestHandler):
             results.append(vecs)
         return results
 
+    def _nli(self, data):
+        """NLI верификация через XLM-RoBERTa-large-xnli (SPEC-RAG-21).
+
+        Input: {"pairs": [{"premise": "...", "hypothesis": "..."}, ...]}
+        Output: {"results": [{"label": "entailment", "scores": {...}}, ...]}
+
+        Lazy loading: модель загружается при первом вызове.
+        """
+        if nli_model is None:
+            try:
+                load_nli()
+            except Exception as e:
+                raise RuntimeError(f"NLI model load failed: {e}")
+
+        pairs = data.get("pairs", [])
+        if not pairs:
+            return {"results": []}
+
+        # Labels из config модели (entailment/neutral/contradiction порядок зависит от модели)
+        id2label = nli_model.config.id2label
+        labels = [id2label[i] for i in sorted(id2label.keys())]
+
+        batch_size = data.get("batch_size", 16)
+        results = []
+        for i in range(0, len(pairs), batch_size):
+            batch = pairs[i:i + batch_size]
+            premises = [p.get("premise", "") for p in batch]
+            hypotheses = [p.get("hypothesis", "") for p in batch]
+            with torch.no_grad():
+                enc = nli_tokenizer(
+                    premises, hypotheses,
+                    padding=True, truncation=True, max_length=512,
+                    return_tensors="pt",
+                ).to("cuda")
+                logits = nli_model(**enc).logits
+                probs = logits.softmax(dim=-1).cpu()
+
+            for j in range(len(batch)):
+                p = probs[j]
+                scores = {labels[k]: round(float(p[k]), 4) for k in range(len(labels))}
+                best = labels[int(p.argmax())]
+                results.append({"label": best, "scores": scores})
+
+        return {"results": results}
+
     def log_message(self, format, *args):
         pass  # тихий лог, чтоб не спамить
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="GPU server: embed + rerank + colbert + nli")
+    parser.add_argument("--with-nli", action="store_true", help="Предзагрузить NLI модель при старте")
+    parser.add_argument("--port", type=int, default=8082, help="Порт (default: 8082)")
+    args = parser.parse_args()
+
     load_models()
-    server = HTTPServer(("0.0.0.0", 8082), Handler)
-    logger.info("Сервер запущен на 0.0.0.0:8082")
+    if args.with_nli:
+        load_nli()
+
+    server = HTTPServer(("0.0.0.0", args.port), Handler)
+    logger.info("Сервер запущен на 0.0.0.0:%d (NLI: %s)", args.port, "loaded" if nli_model else "lazy")
     server.serve_forever()
