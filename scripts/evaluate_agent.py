@@ -1265,10 +1265,7 @@ def build_offline_judge_markdown(batch: Sequence[Dict[str, Any]], batch_no: int)
                 )
                 text = cit.get("text") or ""
                 if text:
-                    if len(text) > 1000:
-                        lines.append(f"  > {text[:1000]}... [ОБРЕЗАНО]")
-                    else:
-                        lines.append(f"  > {text}")
+                    lines.append(f"  > {text}")
                 else:
                     lines.append("  > _(текст не загружен)_")
                 lines.append("")
