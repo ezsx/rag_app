@@ -13,9 +13,12 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-# Порог для NLI классификации (калибруется после первого прогона)
-DEFAULT_ENTAILMENT_THRESHOLD = 0.5
-DEFAULT_CONTRADICTION_THRESHOLD = 0.5
+# Порог для NLI классификации.
+# Калибровка на smoke test (21 claims, rubert-base-cased-nli-threeway):
+# median entailment = 0.968, min supported = 0.430 ($5 трлн парафраз).
+# При 0.45: 21/21 supported. При 0.50: 20/21 (теряем верный claim).
+DEFAULT_ENTAILMENT_THRESHOLD = 0.45
+DEFAULT_CONTRADICTION_THRESHOLD = 0.55
 
 
 @dataclass
