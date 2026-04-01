@@ -38,7 +38,7 @@ COLBERT_MODEL_PATH = os.environ.get(
     "COLBERT_MODEL_PATH", "/home/tei-models/jina-colbert-v2"
 )
 NLI_MODEL_PATH = os.environ.get(
-    "NLI_MODEL_PATH", "/mnt/c/llms/models/xlm-roberta-large-xnli"
+    "NLI_MODEL_PATH", "/mnt/c/llms/models/rubert-base-cased-nli-threeway"
 )
 
 emb_tokenizer = None
@@ -105,8 +105,7 @@ def load_nli():
     try:
         logger.info("Загрузка NLI: %s", NLI_MODEL_PATH)
         t0 = time.time()
-        from transformers import XLMRobertaTokenizer
-        nli_tokenizer = XLMRobertaTokenizer.from_pretrained(NLI_MODEL_PATH)
+        nli_tokenizer = AutoTokenizer.from_pretrained(NLI_MODEL_PATH)
         nli_model = AutoModelForSequenceClassification.from_pretrained(
             NLI_MODEL_PATH, torch_dtype=torch.float16,
         ).cuda().eval()
