@@ -1367,6 +1367,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--baseline-timeout", type=float, default=30.0, help="Таймаут baseline")
     parser.add_argument("--baseline-retries", type=int, default=1, help="Повторы baseline")
     parser.add_argument("--limit", type=int, default=0, help="Макс. число запросов (0 = все)")
+    parser.add_argument("--questions", default=None, help="Фильтр по ID вопросов через запятую (например: golden_q01,golden_q27)")
     parser.add_argument("--api-key", default=None, help="(deprecated, auth removed) API ключ для агента")
 
     # Judge (offline only — через Langfuse trace review)
@@ -1404,6 +1405,15 @@ def main() -> int:
     except Exception as exc:
         logger.error("Не удалось загрузить датасет: %s", exc)
         return 1
+
+    # Фильтр по конкретным вопросам (--questions golden_q01,golden_q27)
+    if args.questions:
+        q_ids = {q.strip() for q in args.questions.split(",")}
+        dataset = [item for item in dataset if item.id in q_ids]
+        if not dataset:
+            logger.error("Ни один вопрос не найден по фильтру: %s", q_ids)
+            return 1
+        logger.info("Фильтр: %d вопросов — %s", len(dataset), [item.id for item in dataset])
 
     # Judge is offline-only (через Langfuse trace review)
     judge_model: Optional[str] = None
