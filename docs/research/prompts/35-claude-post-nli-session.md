@@ -2,7 +2,7 @@
 
 ## Контекст
 
-Сессия 2026-04-01 (вторая). SPEC-RAG-21 NLI реализован, baseline получен. Docs обновлены.
+Сессия 2026-04-01b завершена. SPEC-RAG-21 NLI реализован и обкатан. Docs актуализированы.
 
 ## Текущие метрики (36 Qs golden_v2, 2026-04-01)
 - Factual: **0.842** (Claude judge, granular 0.1 scale)
@@ -12,44 +12,54 @@
 - Retrieval recall@3: **0.97** (100 calibration queries)
 - Latency: **24.4s**
 
-## Что делать дальше
+## Что делать в этой сессии
 
-### P1: Robustness NDR/RSR/ROR (SPEC-RAG-22)
-- R20 ready, обкатать на текущих 36 Qs
-- Это вторая quality metric перед 100 Qs expansion
+Строго по порядку:
 
-### P1: Fix known issues
-- q15 routing: summarize_channel → search with channel filter (LLM output truncated, 0 citations)
-- SecurityManager полный рефакторинг: security boundary на API level, не tool level
+### 1. Robustness NDR/RSR/ROR
+- Research: R20 (`docs/research/reports/R20-deep-retrieval-robustness-ndr-rsr-ror.md`)
+- Написать SPEC-RAG-22 (спека)
+- Реализовать скрипт robustness тестов
+- Прогнать на текущих 36 Qs × 3 вариации (noise/substitution/reorder)
+- ~108 прогонов, ~45 мин compute
+- Зафиксировать baseline NDR/RSR/ROR
 
-### P2: NLI improvements
-- Contradiction threshold → 0.90+ или убрать contradiction category
-- Premise cleaning улучшить для mixed RU/EN text
-- A/B: поднять entailment threshold с 0.45 до 0.50 на полном прогоне
+### 2. Expand golden dataset 36 → 100 Qs
+- Claude генерирует вопросы по документам из Qdrant
+- Вручную курировать — не автоматически
+- 4 eval_modes, decomposed required_claims
+- Покрыть edge cases: multi-hop, temporal ranges, cross-channel, numeric
 
-### P3: LlamaIndex/LangChain baseline
-- Собрать LlamaIndex baseline на нашем Qdrant + тех же данных
-- Прогнать на golden_v2 → сравнительная таблица для README "Why not frameworks?"
-- Постараться выжать максимум из фреймворка (не strawman comparison)
+### 3. Полный прогон 100 Qs
+- evaluate_agent.py --dataset eval_golden_v3.json
+- Claude judge (decomposition + judge в отдельном чате)
+- NLI faithfulness (run_nli.py)
+- Зафиксировать metrics на 100 Qs
 
-### P4: 100 Qs + ablation (после robustness)
-- Expand golden dataset 36 → 100+
-- Ablation: выключаем компоненты по одному (ColBERT, RRF, coverage, CE filter)
-- Несколько дней чисто на тесты
+### 4. LlamaIndex baseline (если время останется)
+- Собрать LlamaIndex VectorStoreIndex + Qdrant + наш embedding
+- Прогнать на golden_v2 (36 Qs)
+- Честное сравнение — выжать максимум из фреймворка
+- Сравнительная таблица в README
 
-### P5: Polish (финальный этап)
-- Unit tests + рефакторинг кода
-- README: скриншот UI, Mermaid diagram
-- UI restructure
-- Хабр статья (опционально)
+## Known issues
+- q15: summarize_channel routing → нужен search + compose_context
+- SecurityManager: мина, _skip_security = экстренный fix, нужен рефакторинг boundary
+- NLI false positives: 19/19 FP, ruBERT слаб на cross-lingual парафразах
+- Citation precision 0.51 — decomposition неполный или агент цитирует "про запас"
 
 ## Ключевые файлы
+- `docs/research/reports/R20-deep-retrieval-robustness-ndr-rsr-ror.md` — research для robustness
 - `src/services/eval/nli.py` — NLI verifier
 - `scripts/run_nli.py` — NLI pipeline
-- `scripts/merge_eval_report.py` — merge report
-- `scripts/gpu_server.py` — /nli endpoint (ruBERT, lazy loading)
-- `datasets/prompts/decomposition_v1.md` + `judge_v1.md`
-- `docs/specifications/active/SPEC-RAG-21-nli-citation-faithfulness.md`
-- `results/reports/nli_faithfulness_analysis_20260401.md`
+- `scripts/evaluate_agent.py` — eval с --questions фильтром
+- `datasets/eval_golden_v2.json` — текущий dataset (36 Qs)
+- `datasets/prompts/decomposition_v1.md` + `judge_v1.md` — промпты для judge
 - `docs/planning/experiment_history.md` — полная история
 - `docs/planning/retrieval_improvement_playbook.md` — overview + metrics
+- `results/reports/nli_faithfulness_analysis_20260401.md` — NLI analysis
+
+## Hardware (всё поднято)
+- LLM: Qwen3.5-35B-A3B на V100 (порт 8080)
+- GPU server: pplx-embed + Qwen3-Reranker + ColBERT + ruBERT-NLI (порт 8082, --with-nli)
+- Docker: API (:8001) + Qdrant (:6333) + Langfuse (:3100)
