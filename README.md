@@ -40,9 +40,10 @@ V100 in TCC mode poisons NVML in WSL2 — Docker GPU unavailable. All GPU worklo
 | Component | What | Where |
 |-----------|------|-------|
 | **LLM** | Qwen3.5-35B-A3B MoE (3B active, Gated Delta Networks) | V100 via llama-server |
-| **Embedding** | Qwen3-Embedding-0.6B (1024-dim) | RTX 5060 Ti via gpu_server.py |
-| **Reranker** | bge-reranker-v2-m3 (cross-encoder) | RTX 5060 Ti via gpu_server.py |
+| **Embedding** | pplx-embed-v1-0.6B (1024-dim, mean pooling) | RTX 5060 Ti via gpu_server.py |
+| **Reranker** | Qwen3-Reranker-0.6B-seq-cls (cross-encoder, CRAG-style filter) | RTX 5060 Ti via gpu_server.py |
 | **ColBERT** | jina-colbert-v2 (128-dim per-token MaxSim) | RTX 5060 Ti via gpu_server.py |
+| **NLI** | rubert-base-cased-nli-threeway (faithfulness verification) | RTX 5060 Ti via gpu_server.py |
 | **Vector store** | Qdrant — 3 named vectors: dense, sparse (BM25), ColBERT | Docker |
 | **Fusion** | Weighted RRF (BM25 weight=3, dense weight=1) | — |
 | **Agent** | ReAct loop, native function calling, 15 tools, dynamic visibility | — |
@@ -75,18 +76,19 @@ Phase-based dynamic visibility (max 5 visible at a time), data-driven keyword ro
 
 ## Eval metrics
 
-Consensus judge: Claude Opus 4.6 + Codex GPT-5.4 (independent, then min).
+Claude judge (0.0-1.0 granular scale) + independent NLI faithfulness verification (ruBERT).
 
-| Metric | Value |
-|--------|-------|
-| **Factual correctness** | **0.833** (24 full + 12 partial, 0 hallucinations) |
-| **Usefulness** | **1.611 / 2** |
-| **Key Tool Accuracy** | **0.970** (35/36) |
-| **Mean latency** | 26.4s |
-| **P95 latency** | 47.5s |
-| **Eval dataset** | 36 questions, 4 eval modes (retrieval, analytics, navigation, refusal) |
+| Metric | Value | Scope |
+|--------|-------|-------|
+| **Factual correctness** | **0.842** | All 36 Qs |
+| **Usefulness** | **1.778 / 2** | All 36 Qs |
+| **Key Tool Accuracy** | **1.000** (36/36) | All 36 Qs |
+| **Faithfulness (NLI)** | **0.91** (corrected), 0 hallucinations | 17 retrieval Qs |
+| **Retrieval recall@3** | **0.97** (100 calibration queries) | Retrieval-only |
+| **Mean latency** | 24.4s | All 36 Qs |
+| **Eval dataset** | 36 questions, 4 eval modes (retrieval, analytics, navigation, refusal) | — |
 
-24 experiments tracked in the [playbook](docs/planning/retrieval_improvement_playbook.md). Full eval history and per-question analysis available.
+57 eval runs, ~30 experiments tracked in the [playbook](docs/planning/retrieval_improvement_playbook.md). Full [experiment history](docs/planning/experiment_history.md) with per-question analysis. [NLI faithfulness analysis](results/reports/nli_faithfulness_analysis_20260401.md).
 
 ## Observability
 
@@ -111,10 +113,13 @@ Session grouping, tags, per-question eval trace naming (`agent_request_q01..q36`
 
 | Technique | Result | Why |
 |-----------|--------|-----|
-| Cosine MMR | recall 0.70 -> 0.11 | Re-promotes attractor documents |
-| Dense re-score after RRF | recall 0.33 -> 0.15 | Erases BM25 contribution |
-| PCA whitening 1024->512 | recall 0.70 -> 0.56 | Too aggressive dimensionality cut |
+| Cosine MMR | recall 0.70 → 0.11 | Re-promotes attractor documents |
+| Dense re-score after RRF | recall 0.33 → 0.15 | Erases BM25 contribution |
+| PCA whitening 1024→512 | recall 0.70 → 0.56 | Too aggressive dimensionality cut |
 | DBSF fusion | 0.72 vs RRF 0.73 | RRF slightly better |
+| CE reranking after ColBERT | r@3: 0.97 → 0.94 | Degrades top-3, replaced with filter |
+| Pipeline v2 (RRF→CE→ColBERT) | +0.02 r@2 only | Not worth complexity |
+| XLM-RoBERTa-large-xnli for NLI | ent=0.006 on obvious pairs | ruBERT 150x better on Russian |
 
 ## Development workflow
 
@@ -125,10 +130,10 @@ Research (28 reports) → Specification (19 specs) → Implementation → Evalua
 ```
 
 - **Research**: deep research prompts with full project context, numbered reports (R01-R28)
-- **Specifications**: concrete acceptance criteria, move to `completed/` after implementation
-- **Evaluation-driven**: every change measured against golden dataset before committing
+- **Specifications**: concrete acceptance criteria, move to `completed/` after implementation (21 specs)
+- **Evaluation-driven**: every change measured against golden dataset before committing (57 eval runs)
 - **Architecture docs**: mirror current codebase, not aspirational
-- **Decision log**: 41 ADR entries documenting every architectural choice
+- **Decision log**: 45 ADR entries documenting every architectural choice
 
 ## Quick start
 
