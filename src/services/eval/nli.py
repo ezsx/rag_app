@@ -5,6 +5,7 @@ Eval-only модуль, НЕ runtime. Проверяет grounding ответо�
 """
 
 import logging
+import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -64,6 +65,32 @@ class NLIVerifier:
         self.max_doc_tokens = max_doc_tokens
         self.chunk_overlap = chunk_overlap
         self.timeout = timeout
+
+    @staticmethod
+    def _clean_premise(text: str) -> str:
+        """Очистка текста документа от шума перед NLI.
+
+        Убирает эмодзи, URLs, markdown — они не несут NLI-семантику
+        и могут сбивать XLM-RoBERTa на informal русском тексте.
+        """
+        # Эмодзи
+        text = re.sub(
+            r'[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF'
+            r'\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF'
+            r'\U0001F900-\U0001F9FF\U00002702-\U000027B0'
+            r'\U00002600-\U000026FF\U0000FE00-\U0000FE0F'
+            r'\u200d\u2B50\u26A1\u2764\u2705\u274C]+',
+            ' ', text,
+        )
+        # URLs
+        text = re.sub(r'https?://\S+', '', text)
+        # Markdown bold/italic/code
+        text = re.sub(r'[*_~`]{1,3}', '', text)
+        # Hashtags: #AI → AI
+        text = re.sub(r'#(\w+)', r'\1', text)
+        # Множественные пробелы/переносы
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
 
     def _chunk_document(self, text: str) -> List[str]:
         """Разбивает длинный документ на чанки по словам (~max_doc_tokens).
@@ -174,7 +201,8 @@ class NLIVerifier:
                 doc_id = doc.get("id", "unknown")
                 if not doc_text:
                     continue
-                chunks = self._chunk_document(doc_text)
+                cleaned = self._clean_premise(doc_text)
+                chunks = self._chunk_document(cleaned)
                 for chunk_idx, chunk in enumerate(chunks):
                     all_pairs.append({
                         "premise": chunk,
@@ -228,9 +256,12 @@ class NLIVerifier:
                 claim_best[ci].best_document_id = meta["doc_id"]
                 claim_best[ci].best_chunk_idx = meta["chunk_idx"]
                 claim_scores_map[ci] = scores
-            # Трекаем max contradiction отдельно (#5: не теряем contradictions от других docs)
-            if con_score > claim_max_contradiction[ci][0]:
-                claim_max_contradiction[ci] = (con_score, meta["doc_id"])
+            # Трекаем max contradiction только от best-entailment документа.
+            # Нерелевантные документы дают false positive contradiction
+            # (MNLI bias: "документ о другом" → contradiction вместо neutral).
+            if meta["doc_id"] == claim_best[ci].best_document_id:
+                if con_score > claim_max_contradiction[ci][0]:
+                    claim_max_contradiction[ci] = (con_score, meta["doc_id"])
 
         # Классификация и scoring
         lenient_scores = []
@@ -238,7 +269,7 @@ class NLIVerifier:
         for ci, cr in sorted(claim_best.items()):
             scores = claim_scores_map.get(ci, {})
             ent = scores.get("entailment", cr.nli_score)
-            # Берём max contradiction across ALL docs, не только best-entailment doc
+            # Contradiction только от best-entailment doc — избегаем false positives
             con = claim_max_contradiction[ci][0]
 
             if ent > self.entailment_threshold:
