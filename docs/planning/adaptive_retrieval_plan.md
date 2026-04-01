@@ -1,7 +1,9 @@
 # Plan: Adaptive Retrieval + Tool Router
 
 > Подробный план внедрения Phase 3.2. Основан на 4 исследованиях (R13-quick, R13-deep, R14-quick, R14-deep).
-> Создан: 2026-03-20. Статус: **PLANNING** — спецификации и код начинаем завтра.
+> Создан: 2026-03-20. Статус: **COMPLETED** — реализовано в SPEC-RAG-11/13/15/16/17.
+> 15 tools, dynamic visibility, data-driven routing, analytics short-circuit.
+> Этот файл — исторический артефакт планирования.
 
 ---
 
