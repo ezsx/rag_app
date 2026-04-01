@@ -277,7 +277,7 @@ Model: rubert-base-cased-nli-threeway (180M, 0.36 GB). Выбрана после
 
 | # | Проблема | Статус |
 |---|----------|--------|
-| 6 | LLM не знает entity names (Vera Rubin) | Открыто |
+| 6 | LLM не знает entity names (Vera Rubin) | ✅ Не актуально — golden_v2 q07 (GTC 2026) работает, temporal_search находит |
 | 10 | Strict doc matching — ложная метрика | ✅ Решено — primary metric = judge factual + faithfulness |
 | 11 | **SecurityManager false positive на ";"** | ✅ Решено — _skip_security для final_answer. МИНА: нужен полный рефакторинг |
 | 12 | **q15 routing: summarize_channel без citations** | Открыто — нужен search + compose_context вместо summarize_channel |
