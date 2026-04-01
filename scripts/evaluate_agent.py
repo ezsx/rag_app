@@ -722,11 +722,9 @@ class AgentEvaluationRunner:
                         for cit in citations:
                             cid = cit.get("id")
                             if cid and str(cid) in text_map:
-                                full_text = text_map[str(cid)]
-                                if len(full_text) > 1500:
-                                    cit["text"] = full_text[:1500] + "... [ОБРЕЗАНО, полный текст длиннее]"
-                                else:
-                                    cit["text"] = full_text
+                                # Полный текст без обрезки — NLI нужен весь док��мент.
+                                # Markdown артефакт обрезает отдельно при генерации.
+                                cit["text"] = text_map[str(cid)]
                         logger.info("Enriched %d/%d citations with Qdrant texts", len(text_map), len(point_ids))
             except Exception as exc:
                 logger.warning("Qdrant citation enrichment failed: %s", exc)
