@@ -9,9 +9,10 @@
 
 **Основная метрика** — manual judge (strict recall@5 ненадёжен для temporal/analytics запросов).
 
-| Eval | Factual | Useful | KTA | Questions | Report |
-|------|---------|--------|-----|-----------|--------|
-| **SPEC-RAG-20d + q27 fix (Claude judge, 2026-04-01)** | **0.875** | **1.917** | **1.000** | 36 | [claude_judge_20260401.json](../../results/raw/claude_judge_20260401.json) |
+| Eval | Factual | Useful | KTA | Faithfulness | Questions | Report |
+|------|---------|--------|-----|-------------|-----------|--------|
+| **SPEC-RAG-21 NLI + granular judge (2026-04-01)** | **0.842** | **1.778** | **1.000** | **0.91** (corrected) | 36 | [nli_faithfulness_analysis](../../results/reports/nli_faithfulness_analysis_20260401.md) |
+| SPEC-RAG-20d + q27 fix (Claude judge, 2026-04-01) | 0.875 | 1.917 | 1.000 | — | 36 | [claude_judge_20260401.json](../../results/raw/claude_judge_20260401.json) |
 | Qwen3.5 + observability (consensus, 2026-03-30) | 0.833 | 1.611 | 0.970 | 36 | [claude_judge_verdicts.md](../../results/eval_qwen35_langfuse/claude_judge_verdicts.md) |
 | Golden v2 baseline (Qwen3, SPEC-RAG-18) | ~0.80 | ~1.53 | 1.000 | 36 | [R26-golden-v2-eval-baseline.md](../research/reports/R26-golden-v2-eval-baseline.md) |
 | Golden v1 + SPEC-RAG-15 | 1.79/2 | 1.72/2 | 0.926 | 30 | [eval_judge_20260325_spec15.md](../../results/reports/eval_judge_20260325_spec15.md) |
@@ -37,6 +38,7 @@
 | 3.5 | LANCER nugget coverage | SPEC-RAG-20d/DEC-0044 | query_plan subqueries = nuggets, targeted refinement, 45% latency reduction |
 | 3.5 | CE confidence filter (CRAG-style) | SPEC-RAG-20d/DEC-0045 | Cross-encoder фильтрует мусор, ColBERT порядок сохраняется |
 | 3.5 | Retrieval calibration | — | 100-query dataset, recall@1-20, CE score distribution, pipeline v2 A/B test |
+| 3.6 | NLI citation faithfulness | SPEC-RAG-21 | ruBERT NLI, faithfulness 0.91 corrected, 0 real hallucinations. [Analysis](../../results/reports/nli_faithfulness_analysis_20260401.md) |
 
 ### Remaining issues
 
