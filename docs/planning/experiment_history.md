@@ -38,18 +38,38 @@ Dataset v2 (10 Qs): entity ×1, product ×3, fact_check ×1, cross_channel ×1, 
 | 23 | 2026-03-21 | + Adaptive retrieval (internal routing only) | 0.574 | eval_results_20260321-151103 | Rule-based strategy, no LLM tool selection |
 | **24** | **2026-03-21** | **+ LLM tool selection (temporal/channel/broad)** | **0.685** | **eval_results_20260321-*** | **v2: 0.61→0.685 (+12.3%). LLM выбирает tool.** |
 
-#### Retrieval Eval (прямые Qdrant queries, без LLM, ~5с/запрос)
+#### Retrieval Eval (прямые Qdrant queries, без LLM)
 
-Dataset: 100 auto-generated queries из первых предложений документов (35 каналов).
-Тестирует **только retrieval quality**, без LLM query expansion и generation.
+**v1 dataset** (100 auto-generated queries, 2026-03-20):
 
-| # | Дата | Pipeline | Fusion | Recall@1 | Recall@5 | Recall@10 | Recall@20 | Latency | Файл |
-|---|------|----------|--------|----------|----------|-----------|-----------|---------|------|
-| 17b | 2026-03-20 | BM25+Dense → RRF | RRF (3:1) | 0.36 | 0.55 | 0.64 | 0.70 | 2.5s | retrieval_eval_20260320-155419 |
-| **17** | **2026-03-20** | **BM25+Dense → RRF → ColBERT** | **RRF (3:1)** | **0.71** | **0.73** | **0.73** | **0.74** | **5.0s** | **retrieval_eval_20260320-155000** |
-| 18 | 2026-03-20 | BM25+Dense → DBSF → ColBERT | DBSF | 0.70 | 0.72 | 0.72 | 0.73 | 4.4s | retrieval_eval_20260320-180240 |
+| # | Pipeline | Fusion | Recall@1 | Recall@5 | Recall@20 | Файл |
+|---|----------|--------|----------|----------|-----------|------|
+| 17b | BM25+Dense → RRF | RRF (3:1) | 0.36 | 0.55 | 0.70 | retrieval_eval_20260320-155419 |
+| **17** | **BM25+Dense → RRF → ColBERT** | **RRF (3:1)** | **0.71** | **0.73** | **0.74** | **retrieval_eval_20260320-155000** |
+| 18 | BM25+Dense → DBSF → ColBERT | DBSF | 0.70 | 0.72 | 0.73 | retrieval_eval_20260320-180240 |
 
-**Ключевой результат**: ColBERT rerank удвоил Recall@1 (0.36→0.71, +97%) и дал +33% Recall@5 (0.55→0.73). DBSF чуть хуже RRF — не оправдывает.
+**v2 dataset** (100 hand-crafted queries, свежие из текущей коллекции, 2026-03-31):
+Dataset: `datasets/eval_retrieval_calibration.json`. Script: `scripts/calibrate_coverage.py`.
+
+| Pipeline | r@1 | r@3 | r@5 | r@10 | r@20 | Monotonic |
+|----------|-----|-----|-----|------|------|-----------|
+| **BM25+Dense → RRF 3:1 → ColBERT** | **0.80** | **0.97** | **0.97** | **0.98** | **0.98** | **OK** |
+| + CE reranking after ColBERT | 0.81 | 0.94 | 0.96 | 0.98 | 0.98 | **BROKEN** (r@3 drops) |
+| Pipeline v2 (RRF→CE→ColBERT) | 0.79 | — | — | — | — | +0.02 r@2, marginal |
+
+**Ключевые результаты**:
+- Recall@3 = **0.97** — практически потолок, только 3 queries из 100 не находят документ в top-3
+- Recall@20 = **0.98** — 2 queries не находят документ вообще (специфичные формулировки)
+- CE reranking **портит** r@3 (0.97→0.94) → заменён на confidence filter (DEC-0045)
+- Pipeline v2 marginal (+0.02 r@2) — не стоит усложнения
+- Monotonicity OK — recall не падает при увеличении k
+
+CE score distribution (2000 docs):
+
+| | Relevant (n=143) | Irrelevant (n=1857) |
+|---|---|---|
+| median | **8.35** | **-1.11** |
+| При filter_threshold=0.0 | keep 92% relevant | remove 55% irrelevant |
 
 ### Подробные результаты agent eval v1 (dataset v1, #21, recall@5=0.76)
 
@@ -267,116 +287,66 @@ Model: rubert-base-cased-nli-threeway (180M, 0.36 GB). Выбрана после
 
 ## Technique Details
 
-## Tier 1: Quick Wins (часы, не дни)
+## Archived Technique Details (подробности ранних экспериментов)
 
-### 1.1 Embedding Whitening (PCA 1024→512)
-- **Суть**: Global PCA whitening — mean-centering + scaling по eigenvalues + dimensionality reduction.
-- **Почему поможет**: раздвигает cosine range. **Подтверждено экспериментально (2026-03-19)**:
-  - ДО: pairwise cosine mean=0.7954, std=0.0933, range [0.33, 0.95]
-  - ПОСЛЕ: pairwise cosine mean=0.0006, std=0.0484, range [-0.17, 0.61]
-  - Variance explained: 96.2% (потеря 3.8% информации при 1024→512)
-- **Whitening params сохранены**: `datasets/whitening_params.npz` (mean, components, explained_variance)
-- **Нюанс**: query-only mean-centering **НЕ работает** (asymmetric — query в другом пространстве, docs в оригинальном). Нужна **полная переиндексация**: embed → whitening transform → upload whitened vectors в Qdrant.
-- **Как реализовать**: скрипт переиндексации: загрузить все 13K vectors, применить whitening, создать новую коллекцию с dense_vector 512-dim, скопировать sparse + payload.
-- **Ожидание**: +5-15% recall (по литературе: Su et al. +8-12 Spearman, WhitenRec +7-16% recall)
-- **Результат эксперимента #1 (2026-03-19, 1024→512)**: переиндексация в `news_whitened` (512-dim). **Recall упал с 0.70 до 0.56.** Слишком агрессивный cutoff — потеря полезных dimensions.
-- **Результат эксперимента #2 (2026-03-20, 1024→1024, без reduction)**:
-  - Cosine range: original mean=0.80 std=0.09 → whitened mean=0.00 std=0.03
-  - Ручной тест на 10 запросах (прямые Qdrant queries, **без LLM**):
-  - 3 запроса стали лучше (Qwen3: miss→#5, NVIDIA: #2→#1, Sakana: #2→#1)
-  - 1 запрос стал хуже (GPT-5 Pro: #8→miss)
-  - 6 без изменений
-  - **Итог: паритет с лёгким преимуществом whitened.** Не ломает pipeline, немного помогает на некоторых запросах.
+> Результаты суммированы в таблицах выше. Здесь — детали для reference.
+
+### Embedding Whitening (PCA 1024→512)
+- **Результат #1** (2026-03-19, 1024→512): recall 0.70→0.56. Слишком агрессивный cutoff.
+- **Результат #2** (2026-03-20, 1024→1024): паритет. Dense не bottleneck при BM25 3:1.
+- **Статус**: отклонено. Whitening params в `datasets/whitening_params.npz`.
   - Коллекция `news_whitened` (1024-dim) сохранена. Whitening params: `datasets/_whitening_mean.npy`, `datasets/_whitening_transform.npy`.
   - **Ключевой инсайт**: при weighted RRF 3:1 BM25 доминирует, dense вносит малый вклад. Whitening улучшает dense, но dense уже не bottleneck. Bottleneck — reranking quality и query expansion.
 - **Статус**: [x] whitening 512 — recall 0.56, откат. [x] whitening 1024 — паритет, коллекция сохранена. **Dense не является bottleneck при текущей архитектуре (BM25 3:1).**
 - **Ссылки**: Su et al. 2021 "BERT-whitening", WhitenRec 2024, WhiteningBERT (Huang et al. EMNLP 2021)
 
-### 1.2 Weighted RRF (BM25 3:1 vs dense)
-- **Суть**: Qdrant v1.17 поддерживает веса для prefetch веток в RRF. BM25 weight=3, dense weight=1.
-- **Почему поможет**: BM25 правильно находит keyword-matched документы, но при equal weight dense "магниты" их перевешивают.
-- **Как**: одна строка — `models.RrfQuery(rrf=models.Rrf(weights=[3.0, 1.0], k=2))`. Также асимметричный prefetch: BM25 limit=100, dense limit=20.
-- **Ожидание**: +5-10% recall
-- **Статус**: [x] **Выполнено (2026-03-19)**. BM25 limit=100, dense limit=20, weights=[1.0, 3.0]. Recall 0.33 → 0.59. Commit: e0bd871.
-
-### 1.3 DBSF fusion (альтернатива RRF)
-- **Суть**: Distribution-Based Score Fusion — нормализует скоры через mean ± 3σ перед слиянием.
-- **Результат (2026-03-20, 100 queries)**: DBSF+ColBERT recall@5=0.72 vs RRF+ColBERT recall@5=0.73. **RRF лучше на 1%.** DBSF чуть быстрее (4.4с vs 5.0с) но не оправдывает потерю recall.
-- **Статус**: [x] **Протестировано, RRF остаётся.** DBSF не даёт преимуществ при weighted RRF + ColBERT.
-
-### 1.4 Channel-based dedup (max 2 docs per channel)
-- **Суть**: ограничить максимум 2 документа из одного канала в результатах.
-- **Почему поможет**: prolific каналы (gonzo_ml, ai_machinelearning_big_data) монополизируют top-10. Dedup даёт шанс менее частым но релевантным каналам.
-- **Как**: post-processing в `_channel_dedup()` после `_to_candidates()`. Qdrant `group_by` не работает с multi-stage prefetch. Запрашиваем k×2 из Qdrant, dedup сужает до k.
-- **Результат (2026-03-20, точечный тест на v2 Q1 + Q3)**:
-  - Citations стали разнообразнее: ai_ml_big_data 3→2 постов, появились techsparks, aioftheday
-  - Recall не изменился (0.50 → 0.50 для обоих) — нужные документы (data_secrets:8021, rybolos:1562) не попадают в ColBERT top-20 candidate pool. Dedup не может вытащить то, что не найдено retrieval'ом.
-  - **Вывод**: dedup улучшает diversity но не recall, когда bottleneck — candidate generation, а не ranking.
-- **Статус**: [x] **Выполнено**. Помогает diversity, не recall. Оставлен как полезный default.
-
-### 1.5 Замена реранкера: bge-m3 → bge-reranker-v2-m3
-- **Суть**: bge-m3 — bi-encoder, загруженный как seq-cls. bge-reranker-v2-m3 — dedicated cross-encoder, дообученный из bge-m3 backbone специально для query-document relevance scoring.
-- **Нюанс**: `_name_or_path` в config обоих моделей = `BAAI/bge-m3` (reranker построен НА БАЗЕ bge-m3). Но **веса разные** — reranker дообучен на reranking task.
-- **Результат эксперимента (2026-03-19)**:
-  - Recall@5 на quick dataset (10 Qs): **0.70 → 0.70** (без изменений на малом датасете)
-  - Но reranker scores **значительно лучше**:
-
-  | | bge-m3 (старый) | bge-reranker-v2-m3 (текущий) |
-  |---|---|---|
-  | Релевантный doc | logit **-0.55**, sigmoid 0.37 | logit **+7.60**, sigmoid 0.9995 |
-  | Нерелевантный doc | logit -8.77...-9.07 | logit -8.41...-11.03 |
-  | Gap (relev vs irrelev) | ~8 пунктов | **~18 пунктов** |
-
-  - Gap между релевантным и нерелевантным удвоился (8→18 logit points)
-  - Confidence в правильном документе: 0.37 → **0.9995**
-  - На 50+ вопросах с borderline documents разница проявится
-- **Статус**: [x] **Выполнено**. Модель: `/home/tei-models/reranker-v2`, gpu_server.py переключён. Commit: 4d43183.
-- **Альтернативы на будущее** (исследовано 2026-03-19):
-  - **Jina Reranker v3** (0.6B, Qwen3-0.6B backbone, listwise): 65.20 nDCG на MIRACL Russian, BEIR 61.94 — выше Qwen3-Reranker-4B при 6x меньше. `AutoModel` + `trust_remote_code=True`. CC-BY-NC-4.0.
-  - **Jina Reranker v2-base-multilingual** (278M, XLMRoberta): 100+ языков, 15× throughput vs bge-reranker-v2-m3. Контекст 1024 tokens. Стабилен через `CrossEncoder`.
-  - **Contextual AI Reranker v2** (1B/2B/6B): **instruction-following** — можно приоритизировать по дате, типу, метаданным. Для temporal queries — ценная фича. Инференс через vLLM. CC-BY-NC-SA-4.0.
-  - **GTE-Reranker-ModernBERT-base** (149M): Hit@1=83%, 8x меньше nemotron-1.2B. Контекст 8192. Но EN-only — нужна валидация на русском.
-  - **Qwen3-Reranker-0.6B-seq-cls**: TEI не поддерживает (PR #835), но через gpu_server.py (AutoModelForSequenceClassification) **может работать** — стоит проверить.
+### Weighted RRF, DBSF, Channel Dedup, Reranker
+- **RRF 3:1** (2026-03-19): recall 0.33→0.59. BM25 limit=100, dense limit=20.
+- **DBSF** (2026-03-20): recall 0.72 vs RRF 0.73. Отклонено.
+- **Channel dedup** (2026-03-20): +diversity, не +recall. Оставлен как default.
+- **Reranker upgrade** (2026-03-19): bge-m3 → bge-reranker-v2-m3. Logit gap 8→18. Позже → Qwen3-Reranker-0.6B-seq-cls (DEC-0043).
 
 ---
 
-## Tier 2: Архитектурные улучшения (1-3 дня каждое)
+## Technique Status (обновлено 2026-04-01)
 
-### 2.1 Query Classifier + Strategy Router
-- **Суть**: определить тип запроса (factual/temporal/channel/comparative/multi-hop) → выбрать стратегию retrieval.
-- **Почему поможет**: temporal запросы нуждаются в date filter, channel запросы — в channel filter, comparative — в parallel multi-query. Одна стратегия для всех = компромисс.
-- **Как**: Qwen3-30B как classifier (structured JSON output). Map типа → стратегия (top_k, filters, diversity mode).
-- **Ожидание**: +5-10% recall, -35% latency (enterprise benchmarks)
-- **Статус**: [ ] не начато
-- **Код из отчёта**:
-```python
-STRATEGIES = {
-    "simple":      {"top_k": 3,  "diversity": "channel_dedup"},
-    "temporal":    {"top_k": 10, "date_filter": True, "diversity": "temporal_buckets"},
-    "comparative": {"top_k": 8,  "diversity": "bm25_mmr", "reranker": True},
-    "multi_hop":   {"top_k": 5,  "diversity": "cluster_first", "iterative": True},
-}
-```
+### Реализовано
 
-### 2.2 Entity Extraction (Natasha/Slovnet NER)
-- **Суть**: извлекать именованные сущности (люди, компании, продукты) из запросов и документов.
-- **Почему поможет**: "что писал Дженсен Хуанг" → entity="Дженсен Хуанг" → Qdrant payload filter. Точный recall на entity queries.
-- **Как**: Natasha NER (27 МБ, CPU, F1~0.96, 25 docs/sec). Один раз прогнать по 13K постов (~10 мин), сохранить entities как Qdrant payload. При поиске — extract entities из query → filter.
-- **Ожидание**: +5-15% recall на entity-specific запросах
-- **Статус**: [ ] не начато
+| Техника | Результат | Spec/Decision |
+|---------|-----------|---------------|
+| Weighted RRF 3:1 (BM25 dominate) | recall 0.33→0.59 (+79%) | — |
+| ColBERT reranking (jina-colbert-v2) | recall@1 +97% (0.36→0.71) | — |
+| Multi-query search (round-robin merge) | v2 recall +33% (0.46→0.61) | — |
+| Channel dedup (max 2/channel) | +diversity, not +recall | — |
+| bge-reranker-v2-m3 → Qwen3-Reranker | logit gap 8→18 | DEC-0043 |
+| Query classifier + strategy router | 15 tools, dynamic visibility, data-driven routing | SPEC-RAG-11/13 |
+| Entity extraction | 95 entities, 16 payload indexes, Facet API | SPEC-RAG-12 |
+| LANCER nugget coverage | -45% latency, 0 лишних refinements | DEC-0044 |
+| CE confidence filter (CRAG-style) | keep 92% relevant, remove 55% irrelevant | DEC-0045 |
+| NLI citation faithfulness | faithfulness 0.91, 0 hallucinations | SPEC-RAG-21 |
 
-### 2.3 BM25-based Diversity (замена cosine MMR)
-- **Суть**: MMR loop, но с BM25 pairwise similarity вместо cosine.
-- **Почему поможет**: два поста про "трансформеры" vs "диффузию" — одинаковый cosine, но разный BM25 профиль. BM25 diversity работает когда cosine сломан.
-- **Как**: модифицированный MMR loop в Python. `score = lambda * relevance - (1-lambda) * max(bm25_sim(doc, selected))`.
-- **Ожидание**: +2-4% recall
-- **Статус**: [ ] не начато
+### Протестировано и отклонено (с evidence)
 
-### 2.4 Genericity Score (штраф attractor documents)
-- **Суть**: заранее посчитать для каждого документа — в скольких случайных запросах он попадает в top-10. Хранить как payload. Штрафовать при поиске.
-- **Почему поможет**: напрямую атакует проблему attractor documents (gonzo_ml:4121, denissexy:10940).
-- **Как**: прогнать 100 random queries → подсчитать frequency → сохранить как `genericity` payload. Qdrant formula query: `score = relevance * (1.0 - 0.3 * genericity)`.
-- **Ожидание**: +3-5% recall
+| Техника | Результат | Почему отклонено |
+|---------|-----------|-----------------|
+| Cosine MMR | recall 0.70→0.11 | Re-promotes attractor documents |
+| Dense re-score после RRF | recall 0.33→0.15 | Стирает BM25 вклад |
+| PCA whitening 1024→512 | recall 0.70→0.56 | Слишком агрессивный cutoff |
+| Whitening 1024→1024 | паритет | Dense не bottleneck при BM25 3:1 |
+| DBSF fusion | recall 0.72 vs RRF 0.73 | RRF чуть лучше |
+| CE reranking after ColBERT | r@3 degrades 0.97→0.94 | Заменён на filter (DEC-0045) |
+| Pipeline v2 (RRF→CE→ColBERT) | +0.02 r@2 | Не стоит усложнения |
+| Lost-in-middle reorder | — | Docs уже reranked ColBERT, reorder hurts |
+| XLM-RoBERTa-large-xnli для NLI | ent=0.006 на очевидных парах | ruBERT в 150x точнее на русском |
+
+### Не реализовано (backlog)
+
+| Техника | Expected impact | Blocker |
+|---------|----------------|---------|
+| BM25-based diversity (MMR альтернатива) | +2-4% recall | Low priority — channel dedup достаточно |
+| Genericity score (штраф attractors) | +3-5% recall | Attractor problem solved by RRF+ColBERT |
+| ColBERT как independent retrieval path | Bypass BM25+Dense failures | Latency: 13K docs × per-token MaxSim |
+| Fine-tune CE reranker на domain data | -3% degradation | 500 query-doc pairs needed |
 - **Статус**: [ ] не начато
 
 ### 2.5 Reranker-as-Fusion (без RRF)
