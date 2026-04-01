@@ -24,6 +24,10 @@ import sys
 
 from qdrant_client import AsyncQdrantClient, models
 
+# SPEC-RAG-20a: единый source of truth для payload indexes
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent.parent / "src"))
+from adapters.qdrant.store import PAYLOAD_INDEXES  # noqa: E402
+
 logger = logging.getLogger(__name__)
 
 NEW_COLLECTION = "news_colbert_v2"
@@ -49,31 +53,6 @@ SPARSE_VECTORS_CONFIG = {
         index=models.SparseIndexParams(on_disk=False),
     ),
 }
-
-# Все payload indexes — создаются ДО загрузки данных
-PAYLOAD_INDEXES = [
-    # Critical — используются почти во всех запросах
-    ("channel", models.KeywordIndexParams(type="keyword", is_tenant=True)),
-    ("date", models.DatetimeIndexParams(type="datetime", is_principal=True)),
-    ("entities", models.PayloadSchemaType.KEYWORD),
-    ("year_week", models.PayloadSchemaType.KEYWORD),
-
-    # Secondary — для специализированных tools
-    ("entity_orgs", models.PayloadSchemaType.KEYWORD),
-    ("entity_models", models.PayloadSchemaType.KEYWORD),
-    ("arxiv_ids", models.PayloadSchemaType.KEYWORD),
-    ("hashtags", models.PayloadSchemaType.KEYWORD),
-    ("url_domains", models.PayloadSchemaType.KEYWORD),
-    ("lang", models.PayloadSchemaType.KEYWORD),
-    ("forwarded_from_id", models.PayloadSchemaType.KEYWORD),
-    ("year_month", models.PayloadSchemaType.KEYWORD),
-    ("root_message_id", models.PayloadSchemaType.KEYWORD),
-    ("author", models.PayloadSchemaType.KEYWORD),
-    ("message_id", models.IntegerIndexParams(type="integer", lookup=True, range=True)),
-
-    # Range indexes
-    ("text_length", models.IntegerIndexParams(type="integer", lookup=False, range=True)),
-]
 
 
 async def create_collection(client: AsyncQdrantClient) -> None:

@@ -2,11 +2,11 @@
 
 ### Qdrant Collection Schema
 
-**Коллекция**: `news_colbert` (по умолчанию, задаётся `QDRANT_COLLECTION`)
+**Коллекция**: `news_colbert_v2` (задаётся `QDRANT_COLLECTION`)
 
 ```
 Named vectors:
-  dense_vector:    Qwen3-Embedding-0.6B (1024-dim, cosine distance)
+  dense_vector:    pplx-embed-v1-0.6B (bf16, mean pooling, 1024-dim, cosine distance)
   sparse_vector:   Qdrant/bm25 (language="russian", Snowball stemmer)
   colbert_vector:  jina-colbert-v2 (128-dim per token, MaxSim multi-vector)
 
@@ -68,10 +68,10 @@ Candidate (внутренняя структура):
   dense_score:   float  — cosine similarity (для coverage)
   rrf_score:     float  — RRF score (для ранжирования, НЕ для coverage)
   colbert_score: float  — MaxSim score (для reranking, если ColBERT available)
-  rerank_score:  float  — cross-encoder score (после bge-reranker-v2-m3)
+  rerank_score:  float  — cross-encoder score (после Qwen3-Reranker-0.6B-seq-cls)
 ```
 
-Pipeline: BM25+Dense → weighted RRF 3:1 → ColBERT MaxSim rerank → cross-encoder rerank → channel dedup → top-N.
+Pipeline: BM25+Dense → weighted RRF 3:1 → ColBERT MaxSim rerank → Qwen3-Reranker cross-encoder rerank → channel dedup → top-N.
 
 ---
 
@@ -132,7 +132,7 @@ Algorithm: HS256, secret: `JWT_SECRET_KEY` из `.env`.
 | `EMBEDDING_TEI_URL` | `http://host.docker.internal:8082` | URL gpu_server.py (embedding) |
 | `RERANKER_TEI_URL` | `http://host.docker.internal:8082` | URL gpu_server.py (reranker) — тот же порт |
 | `QDRANT_URL` | `http://qdrant:6333` | URL Qdrant в Docker compose |
-| `QDRANT_COLLECTION` | `news_colbert` | Имя коллекции Qdrant |
+| `QDRANT_COLLECTION` | `news_colbert_v2` | Имя коллекции Qdrant |
 | `COVERAGE_THRESHOLD` | `0.65` | Порог для refinement |
 | `MAX_REFINEMENTS` | `2` | Макс. refinement раундов |
 | `HYBRID_ENABLED` | `true` | Включить HybridRetriever |

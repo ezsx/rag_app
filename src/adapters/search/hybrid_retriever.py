@@ -88,6 +88,7 @@ class HybridRetriever:
         with observe_span(
             "hybrid_retrieval",
             input={"query": query_text[:200], "strategy": getattr(plan, "strategy", None)},
+            metadata={"k_per_query": plan.k_per_query, "fusion": plan.fusion},
         ) as span:
             results = self._run_sync(self._async_search(query_text, plan))
             if span:
@@ -99,6 +100,7 @@ class HybridRetriever:
                 span.update(output={
                     "num_results": len(results),
                     "queries": plan.normalized_queries,
+                    "rerank_method": "colbert_maxsim" if getattr(self, '_settings', None) and getattr(self._settings, 'embedding_tei_url', None) else "rrf_only",
                     "top_docs": top_docs,
                 })
             return results

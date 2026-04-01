@@ -72,6 +72,7 @@ class TEIRerankerClient:
             with observe_span(
                 "rerank",
                 input={"query": query[:200], "num_passages": len(passages)},
+                metadata={"reranker_type": "cross_encoder", "model": "Qwen3-Reranker-0.6B"},
             ) as span:
                 response = await self._client.post(
                     "/rerank",

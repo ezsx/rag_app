@@ -49,10 +49,10 @@ services:
       - LLM_BASE_URL=http://host.docker.internal:8080
       - LLM_MODEL_NAME=qwen3.5-35b-a3b
       - LLM_REQUEST_TIMEOUT=120
-      # Embedding TEI — через Windows relay (Docker не видит WSL native :8082 напрямую)
-      - EMBEDDING_TEI_URL=http://host.docker.internal:18082
-      # Reranker — тот же relay
-      - RERANKER_TEI_URL=http://host.docker.internal:18082
+      # Embedding + Reranker — gpu_server.py в WSL2 native
+      # Без mirrored networking Docker видит WSL напрямую на :8082
+      - EMBEDDING_TEI_URL=http://host.docker.internal:8082
+      - RERANKER_TEI_URL=http://host.docker.internal:8082
       # Qdrant — compose-managed, порт 16333 снаружи, 6333 внутри
       - QDRANT_URL=http://qdrant:6333
       - QDRANT_COLLECTION=news_colbert_v2
@@ -98,8 +98,8 @@ services:
       - TG_SESSION=/app/sessions/telegram.session
       - QDRANT_URL=http://qdrant:6333
       - QDRANT_COLLECTION=news_colbert_v2
-      # Ingest идёт из Docker в WSL2 embedding backend через Windows relay.
-      - EMBEDDING_TEI_URL=http://host.docker.internal:18082
+      # Ingest → WSL2 native gpu_server.py (embedding)
+      - EMBEDDING_TEI_URL=http://host.docker.internal:8082
 
 volumes:
   qdrant_data:

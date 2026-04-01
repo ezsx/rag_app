@@ -5,9 +5,9 @@
 | Слой | Технология | Где работает |
 |------|-----------|-------------|
 | **API** | FastAPI + sse_starlette | Docker (CPU) |
-| **LLM** | llama-server HTTP → Qwen3-30B-A3B GGUF (Q4_K_M, MoE 3B active) | **Windows Host** (V100 TCC) |
-| **Embedding** | gpu_server.py → Qwen3-Embedding-0.6B (1024-dim) | **WSL2 native** (RTX 5060 Ti) → `:8082` |
-| **Reranker** | gpu_server.py → bge-reranker-v2-m3 (cross-encoder) | **WSL2 native** (RTX 5060 Ti) → `:8082` |
+| **LLM** | llama-server HTTP → Qwen3.5-35B-A3B GGUF (Q4_K_M, MoE 3B active) | **Windows Host** (V100 TCC) |
+| **Embedding** | gpu_server.py → pplx-embed-v1-0.6B (bf16, mean pooling, 1024-dim) | **WSL2 native** (RTX 5060 Ti) → `:8082` |
+| **Reranker** | gpu_server.py → Qwen3-Reranker-0.6B-seq-cls (chat template, logit scoring) | **WSL2 native** (RTX 5060 Ti) → `:8082` |
 | **ColBERT** | gpu_server.py → jina-colbert-v2 (128-dim per-token MaxSim) | **WSL2 native** (RTX 5060 Ti) → `:8082` |
 | **Vector Store** | Qdrant HTTP (dense + sparse + ColBERT named vectors) | Docker (CPU) |
 | **Hybrid Retrieval** | Qdrant weighted RRF (BM25 3:1) → ColBERT MaxSim rerank | Docker (CPU) |
@@ -25,14 +25,14 @@
 [Windows Host]
   └── llama-server.exe → V100 SXM2 32GB (TCC, CUDA device 1)
        └── :8080/v1/chat/completions  (OpenAI-compatible)
-            Model: Qwen3-30B-A3B GGUF Q4_K_M (~18 GB VRAM)
+            Model: Qwen3.5-35B-A3B GGUF Q4_K_M (~18 GB VRAM)
             Native function calling: --jinja --reasoning-budget 0
 
 [Ubuntu WSL2 — нативно, не Docker]  ← RTX 5060 Ti 16GB (GPU-PV, CUDA device 0)
   └── gpu_server.py → :8082  (единый HTTP-сервер, stdlib http.server + PyTorch cu128)
-       ├── POST /embed          → Qwen3-Embedding-0.6B (1024-dim)
+       ├── POST /embed          → pplx-embed-v1-0.6B (bf16, mean pooling, 1024-dim)
        ├── POST /v1/embeddings  → OpenAI-compatible формат
-       ├── POST /rerank         → bge-reranker-v2-m3 (cross-encoder, logit scoring)
+       ├── POST /rerank         → Qwen3-Reranker-0.6B-seq-cls (chat template, logit scoring)
        └── POST /colbert-encode → jina-colbert-v2 (128-dim per-token vectors)
 
   3 модели в одном процессе, ~4-5 GB VRAM, ~11 GB свободно.
@@ -83,10 +83,10 @@
 > **Текущее решение**: gpu_server.py запускается как WSL2-native процесс.
 
 - **LLM inference**: llama-server.exe на Windows хосте, V100
-  - Qwen3-30B-A3B Q4_K_M: ~18 GB VRAM, `--jinja --reasoning-budget 0 -c 32768`
+  - Qwen3.5-35B-A3B Q4_K_M: ~18 GB VRAM, `--jinja --reasoning-budget 0 -c 16384 --parallel 2`
 - **GPU server**: gpu_server.py нативно в Ubuntu WSL2, RTX 5060 Ti, порт **:8082**
-  - Embedding: Qwen3-Embedding-0.6B (1024-dim)
-  - Reranker: bge-reranker-v2-m3 (cross-encoder)
+  - Embedding: pplx-embed-v1-0.6B (bf16, mean pooling, 1024-dim)
+  - Reranker: Qwen3-Reranker-0.6B-seq-cls (chat template, logit scoring)
   - ColBERT: jina-colbert-v2 (560M, 128-dim per-token)
 - **Qdrant, API, Ingest**: Docker (CPU), без GPU
 - **Драйвер**: 581.80 — максимальный с поддержкой V100. **Не обновлять** (590+ дропнул V100)
@@ -94,7 +94,7 @@
 Запуск llama-server:
 ```powershell
 $env:GGML_CUDA_FORCE_CUBLAS_COMPUTE_16F = "1"
-llama-server.exe -m Qwen3-30B-A3B-Q4_K_M.gguf -ngl 99 --main-gpu 0 `
+llama-server.exe -m Qwen3.5-35B-A3B-Q4_K_M.gguf -ngl 99 --main-gpu 0 `
     --host 0.0.0.0 --port 8080 --jinja --reasoning-budget 0 `
     --cache-type-k q8_0 --cache-type-v q8_0 -c 16384 --parallel 2
 ```
@@ -122,8 +122,8 @@ CUDA_VISIBLE_DEVICES=0 python /mnt/c/llms/rag/rag_app/scripts/gpu_server.py
 | gpu_server.py | PyTorch cu128 + cuBLAS (stdlib http.server) | RTX 5060 Ti | 8082 |
 
 **Один процесс, три модели:**
-- Qwen3-Embedding-0.6B (`/home/tei-models/qwen3-embedding`)
-- bge-reranker-v2-m3 (`/home/tei-models/reranker-v2`)
+- pplx-embed-v1-0.6B (`/mnt/c/llms/models/pplx-embed-v1-0.6B`)
+- Qwen3-Reranker-0.6B-seq-cls (`/mnt/c/llms/models/Qwen3-Reranker-0.6B-seq-cls`)
 - jina-colbert-v2 (`/home/tei-models/jina-colbert-v2`) + manual linear projection 1024→128
 
 Venv: `/home/ezsx/infinity-env/` (Python 3.11, torch 2.10.0+cu128, transformers 4.57.6)

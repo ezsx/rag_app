@@ -26,9 +26,9 @@ Content-Type: application/json
 - **AgentService** — ReAct loop owner, native function calling, adaptive tool selection
 - **QuerySignals** — rule-based pre-validator (<1ms): extracts dates, channels, entities
 - **ToolRunner** — tool registry + timeout execution
-- **LLM** — Qwen3-30B-A3B GGUF (llama-server, V100; `--jinja --reasoning-budget 0`). Выбирает из 15 LLM tools (search/temporal_search/channel_search/entity_tracker/arxiv_tracker/hot_topics/channel_expertise/...)
+- **LLM** — Qwen3.5-35B-A3B GGUF (llama-server, V100; `--jinja --reasoning-budget 0`). Выбирает из 15 LLM tools (search/temporal_search/channel_search/entity_tracker/arxiv_tracker/hot_topics/channel_expertise/...)
 - **HybridRetriever** — Qdrant: BM25+Dense → weighted RRF 3:1 → ColBERT MaxSim → channel dedup
-- **RerankerService** — bge-reranker-v2-m3 cross-encoder (GPU, RTX 5060 Ti)
+- **RerankerService** — Qwen3-Reranker-0.6B-seq-cls (GPU, RTX 5060 Ti)
 - **QueryPlannerService** — тот же LLM endpoint (не отдельный CPU процесс)
 
 ### Sequence
@@ -39,7 +39,7 @@ sequenceDiagram
   participant C as Client
   participant API as FastAPI
   participant Agent as AgentService
-  participant LLM as Qwen3-30B-A3B V100
+  participant LLM as Qwen3.5-35B-A3B V100
   participant Tools as ToolRunner
   participant Qdrant as HybridRetriever
 
@@ -84,10 +84,11 @@ sequenceDiagram
       Qdrant-->>Tools: channel profile + expertise areas
       Note over Agent: analytics_done=True<br/>forced search bypass
     else tool = rerank
-      Tools->>Tools: cross-encoder rerank via gpu_server
+      Tools->>Tools: CE confidence filter via gpu_server
+      Note over Tools: CRAG-style: filter docs with score < threshold<br/>ColBERT order preserved
     else tool = compose_context
       Tools->>Tools: build prompt + citations
-      Note over Tools: composite coverage from cosine similarity
+      Note over Tools: LANCER nugget coverage<br/>(query_plan subqueries = nuggets)
     else tool = final_answer
       Tools-->>Agent: answer text
     end
@@ -102,9 +103,9 @@ sequenceDiagram
       Agent->>Agent: check coverage
       Agent-->>C: SSE citations
 
-      alt coverage below 0.65 AND refinements left
-        Note over Agent: trigger refinement search
-      else coverage below 0.30
+      alt nugget coverage below 0.75 AND refinements left
+        Note over Agent: targeted refinement (search uncovered nuggets)
+      else max_sim below 0.30
         Note over Agent: abort, insufficient information
       end
     end

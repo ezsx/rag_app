@@ -320,15 +320,15 @@ Eval-запросы: фактические, аналитические, tempora
 - [x] Refusal hardening: prompt rules + temporal guard + forced search bypass
 - [x] Summarize grounding: prompt hint → compose_context flow stabilized
 
-**Текущие метрики (golden_v2, 2026-03-30, SPEC-RAG-18):**
-| Метрика | Значение |
-|---------|----------|
-| Key Tool Accuracy | **1.000** (36 Qs) |
-| Factual correctness | **~0.80/1** (consensus Claude + Codex) |
-| Usefulness | **~1.53/2** (consensus) |
-| Evidence support | **~0.65** (retrieval subset) |
-| Strict anchor recall | 0.461 (diagnostic only) |
-| Coverage mean | 0.421 |
+**Текущие метрики (golden_v2, 2026-04-01, SPEC-RAG-20d):**
+| Метрика | Значение | Прошлый (03-30) |
+|---------|----------|-----------------|
+| Key Tool Accuracy | **1.000** (36 Qs) | 1.000 |
+| Factual correctness | **0.875** (Claude judge, q27 fix) | ~0.80 |
+| Usefulness | **1.917/2** | ~1.53 |
+| Strict anchor recall | **0.637** | 0.461 |
+| Mean latency | **23.6s** | 26.4s |
+| Coverage mean | 0.346 (legacy cosine) | 0.421 |
 
 **Предыдущие метрики (golden_v1, 2026-03-25, SPEC-RAG-15):**
 | Метрика | Значение |
@@ -396,44 +396,81 @@ Eval-запросы: фактические, аналитические, tempora
 - [ ] Clean baseline rerun (36 Qs) после P1+P2
 - [ ] Unit tests для analytics tools и state machine
 
-### Phase 3.5: Production-Grade Quality [RESEARCH DONE, IMPL NEXT]
+### Phase 3.5: Pipeline Cleanup + Observability + Coverage Redesign [В ПРОЦЕССЕ]
 
-> Research base for this phase is ready: R19, R20, R21, R25. Следующий шаг — implementation, data refresh, новые метрики и синхронизация proof layer.
+> SPEC-RAG-20d. Codex audit (8 findings) + Claude obs audit (15 findings) + retrieval calibration (100 queries).
+
+**SPEC-RAG-20d Pipeline Cleanup [ВЫПОЛНЕНО 2026-03-31]:**
+- [x] serialize_tool_payload: tool-aware, compose prompt не обрезается (24K limit)
+- [x] search hits stripped из history (id+snippet, не full text)
+- [x] trim_messages: atomic blocks, pin compose_context
+- [x] LLM 400 retry: сохраняет compose pair
+- [x] Temporal guard для всех tools с date_from/date_to
+- [x] k_per_query vs k_total разведены (cap до 30)
+- [x] Lost-in-middle отключён (docs уже reranked)
+- [x] QA fallback: agent context вместо legacy pipeline
+- [ ] fetch_docs chunk stitching (отдельная спека, затрагивает ingest)
+
+**Observability (Langfuse) [ВЫПОЛНЕНО 2026-03-31]:**
+- [x] Double JSON encoding fix
+- [x] Root trace: plan, tokens, coverage, strategy, citations_count
+- [x] Tool spans: rich output + error marking
+- [x] search_execution + compose_execution spans
+- [x] LLM step names phase-aware, token aggregation
+- [x] gpu_server: empty text guard
+
+**Coverage + Reranker redesign [ВЫПОЛНЕНО 2026-04-01]:**
+- [x] LANCER nugget coverage (services/agent/coverage.py) — DEC-0044
+  - query_plan subqueries = nuggets
+  - Implicit nuggets из search subqueries
+  - Threshold 0.75, max_refinements 1
+- [x] Targeted refinement по uncovered nuggets (SEAL-RAG style)
+- [x] Cross-encoder → CRAG confidence filter (не reranking) — DEC-0045
+  - ColBERT порядок сохраняется
+  - CE отсекает docs с score < threshold
+- [x] Retrieval calibration: 100 queries, recall@1-20, CE scores, pipeline v2 A/B
+
+**Calibration results (100 queries, news_colbert_v2):**
+- Recall: r@1=0.80, r@3=0.97, r@20=0.98 (monotonic)
+- CE reranking degrades r@3: 0.97→0.94 → заменён на filter
+- Pipeline v2 (RRF→CE→ColBERT): +0.02 r@2, не стоит усложнения
+- CE score: relevant median=8.35, irrelevant median=-1.11 → threshold=0.0 (logit boundary)
+- Latency improvement: 45-76s → 14-49s (−40-65%) за счёт устранения refinements
+
+**Осталось:**
+- [ ] CE filter_threshold=0.0 установить и smoke test
+- [ ] Full eval 36 Qs — baseline после pipeline changes
+- [ ] fetch_docs chunk stitching
+
+### Phase 3.6: Production-Grade Quality [RESEARCH DONE]
+
+> Research base: R19, R20, R21, R25.
 
 **Данные (блокирует все последующие метрики):**
 - [ ] Re-ingest свежих постов: 2026-03-18 → current date
 - [ ] Weekly digests для всех ~37 недель
 - [ ] Channel profiles re-compute после re-ingest
 
-**Eval / proof layer (блокирует credibility):**
-- [x] Fresh eval baseline: golden_v2 (36 Qs, SPEC-RAG-18) — factual ~0.80, KTA 1.0
-- [ ] P1 fixes: q33 monthly hot_topics + q36 channel_expertise routing → clean baseline rerun
-- [ ] P2 fix: q21 deterministic out-of-range refusal
-- [ ] Eval expansion: 36 → 100+ вопросов (decompose required_claims, add navigation/refusal)
-- [ ] Unit tests: удалить мёртвый `test_new_tools.py`, покрыть analytics tools + state machine
-- [ ] Ablation study: ColBERT on/off, reranker on/off, RRF weights
-- [ ] GPT-4o comparison: один прогон через API как external baseline
+**Eval / proof layer:**
+- [ ] P1 fixes: q33 monthly hot_topics + q36 channel_expertise routing
+- [ ] Clean baseline 36 Qs after Phase 3.5 pipeline changes
+- [ ] Eval expansion: 36 → 100+ вопросов
+- [ ] Unit tests cleanup
 
-**Track 2 — NLI Citation Faithfulness (R19 готов, impl ~1-2 дня):**
-- Подход: Hybrid C — Qwen3 decomposition + XLM-RoBERTa NLI
-- Phase 1: eval-only metric, Phase 2: runtime integration / enforcement
-- Зачем: independent verification, а не LLM-as-judge loop
+**Track 2 — NLI Citation Faithfulness (R19 готов):**
+- Hybrid C: Qwen3 decomposition + XLM-RoBERTa NLI
+- Phase 1: eval-only metric, Phase 2: runtime integration
 
-**Track 3 — Retrieval Robustness NDR/RSR/ROR (R20 готов, impl ~1 день + ~6.5h compute):**
-- NDR: retrieval помогает или вредит
-- RSR: оптимальный top_k и эффект дополнительного контекста
-- ROR: устойчивость к порядку документов / lost-in-the-middle
-- Совместимо с ablation study
+**Track 3 — Retrieval Robustness NDR/RSR/ROR (R20 готов):**
+- NDR, RSR, ROR metrics
+- Частично покрыто calibrate_coverage.py (recall curve, monotonicity)
 
-**Track 4 — CRAG-lite / Quality-Gated Retrieval (2-3 дня):**
-- ColBERT MaxSim как zero-overhead quality signal
-- Gate: answer / re-query / refuse
-- Зависит от empirical thresholds из Track 3
+**Track 4 — Fine-tune CE reranker:**
+- 500 query-doc pairs из нашего corpus
+- Reduce 3% degradation (DEC-0045 observation)
 
-**Track 5 — RAG Necessity Classifier (R21 готов, low priority):**
+**Track 5 — RAG Necessity Classifier (R21, low priority):**
 - Conservative pre-filter перед agent loop
-- Tier 1 rules first, shadow-mode classifier later
-- Приоритет ниже, чем NLI / robustness / CRAG-lite
 
 **Production polish (non-blocking, но важные production patterns):**
 - [ ] Observability: per-component latency, routing logs, error rate, token usage

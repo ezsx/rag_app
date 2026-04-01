@@ -23,9 +23,9 @@
 - LLM, ретриверы создаются через `lru_cache` в `src/core/deps.py`. Смена — через `settings.update_*()`.
 
 ### Код и модели
-- LLM: **Qwen3-30B-A3B GGUF** через llama-server.exe (V100, Windows Host, порт 8080).
-- Embedding: **Qwen3-Embedding-0.6B** через gpu_server.py (WSL2 native, RTX 5060 Ti, порт 8082).
-- Reranker: **bge-reranker-v2-m3** (dedicated cross-encoder) через gpu_server.py (порт 8082).
+- LLM: **Qwen3.5-35B-A3B GGUF** Q4_K_M через llama-server.exe (V100, Windows Host, порт 8080). DEC-0039.
+- Embedding: **pplx-embed-v1-0.6B** (bf16, mean pooling, без instruction prefix) через gpu_server.py (WSL2 native, RTX 5060 Ti, порт 8082). DEC-0042.
+- Reranker: **Qwen3-Reranker-0.6B-seq-cls** (chat template, logit scoring) через gpu_server.py (порт 8082). DEC-0043.
 - ColBERT: **jina-colbert-v2** (560M, 128-dim per-token MaxSim) через gpu_server.py (порт 8082).
 - Vector store: **Qdrant** (Docker, CPU), dense + sparse + ColBERT named vectors, **weighted RRF** (BM25 3:1).
 - **GPU blocker**: RTX 5060 Ti недоступна в Docker Desktop (V100 TCC блокирует NVML).
@@ -39,13 +39,14 @@
 - **Original query injection**: оригинальный запрос пользователя всегда в subqueries (BM25 match).
 - **Multi-query search**: все LLM subqueries через round-robin merge.
 - Retrieval: `query_plan → search (BM25 top-100 + dense top-20 → weighted RRF 3:1 → ColBERT rerank) → cross-encoder rerank → channel dedup`.
-- Coverage threshold **0.65**, max **2** refinements (DEC-0019).
+- Coverage: **LANCER nugget coverage** (query_plan subqueries = nuggets). Threshold **0.75**, max **1** targeted refinement. Module: `services/agent/coverage.py`.
 - **Navigation short-circuit**: list_channels → navigation_answered → skip forced search, only final_answer visible.
 - **Refusal policy**: explicit prompt rules + deterministic refusal trim + negative intent guard. Data-driven policies из `datasets/tool_keywords.json`.
-- **Recall@5**: v1=0.76, v2=0.685, golden_v1=0.342 (strict, занижен). **Manual judge: factual=1.79/2, useful=1.72/2** (30 Qs).
-- **Eval pipeline v2** (SPEC-RAG-14): golden dataset 30 Qs (25+5 analytics), tool tracking, failure attribution.
-- **Hot topics** (SPEC-RAG-16): BERTopic cron pipeline → Qdrant `topic_clusters` collection. `hot_topics` tool for trend queries.
-- **Channel expertise** (SPEC-RAG-17): `channel_expertise` tool — per-channel topic profiles from BERTopic clusters.
+- **Golden v2 baseline**: factual ~0.80, useful ~1.53/2, KTA 1.000 (36 Qs, consensus Claude+Codex). SPEC-RAG-18.
+- **Eval pipeline v2** (SPEC-RAG-14): golden dataset v2 — 36 Qs (18 retrieval, 13 analytics, 2 navigation, 3 refusal), tool tracking, failure attribution.
+- **Hot topics** (SPEC-RAG-16): BERTopic cron pipeline → Qdrant `weekly_digests` collection. `hot_topics` tool for trend queries.
+- **Channel expertise** (SPEC-RAG-16): `channel_expertise` tool — per-channel profiles from `channel_profiles` collection.
+- **Observability**: Langfuse v3 self-hosted (DEC-0040). UI `:3100`. 7 instrumentation points.
 - Не ломать SSE контракт: `step_started/thought/tool_invoked/observation/citations/final`.
 
 ### Deploy и запуск

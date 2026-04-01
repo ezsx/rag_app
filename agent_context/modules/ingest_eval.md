@@ -35,7 +35,7 @@ docker compose -f deploy/compose/compose.dev.yml run --rm ingest \
 Point:
   id:      UUID5("{channel_id}:{message_id}")  — стабильный, idempotent upsert
   vector:  {
-    "dense_vector": list[float]     — Qwen3-Embedding-0.6B, 1024-dim
+    "dense_vector": list[float]     — pplx-embed-v1-0.6B, 1024-dim
     "sparse_vector": SparseVector   — fastembed BM25 (russian)
     "colbert_vector": MultiVector   — jina-colbert-v2, 128-dim per-token MaxSim
   }

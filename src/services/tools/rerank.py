@@ -16,8 +16,14 @@ def rerank(
     top_n: Optional[int] = None,
     reranker: Optional[RerankerService] = None,
     hits: Optional[List[Dict[str, Any]]] = None,
+    filter_threshold: float = 0.0,
 ) -> Dict[str, Any]:
-    """Переранжирует документы и возвращает реальные sigmoid-нормализованные scores."""
+    """CRAG-style: ранжирует + фильтрует документы по relevance score.
+
+    Документы с score < filter_threshold помечаются как нерелевантные
+    и не попадают в compose_context. ColBERT порядок сохраняется,
+    cross-encoder только отсекает мусор.
+    """
     if not reranker:
         return {"indices": [], "scores": [], "error": "RerankerService not provided"}
 
@@ -41,7 +47,29 @@ def rerank(
             batch_size=16,
         )
 
-        return {"indices": indices, "scores": scores, "top_n": len(indices)}
+        # CRAG-style filtering: отсекаем документы с низким CE score
+        filtered_indices = []
+        filtered_scores = []
+        filtered_out = 0
+        for idx, score in zip(indices, scores):
+            if score >= filter_threshold:
+                filtered_indices.append(idx)
+                filtered_scores.append(score)
+            else:
+                filtered_out += 1
+
+        if filtered_out > 0:
+            logger.info(
+                "Rerank filter: %d/%d docs removed (score < %.2f)",
+                filtered_out, len(indices), filter_threshold,
+            )
+
+        return {
+            "indices": filtered_indices,
+            "scores": filtered_scores,
+            "top_n": len(filtered_indices),
+            "filtered_out": filtered_out,
+        }
 
     except Exception as e:
         logger.error(f"Error in rerank tool: {e}")

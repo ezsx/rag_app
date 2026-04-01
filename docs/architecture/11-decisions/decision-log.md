@@ -157,7 +157,7 @@
   Не менять на русский без A/B теста на нашем домене.
 
 ### DEC-0026 — Qwen3-Embedding-0.6B как embedding-модель
-- **Status:** Implemented (2026-03-18)
+- **Status:** Superseded by DEC-0042 (2026-03-31)
 - **Context:** DEC-0012 (multilingual-e5-large) принят с пометкой "пересмотр по MTEB 2025 benchmark".
   Qwen3-Embedding — новое семейство моделей Alibaba (май 2025), специально обученных для retrieval.
   MTEB Multilingual 2025: Qwen3-Embedding-0.6B и 4B занимают лидирующие позиции, включая MIRACL (русский).
@@ -269,7 +269,7 @@
 - **Результат:** v2 recall 0.46→0.61 (+33%)
 
 ### DEC-0031 — bge-reranker-v2-m3 вместо bge-m3 (2026-03-19)
-- **Status:** Implemented
+- **Status:** Superseded by DEC-0043 (2026-03-31)
 - **Context:** bge-m3 — bi-encoder, загруженный как seq-cls (logit gap 8).
   bge-reranker-v2-m3 — dedicated cross-encoder (logit gap 18, confidence 0.37→0.9995).
 - **Decision:** Модель `/home/tei-models/reranker-v2`, gpu_server.py переключён.
@@ -338,3 +338,33 @@
 - **Context:** `networkingMode=mirrored` в .wslconfig ломает Docker Desktop port forwarding — ни один Docker порт не виден на Windows localhost. Mirrored нужен только для VPN (AmneziaWG) в WSL.
 - **Decision:** Mirrored закомментирован по умолчанию. Включать только для VPN: `scripts/wsl-vpn-on.cmd`, выключать обратно: `scripts/wsl-vpn-off.cmd`. Docker порты работают нормально без mirrored.
 - **Supersedes:** DEC-0038 (relay больше не нужен для Docker↔Docker, но wsl_tei_relay.py остаётся для gpu_server WSL→Docker).
+
+### DEC-0042 — pplx-embed-v1-0.6B вместо Qwen3-Embedding-0.6B (2026-03-31)
+- **Status:** Implemented
+- **Context:** Deep research (prompt 28) по embedding моделям 2025-2026. pplx-embed-v1-0.6B (Perplexity, март 2026) — bidirectional attention, MTEB +7 pts vs Qwen3-Embedding. Тот же размер (0.6B), та же dim (1024).
+- **Decision:** Swap на pplx-embed-v1-0.6B. bf16 (не fp16 — overflow на длинных текстах). Mean pooling (не last_token_pool). Без instruction prefix (пустая строка). trust_remote_code=True. Полный reingest 13777 docs.
+- **Supersedes:** DEC-0026 (Qwen3-Embedding-0.6B)
+
+### DEC-0043 — Qwen3-Reranker-0.6B-seq-cls вместо bge-reranker-v2-m3 (2026-03-31)
+- **Status:** Implemented
+- **Context:** Tom Aarsen seq-cls conversion Qwen3-Reranker. Chat template с `<|im_start|>` маркерами, logit scoring через seq-cls head. Лучше score separation чем bge-reranker (+5-8 pts rerank score).
+- **Decision:** Swap на Qwen3-Reranker-0.6B-seq-cls. padding_side="left". Chat template: system/user/assistant prefix/suffix. AutoModelForSequenceClassification. fp16.
+- **Supersedes:** DEC-0031 (bge-reranker-v2-m3)
+
+### DEC-0044 — LANCER nugget coverage вместо cosine-based (2026-03-31)
+- **Status:** Implemented
+- **Context:** Cosine-based coverage (DEC-0018) не калибровалась под pplx-embed — 45% запросов получали лишний refinement. Калибровка показала median cosine 0.47, coverage median 0.69. LANCER (Ju et al., 2026) предлагает nugget-based подход: subqueries = information nuggets, coverage = доля покрытых аспектов.
+- **Decision:** Заменить _compute_coverage() на nugget-based в services/agent/coverage.py. query_plan subqueries = nuggets. Implicit nuggets из search subqueries если plan не вызывался. Threshold 0.75 (3/4 nuggets), max_refinements 1 (targeted по uncovered nuggets).
+- **Supersedes:** DEC-0018 (composite 5-signal coverage), DEC-0019 (threshold 0.65, max_refinements 2)
+
+### DEC-0045 — Cross-encoder как CRAG confidence filter (2026-03-31)
+- **Status:** Implemented
+- **Context:** Калибровка показала ColBERT r@3=0.97, cross-encoder поверх: r@3=0.94 (-0.03). Déjean et al. SIGIR 2024 подтверждает: CE поверх сильного first-stage часто вредит. "Drowning in Documents" 2024: pointwise CE robust в 23% случаев.
+- **Decision:** Cross-encoder (Qwen3-Reranker-0.6B) НЕ ранжирует — ColBERT порядок сохраняется. CE используется как CRAG-style confidence filter: docs с score < threshold отсекаются перед compose_context.
+- **filter_threshold = 0.0** (logit boundary). Обоснование из калибровки (100 queries, 2000 docs):
+  - CE scores: relevant docs median=8.35, irrelevant median=-1.11
+  - При t=0.0: сохраняем 132/143 (92%) relevant, убираем 1026/1857 (55%) irrelevant
+  - 11 потерянных relevant docs — edge cases на хвосте ColBERT ranking (rank 15-20), основные expected docs (rank 1-5) имеют CE score 8+
+  - Ноль = естественная граница logit-based scoring: положительный logit = "relevant"
+  - Более агрессивный threshold (3.62 suggested) теряет 21 relevant (15%) — не оправдано
+- **Open question:** стоит ли filter вообще полезен после ColBERT top-20 — ColBERT уже отфильтровал мусор. CE filter marginal. Потенциально убрать если fine-tune CE не планируется.

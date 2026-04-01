@@ -163,14 +163,16 @@ class Settings:
             os.getenv("AGENT_FINAL_MAX_TOKENS", "1024")
         )
 
-        # === Coverage / Refinement (DEC-0018, DEC-0019) ===
-        # 0.65 — откалиброван под composite 5-signal metric (R04).
-        # 0.8 был слишком агрессивен: вызывал false-negative refinements.
+        # === Coverage / Refinement (LANCER-style nugget coverage) ===
+        # 0.75 = 3/4 nuggets покрыты. С nugget-based coverage шкала другая:
+        # query_plan даёт 3-5 subqueries, 1 непокрытый из 4 = 0.75.
+        # Было 0.65 при cosine-based метрике (DEC-0018, R04).
         self.coverage_threshold: float = float(
-            os.getenv("COVERAGE_THRESHOLD", "0.65")
+            os.getenv("COVERAGE_THRESHOLD", "0.75")
         )
-        # 2 refinements дают +12% recall без существенного роста latency (R04).
-        self.max_refinements: int = int(os.getenv("MAX_REFINEMENTS", "2"))
+        # 1 targeted refinement обычно достаточен (ищем конкретно непокрытые nuggets).
+        # Было 2 при generic repeat search.
+        self.max_refinements: int = int(os.getenv("MAX_REFINEMENTS", "1"))
         self.enable_verify_step: bool = (
             os.getenv("ENABLE_VERIFY_STEP", "true").lower() == "true"
         )

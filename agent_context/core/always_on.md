@@ -9,9 +9,9 @@
   Смена настроек требует явного `cache_clear()` через `settings.update_*()`.
 
 ## Код и модели
-- Основной LLM: **Qwen3-30B-A3B GGUF** (V100 SXM2 32GB, llama-server.exe на Windows хосте).
-- Embedding: **Qwen3-Embedding-0.6B** через gpu_server.py → WSL2 native (RTX 5060 Ti, порт 8082).
-- Reranker: **bge-reranker-v2-m3** (dedicated cross-encoder) через gpu_server.py (порт 8082).
+- Основной LLM: **Qwen3.5-35B-A3B GGUF** Q4_K_M (V100 SXM2 32GB, llama-server.exe на Windows хосте). DEC-0039.
+- Embedding: **pplx-embed-v1-0.6B** (bf16, mean pooling, без instruction prefix) через gpu_server.py → WSL2 native (RTX 5060 Ti, порт 8082). DEC-0042.
+- Reranker: **Qwen3-Reranker-0.6B-seq-cls** (chat template, padding_side=left, logit scoring) через gpu_server.py (порт 8082). DEC-0043.
 - ColBERT: **jina-colbert-v2** (560M, 128-dim per-token MaxSim) через gpu_server.py (порт 8082).
 - Хранилище: **Qdrant** (dense 1024 + sparse BM25 + ColBERT 128-dim, **weighted RRF** BM25 3:1).
 - Коллекция: `news_colbert_v2` (enriched payload: entities, arxiv_ids, urls, year_week, lang + 16 payload indexes).
@@ -31,7 +31,7 @@
 - **Multi-query search**: все LLM subqueries через round-robin merge (не только первый!).
 - `verify` и `fetch_docs` вызываются системно внутри `AgentService`, не через schema для модели.
 - Retrieval: `query_plan → search (BM25 top-100 + dense top-20 → RRF 3:1 → ColBERT rerank) → cross-encoder rerank → channel dedup (max 2/channel) → compose_context`.
-- Coverage threshold: **0.65**; max refinements: **2** (DEC-0019; не менять без ресерча).
+- Coverage: **LANCER-style nugget coverage** (query_plan subqueries как nuggets). Threshold **0.75** (3/4 nuggets); max refinements: **1** (targeted по uncovered nuggets). Модуль: `services/agent/coverage.py`.
 - `agent_service.py` — единственный владелец состояния шага; не дублировать логику снаружи.
 - **Request isolation** (SPEC-RAG-17 FIX-01): `RequestContext` на `ContextVar` — per-request state вместо instance-level. Каждый запрос изолирован.
 - **Navigation short-circuit**: list_channels → `navigation_answered` → skip forced search, NAV-COMPLETE phase.
@@ -39,8 +39,9 @@
 - **Refusal policy**: explicit prompt rules + temporal guard + deterministic refusal trim (обрезка альтернатив после отказа).
 - **Forced search bypass**: только для negative intent queries + refusal markers. Data-driven из `datasets/tool_keywords.json` → `agent_policies`.
 - SSE стриминг через `/v1/agent/stream` — не ломать контракт событий (step_started/thought/tool_invoked/observation/citations/final).
-- **Recall@5**: v1=0.76, v2=0.685, golden_v1=0.342 (strict, занижен — analytics Qs без source_post_ids). **Manual judge: factual=1.79/2, useful=1.72/2** (30 Qs, post-fix).
-- **Eval pipeline v2** (SPEC-RAG-14): golden dataset 30 Qs (25 original + 5 analytics), tool tracking, failure attribution. Report: `results/reports/eval_judge_20260325_spec15.md`.
+- **Recall@5**: v1=0.76, v2=0.685. **Golden v2 baseline**: factual ~0.80, useful ~1.53/2, KTA 1.000 (36 Qs, consensus Claude+Codex).
+- **Eval pipeline v2** (SPEC-RAG-14): golden dataset v2 — 36 Qs (18 retrieval, 13 analytics, 2 navigation, 3 refusal), tool tracking, failure attribution. SPEC-RAG-18.
+- **Observability**: Langfuse v3 self-hosted (DEC-0040). 7 instrumentation points. UI на `:3100`. Lazy imports + SafeSpan для graceful degradation.
 
 ## Deploy и запуск
 - **ВАЖНО: Docker GPU НЕ ИСПОЛЬЗУЕТСЯ.** V100 TCC отравляет NVML в WSL2.

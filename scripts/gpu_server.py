@@ -2,6 +2,11 @@
 Минимальный GPU-сервер для embedding и reranking.
 Без FastAPI/pydantic — только stdlib http.server + torch + transformers.
 
+Модели (март 2026):
+  - Embedding: pplx-embed-v1-0.6B (Perplexity, mean pooling, 1024-dim)
+  - Reranker: Qwen3-Reranker-0.6B-seq-cls (Tom Aarsen conversion, chat template)
+  - ColBERT: jina-colbert-v2 (128-dim per-token MaxSim)
+
 Запуск:
     source /home/ezsx/infinity-env/bin/activate
     CUDA_VISIBLE_DEVICES=0 python /mnt/c/llms/rag/rag_app/scripts/gpu_server.py
@@ -9,6 +14,7 @@
 
 import json
 import logging
+import os
 import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
@@ -18,9 +24,16 @@ from transformers import AutoModel, AutoModelForSequenceClassification, AutoToke
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("gpu_server")
 
-EMBEDDING_MODEL_PATH = "/home/tei-models/qwen3-embedding"
-RERANKER_MODEL_PATH = "/home/tei-models/reranker-v2"
-COLBERT_MODEL_PATH = "/home/tei-models/jina-colbert-v2"
+# Модели загружаются из /mnt/c/llms/models/ (Windows-accessible) или /home/tei-models/
+EMBEDDING_MODEL_PATH = os.environ.get(
+    "EMBEDDING_MODEL_PATH", "/mnt/c/llms/models/pplx-embed-v1-0.6B"
+)
+RERANKER_MODEL_PATH = os.environ.get(
+    "RERANKER_MODEL_PATH", "/mnt/c/llms/models/Qwen3-Reranker-0.6B-seq-cls"
+)
+COLBERT_MODEL_PATH = os.environ.get(
+    "COLBERT_MODEL_PATH", "/home/tei-models/jina-colbert-v2"
+)
 
 emb_tokenizer = None
 emb_model = None
@@ -36,17 +49,23 @@ def load_models():
 
     logger.info("Загрузка embedding: %s", EMBEDDING_MODEL_PATH)
     t0 = time.time()
-    emb_tokenizer = AutoTokenizer.from_pretrained(EMBEDDING_MODEL_PATH)
+    emb_tokenizer = AutoTokenizer.from_pretrained(
+        EMBEDDING_MODEL_PATH, trust_remote_code=True,
+    )
+    # pplx-embed: bf16 вместо fp16 — fp16 даёт NaN на длинных текстах (overflow)
+    # bf16 имеет больший dynamic range (exp=8 бит vs 5 у fp16), решает overflow
     emb_model = AutoModel.from_pretrained(
-        EMBEDDING_MODEL_PATH, torch_dtype=torch.float16
+        EMBEDDING_MODEL_PATH, torch_dtype=torch.bfloat16, trust_remote_code=True,
     ).cuda().eval()
     logger.info("Embedding загружен за %.1f сек", time.time() - t0)
 
     logger.info("Загрузка reranker: %s", RERANKER_MODEL_PATH)
     t0 = time.time()
-    rer_tokenizer = AutoTokenizer.from_pretrained(RERANKER_MODEL_PATH)
+    rer_tokenizer = AutoTokenizer.from_pretrained(
+        RERANKER_MODEL_PATH, padding_side="left",
+    )
     rer_model = AutoModelForSequenceClassification.from_pretrained(
-        RERANKER_MODEL_PATH, torch_dtype=torch.float16
+        RERANKER_MODEL_PATH, torch_dtype=torch.float16,
     ).cuda().eval()
     logger.info("Reranker загружен за %.1f сек", time.time() - t0)
 
@@ -103,17 +122,23 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json({"error": str(e)}, 500)
 
     def _embed(self, data):
-        texts = data.get("inputs", [])
+        texts = data.get("inputs", data.get("texts", []))
         if isinstance(texts, str):
             texts = [texts]
+        # Guard: пустые строки вызывают IndexError в tokenizer
+        texts = [t for t in texts if isinstance(t, str) and t.strip()]
+        if not texts:
+            return []
         with torch.no_grad():
             enc = emb_tokenizer(
                 texts, padding=True, truncation=True, max_length=4096,
                 return_tensors="pt"
             ).to("cuda")
             out = emb_model(**enc)
-            mask = enc["attention_mask"].unsqueeze(-1)
-            embeddings = (out.last_hidden_state * mask).sum(1) / mask.sum(1)
+            # Cast to fp32 for mean pooling — fp16 overflows on long sequences → NaN
+            hidden = out.last_hidden_state.float()
+            mask = enc["attention_mask"].unsqueeze(-1).float()
+            embeddings = (hidden * mask).sum(1) / mask.sum(1)
             embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=1)
         return embeddings.cpu().tolist()
 
@@ -129,24 +154,38 @@ class Handler(BaseHTTPRequestHandler):
                 {"object": "embedding", "index": i, "embedding": vec}
                 for i, vec in enumerate(vectors)
             ],
-            "model": "qwen3-embedding-0.6b",
+            "model": "pplx-embed-v1-0.6b",
             "usage": {"prompt_tokens": 0, "total_tokens": 0},
         }
 
     def _rerank(self, data):
+        """Rerank через Qwen3-Reranker-0.6B-seq-cls.
+
+        Требует chat template: system + user (Instruct/Query/Document) + assistant thinking.
+        """
         query = data.get("query", "")
         texts = data.get("texts", [])
-        pairs = [[query, t] for t in texts]
+        instruction = (
+            "Given a web search query, retrieve relevant passages that answer the query"
+        )
+        prefix = (
+            '<|im_start|>system\nJudge whether the Document meets the requirements '
+            'based on the Query and the Instruct provided. Note that the answer can '
+            'only be "yes" or "no".<|im_end|>\n<|im_start|>user\n'
+        )
+        suffix = "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
+
+        formatted = [
+            f"{prefix}<Instruct>: {instruction}\n<Query>: {query}\n<Document>: {t}{suffix}"
+            for t in texts
+        ]
         with torch.no_grad():
             enc = rer_tokenizer(
-                pairs, padding=True, truncation=True, max_length=512,
+                formatted, padding=True, truncation=True, max_length=8192,
                 return_tensors="pt"
             ).to("cuda")
             out = rer_model(**enc)
-            # AutoModelForSequenceClassification возвращает logits
-            # Для cross-encoder: logits shape [batch, num_labels]
-            # BGE-M3 reranker: 1 label → logits[:, 0] = relevance score
-            scores = out.logits.squeeze(-1)
+            scores = out.logits.view(-1).float()
         results = [{"index": i, "score": float(s)} for i, s in enumerate(scores)]
         results.sort(key=lambda r: r["score"], reverse=True)
         return results

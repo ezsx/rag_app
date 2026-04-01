@@ -17,19 +17,18 @@
 
 ```
 query
-  → QueryPlanner (Qwen3-30B-A3B, llama-server, GBNF grammar)
+  → QueryPlanner (Qwen3.5-35B-A3B, llama-server)
       → нормализованные подзапросы + MetadataFilters
   → search tool (original query всегда добавляется в subqueries)
       → HybridRetriever.search_with_plan()
-          → TEI embed (Qwen3-Embedding-0.6B, instruction prefix для query)
+          → TEI embed (pplx-embed-v1-0.6B, без instruction prefix)
           → fastembed sparse (Qdrant/bm25, language="russian")
           → Qdrant prefetch:
               ├─ dense_vector: top-20
               └─ sparse_vector: top-100
           → Weighted RRF (BM25 weight=3, dense weight=1)
           → top-N кандидатов (with_vectors=True для coverage cosine_sim)
-  → Reranker (gpu_server.py → BAAI/bge-m3 AutoModelForSequenceClassification)
-      Целевой: bge-reranker-v2-m3 (dedicated cross-encoder, +10 nDCG)
+  → Reranker (gpu_server.py → Qwen3-Reranker-0.6B-seq-cls, chat template, logit scoring)
   → compose_context → coverage check (0.65, DEC-0019)
 ```
 
@@ -70,12 +69,11 @@ reranker_top_n        = 80
 
 ## Embedding
 
-- **Qwen3-Embedding-0.6B** — текущая модель (1024-dim, cosine)
+- **pplx-embed-v1-0.6B** — текущая модель (Perplexity, bf16, mean pooling, 1024-dim, cosine). DEC-0042.
 - Через gpu_server.py HTTP (WSL2 native, RTX 5060 Ti, порт 8082)
-- Query format: `Instruct: Given a user question about ML, AI, LLM or tech news, retrieve relevant Telegram channel posts\nQuery: ...`
-- Documents идут без prefix
-- **Проблема**: embedding anisotropy — все AI-тексты в cosine range [0.78-0.83]. "Attractor documents" попадают в top-10 любого запроса.
-- **Планируемый fix**: Global PCA whitening (1024→512 dim), ожидание +5-15% recall
+- Без instruction prefix (пустая строка, в отличие от Qwen3-Embedding)
+- bf16 обязателен (fp16 → NaN overflow на длинных текстах)
+- Bidirectional attention, MTEB +7 pts vs Qwen3-Embedding
 
 ## Qdrant
 
@@ -92,10 +90,10 @@ reranker_top_n        = 80
 
 ## Reranker
 
-- **Текущая модель: BAAI/bge-m3** (AutoModelForSequenceClassification) через gpu_server.py
-- Загружается в gpu_server.py как `AutoModelForSequenceClassification`, logits для scoring
-- **Целевой: bge-reranker-v2-m3** — dedicated cross-encoder, +10 nDCG на MIRACL
-- Порт 8082 (тот же что embedding — gpu_server.py обслуживает оба)
+- **Qwen3-Reranker-0.6B-seq-cls** — текущая модель (Tom Aarsen seq-cls conversion). DEC-0043.
+- Через gpu_server.py HTTP (WSL2 native, RTX 5060 Ti, порт 8082)
+- Chat template с `<|im_start|>` маркерами, padding_side="left"
+- AutoModelForSequenceClassification, logit scoring через seq-cls head
 - Используется после search и перед compose_context
 
 ## Chunking при ingest

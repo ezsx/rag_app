@@ -13,7 +13,7 @@ docker compose -f deploy/compose/compose.dev.yml run --rm ingest \
 ### Actors
 - **Operator** — человек запускает ingest CLI
 - **TelegramClient** — Telethon HTTP клиент к Telegram API
-- **TEIEmbeddingClient** — HTTP клиент к gpu_server.py (Qwen3-Embedding-0.6B, RTX 5060 Ti)
+- **TEIEmbeddingClient** — HTTP клиент к gpu_server.py (pplx-embed-v1-0.6B, RTX 5060 Ti)
 - **SparseEncoder** — `Qdrant/bm25` с `language="russian"` (Snowball stemmer)
 - **QdrantClient** — вектор-база с named vectors (dense + sparse + ColBERT)
 
@@ -25,7 +25,7 @@ sequenceDiagram
   participant Op as Operator
   participant CLI as ingest_telegram.py
   participant TG as Telegram API
-  participant Embed as gpu_server Qwen3-Embedding
+  participant Embed as gpu_server pplx-embed
   participant Sparse as SparseEncoder BM25
   participant Qdrant as QdrantClient
 
@@ -39,7 +39,7 @@ sequenceDiagram
     CLI->>CLI: preprocess + chunking
     Note over CLI: text + metadata, split >1500 chars
 
-    CLI->>Embed: POST /embed texts
+    CLI->>Embed: POST /embed texts (pplx-embed-v1-0.6B)
     Embed-->>CLI: dense vectors 1024-dim
 
     CLI->>Sparse: encode_document
@@ -57,7 +57,7 @@ sequenceDiagram
 ### Ключевые инварианты
 
 - Document ID формат: UUID5 от `{channel_name}:{message_id}` — стабильный, позволяет upsert
-- Embedding: Qwen3-Embedding-0.6B через gpu_server.py HTTP (не SentenceTransformer)
+- Embedding: pplx-embed-v1-0.6B через gpu_server.py HTTP (bf16, mean pooling, без instruction prefix)
 - Sparse encoder: `Qdrant/bm25` с `language="russian"` (Snowball) — **не BM42** (English-only)
 - Chunking: posts <1500 chars целиком, >1500 recursive split (target 1200 chars)
 - Qdrant storage: **только named volume** `qdrant_data` (INV-06, DEC-0015)

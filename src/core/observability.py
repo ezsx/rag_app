@@ -120,9 +120,22 @@ def _set_trace_attributes(span, *, name=None, session_id=None, tags=None,
         if tags:
             span.set_attribute(Attr.TRACE_TAGS, json.dumps(tags))
         if input_data:
-            span.set_attribute(Attr.TRACE_INPUT, json.dumps(input_data, ensure_ascii=False, default=str))
+            # SPEC-RAG-20d: защита от double encoding — если уже string, парсим обратно
+            _inp = input_data
+            if isinstance(_inp, str):
+                try:
+                    _inp = json.loads(_inp)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            span.set_attribute(Attr.TRACE_INPUT, json.dumps(_inp, ensure_ascii=False, default=str))
         if output_data:
-            span.set_attribute(Attr.TRACE_OUTPUT, json.dumps(output_data, ensure_ascii=False, default=str))
+            _out = output_data
+            if isinstance(_out, str):
+                try:
+                    _out = json.loads(_out)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            span.set_attribute(Attr.TRACE_OUTPUT, json.dumps(_out, ensure_ascii=False, default=str))
         if metadata:
             span.set_attribute(Attr.TRACE_METADATA, json.dumps(metadata, ensure_ascii=False, default=str))
     except Exception as e:
@@ -177,15 +190,15 @@ def observe_trace(
 
 
 @contextmanager
-def observe_span(name, **kwargs):
-    """Context manager для child span. Вкладывается в текущий active trace/span."""
+def observe_span(name, as_type="span", **kwargs):
+    """Context manager для child span/tool. Вкладывается в текущий active trace/span."""
     client = get_langfuse()
     if client is None:
         yield None
         return
     try:
         cm = client.start_as_current_observation(
-            as_type="span", name=name, **kwargs
+            as_type=as_type, name=name, **kwargs
         )
         raw_span = cm.__enter__()
     except Exception as e:

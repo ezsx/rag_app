@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 from schemas.search import SearchPlan, MetadataFilters
 from adapters.search.hybrid_retriever import HybridRetriever
 from services.query_signals import extract_query_signals
+from core.observability import observe_span
 
 logger = logging.getLogger(__name__)
 
@@ -251,8 +252,27 @@ def search(
                 "strategy": strategy,
             }
 
-        # Ограничиваем количество результатов
-        candidates = candidates[:k]
+        # SPEC-RAG-20d: cap total candidates для reranker, не k_per_query.
+        k_total = min(k * max(1, len(deduped_queries)), 30)
+        candidates = candidates[:k_total]
+
+        # SPEC-RAG-20d: observability — search execution summary
+        with observe_span("search_execution", input={
+            "queries": deduped_queries[:3],
+            "strategy": strategy,
+            "routing_source": routing_source,
+            "k_per_query": k,
+            "k_total": k_total,
+        }) as _search_span:
+            if _search_span:
+                _search_span.update(output={
+                    "candidates_total": len(candidates),
+                    "queries_count": len(deduped_queries),
+                    "hybrid_ms": hybrid_duration_ms,
+                    "strategy": strategy,
+                    "routing_source": routing_source,
+                    "filters": metadata_filters.dict(exclude_none=True) if metadata_filters else None,
+                })
 
         # Преобразуем в формат ответа
         hits = []

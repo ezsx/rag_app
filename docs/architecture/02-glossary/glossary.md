@@ -17,12 +17,12 @@
 | **channel dedup** | Post-retrieval: max 2 документа из одного канала. Улучшает diversity, не recall. |
 | **round-robin merge** | Multi-query result interleaving: для rank 0..N, чередуем результаты из каждого subquery. Сохраняет per-query ColBERT ranking. |
 | **attractor document** | Документ с высоким cosine similarity к большинству запросов (из-за embedding anisotropy). ColBERT + weighted RRF решают проблему. |
-| **BGE reranker** | bge-reranker-v2-m3: dedicated cross-encoder reranker. Logit gap 18 (vs 8 у старого bge-m3). Запускается на GPU (RTX 5060 Ti). |
+| **Qwen3-Reranker** | Qwen3-Reranker-0.6B-seq-cls: chat template reranker, logit scoring через seq-cls head. Запускается на GPU (RTX 5060 Ti). |
 | **HybridRetriever** | `src/adapters/search/hybrid_retriever.py`: BM25 top-100 + dense top-20 → weighted RRF (3:1) → ColBERT MaxSim rerank → channel dedup. Fallback на RRF-only если ColBERT недоступен. |
-| **gpu_server.py** | `scripts/gpu_server.py`: HTTP-сервер (stdlib http.server + PyTorch cu128) с 3 моделями: Qwen3-Embedding-0.6B + bge-reranker-v2-m3 + jina-colbert-v2. Единый порт :8082. |
-| **Qwen3-30B-A3B** | Основная LLM: MoE модель (30B total, 3B active params). GGUF Q4_K_M через llama-server на V100. Native function calling через `--jinja --reasoning-budget 0`. |
-| **Qwen3-Embedding-0.6B** | Embedding модель (1024-dim). Лидер MTEB Multilingual / MIRACL Russian. Через gpu_server.py на RTX 5060 Ti. |
-| **news_colbert** | Qdrant коллекция: 3 named vectors (dense 1024 + sparse BM25 + colbert 128-dim multi-vector), 13124 точки из 36 каналов. |
+| **gpu_server.py** | `scripts/gpu_server.py`: HTTP-сервер (stdlib http.server + PyTorch cu128) с 3 моделями: pplx-embed-v1-0.6B + Qwen3-Reranker-0.6B-seq-cls + jina-colbert-v2. Единый порт :8082. |
+| **Qwen3.5-35B-A3B** | Основная LLM: MoE модель (35B total, 3B active params). GGUF Q4_K_M через llama-server на V100. Native function calling через `--jinja --reasoning-budget 0`. DEC-0039. |
+| **pplx-embed-v1-0.6B** | Embedding модель (Perplexity, bf16, mean pooling, 1024-dim). Без instruction prefix. Через gpu_server.py на RTX 5060 Ti. DEC-0042. |
+| **news_colbert_v2** | Qdrant коллекция: 3 named vectors (dense 1024 + sparse BM25 + colbert 128-dim multi-vector), 13777 точки из 36 каналов, 16 payload indexes. |
 | **AgentService** | `src/services/agent_service.py`: единственный владелец ReAct цикла и SSE стриминга |
 | **ToolRunner** | `src/services/tools/tool_runner.py`: реестр инструментов + единый запуск с timeout |
 | **AgentState** | Внутреннее состояние одного запроса агента: coverage, refinement_count, search_count |

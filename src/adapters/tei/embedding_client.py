@@ -1,12 +1,11 @@
 """
-HTTP-клиент для TEI embedding service (Qwen/Qwen3-Embedding-0.6B).
+HTTP-клиент для embedding service (pplx-embed-v1-0.6B).
 
-Обёртка над TEI REST API:
+Обёртка над gpu_server.py REST API:
   POST /embed  → list[list[float]]  (normalize=True, 1024-dim)
 
-Формат instruction для Qwen3-Embedding:
-  query-текст:    "Instruct: ...\nQuery: {text}"
-  document-текст: "{text}"  (без prefix)
+pplx-embed-v1-0.6B НЕ использует instruction prefix —
+ни для query, ни для document. Mean pooling + L2 normalize.
 """
 
 from __future__ import annotations
@@ -18,11 +17,8 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_QUERY_INSTRUCTION = (
-    "Instruct: Given a user question about ML, AI, LLM or tech news, "
-    "retrieve relevant Telegram channel posts\n"
-    "Query: "
-)
+# pplx-embed не требует instruction prefix
+DEFAULT_QUERY_INSTRUCTION = ""
 _PASSAGE_PREFIX = ""
 
 

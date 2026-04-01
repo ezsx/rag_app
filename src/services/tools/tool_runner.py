@@ -98,7 +98,8 @@ class ToolRunner:
         _system_tools = {"verify", "fetch_docs"}
         _tool_prefix = "tool:" if req.tool not in _system_tools else "tool[system]:"
         with observe_span(
-            f"{_tool_prefix}{req.tool}", input=req.input, metadata={"step": step},
+            f"{_tool_prefix}{req.tool}", as_type="tool",
+            input=req.input, metadata={"step": step},
         ) as span:
             started = time.perf_counter()
             ok, data, error = _run_with_timeout(entry.func, effective_timeout, **req.input)
@@ -110,11 +111,30 @@ class ToolRunner:
                 error = error or str(data["error"])
 
             if span:
-                span.update(output={
+                # Включаем summary данных для observability (не полные тексты)
+                output_summary: dict = {
                     "ok": ok and error is None,
                     "took_ms": took_ms,
                     "error": error,
-                })
+                }
+                if ok and isinstance(data, dict):
+                    # Compact summary: counts и ключевые метрики
+                    if "hits" in data:
+                        output_summary["hits_count"] = len(data.get("hits", []))
+                    if "citation_coverage" in data:
+                        output_summary["coverage"] = data["citation_coverage"]
+                    if "citations" in data:
+                        output_summary["citations_count"] = len(data.get("citations", []))
+                    if "indices" in data:
+                        output_summary["reranked_count"] = len(data.get("indices", []))
+                    if "answer" in data:
+                        output_summary["answer_len"] = len(str(data.get("answer", "")))
+                    if "prompt" in data:
+                        output_summary["prompt_len"] = len(str(data.get("prompt", "")))
+                span.update(output=output_summary)
+                # SPEC-RAG-20d: mark failed tools для Langfuse error filtering
+                if not ok or error:
+                    span.update(level="ERROR", status_message=str(error)[:200] if error else "tool_failed")
 
         meta = ToolMeta(took_ms=took_ms, error=error)
         resp = ToolResponse(ok=ok and error is None, data=data if ok else {}, meta=meta)

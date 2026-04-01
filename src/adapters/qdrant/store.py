@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import uuid
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 from qdrant_client import AsyncQdrantClient, models
 from qdrant_client.http.exceptions import UnexpectedResponse
@@ -13,6 +13,30 @@ from qdrant_client.http.exceptions import UnexpectedResponse
 _POINT_ID_NS = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
 
 logger = logging.getLogger(__name__)
+
+# Канонический список payload indexes (SPEC-RAG-20a).
+# Единый source of truth — используется в store.py и migrate_collection.py.
+PAYLOAD_INDEXES = [
+    # Critical — используются почти во всех запросах
+    ("channel", models.KeywordIndexParams(type="keyword", is_tenant=True)),
+    ("date", models.DatetimeIndexParams(type="datetime", is_principal=True)),
+    ("entities", models.PayloadSchemaType.KEYWORD),
+    ("year_week", models.PayloadSchemaType.KEYWORD),
+    # Secondary — для специализированных tools (entity_tracker, arxiv_tracker)
+    ("entity_orgs", models.PayloadSchemaType.KEYWORD),
+    ("entity_models", models.PayloadSchemaType.KEYWORD),
+    ("arxiv_ids", models.PayloadSchemaType.KEYWORD),
+    ("hashtags", models.PayloadSchemaType.KEYWORD),
+    ("url_domains", models.PayloadSchemaType.KEYWORD),
+    ("lang", models.PayloadSchemaType.KEYWORD),
+    ("forwarded_from_id", models.PayloadSchemaType.KEYWORD),
+    ("year_month", models.PayloadSchemaType.KEYWORD),
+    ("root_message_id", models.PayloadSchemaType.KEYWORD),
+    ("author", models.PayloadSchemaType.KEYWORD),
+    ("message_id", models.IntegerIndexParams(type="integer", lookup=True, range=True)),
+    # Range
+    ("text_length", models.IntegerIndexParams(type="integer", lookup=False, range=True)),
+]
 
 
 @dataclass
@@ -29,6 +53,7 @@ class PointDocument:
     sparse_indices: list[int]
     sparse_values: list[float]
     payload: dict[str, Any]
+    colbert_vectors: Optional[list[list[float]]] = None  # per-token 128-dim
 
 
 class QdrantStore:
@@ -123,35 +148,29 @@ class QdrantStore:
         )
 
     async def _create_payload_indices(self) -> None:
-        """Создаёт payload-индексы для фильтрации по channel, date, author, message_id.
+        """Создаёт все 16 payload indexes из PAYLOAD_INDEXES (SPEC-RAG-20a).
 
-        Вызывается однократно при создании коллекции.
-        Параметры is_tenant / is_principal оптимизируют HNSW граф.
+        Вызывается при создании коллекции. Без indexes analytics tools
+        (entity_tracker, arxiv_tracker) получают Qdrant 400 на Facet API.
         """
-        await self._client.create_payload_index(
-            self._collection,
-            "channel",
-            field_schema=models.KeywordIndexParams(type="keyword", is_tenant=True),
-        )
-        await self._client.create_payload_index(
-            self._collection,
-            "date",
-            field_schema=models.DatetimeIndexParams(
-                type="datetime", is_principal=True
-            ),
-        )
-        await self._client.create_payload_index(
-            self._collection,
-            "author",
-            field_schema=models.PayloadSchemaType.KEYWORD,
-        )
-        await self._client.create_payload_index(
-            self._collection,
-            "message_id",
-            field_schema=models.IntegerIndexParams(
-                type="integer", lookup=True, range=True
-            ),
-        )
+        failed = []
+        for field_name, field_schema in PAYLOAD_INDEXES:
+            try:
+                await self._client.create_payload_index(
+                    self._collection,
+                    field_name,
+                    field_schema=field_schema,
+                )
+                logger.debug("Payload index '%s' создан", field_name)
+            except Exception as exc:
+                logger.error("Payload index '%s' FAILED: %s", field_name, exc)
+                failed.append(field_name)
+        if failed:
+            logger.error(
+                "Не удалось создать %d payload index(es): %s", len(failed), failed
+            )
+        else:
+            logger.info("Все %d payload indexes созданы", len(PAYLOAD_INDEXES))
 
     async def aclose(self) -> None:
         """Закрывает HTTP-соединение. Вызывать в lifespan shutdown."""
@@ -159,7 +178,7 @@ class QdrantStore:
         logger.info("QdrantStore: соединение закрыто")
 
     async def upsert(
-        self, documents: list[PointDocument], batch_size: int = 64
+        self, documents: list[PointDocument], batch_size: int = 8
     ) -> int:
         """Загружает документы в Qdrant батчами.
 
@@ -177,16 +196,19 @@ class QdrantStore:
             for doc in batch:
                 qdrant_id = str(uuid.uuid5(_POINT_ID_NS, doc.point_id))
                 payload = {**doc.payload, "point_id": doc.point_id}
+                vector_data = {
+                    self.DENSE_VECTOR: doc.dense_vector,
+                    self.SPARSE_VECTOR: models.SparseVector(
+                        indices=doc.sparse_indices,
+                        values=doc.sparse_values,
+                    ),
+                }
+                if doc.colbert_vectors:
+                    vector_data["colbert_vector"] = doc.colbert_vectors
                 points.append(
                     models.PointStruct(
                         id=qdrant_id,
-                        vector={
-                            self.DENSE_VECTOR: doc.dense_vector,
-                            self.SPARSE_VECTOR: models.SparseVector(
-                                indices=doc.sparse_indices,
-                                values=doc.sparse_values,
-                            ),
-                        },
+                        vector=vector_data,
                         payload=payload,
                     )
                 )

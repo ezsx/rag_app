@@ -432,111 +432,129 @@ def classify_failure(
 # ─── LLM Judge (SPEC-RAG-14 §3.3) ───────────────────────────────
 
 
-class ClaudeJudge:
-    """LLM judge через Anthropic Messages API."""
+class LangfuseTraceExporter:
+    """Экспорт traces из Langfuse для offline judge review."""
 
     def __init__(
         self,
-        api_key: str,
-        model: str = "claude-sonnet-4-6-20250514",
-        timeout: float = 30.0,
-        max_retries: int = 2,
-        rate_limit_delay: float = 2.0,
+        host: str = "http://localhost:3100",
+        public_key: str = "pk-lf-rag-app-dev",
+        secret_key: str = "sk-lf-rag-app-dev",
     ):
-        self.api_key = api_key
-        self.model = model
-        self.timeout = timeout
-        self.max_retries = max_retries
-        self.rate_limit_delay = rate_limit_delay
+        self.host = host.rstrip("/")
         self._client = httpx.Client(
-            base_url="https://api.anthropic.com",
-            headers={
-                "x-api-key": api_key,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            timeout=timeout,
+            base_url=self.host,
+            auth=(public_key, secret_key),
+            timeout=30.0,
         )
 
-    def judge_factual(self, question: str, answer: str, expected: str) -> Dict[str, Any]:
-        """Factual correctness: 0.0 / 0.5 / 1.0"""
-        prompt = (
-            f"Вопрос: {question}\n"
-            f"Ответ системы: {answer}\n"
-            f"Эталонный ответ: {expected}\n\n"
-            "Оцени фактическую корректность ответа относительно эталона:\n"
-            "0.0 — Содержит фактические ошибки или противоречит эталону\n"
-            "0.5 — Частично корректен, но упускает важные факты или содержит неточности\n"
-            "1.0 — Фактически корректен, соответствует эталону\n\n"
-            'JSON: {"reasoning": "...", "score": 0.0|0.5|1.0}'
-        )
-        return self._call(prompt, "factual_correctness")
+    def fetch_recent_traces(self, limit: int = 36, tags: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+        """Получает последние traces из Langfuse."""
+        params = {"limit": limit, "orderBy": "timestamp.desc"}
+        try:
+            resp = self._client.get("/api/public/traces", params=params)
+            resp.raise_for_status()
+            traces = resp.json().get("data", [])
+            if tags:
+                traces = [t for t in traces if any(tag in (t.get("tags") or []) for tag in tags)]
+            return traces
+        except Exception as exc:
+            logger.error("Langfuse fetch_recent_traces failed: %s", exc)
+            return []
 
-    def judge_usefulness(self, question: str, answer: str) -> Dict[str, Any]:
-        """Usefulness: 0 / 1 / 2"""
-        prompt = (
-            f"Вопрос: {question}\n"
-            f"Ответ системы: {answer}\n\n"
-            "Оцени полезность ответа:\n"
-            "0 — Бесполезный: не содержит релевантной информации\n"
-            "1 — Частично полезный: некоторая информация есть, но неполный\n"
-            "2 — Полезный: полностью отвечает, конкретен, хорошо структурирован\n\n"
-            'JSON: {"reasoning": "...", "score": 0|1|2}'
-        )
-        return self._call(prompt, "usefulness")
+    def fetch_trace(self, trace_id: str) -> Optional[Dict[str, Any]]:
+        """Получает полный trace с observations."""
+        try:
+            resp = self._client.get(f"/api/public/traces/{trace_id}")
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as exc:
+            logger.error("Langfuse fetch_trace(%s) failed: %s", trace_id, exc)
+            return None
 
-    def _call(self, prompt: str, criterion: str) -> Dict[str, Any]:
-        for attempt in range(1, self.max_retries + 1):
+    def extract_trace_data(self, trace: Dict[str, Any]) -> Dict[str, Any]:
+        """Извлекает ключевые данные из trace для offline judge."""
+        trace_input = trace.get("input") or "{}"
+        trace_output = trace.get("output") or "{}"
+
+        # Parse escaped JSON
+        if isinstance(trace_input, str):
             try:
-                resp = self._client.post(
-                    "/v1/messages",
-                    json={
-                        "model": self.model,
-                        "max_tokens": 512,
-                        "messages": [{"role": "user", "content": prompt}],
-                    },
-                )
-                if resp.status_code == 429:
-                    logger.warning("Judge rate limited, sleeping %ss", self.rate_limit_delay)
-                    time.sleep(self.rate_limit_delay)
-                    continue
-                resp.raise_for_status()
-                data = resp.json()
-                text = data["content"][0]["text"]
-                # Извлекаем JSON из ответа
-                parsed = self._extract_json(text)
-                return {
-                    "criterion": criterion,
-                    "score": parsed.get("score"),
-                    "reasoning": parsed.get("reasoning", ""),
-                    "raw": text,
-                    "error": False,
-                }
-            except Exception as exc:
-                logger.warning("Judge error (attempt %d/%d): %s", attempt, self.max_retries, exc)
-                if attempt < self.max_retries:
-                    time.sleep(self.rate_limit_delay)
-                    continue
-                return {
-                    "criterion": criterion,
-                    "score": None,
-                    "reasoning": str(exc),
-                    "error": True,
-                }
-        return {"criterion": criterion, "score": None, "error": True}
-
-    @staticmethod
-    def _extract_json(text: str) -> Dict[str, Any]:
-        """Извлекает JSON из текста ответа judge."""
-        # Ищем {...} в тексте
-        start = text.find("{")
-        end = text.rfind("}") + 1
-        if start >= 0 and end > start:
-            try:
-                return json.loads(text[start:end])
-            except json.JSONDecodeError:
+                trace_input = json.loads(trace_input)
+            except (json.JSONDecodeError, TypeError):
                 pass
-        return {"score": None, "reasoning": text}
+        if isinstance(trace_output, str):
+            try:
+                trace_output = json.loads(trace_output)
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+        query = trace_input.get("query", "") if isinstance(trace_input, dict) else ""
+        answer = trace_output.get("answer", "") if isinstance(trace_output, dict) else ""
+
+        # Извлекаем tool calls и observations из trace observations
+        observations = trace.get("observations") or []
+        tool_calls = []
+        llm_generations = []
+
+        for obs in observations:
+            obs_type = obs.get("type", "")
+            name = obs.get("name", "")
+
+            if obs_type == "TOOL":
+                tool_calls.append({
+                    "name": name,
+                    "latency": obs.get("latency"),
+                    "toolCalls": obs.get("toolCalls", []),
+                })
+            elif obs_type == "GENERATION":
+                gen_data = {
+                    "name": name,
+                    "model": obs.get("model"),
+                    "latency": obs.get("latency"),
+                    "toolCalls": obs.get("toolCalls", []),
+                    "toolCallNames": obs.get("toolCallNames", []),
+                    "usageDetails": obs.get("usageDetails", {}),
+                }
+                llm_generations.append(gen_data)
+
+        # Извлекаем final_answer toolCall (содержит полный ответ с sources)
+        final_answer_raw = ""
+        for gen in llm_generations:
+            if "final_answer" in gen.get("toolCallNames", []):
+                for tc in gen.get("toolCalls", []):
+                    if isinstance(tc, str):
+                        try:
+                            tc_parsed = json.loads(tc)
+                        except json.JSONDecodeError:
+                            continue
+                    else:
+                        tc_parsed = tc
+                    args = tc_parsed.get("arguments", "")
+                    if isinstance(args, str):
+                        try:
+                            args = json.loads(args)
+                        except json.JSONDecodeError:
+                            pass
+                    if isinstance(args, dict) and args.get("answer"):
+                        final_answer_raw = args["answer"]
+
+        return {
+            "trace_id": trace.get("id"),
+            "query": query,
+            "answer": answer or final_answer_raw,
+            "latency": trace.get("latency"),
+            "tool_calls": tool_calls,
+            "llm_generations": llm_generations,
+            "total_input_tokens": sum(
+                g.get("usageDetails", {}).get("input", 0) or 0
+                for g in llm_generations
+            ),
+            "total_output_tokens": sum(
+                g.get("usageDetails", {}).get("output", 0) or 0
+                for g in llm_generations
+            ),
+        }
 
     def close(self):
         self._client.close()
@@ -588,7 +606,7 @@ class AgentEvaluationRunner:
         api_key: Optional[str],
         agent_retries: int,
         baseline_retries: int,
-        judge: Optional[ClaudeJudge] = None,
+        judge: Optional[Any] = None,  # deprecated, kept for backward compat
         dry_run: bool = False,
         limit: int = 0,
         run_baseline: bool = False,
@@ -626,8 +644,8 @@ class AgentEvaluationRunner:
                 else self._call_baseline(item)
             )
 
-            # Judge scores
-            judge_scores = self._run_judge(item, agent_result) if self.judge and not self.dry_run else {}
+            # Judge scores — offline only (через Langfuse trace review)
+            judge_scores = self._run_judge(item, agent_result)
 
             # Metrics
             metrics = self._compute_metrics(item, agent_result, baseline_result, judge_scores)
@@ -644,6 +662,8 @@ class AgentEvaluationRunner:
                 item=item,
                 agent_result=agent_result,
                 metrics=metrics,
+                qdrant_url=os.environ.get("QDRANT_EVAL_URL", "http://localhost:16333"),
+                qdrant_collection=os.environ.get("QDRANT_COLLECTION", "news_colbert_v2"),
             )
 
             results.append({
@@ -674,8 +694,43 @@ class AgentEvaluationRunner:
         item: EvalItem,
         agent_result: Dict[str, Any],
         metrics: Dict[str, Any],
+        qdrant_url: Optional[str] = None,
+        qdrant_collection: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Строит самодостаточный packet для offline judge review."""
+        """Строит самодостаточный packet для offline judge review.
+
+        Если qdrant_url указан — дополучает тексты документов по citation IDs.
+        """
+        # Enrich citations with document texts from Qdrant (REST API, без qdrant_client)
+        citations = agent_result.get("citations_detailed", [])
+        if qdrant_url and qdrant_collection and citations:
+            try:
+                point_ids = [c.get("id") for c in citations if c.get("id")]
+                if point_ids:
+                    resp = httpx.post(
+                        f"{qdrant_url}/collections/{qdrant_collection}/points",
+                        json={"ids": point_ids, "with_payload": True},
+                        timeout=10.0,
+                    )
+                    if resp.status_code == 200:
+                        points = resp.json().get("result", [])
+                        text_map = {
+                            str(p["id"]): (p.get("payload") or {}).get("text", "")
+                            for p in points
+                            if isinstance(p, dict) and p.get("id")
+                        }
+                        for cit in citations:
+                            cid = cit.get("id")
+                            if cid and str(cid) in text_map:
+                                full_text = text_map[str(cid)]
+                            if len(full_text) > 1500:
+                                cit["text"] = full_text[:1500] + "... [ОБРЕЗАНО, полный текст длиннее]"
+                            else:
+                                cit["text"] = full_text
+                        logger.info("Enriched %d/%d citations with Qdrant texts", len(text_map), len(point_ids))
+            except Exception as exc:
+                logger.warning("Qdrant citation enrichment failed: %s", exc)
+
         return {
             "query_id": item.id,
             "query": item.query,
@@ -854,23 +909,12 @@ class AgentEvaluationRunner:
         return {"error": True, "error_message": last_error, "latency_sec": None}
 
     def _run_judge(self, item: EvalItem, agent_result: Dict[str, Any]) -> Dict[str, Any]:
-        """Запуск LLM judge для factual + usefulness."""
-        if not self.judge or agent_result.get("error"):
-            return {}
+        """Judge scores — заполняются offline через Langfuse trace review.
 
-        answer = agent_result.get("answer", "")
-        scores: Dict[str, Any] = {}
-
-        # Factual correctness (только для answerable с expected_answer)
-        if item.answerable and item.expected_answer:
-            scores["factual_correctness"] = self.judge.judge_factual(
-                item.query, answer, item.expected_answer,
-            )
-
-        # Usefulness (для всех)
-        scores["usefulness"] = self.judge.judge_usefulness(item.query, answer)
-
-        return scores
+        Все score поля = None при eval прогоне. Заполняются вручную
+        (Claude/Codex в чате) на основе exported offline judge artifacts.
+        """
+        return {}
 
     def _compute_metrics(
         self,
@@ -928,8 +972,8 @@ class AgentEvaluationRunner:
             "strict_anchor_recall": strict_anchor_recall,
             "strict_anchor_recall_eligible": item.strict_anchor_recall_eligible,
             "acceptable_set_hit": acceptable_set_hit,
-            "retrieval_sufficiency_score": None,
-            "evidence_support_score": None,
+            "retrieval_sufficiency_score": judge_scores.get("retrieval_sufficiency", {}).get("score"),
+            "evidence_support_score": judge_scores.get("evidence_support", {}).get("score"),
             "key_tool_accuracy": key_tool_acc,
             "factual_correctness": factual,
             "usefulness": usefulness,
@@ -1213,26 +1257,74 @@ def build_offline_judge_markdown(batch: Sequence[Dict[str, Any]], batch_no: int)
             lines.append("- _none_")
         lines.append("")
 
-        lines.extend(["**Citations**", ""])
+        lines.extend(["**Citations (документы использованные в ответе)**", ""])
         citations = packet.get("citations") or []
         if citations:
-            for cit in citations:
+            for i, cit in enumerate(citations, 1):
                 lines.append(
-                    f"- `{cit.get('id') or '-'} | {cit.get('channel') or '-'}:{cit.get('message_id') or '-'}` "
-                    f"{cit.get('url') or ''}"
+                    f"**[{i}]** `{cit.get('channel') or '-'}:{cit.get('message_id') or '-'}` "
+                    f"({cit.get('id') or '-'})"
                 )
+                text = cit.get("text") or ""
+                if text:
+                    if len(text) > 1000:
+                        lines.append(f"  > {text[:1000]}... [ОБРЕЗАНО]")
+                    else:
+                        lines.append(f"  > {text}")
+                else:
+                    lines.append("  > _(текст не загружен)_")
+                lines.append("")
         else:
             lines.append("- _none_")
         lines.append("")
 
-        lines.extend(["**Retrieved docs**", ""])
-        retrieved = packet.get("retrieved_docs") or []
-        if retrieved:
-            for doc in retrieved[:20]:
-                lines.append(f"- `{doc.get('id')}` score={doc.get('score')} excerpt={doc.get('text_excerpt') or 'N/A'}")
-        else:
-            lines.append("- _none_")
-        lines.extend(["", "---", ""])
+        # Retrieved docs секция убрана — дублирует Citations но без текстов.
+        # Тексты документов доступны в Citations (enriched из Qdrant).
+
+        # Langfuse trace data (если enriched)
+        langfuse_trace = packet.get("langfuse_trace")
+        if langfuse_trace:
+            lines.extend(["**Langfuse Trace**", ""])
+            lines.append(f"- Trace ID: `{langfuse_trace.get('trace_id', 'N/A')}`")
+            lines.append(f"- Latency: {langfuse_trace.get('latency', 'N/A')}s")
+            lines.append(f"- Tokens: input={langfuse_trace.get('total_input_tokens', 0)}, output={langfuse_trace.get('total_output_tokens', 0)}")
+            lines.append("")
+            for gen in langfuse_trace.get("llm_generations", []):
+                tool_names = gen.get("toolCallNames", [])
+                lines.append(f"- `{gen['name']}`: {gen.get('latency', '?')}s, tools={tool_names}, usage={gen.get('usageDetails', {})}")
+            lines.append("")
+
+        # Offline judge scoring section
+        if packet["eval_mode"] == "retrieval_evidence":
+            lines.extend([
+                "**Offline Judge Scoring**", "",
+                "| Metric | Score | Reasoning |",
+                "|--------|-------|-----------|",
+                "| factual_correctness (0/0.5/1) | ___ | |",
+                "| usefulness (0/1/2) | ___ | |",
+                "| evidence_support (0/0.5/1): подтверждается ли ответ документами? | ___ | |",
+                "| retrieval_sufficiency (0/0.5/1): достаточно ли документов для ответа? | ___ | |",
+                "",
+            ])
+        elif packet["eval_mode"] == "analytics":
+            lines.extend([
+                "**Offline Judge Scoring**", "",
+                "| Metric | Score | Reasoning |",
+                "|--------|-------|-----------|",
+                "| factual_correctness (0/0.5/1) | ___ | |",
+                "| usefulness (0/1/2) | ___ | |",
+                "",
+            ])
+        elif packet["eval_mode"] == "refusal":
+            lines.extend([
+                "**Offline Judge Scoring**", "",
+                "| Metric | Score | Reasoning |",
+                "|--------|-------|-----------|",
+                "| correct_refusal (0/1) | ___ | |",
+                "| usefulness (0/1/2) | ___ | |",
+                "",
+            ])
+        lines.extend(["---", ""])
 
     return "\n".join(lines)
 
@@ -1282,13 +1374,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=0, help="Макс. число запросов (0 = все)")
     parser.add_argument("--api-key", default=None, help="(deprecated, auth removed) API ключ для агента")
 
-    # Judge
-    parser.add_argument(
-        "--judge", choices=["claude", "skip"], default="skip",
-        help="LLM judge: claude (Anthropic API) или skip",
-    )
-    parser.add_argument("--skip-judge", action="store_true", help="Алиас для --judge skip")
-    parser.add_argument("--judge-model", default=None, help="Модель judge (default: claude-sonnet-4-6-20250514)")
+    # Judge (offline only — через Langfuse trace review)
+    parser.add_argument("--skip-judge", action="store_true", help="(deprecated, judge is always offline)")
+    parser.add_argument("--judge-model", default=None, help="(deprecated, judge is offline)")
 
     # Other
     parser.add_argument("--export-offline-judge", action="store_true", help="Экспортировать offline judge packets батчами")
@@ -1322,28 +1410,8 @@ def main() -> int:
         logger.error("Не удалось загрузить датасет: %s", exc)
         return 1
 
-    # Judge setup (--skip-judge алиас для --judge skip)
-    if args.skip_judge:
-        args.judge = "skip"
-
-    judge: Optional[ClaudeJudge] = None
+    # Judge is offline-only (через Langfuse trace review)
     judge_model: Optional[str] = None
-    if args.judge == "claude":
-        judge_api_key = os.environ.get("EVAL_JUDGE_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
-        if not judge_api_key:
-            logger.warning("Judge=claude, но EVAL_JUDGE_API_KEY не задан → fallback на skip")
-            args.judge = "skip"
-    if args.judge == "claude":
-        judge_api_key = os.environ.get("EVAL_JUDGE_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
-        judge_model = args.judge_model or os.environ.get("EVAL_JUDGE_MODEL", "claude-sonnet-4-6-20250514")
-        judge = ClaudeJudge(
-            api_key=judge_api_key,
-            model=judge_model,
-            timeout=float(os.environ.get("EVAL_JUDGE_TIMEOUT", "30")),
-            max_retries=int(os.environ.get("EVAL_JUDGE_MAX_RETRIES", "2")),
-            rate_limit_delay=float(os.environ.get("EVAL_JUDGE_RATE_LIMIT_DELAY", "2")),
-        )
-        logger.info("Judge: %s", judge_model)
 
     runner = AgentEvaluationRunner(
         dataset,
@@ -1357,7 +1425,6 @@ def main() -> int:
         api_key=args.api_key,
         agent_retries=args.agent_retries,
         baseline_retries=args.baseline_retries,
-        judge=judge,
         dry_run=args.dry_run,
         limit=args.limit,
         run_baseline=args.run_baseline,
@@ -1368,9 +1435,6 @@ def main() -> int:
     except KeyboardInterrupt:
         logger.warning("Оценка прервана пользователем")
         return 130
-    finally:
-        if judge:
-            judge.close()
 
     aggregated = aggregate_results(raw_results)
 
@@ -1412,6 +1476,32 @@ def main() -> int:
 
     exported_batches: List[Path] = []
     if args.export_offline_judge:
+        # Enrich offline judge packets with Langfuse trace data
+        langfuse_host = os.environ.get("LANGFUSE_EXPORT_HOST", "http://localhost:3100")
+        langfuse_pk = os.environ.get("LANGFUSE_PUBLIC_KEY", "pk-lf-rag-app-dev")
+        langfuse_sk = os.environ.get("LANGFUSE_SECRET_KEY", "sk-lf-rag-app-dev")
+        try:
+            exporter = LangfuseTraceExporter(
+                host=langfuse_host, public_key=langfuse_pk, secret_key=langfuse_sk,
+            )
+            recent_traces = exporter.fetch_recent_traces(limit=len(raw_results) * 2, tags=["eval"])
+            # Match traces to results by query text
+            for result in raw_results:
+                query = result.get("query", "")
+                packet = result.get("offline_judge_packet", {})
+                for trace in recent_traces:
+                    trace_input = trace.get("input") or ""
+                    if isinstance(trace_input, str) and query and query in trace_input:
+                        full_trace = exporter.fetch_trace(trace["id"])
+                        if full_trace:
+                            trace_data = exporter.extract_trace_data(full_trace)
+                            packet["langfuse_trace"] = trace_data
+                            logger.debug("Matched trace %s to %s", trace["id"], result.get("query_id"))
+                        break
+            exporter.close()
+        except Exception as exc:
+            logger.warning("Langfuse trace enrichment failed (non-blocking): %s", exc)
+
         exported_batches = export_offline_judge_batches(
             results=raw_results,
             output_dir=args.output_dir,

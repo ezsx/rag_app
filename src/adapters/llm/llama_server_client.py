@@ -99,10 +99,10 @@ class LlamaServerClient:
                 span.update(
                     model=data.get("model", self.model),
                     output=data.get("choices", [{}])[0].get("text", "")[:500],
-                    usage={
-                        "input": usage.get("prompt_tokens", 0),
-                        "output": usage.get("completion_tokens", 0),
-                        "total": usage.get("total_tokens", 0),
+                    usage_details={
+                        "prompt_tokens": usage.get("prompt_tokens", 0),
+                        "completion_tokens": usage.get("completion_tokens", 0),
+                        "total_tokens": usage.get("total_tokens", 0),
                     },
                 )
             return data
@@ -167,10 +167,24 @@ class LlamaServerClient:
                 error_text = resp.text[:500]
                 logger.warning("LLM chat_completion 400 (will retry): %s", error_text)
 
-                # Обрезаем messages до последних 4 (system + user + 2 recent)
+                # Обрезаем messages, сохраняя compose_context pair если есть
                 if len(payload["messages"]) > 4:
-                    payload["messages"] = payload["messages"][:2] + payload["messages"][-2:]
-                    logger.info("Retrying with trimmed messages: %d → %d", len(messages), 4)
+                    head = payload["messages"][:2]
+                    tail = payload["messages"][2:]
+                    # Ищем последний compose_context tool message + его assistant
+                    compose_pair: list = []
+                    for i in range(len(tail) - 1, -1, -1):
+                        if tail[i].get("role") == "tool" and tail[i].get("name") == "compose_context":
+                            compose_pair = [tail[i]]
+                            # Берём предшествующий assistant message
+                            if i > 0 and tail[i - 1].get("role") == "assistant":
+                                compose_pair = [tail[i - 1], tail[i]]
+                            break
+                    if compose_pair:
+                        payload["messages"] = head + compose_pair
+                    else:
+                        payload["messages"] = head + tail[-2:]
+                    logger.info("Retrying with trimmed messages: %d → %d", len(messages), len(payload["messages"]))
 
                 # Убираем enable_thinking на retry
                 payload.pop("enable_thinking", None)
@@ -191,15 +205,33 @@ class LlamaServerClient:
             data = resp.json()
             if span:
                 usage = data.get("usage", {})
+                output_msg = data.get("choices", [{}])[0].get("message", {})
                 span.update(
                     model=data.get("model", self.model),
-                    output=data.get("choices", [{}])[0].get("message", {}),
-                    usage={
-                        "input": usage.get("prompt_tokens", 0),
-                        "output": usage.get("completion_tokens", 0),
-                        "total": usage.get("total_tokens", 0),
+                    output=output_msg,
+                    usage_details={
+                        "prompt_tokens": usage.get("prompt_tokens", 0),
+                        "completion_tokens": usage.get("completion_tokens", 0),
+                        "total_tokens": usage.get("total_tokens", 0),
+                    },
+                    metadata={
+                        "message_count": len(messages),
+                        "tool_calls": [
+                            tc.get("function", {}).get("name", "?")
+                            for tc in (output_msg.get("tool_calls") or [])
+                        ] or None,
+                        "finish_reason": data.get("choices", [{}])[0].get("finish_reason"),
                     },
                 )
+            # SPEC-RAG-20d: аккумулируем tokens в RequestContext для root trace
+            try:
+                from services.agent.state import _request_ctx
+                _ctx = _request_ctx.get(None)
+                if _ctx:
+                    _ctx.total_prompt_tokens += usage.get("prompt_tokens", 0)
+                    _ctx.total_completion_tokens += usage.get("completion_tokens", 0)
+            except Exception:
+                pass
             return data
 
     def tokenize(self, text: bytes, add_bos: bool = True) -> List[int]:

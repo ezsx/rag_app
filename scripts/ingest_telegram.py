@@ -359,6 +359,7 @@ def _build_point_docs_flat(
     sparse_results: List[Any],
     channel_name: str,
     chunk_size: int,
+    colbert_vectors: Optional[List[List[List[float]]]] = None,
 ) -> List[PointDocument]:
     """
     Flat-вариант построения PointDocument, где `source_messages[i] ↔ texts[i]`.
@@ -403,12 +404,14 @@ def _build_point_docs_flat(
         )
 
         sparse = sparse_results[i]
+        cvec = colbert_vectors[i] if colbert_vectors and i < len(colbert_vectors) else None
         docs.append(
             PointDocument(
                 point_id=point_id,
                 dense_vector=dense_vectors[i],
-                sparse_indices=sparse.indices.tolist(),
-                sparse_values=sparse.values.tolist(),
+                sparse_indices=sparse.indices.astype("uint32").tolist(),
+                sparse_values=sparse.values.astype("float32").tolist(),
+                colbert_vectors=cvec,
                 payload=payload,
             )
         )
@@ -487,11 +490,27 @@ async def ingest_batches(
                 batch_no=batch_no,
             )
             sparse_results = list(sparse_encoder.embed(texts))
+            # ColBERT encoding через gpu_server (если доступен)
+            colbert_vectors = None
+            colbert_url = os.getenv("COLBERT_URL") or os.getenv("EMBEDDING_TEI_URL", "")
+            if colbert_url:
+                try:
+                    import httpx as _hx
+                    async with _hx.AsyncClient(timeout=60) as _cc:
+                        _cr = await _cc.post(
+                            f"{colbert_url}/colbert-encode",
+                            json={"texts": texts, "is_query": False},
+                        )
+                        _cr.raise_for_status()
+                        colbert_vectors = _cr.json()
+                except Exception as _ce:
+                    logger.warning("ColBERT encode failed (will skip): %s", _ce)
             point_docs = _build_point_docs_flat(
                 source_messages=source_messages,
                 texts=texts,
                 dense_vectors=dense_vectors,
                 sparse_results=sparse_results,
+                colbert_vectors=colbert_vectors,
                 channel_name=channel_name,
                 chunk_size=chunk_size,
             )

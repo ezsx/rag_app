@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
+from core.observability import observe_span
+
 
 _STOP_WORDS: frozenset[str] = frozenset(
     {
@@ -165,30 +167,10 @@ def compose_context(
         indexed_docs.append((idx, d, cut))
         used += len(cut)
 
-    # Lost-in-the-middle mitigation: переупорядочиваем документы
-    if enable_lost_in_middle_mitigation and len(indexed_docs) > 2:
-        # Стратегия: наиболее релевантные документы в начало и конец
-        # Менее релевантные в середину
-        reordered = []
-        mid = len(indexed_docs) // 2
-
-        # Первая половина наиболее релевантных идет в начало
-        for i in range(0, mid, 2):
-            if i < len(indexed_docs):
-                reordered.append(indexed_docs[i])
-
-        # Менее релевантные в середину
-        middle_docs = []
-        for i in range(mid, len(indexed_docs)):
-            middle_docs.append(indexed_docs[i])
-
-        # Вторая часть наиболее релевантных в конец
-        for i in range(1, mid, 2):
-            if i < len(indexed_docs):
-                middle_docs.append(indexed_docs[i])
-
-        reordered.extend(middle_docs)
-        indexed_docs = reordered
+    # SPEC-RAG-20d: lost-in-the-middle mitigation ОТКЛЮЧЁН.
+    # Документы приходят уже отсортированные reranker'ом (ColBERT/cross-encoder).
+    # Reorder ломал этот порядок и несовпадение citation [1][2] с позицией в prompt.
+    # При 5-10 docs в 4000-token budget эффект lost-in-middle минимален.
 
     # Формируем финальные chunks
     for idx, d, cut in indexed_docs:
@@ -200,8 +182,25 @@ def compose_context(
 
     prompt = "\n\n".join(chunks)
 
-    # Покрытие считаем по исходному набору кандидатов, а не по усечённому prompt.
-    citation_coverage = _compute_coverage(query, docs)
+    # Legacy cosine-based coverage — сохраняется для backward compat и observability.
+    # Основная coverage теперь nugget-based (LANCER) в agent/coverage.py.
+    included_docs = [d for _, d, _ in indexed_docs]
+    citation_coverage = _compute_coverage(query, included_docs)
+
+    # SPEC-RAG-20d: observability — compose execution summary
+    with observe_span("compose_execution", input={
+        "query": query[:100],
+        "total_docs": len(docs),
+        "max_tokens_ctx": max_tokens_ctx,
+    }) as _span:
+        if _span:
+            _span.update(output={
+                "included_docs": len(indexed_docs),
+                "dropped_docs": len(docs) - len(indexed_docs),
+                "prompt_chars": len(prompt),
+                "coverage": citation_coverage,
+                "citations_count": len(citations),
+            })
 
     return {
         "prompt": prompt,

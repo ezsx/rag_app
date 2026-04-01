@@ -54,7 +54,7 @@ Fallback (max_steps exceeded): error answer
 ### Post-search phase
 | Инструмент | Файл | Назначение |
 |-----------|------|-----------|
-| `rerank` | `tools/rerank.py` | bge-reranker-v2-m3 cross-encoder |
+| `rerank` | `tools/rerank.py` | Qwen3-Reranker-0.6B-seq-cls cross-encoder |
 | `compose_context` | `tools/compose_context.py` | Сборка контекста с цитатами, coverage |
 | `final_answer` | `tools/final_answer.py` | Финальный payload с sources |
 | `related_posts` | `tools/related_posts.py` | Qdrant RecommendQuery — похожие посты |
@@ -124,8 +124,8 @@ error          — при ошибке
 ```
 agent_max_steps       = 15
 agent_default_steps   = 8
-coverage_threshold    = 0.65     # DEC-0019
-max_refinements       = 2        # DEC-0019
+coverage_threshold    = 0.75     # LANCER nugget coverage (3/4 nuggets)
+max_refinements       = 1        # targeted по uncovered nuggets
 agent_tool_temp       = 0.2
 agent_final_max_tokens = 512
 ```
