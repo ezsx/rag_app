@@ -20,8 +20,8 @@
 - Research: R20 (`docs/research/reports/R20-deep-retrieval-robustness-ndr-rsr-ror.md`)
 - Написать SPEC-RAG-22 (спека)
 - Реализовать скрипт robustness тестов
-- Прогнать на текущих 36 Qs × 3 вариации (noise/substitution/reorder)
-- ~108 прогонов, ~45 мин compute
+- Расширить до 50 Qs для robustness (14 дополнительных, R20 рекомендация)
+- Прогнать 50 Qs × 3 вариации (noise/substitution/reorder) = ~150 прогонов, ~1 час compute
 - Зафиксировать baseline NDR/RSR/ROR
 
 ### 2. Expand golden dataset 36 → 100 Qs
