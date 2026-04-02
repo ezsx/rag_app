@@ -341,6 +341,91 @@ def compute_key_tool_accuracy(
     return 1.0 if (whitelist & predicted_set) else 0.0
 
 
+# Scaffold tools не учитываются в precision (всегда вызываются)
+SCAFFOLD_TOOLS = {"query_plan", "rerank", "compose_context", "final_answer"}
+
+
+def compute_tool_call_f1(
+    predicted_tools: List[str],
+    item: EvalItem,
+) -> Optional[float]:
+    """ToolCallF1: F1 по tool calls с partial credit (SPEC-RAG-22).
+
+    Precision = |called ∩ key_tools| / |called − scaffold|
+    Recall = |called ∩ key_tools| / |key_tools|
+    Forbidden tools → F1 = 0.
+    """
+    if not item.key_tools:
+        return None
+
+    key_set = set(item.key_tools)
+    forbidden = set(item.forbidden_tools)
+    predicted_set = set(predicted_tools)
+
+    if forbidden & predicted_set:
+        return 0.0
+
+    # Учитываем alternatives как valid key tools
+    whitelist = key_set | set(item.acceptable_alternatives)
+    hits = whitelist & predicted_set
+    non_scaffold = predicted_set - SCAFFOLD_TOOLS
+
+    # Recall: capped at 1.0 — вызов key + alternative не даёт recall > 1
+    recall = min(1.0, len(hits) / len(key_set)) if key_set else 0.0
+    precision = len(hits) / len(non_scaffold) if non_scaffold else (1.0 if not key_set else 0.0)
+
+    if precision + recall == 0:
+        return 0.0
+    return 2 * precision * recall / (precision + recall)
+
+
+def compute_retrieval_ir_metrics(
+    citation_hits: List[str],
+    item: EvalItem,
+) -> Dict[str, Optional[float]]:
+    """Precision@5, MRR, nDCG@5 по citation_hits vs acceptable_evidence_sets (SPEC-RAG-22).
+
+    Только для retrieval_evidence eval_mode. Возвращает None для остальных.
+    """
+    if item.eval_mode != "retrieval_evidence":
+        return {"precision_at_5": None, "mrr": None, "ndcg_at_5": None}
+
+    # Собираем множество всех acceptable post_ids
+    all_relevant = set()
+    for evidence_set in (item.acceptable_evidence_sets or []):
+        all_relevant.update(evidence_set)
+    if not all_relevant and item.source_post_ids:
+        all_relevant = set(item.source_post_ids)
+
+    if not all_relevant or not citation_hits:
+        return {"precision_at_5": 0.0, "mrr": 0.0, "ndcg_at_5": 0.0}
+
+    top5 = citation_hits[:5]
+
+    # Precision@5 (standard: делим на 5, missing ranks = non-relevant)
+    relevant_in_top5 = sum(1 for h in top5 if h in all_relevant)
+    precision_at_5 = relevant_in_top5 / 5
+
+    # MRR — позиция первого релевантного
+    mrr = 0.0
+    for i, h in enumerate(citation_hits):
+        if h in all_relevant:
+            mrr = 1.0 / (i + 1)
+            break
+
+    # nDCG@5
+    dcg = 0.0
+    for i, h in enumerate(top5):
+        rel = 1.0 if h in all_relevant else 0.0
+        dcg += rel / math.log2(i + 2)  # i+2 т.к. log₂(1)=0
+    # IDCG: ideal = все relevant первыми
+    ideal_rels = sorted([1.0] * min(len(all_relevant), 5) + [0.0] * max(0, 5 - len(all_relevant)), reverse=True)
+    idcg = sum(r / math.log2(i + 2) for i, r in enumerate(ideal_rels[:5]))
+    ndcg_at_5 = dcg / idcg if idcg > 0 else 0.0
+
+    return {"precision_at_5": precision_at_5, "mrr": mrr, "ndcg_at_5": ndcg_at_5}
+
+
 # ─── Failure attribution (SPEC-RAG-14 §3.4) ──────────────────────
 
 
@@ -563,6 +648,89 @@ class LangfuseTraceExporter:
 # ─── Utility ──────────────────────────────────────────────────────
 
 
+# ─── BERTScore (SPEC-RAG-22 §1.2) ────────────────────────────────
+
+
+# ─── SummaC-ZS Faithfulness (SPEC-RAG-22 §1.3) ──────────────────
+
+
+_summac_verifier = None
+
+
+def _get_summac():
+    """Lazy init SummaC verifier."""
+    global _summac_verifier
+    if _summac_verifier is None:
+        try:
+            # Поддержка запуска как из корня (src.services.eval) так и из scripts/
+            try:
+                from src.services.eval.summac import SummaCVerifier
+            except ImportError:
+                sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+                from src.services.eval.summac import SummaCVerifier
+            _summac_verifier = SummaCVerifier(
+                gpu_server_url=os.environ.get("GPU_SERVER_URL", "http://localhost:8082"),
+            )
+            logger.info("SummaC-ZS verifier initialized")
+        except Exception as exc:
+            logger.warning("SummaC-ZS unavailable: %s", exc)
+    return _summac_verifier
+
+
+# ─── BERTScore (SPEC-RAG-22 §1.2) ────────────────────────────────
+
+
+class BERTScorer:
+    """Lazy-loaded BERTScore с ruBert-large для русского (SPEC-RAG-22).
+
+    Загружает модель один раз за eval run. Graceful fallback если
+    bert-score не установлен.
+    """
+
+    def __init__(self) -> None:
+        self._available: Optional[bool] = None
+        self._scorer = None
+
+    def _ensure_loaded(self) -> bool:
+        """Lazy load bert-score модуля и модели."""
+        if self._available is not None:
+            return self._available
+        try:
+            from bert_score import BERTScorer as _BS
+            # ruBert-large имеет model_max_length=10^30 что вызывает OverflowError
+            # в tokenizers C extension. Патчим после инициализации.
+            self._scorer = _BS(
+                model_type="ai-forever/ruBert-large",
+                num_layers=18,
+                idf=False,  # IDF отключён для первого запуска, tune позже
+                lang="ru",
+                rescale_with_baseline=False,
+            )
+            # Fix OverflowError: patch tokenizer max_length to 512 (BERT limit)
+            if hasattr(self._scorer, '_tokenizer') and self._scorer._tokenizer is not None:
+                self._scorer._tokenizer.model_max_length = 512
+            self._available = True
+            logger.info("BERTScore: ruBert-large loaded (layer 18)")
+        except ImportError:
+            logger.warning("BERTScore недоступен: pip install bert-score")
+            self._available = False
+        except Exception as exc:
+            logger.warning("BERTScore init failed: %s", exc)
+            self._available = False
+        return self._available
+
+    def score(self, candidate: str, reference: str) -> Optional[float]:
+        """BERTScore F1 между candidate и reference. None если недоступен."""
+        if not self._ensure_loaded() or not candidate or not reference:
+            return None
+        P, R, F1 = self._scorer.score([candidate], [reference])
+        return round(float(F1[0]), 4)
+
+
+# Глобальный singleton — инициализируется при первом вызове
+_bert_scorer = BERTScorer()
+
+
 def safe_mean(values: Sequence[float]) -> Optional[float]:
     return fmean(values) if values else None
 
@@ -665,6 +833,19 @@ class AgentEvaluationRunner:
                 qdrant_url=os.environ.get("QDRANT_EVAL_URL", "http://localhost:16333"),
                 qdrant_collection=os.environ.get("QDRANT_COLLECTION", "news_colbert_v2"),
             )
+
+            # SummaC-ZS: вызываем ПОСЛЕ offline_judge_packet (содержит enriched citations с text)
+            if (item.eval_mode == "retrieval_evidence"
+                    and agent_result.get("answer")
+                    and not agent_result.get("error")):
+                summac = _get_summac()
+                enriched_docs = offline_judge_packet.get("citations", [])
+                if summac and enriched_docs:
+                    try:
+                        sc_result = summac.verify_question(item.id, agent_result["answer"], enriched_docs)
+                        metrics["summac_faithfulness"] = sc_result.summac_faithfulness
+                    except Exception as exc:
+                        logger.warning("SummaC failed for %s: %s", item.id, exc)
 
             results.append({
                 "query_id": item.id,
@@ -955,9 +1136,22 @@ class AgentEvaluationRunner:
             hit_set = set(citation_hits)
             acceptable_set_hit = 1.0 if any(set(evidence_set).issubset(hit_set) for evidence_set in item.acceptable_evidence_sets) else 0.0
 
-        # Key tool accuracy
+        # Key tool accuracy + ToolCallF1
         tools_invoked = agent_result.get("tools_invoked", [])
         key_tool_acc = compute_key_tool_accuracy(tools_invoked, item)
+        tool_call_f1 = compute_tool_call_f1(tools_invoked, item)
+
+        # IR metrics (SPEC-RAG-22): Precision@5, MRR, nDCG@5
+        ir_metrics = compute_retrieval_ir_metrics(citation_hits, item)
+
+        # BERTScore (SPEC-RAG-22 §1.2): semantic answer quality
+        agent_answer = agent_result.get("answer", "")
+        bertscore_f1 = None
+        if item.expected_answer and agent_answer and not agent_result.get("error"):
+            bertscore_f1 = _bert_scorer.score(agent_answer, item.expected_answer)
+
+        # SummaC-ZS вычисляется ПОСЛЕ _build_offline_judge_packet (enriched citations)
+        summac_faithfulness = None
 
         # Judge
         factual = judge_scores.get("factual_correctness", {}).get("score")
@@ -973,6 +1167,12 @@ class AgentEvaluationRunner:
             "retrieval_sufficiency_score": judge_scores.get("retrieval_sufficiency", {}).get("score"),
             "evidence_support_score": judge_scores.get("evidence_support", {}).get("score"),
             "key_tool_accuracy": key_tool_acc,
+            "tool_call_f1": tool_call_f1,
+            "precision_at_5": ir_metrics["precision_at_5"],
+            "mrr": ir_metrics["mrr"],
+            "ndcg_at_5": ir_metrics["ndcg_at_5"],
+            "bertscore_f1": bertscore_f1,
+            "summac_faithfulness": summac_faithfulness,
             "factual_correctness": factual,
             "usefulness": usefulness,
             "tools_invoked": tools_invoked,
@@ -1021,6 +1221,12 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     retrieval_sufficiency_scores = [r["metrics"]["retrieval_sufficiency_score"] for r in results if r["metrics"].get("retrieval_sufficiency_score") is not None]
     evidence_support_scores = [r["metrics"]["evidence_support_score"] for r in results if r["metrics"].get("evidence_support_score") is not None]
     key_tool_accs = [r["metrics"]["key_tool_accuracy"] for r in results if r["metrics"].get("key_tool_accuracy") is not None]
+    tool_call_f1s = [r["metrics"]["tool_call_f1"] for r in results if r["metrics"].get("tool_call_f1") is not None]
+    precision_at_5s = [r["metrics"]["precision_at_5"] for r in results if r["metrics"].get("precision_at_5") is not None]
+    mrrs = [r["metrics"]["mrr"] for r in results if r["metrics"].get("mrr") is not None]
+    ndcg_at_5s = [r["metrics"]["ndcg_at_5"] for r in results if r["metrics"].get("ndcg_at_5") is not None]
+    bertscore_f1s = [r["metrics"]["bertscore_f1"] for r in results if r["metrics"].get("bertscore_f1") is not None]
+    summac_scores = [r["metrics"]["summac_faithfulness"] for r in results if r["metrics"].get("summac_faithfulness") is not None]
     factual_scores = [r["metrics"]["factual_correctness"] for r in results if r["metrics"].get("factual_correctness") is not None]
     usefulness_scores = [r["metrics"]["usefulness"] for r in results if r["metrics"].get("usefulness") is not None]
 
@@ -1041,6 +1247,11 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
                 "strict_recall": [],
                 "acceptable_set_hit": [],
                 "key_tool": [],
+                "tool_call_f1": [],
+                "precision_at_5": [],
+                "mrr": [],
+                "ndcg_at_5": [],
+                "bertscore_f1": [],
                 "factual": [],
                 "useful": [],
                 "latency": [],
@@ -1053,6 +1264,16 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
             by_category[cat]["acceptable_set_hit"].append(m["acceptable_set_hit"])
         if m.get("key_tool_accuracy") is not None:
             by_category[cat]["key_tool"].append(m["key_tool_accuracy"])
+        if m.get("tool_call_f1") is not None:
+            by_category[cat]["tool_call_f1"].append(m["tool_call_f1"])
+        if m.get("precision_at_5") is not None:
+            by_category[cat]["precision_at_5"].append(m["precision_at_5"])
+        if m.get("mrr") is not None:
+            by_category[cat]["mrr"].append(m["mrr"])
+        if m.get("ndcg_at_5") is not None:
+            by_category[cat]["ndcg_at_5"].append(m["ndcg_at_5"])
+        if m.get("bertscore_f1") is not None:
+            by_category[cat]["bertscore_f1"].append(m["bertscore_f1"])
         if m.get("factual_correctness") is not None:
             by_category[cat]["factual"].append(m["factual_correctness"])
         if m.get("usefulness") is not None:
@@ -1067,6 +1288,11 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
             "strict_anchor_recall_mean": safe_mean(vals["strict_recall"]),
             "acceptable_set_hit_mean": safe_mean(vals["acceptable_set_hit"]),
             "key_tool_accuracy_mean": safe_mean(vals["key_tool"]),
+            "tool_call_f1_mean": safe_mean(vals["tool_call_f1"]),
+            "precision_at_5_mean": safe_mean(vals["precision_at_5"]),
+            "mrr_mean": safe_mean(vals["mrr"]),
+            "ndcg_at_5_mean": safe_mean(vals["ndcg_at_5"]),
+            "bertscore_f1_mean": safe_mean(vals["bertscore_f1"]),
             "factual_correctness_mean": safe_mean(vals["factual"]),
             "usefulness_mean": safe_mean(vals["useful"]),
             "agent_latency_mean": safe_mean(vals["latency"]),
@@ -1088,6 +1314,10 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
                 "mean": safe_mean(key_tool_accs),
                 "total_evaluated": len(key_tool_accs),
             },
+            "tool_call_f1": {
+                "mean": safe_mean(tool_call_f1s),
+                "total_evaluated": len(tool_call_f1s),
+            },
             "factual_correctness": {
                 "mean": safe_mean(factual_scores),
                 "total_evaluated": len(factual_scores),
@@ -1097,6 +1327,28 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
                 "total_evaluated": len(usefulness_scores),
             },
             "failure_breakdown": failure_counts,
+        },
+        "retrieval_ir": {
+            "precision_at_5": {
+                "mean": safe_mean(precision_at_5s),
+                "total_evaluated": len(precision_at_5s),
+            },
+            "mrr": {
+                "mean": safe_mean(mrrs),
+                "total_evaluated": len(mrrs),
+            },
+            "ndcg_at_5": {
+                "mean": safe_mean(ndcg_at_5s),
+                "total_evaluated": len(ndcg_at_5s),
+            },
+            "bertscore_f1": {
+                "mean": safe_mean(bertscore_f1s),
+                "total_evaluated": len(bertscore_f1s),
+            },
+            "summac_faithfulness": {
+                "mean": safe_mean(summac_scores),
+                "total_evaluated": len(summac_scores),
+            },
         },
         "retrieval_grounding": {
             "acceptable_set_hit": {
@@ -1142,18 +1394,27 @@ def build_markdown_report(
 ) -> str:
     """Markdown отчёт с failure breakdown и per-category."""
     primary = agg["primary"]
+    ir = agg.get("retrieval_ir", {})
     grounding = agg["retrieval_grounding"]
     diagnostic = agg["diagnostic"]
     lines = [
-        "# Agent Evaluation Report (v2)",
+        "# Agent Evaluation Report (v3)",
         f"**Date:** {timestamp.isoformat()}",
         f"**Dataset:** {dataset_path} ({agg['total_queries']} queries)",
         f"**Judge:** {judge_model or 'disabled'}",
         "",
         "## Primary Metrics",
         f"- Key Tool Accuracy: **{fmt(primary['key_tool_accuracy']['mean'])}** ({primary['key_tool_accuracy']['total_evaluated']} evaluated)",
+        f"- ToolCall F1: **{fmt(primary['tool_call_f1']['mean'])}** ({primary['tool_call_f1']['total_evaluated']} evaluated)",
         f"- Factual Correctness: **{fmt(primary['factual_correctness']['mean'])}** ({primary['factual_correctness']['total_evaluated']} evaluated)",
         f"- Usefulness: **{fmt(primary['usefulness']['mean'])}** ({primary['usefulness']['total_evaluated']} evaluated)",
+        "",
+        "## Retrieval IR Metrics (retrieval_evidence only)",
+        f"- Precision@5: **{fmt(ir.get('precision_at_5', {}).get('mean'))}** ({ir.get('precision_at_5', {}).get('total_evaluated', 0)} evaluated)",
+        f"- MRR: **{fmt(ir.get('mrr', {}).get('mean'))}** ({ir.get('mrr', {}).get('total_evaluated', 0)} evaluated)",
+        f"- nDCG@5: **{fmt(ir.get('ndcg_at_5', {}).get('mean'))}** ({ir.get('ndcg_at_5', {}).get('total_evaluated', 0)} evaluated)",
+        f"- BERTScore F1: **{fmt(ir.get('bertscore_f1', {}).get('mean'))}** ({ir.get('bertscore_f1', {}).get('total_evaluated', 0)} evaluated)",
+        f"- SummaC Faithfulness: **{fmt(ir.get('summac_faithfulness', {}).get('mean'))}** ({ir.get('summac_faithfulness', {}).get('total_evaluated', 0)} evaluated)",
         "",
         "## Retrieval Grounding",
         f"- Acceptable Set Hit: **{fmt(grounding['acceptable_set_hit']['mean'])}** ({grounding['acceptable_set_hit']['total_evaluated']} evaluated)",
@@ -1178,15 +1439,15 @@ def build_markdown_report(
     # By category
     lines.extend([
         "## By Category",
-        "| Category | Qs | StrictRecall | AcceptableSet | KeyTool | Factual | Useful | Latency |",
-        "|----------|-----|--------------|---------------|---------|---------|--------|---------|",
+        "| Category | Qs | ToolF1 | P@5 | MRR | Factual | Useful | Latency |",
+        "|----------|-----|--------|-----|-----|---------|--------|---------|",
     ])
     for cat, stats in sorted(agg["by_category"].items()):
         lines.append(
             f"| {cat} | {stats['queries']} | "
-            f"{fmt(stats['strict_anchor_recall_mean'])} | "
-            f"{fmt(stats['acceptable_set_hit_mean'])} | "
-            f"{fmt(stats['key_tool_accuracy_mean'])} | "
+            f"{fmt(stats.get('tool_call_f1_mean'))} | "
+            f"{fmt(stats.get('precision_at_5_mean'))} | "
+            f"{fmt(stats.get('mrr_mean'))} | "
             f"{fmt(stats['factual_correctness_mean'])} | "
             f"{fmt(stats['usefulness_mean'])} | "
             f"{fmt(stats['agent_latency_mean'], 1)}s |"

@@ -3,7 +3,7 @@
 > Self-hosted RAG system over 36 Russian-language AI/ML Telegram channels.
 > No managed APIs. No frameworks. Custom retrieval pipeline on local hardware.
 
-**Factual: 0.842** | **Faithfulness: 0.91** (0 hallucinations) | **Recall@3: 0.97** | **15 tools** | **36 channels, 13K docs**
+**Factual: 0.842** | **Faithfulness: 0.91** | **Robustness: 0.954** | **Recall@3: 0.97** | **15 tools** | **36 channels, 13K docs**
 
 ---
 
@@ -58,6 +58,19 @@ Claude judge (0.0-1.0 granular scale) + independent NLI faithfulness verificatio
 | **Faithfulness** | **0.91** | 17 retrieval Qs, 171 claims verified, **0 hallucinations** |
 | **Retrieval recall@3** | **0.97** | 100 hand-crafted calibration queries |
 | **Mean latency** | **24.4s** | Full pipeline including LLM inference |
+
+### Robustness (Cao et al. 2025 adapted)
+
+Bypass pipeline: direct Qdrant + LLM, controlled k and ordering. Claude judge on 151 answers.
+
+| Metric | Value | What it shows |
+|--------|-------|---------------|
+| **NDR** | **0.963** (26/27) | Retrieval helps in 96% of cases |
+| **RSR** | **0.941** (16/17) | Quality monotonically increases with more docs |
+| **ROR** | **0.959** | Document order has no effect on answers |
+| **Composite** | **0.954** | |
+
+Retrieval adds +0.53 absolute factual improvement (k=0: 0.10, k=20: 0.63). Full [robustness analysis](docs/planning/robustness_experiments.md).
 
 57 eval runs across development. Full [experiment history](docs/planning/experiment_history.md) with per-question analysis. [NLI faithfulness analysis](results/reports/nli_faithfulness_analysis_20260401.md). [Retrieval playbook](docs/planning/retrieval_improvement_playbook.md).
 

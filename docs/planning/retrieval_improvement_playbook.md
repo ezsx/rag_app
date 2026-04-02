@@ -1,7 +1,7 @@
 # Retrieval Improvement Playbook
 
 > Операционный документ. "Что попробовали, где мы сейчас, что дальше."
-> Последнее обновление: 2026-04-01
+> Последнее обновление: 2026-04-02
 
 ---
 
@@ -23,6 +23,27 @@
 **Текущий pipeline**: 15 tools, dynamic visibility (max 5), data-driven routing (`datasets/tool_keywords.json`).
 **Analytics / precomputed tools**: entity_tracker, arxiv_tracker, hot_topics, channel_expertise. Analytics short-circuit включён, cron-backed tools работают через auxiliary collections.
 **Eval pipeline**: SPEC-RAG-18 golden_v2 (36 Qs, 4 eval_modes, offline judge workflow, batch review). Consensus judge: Claude Opus 4.6 + Codex GPT-5.4.
+
+### Robustness baseline (2026-04-02, SPEC-RAG-23)
+
+Bypass pipeline: прямые Qdrant + llama-server, без agent. Claude Opus 4.6 judge (151 answers, granular 0.1 scale).
+
+| Метрика | BERTScore (proxy) | **Claude Judge (final)** |
+|---------|-------------------|--------------------------|
+| **NDR** | 0.818 | **0.963** (26/27) |
+| **RSR** | 0.706 | **0.941** (16/17) |
+| **ROR** | 0.974 | **0.959** |
+| **Composite** | 0.826 | **0.954** |
+
+**Ключевые находки**:
+- **Pipeline работает отлично** (composite 0.954)
+- **Retrieval критически важен**: avg factual k=0: 0.10, k=20: 0.63 (delta +0.53)
+- **Монотонность подтверждена**: k=3 (0.52) < k=5 (0.59) < k=10 (0.60) < k=20 (0.63) — k=20 лучший
+- **Порядок не влияет**: 12/17 Qs = σ=0 (идентичные ответы)
+- **BERTScore провалился как proxy**: занижал NDR на 0.15, показывал ложные RSR violations
+- **Known issues**: q11 boris confusion, q12/q15/q06 missing docs в Qdrant
+
+Полные результаты: [robustness_experiments.md](robustness_experiments.md)
 
 ### Что реализовано
 
@@ -57,6 +78,7 @@
 ## Что пробовали (summary)
 
 Полная история с per-question таблицами: [experiment_history.md](experiment_history.md)
+Robustness experiments (NDR/RSR/ROR): [robustness_experiments.md](robustness_experiments.md)
 
 ### Pipeline evolution (24 experiments)
 

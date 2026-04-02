@@ -2,8 +2,8 @@
 
 > Полная история экспериментов с per-question таблицами и подробными описаниями техник.
 > Вынесена из playbook для читаемости. Playbook содержит summary + ссылки сюда.
-> Последнее обновление: 2026-04-01
-> 57 eval прогонов, 7 milestone phases, ~30 экспериментов с evidence
+> Последнее обновление: 2026-04-02
+> 57+ eval прогонов, 8 milestone phases, ~30 экспериментов с evidence + NDR/RSR/ROR robustness
 
 ---
 
@@ -273,7 +273,35 @@ Model: rubert-base-cased-nli-threeway (180M, 0.36 GB). Выбрана после
 
 19 contradictions проверены вручную: 12 false positives (paraphrase failures), 5 wrong-doc matches, 2 borderline. 0 реальных hallucinations.
 
-### Корневые проблемы (обновлено 2026-04-01)
+### SPEC-RAG-23: NDR/RSR/ROR Robustness Baseline (2026-04-02)
+
+Bypass pipeline (прямые Qdrant + llama-server, без agent). BERTScore F1 scoring (ruBert-large, layer 18).
+36 golden Qs, 151 LLM calls, ~40 мин compute.
+
+| Метрика | Значение | Интерпретация |
+|---------|----------|---------------|
+| Метрика | BERTScore (proxy) | **Claude Judge (final)** |
+|---------|-------------------|--------------------------|
+| **NDR** | 0.818 | **0.963** (26/27) |
+| **RSR** | 0.706 | **0.941** (16/17) |
+| **ROR** | 0.974 | **0.959** |
+| **Composite** | 0.826 | **0.954** |
+
+**Ключевая находка**: pipeline работает отлично. BERTScore как proxy **провалился** — занижал NDR, показывал ложные RSR violations. Claude judge обязателен.
+
+**RSR монотонность подтверждена**: k=3 (0.52) < k=5 (0.59) < k=10 (0.60) < k=20 (0.63). Единственный violation: q11 (boris confusion, k=10→k=20).
+
+**Retrieval критически важен**: avg factual без docs = 0.10, с docs = 0.63 (delta +0.53).
+
+**Known issues**: q11 boris confusion, q12/q15/q06 missing docs (data quality, не pipeline).
+
+Raw: `results/robustness/ndr_rsr_ror_raw_20260402-082135.json`
+Report: `results/robustness/ndr_rsr_ror_report_20260402-082135.md`
+Spec: SPEC-RAG-23. Comparison with Cao et al.: [robustness_experiments.md](robustness_experiments.md)
+
+---
+
+### Корневые проблемы (обновлено 2026-04-02)
 
 | # | Проблема | Статус |
 |---|----------|--------|

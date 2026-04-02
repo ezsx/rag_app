@@ -61,10 +61,11 @@ enable_mmr            = True   # в settings, но HybridRetriever не испо
 mmr_lambda            = 0.7
 # TODO: BM25-based diversity вместо cosine MMR
 
-# Reranker (gpu_server.py HTTP)
+# Reranker (gpu_server.py HTTP) — CRAG-style confidence filter (DEC-0045)
 enable_reranker       = True
 reranker_tei_url      = "http://host.docker.internal:8082"  # ПОРТ 8082 (не 8083!)
-reranker_top_n        = 80
+ce_filter_threshold   = 0.0    # score < 0 → removed, ColBERT order preserved
+reranker_top_n        = 80     # fallback max (не primary limit)
 ```
 
 ## Embedding
