@@ -80,7 +80,7 @@ async def agent_stream(
                 }
                 return
 
-            logger.info(f"Начинаем ReAct агент для запроса: {request.query[:100]}...")
+            logger.info("Начинаем ReAct агент для запроса: %s...", request.query[:100])
 
             # FIX-01B: НЕ мутируем global settings. collection передаётся через request.
             if request.collection and request.collection != settings.current_collection:
@@ -109,7 +109,7 @@ async def agent_stream(
             logger.info("ReAct агент завершен")
 
         except Exception as e:
-            logger.error(f"Ошибка в ReAct агенте: {e}", exc_info=True)
+            logger.error("Ошибка в ReAct агенте: %s", e, exc_info=True)
             # Отправляем сообщение об ошибке
             yield {
                 "event": "error",
@@ -167,7 +167,7 @@ async def list_tools(
         return tools_info
 
     except Exception as e:
-        logger.error(f"Ошибка получения списка инструментов: {e}")
+        logger.error("Ошибка получения списка инструментов: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не удалось получить список инструментов: {e!s}",
@@ -203,7 +203,7 @@ async def agent_status(
         }
 
     except Exception as e:
-        logger.error(f"Ошибка получения статуса агента: {e}")
+        logger.error("Ошибка получения статуса агента: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не удалось получить статус агента: {e!s}",

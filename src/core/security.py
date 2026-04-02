@@ -101,7 +101,7 @@ class SecurityManager:
         # Проверка длины
         if len(input_text) > self.max_input_length:
             logger.warning(
-                f"Input truncated from {len(input_text)} to {self.max_input_length}"
+                "Input truncated from %s to %s", len(input_text), self.max_input_length
             )
             input_text = input_text[: self.max_input_length]
 
@@ -238,7 +238,7 @@ class SecurityManager:
         is_valid = len(violations) == 0
 
         if not is_valid:
-            logger.warning(f"Input validation failed: {violations[:3]}")  # Log first 3
+            logger.warning("Input validation failed: %s", violations[:3])  # Log first 3
 
         return is_valid, violations
 

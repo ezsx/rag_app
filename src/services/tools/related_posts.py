@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def related_posts(
     post_id: str = "",
     limit: int = 5,
-    hybrid_retriever=None,
+    hybrid_retriever: Any = None,
 ) -> dict[str, Any]:
     """Находит посты семантически похожие на указанный.
 

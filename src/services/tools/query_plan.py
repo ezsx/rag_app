@@ -90,5 +90,5 @@ def query_plan(
         }
 
     except Exception as e:
-        logger.error(f"Error in query_plan tool: {e}")
+        logger.error("Error in query_plan tool: %s", e)
         return {"plan": None, "error": str(e)}

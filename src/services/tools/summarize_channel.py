@@ -20,7 +20,7 @@ def summarize_channel(
     channel: str = "",
     time_range: str = "week",
     limit: int = 20,
-    hybrid_retriever=None,
+    hybrid_retriever: Any = None,
 ) -> dict[str, Any]:
     """Получает посты канала за период в хронологическом порядке.
 

@@ -96,7 +96,7 @@ async def semantic_search(
     Выполняет поиск с Query Planner (если включен) и слиянием результатов через RRF.
     """
     try:
-        logger.info(f"Получен поисковый запрос: {request.query[:100]}...")
+        logger.info("Получен поисковый запрос: %s...", request.query[:100])
 
         # Используем текущую коллекцию из настроек (без переключения)
 
@@ -127,7 +127,7 @@ async def semantic_search(
                     ]
                 except Exception as e:
                     logger.warning(
-                        f"Hybrid retriever failed in /search, fallback to dense-only: {e}"
+                        "Hybrid retriever failed in /search, fallback to dense-only: %s", e
                     )
                     merged_items = []
             else:
@@ -278,7 +278,7 @@ async def semantic_search(
         return response
 
     except Exception as e:
-        logger.error(f"Ошибка при поиске: {e}")
+        logger.error("Ошибка при поиске: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Ошибка при выполнении поиска: {e!s}",

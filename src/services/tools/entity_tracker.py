@@ -64,7 +64,7 @@ def entity_tracker(
     period_to: str | None = None,
     category: str | None = None,
     limit: int = 10,
-    hybrid_retriever=None,
+    hybrid_retriever: Any = None,
 ) -> dict[str, Any]:
     """Аналитический tool: агрегации по AI/ML сущностям через Qdrant Facet API.
 

@@ -36,7 +36,7 @@ class QAService:
         self.planner = planner
         self.reranker = reranker
         self.hybrid = hybrid
-        logger.info(f"QAService инициализирован с top_k={top_k}")
+        logger.info("QAService инициализирован с top_k=%s", top_k)
 
     def _get_llm(self):
         if self._llm_instance is None and self._llm_factory is not None:
@@ -57,13 +57,13 @@ class QAService:
         """
         try:
             # Получаем контекст (с планировщиком если включен)
-            logger.info(f"Поиск контекста для запроса: {query[:100]}...")
+            logger.info("Поиск контекста для запроса: %s...", query[:100])
             context, _ = self._fetch_context(query, return_metadata=False)
-            logger.info(f"Найдено {len(context)} документов")
+            logger.info("Найдено %s документов", len(context))
 
             # Формируем промпт
             prompt = build_prompt(query, context)
-            logger.debug(f"Сформирован промпт длиной {len(prompt)} символов")
+            logger.debug("Сформирован промпт длиной %s символов", len(prompt))
 
             # Получаем ответ от LLM
             logger.info("Генерируем ответ с помощью LLM...")
@@ -78,12 +78,12 @@ class QAService:
 
             # Извлекаем текст ответа
             answer = response["choices"][0]["text"].strip()
-            logger.info(f"Получен ответ длиной {len(answer)} символов")
+            logger.info("Получен ответ длиной %s символов", len(answer))
 
             return answer
 
         except Exception as e:
-            logger.error(f"Ошибка при генерации ответа: {e}")
+            logger.error("Ошибка при генерации ответа: %s", e)
             return f"Извините, произошла ошибка при обработке вашего запроса: {e!s}"
 
     def answer_with_context(self, query: str) -> dict[str, Any]:
@@ -121,7 +121,7 @@ class QAService:
             }
 
         except Exception as e:
-            logger.error(f"Ошибка при генерации ответа с контекстом: {e}")
+            logger.error("Ошибка при генерации ответа с контекстом: %s", e)
             return {
                 "answer": f"Извините, произошла ошибка при обработке вашего запроса: {e!s}",
                 "context": [],
@@ -143,19 +143,19 @@ class QAService:
             str: Токены ответа от LLM
         """
         try:
-            logger.info(f"Начинаем стриминг для запроса: {query[:100]}...")
+            logger.info("Начинаем стриминг для запроса: %s...", query[:100])
 
             # Получаем контекст если нужен
             if include_context:
                 context, _ = self._fetch_context(query, return_metadata=True)
-                logger.info(f"Найдено {len(context)} документов для контекста")
+                logger.info("Найдено %s документов для контекста", len(context))
             else:
                 context, _ = self._fetch_context(query, return_metadata=False)
-                logger.info(f"Найдено {len(context)} документов")
+                logger.info("Найдено %s документов", len(context))
 
             # Формируем промпт
             prompt = build_prompt(query, context)
-            logger.debug(f"Сформирован промпт длиной {len(prompt)} символов")
+            logger.debug("Сформирован промпт длиной %s символов", len(prompt))
 
             # Начинаем стриминг с LLM
             logger.info("Начинаем стриминг ответа от LLM...")
@@ -179,10 +179,10 @@ class QAService:
                         token_count += 1
                         yield token
 
-            logger.info(f"Стриминг завершен. Отправлено токенов: {token_count}")
+            logger.info("Стриминг завершен. Отправлено токенов: %s", token_count)
 
         except Exception as e:
-            logger.error(f"Ошибка при стриминге ответа: {e}")
+            logger.error("Ошибка при стриминге ответа: %s", e)
             # Отправляем сообщение об ошибке как финальный токен
             yield f"Извините, произошла ошибка при обработке вашего запроса: {e!s}"
 
@@ -213,7 +213,7 @@ class QAService:
                         ]
                     except Exception as e:
                         logger.warning(
-                            f"Hybrid retriever failed, fallback to dense-only: {e}"
+                            "Hybrid retriever failed, fallback to dense-only: %s", e
                         )
                         merged_items = []
 

@@ -9,6 +9,7 @@ Dependency Injection — Phase 1.
 import logging
 import os
 from functools import lru_cache
+from typing import Any
 
 from fastembed import SparseTextEmbedding
 
@@ -158,7 +159,7 @@ def get_qa_service() -> QAService:
 
 
 @lru_cache
-def get_redis_client():
+def get_redis_client() -> Any | None:
     """Redis-клиент если кеширование включено."""
     settings = get_settings()
     if not settings.redis_enabled:

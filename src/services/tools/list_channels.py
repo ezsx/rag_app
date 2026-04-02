@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def list_channels(
     channel: str | None = None,
     sort_by: str = "count",
-    hybrid_retriever=None,
+    hybrid_retriever: Any = None,
 ) -> dict[str, Any]:
     """Возвращает список каналов с количеством постов (point-level counts).
 

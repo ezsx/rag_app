@@ -72,5 +72,5 @@ def rerank(
         }
 
     except Exception as e:
-        logger.error(f"Error in rerank tool: {e}")
+        logger.error("Error in rerank tool: %s", e)
         return {"indices": [], "scores": [], "error": str(e)}

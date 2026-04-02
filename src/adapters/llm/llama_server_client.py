@@ -42,7 +42,7 @@ class LlamaServerClient:
         self.model = model
         self.timeout = timeout
         self._session = requests.Session()
-        logger.info(f"LlamaServerClient: base_url={self.base_url}, model={self.model}")
+        logger.info("LlamaServerClient: base_url=%s, model=%s", self.base_url, self.model)
 
     def __call__(
         self,
@@ -257,6 +257,6 @@ class LlamaServerClient:
                 return tokens
             # fallback: список объектов {"id": N}
             return [t["id"] for t in tokens if isinstance(t, dict)]
-        except Exception as e:
-            logger.debug(f"LlamaServerClient.tokenize failed (non-critical): {e}")
+        except (requests.RequestException, ValueError, KeyError, TypeError) as e:
+            logger.debug("LlamaServerClient.tokenize failed (non-critical): %s", e)
             return []

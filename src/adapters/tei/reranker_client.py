@@ -122,7 +122,7 @@ class TEIRerankerClient:
         try:
             response = await self._client.get("/health", timeout=5.0)
             return response.status_code == 200
-        except Exception as exc:
+        except httpx.HTTPError as exc:
             logger.warning("TEI reranker healthcheck failed: %s", exc)
             return False
 

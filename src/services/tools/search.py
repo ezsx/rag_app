@@ -17,6 +17,25 @@ from services.query_signals import extract_query_signals
 logger = logging.getLogger(__name__)
 
 
+def _round_robin_merge(per_query_results: list[list[Any]]) -> list[Any]:
+    """Round-robin merge: чередуем top-1 от каждого subquery, потом top-2 и т.д.
+
+    Сохраняет ranking от ColBERT/RRF внутри каждого subquery.
+    Дедупликация по candidate.id.
+    """
+    merged: list[Any] = []
+    seen_ids: set = set()
+    max_len = max((len(r) for r in per_query_results), default=0)
+    for rank_idx in range(max_len):
+        for sub_result in per_query_results:
+            if rank_idx < len(sub_result):
+                c = sub_result[rank_idx]
+                if c.id not in seen_ids:
+                    merged.append(c)
+                    seen_ids.add(c.id)
+    return merged
+
+
 def search(
     queries: Union[list[str], str] | None = None,
     filters: dict[str, Any] | None = None,
@@ -181,25 +200,13 @@ def search(
             start_ts = time.perf_counter()
             # Собираем результаты от каждого subquery отдельно
             per_query_results: list[list[Any]] = []
-            seen_ids: set = set()
             for q in deduped_queries:
                 try:
                     sub_candidates = hybrid_retriever.search_with_plan(q, search_plan)
                     per_query_results.append(sub_candidates)
                 except Exception as err:
                     logger.error("Hybrid retriever failed for query '%s': %s", q[:60], err)
-            # Round-robin merge: чередуем top-1 от каждого subquery, потом top-2 и т.д.
-            # Сохраняет ranking от ColBERT/RRF внутри каждого subquery.
-            all_candidates: list[Any] = []
-            max_len = max((len(r) for r in per_query_results), default=0)
-            for rank_idx in range(max_len):
-                for sub_result in per_query_results:
-                    if rank_idx < len(sub_result):
-                        c = sub_result[rank_idx]
-                        if c.id not in seen_ids:
-                            all_candidates.append(c)
-                            seen_ids.add(c.id)
-            candidates = all_candidates
+            candidates = _round_robin_merge(per_query_results)
             hybrid_duration_ms = int((time.perf_counter() - start_ts) * 1000)
             logger.debug(
                 "search tool hybrid finished | took_ms=%s | results=%s | queries=%d",
@@ -335,5 +342,5 @@ def search(
         }
 
     except Exception as e:
-        logger.error(f"Error in search tool: {e}")
+        logger.error("Error in search tool: %s", e)
         return {"hits": [], "error": str(e)}

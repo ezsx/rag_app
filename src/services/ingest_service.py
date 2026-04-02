@@ -38,7 +38,7 @@ class IngestJob:
         # Оставляем только последние 50 сообщений
         if len(self.log_messages) > 50:
             self.log_messages = self.log_messages[-50:]
-        logger.info(f"Job {self.job_id}: {message}")
+        logger.info("Job %s: %s", self.job_id, message)
 
     def to_response(self) -> IngestJobStatusResponse:
         """Конвертирует в response schema"""
@@ -262,7 +262,7 @@ class IngestJobManager:
             job.error_message = error_msg
             job.status = IngestJobStatus.FAILED
             job.completed_at = datetime.now(UTC)
-            logger.error(f"Job {job.job_id} failed: {e}")
+            logger.error("Job %s failed: %s", job.job_id, e)
 
         finally:
             # Проверяем очередь и запускаем следующую задачу

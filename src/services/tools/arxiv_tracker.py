@@ -20,7 +20,7 @@ def arxiv_tracker(
     period_from: str | None = None,
     period_to: str | None = None,
     limit: int = 10,
-    hybrid_retriever=None,
+    hybrid_retriever: Any = None,
 ) -> dict[str, Any]:
     """Аналитический tool: arxiv-статьи в корпусе через Qdrant Facet/Scroll API.
 

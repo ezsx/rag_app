@@ -58,7 +58,8 @@ async def list_available_models(
             )
 
         logger.info(
-            f"Доступно LLM моделей: {len(llm_models)}, embedding моделей: {len(embedding_models)}"
+            "Доступно LLM моделей: %s, embedding моделей: %s",
+            len(llm_models), len(embedding_models),
         )
 
         return AvailableModelsResponse(
@@ -69,7 +70,7 @@ async def list_available_models(
         )
 
     except Exception as e:
-        logger.error(f"Ошибка при получении списка моделей: {e}")
+        logger.error("Ошибка при получении списка моделей: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не удалось получить список моделей: {e!s}",
@@ -94,7 +95,7 @@ async def select_model(
         model_key = request.model_key.strip()
         model_type = request.model_type
 
-        logger.info(f"Попытка выбрать {model_type.value} модель: {model_key}")
+        logger.info("Попытка выбрать %s модель: %s", model_type.value, model_key)
 
         # Проверяем существование модели в конфигурации
         if model_type == ModelType.LLM:
@@ -135,7 +136,7 @@ async def select_model(
                 detail=f"Неизвестный тип модели: {model_type}",
             )
 
-        logger.info(f"Модель успешно изменена: {model_key}")
+        logger.info("Модель успешно изменена: %s", model_key)
 
         return SelectModelResponse(
             model_key=model_key, model_type=model_type, message=message
@@ -144,7 +145,7 @@ async def select_model(
     except HTTPException:
         raise  # Пробрасываем HTTP ошибки как есть
     except Exception as e:
-        logger.error(f"Ошибка при выборе модели: {e}")
+        logger.error("Ошибка при выборе модели: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не удалось выбрать модель: {e!s}",
@@ -209,7 +210,7 @@ async def get_current_model(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Ошибка при получении информации о модели: {e}")
+        logger.error("Ошибка при получении информации о модели: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не удалось получить информацию о модели: {e!s}",

@@ -45,8 +45,8 @@ async def start_telegram_ingestion(request: TelegramIngestRequest) -> IngestJobR
         channels = [c for c in channels if not (c in seen or seen.add(c))]
 
         logger.info(
-            f"Запуск Telegram ingestion: каналы={channels or [request.channel]}, "
-            f"период={request.since} - {request.until}, коллекция={request.collection}"
+            "Запуск Telegram ingestion: каналы=%s, период=%s - %s, коллекция=%s",
+            channels or [request.channel], request.since, request.until, request.collection,
         )
 
         # Валидация дат
@@ -78,7 +78,7 @@ async def start_telegram_ingestion(request: TelegramIngestRequest) -> IngestJobR
         elif request.device in ["cuda", "mps"]:
             estimated_time = "Ожидается быстрое выполнение"
 
-        logger.info(f"Создана задача ingestion с ID: {job_id}")
+        logger.info("Создана задача ingestion с ID: %s", job_id)
 
         return IngestJobResponse(
             job_id=job_id,
@@ -90,7 +90,7 @@ async def start_telegram_ingestion(request: TelegramIngestRequest) -> IngestJobR
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Ошибка при создании задачи ingestion: {e}")
+        logger.error("Ошибка при создании задачи ingestion: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не удалось создать задачу: {e!s}",
@@ -125,7 +125,7 @@ async def get_ingestion_status(job_id: str) -> IngestJobStatusResponse:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Ошибка при получении статуса задачи: {e}")
+        logger.error("Ошибка при получении статуса задачи: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не удалось получить статус задачи: {e!s}",
@@ -164,7 +164,7 @@ async def cancel_ingestion(job_id: str) -> dict:
         success = job_manager.cancel_job(job_id)
 
         if success:
-            logger.info(f"Задача {job_id} успешно отменена")
+            logger.info("Задача %s успешно отменена", job_id)
             return {
                 "job_id": job_id,
                 "message": "Задача успешно отменена",
@@ -179,7 +179,7 @@ async def cancel_ingestion(job_id: str) -> dict:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Ошибка при отмене задачи: {e}")
+        logger.error("Ошибка при отмене задачи: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не удалось отменить задачу: {e!s}",
@@ -202,11 +202,11 @@ async def list_ingestion_jobs() -> list[IngestJobStatusResponse]:
         # Сортируем по времени создания (новые первыми)
         jobs.sort(key=lambda x: x.started_at or datetime.min, reverse=True)
 
-        logger.info(f"Возвращаем информацию о {len(jobs)} задачах")
+        logger.info("Возвращаем информацию о %s задачах", len(jobs))
         return jobs
 
     except Exception as e:
-        logger.error(f"Ошибка при получении списка задач: {e}")
+        logger.error("Ошибка при получении списка задач: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Не удалось получить список задач: {e!s}",

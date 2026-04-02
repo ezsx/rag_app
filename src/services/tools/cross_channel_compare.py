@@ -19,7 +19,7 @@ def cross_channel_compare(
     date_to: str | None = None,
     max_channels: int = 10,
     posts_per_channel: int = 2,
-    hybrid_retriever=None,
+    hybrid_retriever: Any = None,
 ) -> dict[str, Any]:
     """Ищет как разные каналы обсуждают одну тему.
 

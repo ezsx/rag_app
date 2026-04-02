@@ -44,7 +44,7 @@ async def answer_question(
     Возвращает ответ модели, основанный на найденных в базе документах.
     """
     try:
-        logger.info(f"Получен QA запрос: {request.query[:100]}...")
+        logger.info("Получен QA запрос: %s...", request.query[:100])
 
         # FIX-01B: НЕ мутируем global settings для collection override
         if request.collection and request.collection != settings.current_collection:
@@ -129,19 +129,19 @@ async def answer_question(
         return response
 
     except ValidationError as e:
-        logger.error(f"Ошибка валидации: {e}")
+        logger.error("Ошибка валидации: %s", e)
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Ошибка валидации запроса: {e!s}",
         )
     except FileNotFoundError as e:
-        logger.error(f"Файл модели не найден: {e}")
+        logger.error("Файл модели не найден: %s", e)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="LLM модель недоступна. Проверьте конфигурацию.",
         )
     except Exception as e:
-        logger.error(f"Неожиданная ошибка: {e}")
+        logger.error("Неожиданная ошибка: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Внутренняя ошибка сервера: {e!s}",
@@ -168,7 +168,7 @@ async def qa_stream(
 
     async def event_generator():
         try:
-            logger.info(f"Начинаем SSE стрим для запроса: {request.query[:100]}...")
+            logger.info("Начинаем SSE стрим для запроса: %s...", request.query[:100])
 
             # FIX-01B: НЕ мутируем global settings
             if request.collection and request.collection != settings.current_collection:
@@ -192,10 +192,10 @@ async def qa_stream(
             # Отправляем завершающий токен
             yield {"event": "end", "data": "[DONE]", "retry": 3000}
 
-            logger.info(f"SSE стрим завершен. Отправлено токенов: {token_count}")
+            logger.info("SSE стрим завершен. Отправлено токенов: %s", token_count)
 
         except Exception as e:
-            logger.error(f"Ошибка в SSE стриме: {e}")
+            logger.error("Ошибка в SSE стриме: %s", e)
             # Отправляем сообщение об ошибке
             yield {"event": "error", "data": f"Ошибка: {e!s}", "retry": 3000}
             yield {"event": "end", "data": "[DONE]", "retry": 3000}

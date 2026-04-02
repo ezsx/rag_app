@@ -54,11 +54,11 @@ async def lifespan(app: FastAPI):
 
                 _ = get_llm()
             except Exception as e:
-                logger.error(f"LLM warmup failed: {e}")
+                logger.error("LLM warmup failed: %s", e)
                 # не падаем: пусть API поднимется, но лог останется
         logger.info("✅ Инициализация завершена успешно")
     except Exception as e:
-        logger.error(f"❌ Ошибка инициализации: {e}")
+        logger.error("❌ Ошибка инициализации: %s", e)
         raise
 
     yield
@@ -156,7 +156,7 @@ async def global_exception_handler(request, exc):
     # Безопасное логирование без чувствительных данных
     sanitized_path = sanitize_for_logging(str(request.url.path))
     sanitized_error = sanitize_for_logging(str(exc))
-    logger.error(f"Необработанная ошибка на {sanitized_path}: {sanitized_error}")
+    logger.error("Необработанная ошибка на %s: %s", sanitized_path, sanitized_error)
 
     # В продакшене не показываем детали ошибок
     debug_mode = os.getenv("DEBUG", "false").lower() == "true"
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("HOST", "0.0.0.0")
 
-    logger.info(f"Запуск сервера на {host}:{port}")
+    logger.info("Запуск сервера на %s:%s", host, port)
 
     uvicorn.run(
         "main:app",

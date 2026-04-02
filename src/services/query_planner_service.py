@@ -55,12 +55,12 @@ class QueryPlannerService:
                     gbnf_selfcheck()
                     logger.info("QueryPlanner: GBNF self-check passed")
                 except Exception as _e:
-                    logger.warning(f"QueryPlanner: GBNF self-check failed: {_e}")
+                    logger.warning("QueryPlanner: GBNF self-check failed: %s", _e)
                 self._grammar = get_searchplan_grammar()
                 logger.info("QueryPlanner: GBNF grammar initialized")
             except Exception as e:
                 logger.warning(
-                    f"QueryPlanner: GBNF init failed: {e}. Will use fallback"
+                    "QueryPlanner: GBNF init failed: %s. Will use fallback", e
                 )
 
     # Строгая JSON-схема ответа планировщика (для llama.cpp json_schema)
@@ -460,7 +460,7 @@ class QueryPlannerService:
             )
             return self._fallback_plan(query)
         except Exception as e:
-            logger.error(f"_generate_plan failed for query='{query[:80]}': {e}")
+            logger.error("_generate_plan failed for query='%s': %s", query[:80], e)
             return self._fallback_plan(query)
 
     def _fallback_plan(self, query: str) -> SearchPlan:
@@ -629,7 +629,7 @@ class QueryPlannerService:
                     result.append(norm)
             return result
         except Exception as e:
-            logger.warning(f"QueryPlanner[dogen] failed: {e}")
+            logger.warning("QueryPlanner[dogen] failed: %s", e)
             return []
 
     # Публичный доступ к кешу результатов фьюжна

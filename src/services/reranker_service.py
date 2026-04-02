@@ -62,7 +62,7 @@ class RerankerService:
                 order = order[: min(top_n, len(order))]
             return order
         except Exception as e:
-            logger.error(f"Ошибка ререйкера: {e}")
+            logger.error("Ошибка ререйкера: %s", e)
             return list(range(min(len(docs), top_n)))
 
     def rerank_with_scores(
