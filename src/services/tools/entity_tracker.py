@@ -80,7 +80,7 @@ def entity_tracker(
         return {"error": "HybridRetriever not provided"}
 
     t0 = time.perf_counter()
-    store = hybrid_retriever._store
+    store = hybrid_retriever.store
 
     # Нормализация entity names через dictionary
     if entity:
@@ -157,7 +157,7 @@ def _mode_top(store, retriever, period_from, period_to, category, limit):
     facet_filter = _build_period_filter(period_from, period_to)
 
     async def _facet():
-        return await store._client.facet(
+        return await store.client.facet(
             collection_name=store.collection,
             key=facet_key,
             limit=limit,
@@ -165,7 +165,7 @@ def _mode_top(store, retriever, period_from, period_to, category, limit):
             facet_filter=facet_filter,
         )
 
-    result = retriever._run_sync(_facet())
+    result = retriever.run_sync(_facet())
     data = [{"entity": h.value, "count": h.count} for h in result.hits]
 
     period_str = ""
@@ -199,7 +199,7 @@ def _mode_timeline(store, retriever, entity, period_from, period_to):
         )
 
     async def _facet():
-        return await store._client.facet(
+        return await store.client.facet(
             collection_name=store.collection,
             key="year_week",
             limit=100,
@@ -207,7 +207,7 @@ def _mode_timeline(store, retriever, entity, period_from, period_to):
             facet_filter=models.Filter(must=conditions),
         )
 
-    result = retriever._run_sync(_facet())
+    result = retriever.run_sync(_facet())
     data = sorted(
         [{"week": h.value, "count": h.count} for h in result.hits],
         key=lambda x: x["week"],
@@ -261,7 +261,7 @@ def _mode_compare(store, retriever, entities_list, period_from, period_to):
 def _mode_co_occurrence(store, retriever, entity, limit):
     """Сущности, упоминаемые вместе с entity."""
     async def _facet():
-        return await store._client.facet(
+        return await store.client.facet(
             collection_name=store.collection,
             key="entities",
             limit=limit + 1,  # +1 т.к. entity сам будет в списке
@@ -274,7 +274,7 @@ def _mode_co_occurrence(store, retriever, entity, limit):
             ]),
         )
 
-    result = retriever._run_sync(_facet())
+    result = retriever.run_sync(_facet())
     data = [
         {"entity": h.value, "count": h.count}
         for h in result.hits

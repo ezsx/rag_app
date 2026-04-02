@@ -27,11 +27,11 @@ def list_channels(
     if not hybrid_retriever:
         return {"channels": [], "error": "HybridRetriever not provided"}
 
-    store = hybrid_retriever._store
+    store = hybrid_retriever.store
     start = time.perf_counter()
 
     async def _facet():
-        return await store._client.facet(
+        return await store.client.facet(
             collection_name=store.collection,
             key="channel",
             limit=50,
@@ -39,7 +39,7 @@ def list_channels(
         )
 
     try:
-        result = hybrid_retriever._run_sync(_facet())
+        result = hybrid_retriever.run_sync(_facet())
     except Exception as exc:
         logger.error("list_channels facet failed: %s", exc)
         return {"channels": [], "error": str(exc)}

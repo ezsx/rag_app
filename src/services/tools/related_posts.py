@@ -28,12 +28,12 @@ def related_posts(
     if not post_id:
         return {"hits": [], "error": "post_id is required"}
 
-    store = hybrid_retriever._store
+    store = hybrid_retriever.store
     start = time.perf_counter()
 
     async def _recommend():
         from qdrant_client.models import RecommendQuery
-        return await store._client.query_points(
+        return await store.client.query_points(
             collection_name=store.collection,
             query=RecommendQuery(positive=[post_id]),
             using="dense_vector",
@@ -42,7 +42,7 @@ def related_posts(
         )
 
     try:
-        results = hybrid_retriever._run_sync(_recommend())
+        results = hybrid_retriever.run_sync(_recommend())
     except Exception as exc:
         logger.error("related_posts failed for %s: %s", post_id, exc)
         return {"hits": [], "error": str(exc), "source_id": post_id}

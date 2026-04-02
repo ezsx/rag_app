@@ -84,6 +84,26 @@ class HybridRetriever:
         future = asyncio.run_coroutine_threadsafe(coro, self._loop)
         return future.result()
 
+    # ── Public API для tools ──────────────────────────────
+    def run_sync(self, coro: Coroutine[Any, Any, _T]) -> _T:
+        """Публичный sync→async bridge для tools."""
+        return self._run_sync(coro)
+
+    @property
+    def store(self) -> QdrantStore:
+        """Публичный доступ к Qdrant store."""
+        return self._store
+
+    @property
+    def embedding_client(self) -> TEIEmbeddingClient:
+        """Публичный доступ к embedding client."""
+        return self._embedding_client
+
+    @property
+    def sparse_encoder(self) -> SparseTextEmbedding:
+        """Публичный доступ к sparse encoder."""
+        return self._sparse_encoder
+
     def search_with_plan(self, query_text: str, plan: SearchPlan) -> list[Candidate]:
         """Выполняет hybrid search и возвращает список Candidate."""
         with observe_span(

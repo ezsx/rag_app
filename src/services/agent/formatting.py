@@ -15,114 +15,161 @@ from schemas.agent import AgentAction, ToolMeta, ToolResponse
 logger = logging.getLogger(__name__)
 
 
+def _fmt_search(d: dict) -> str:
+    hits = d.get("hits", [])
+    hit_ids = [h.get("id", "?") for h in hits if isinstance(h, dict)]
+    return (
+        f"Found {len(hits)} documents (total: {d.get('total_found', len(hits))}). "
+        f"Route: {d.get('route_used', '?')}. Use these IDs for compose_context: {hit_ids}"
+    )
+
+
+def _fmt_rerank(d: dict) -> str:
+    scores = d.get("scores", [])
+    score_str = f", scores: [{', '.join(f'{s:.3f}' for s in scores[:5])}]" if scores else ""
+    return (
+        f"Reranked {d.get('top_n', len(d.get('indices', [])))} documents by relevance{score_str}. "
+        f"Call compose_context() to build context from reranked results."
+    )
+
+
+def _fmt_compose(d: dict) -> str:
+    coverage = float(d.get("citation_coverage", 0.0) or 0.0)
+    return (
+        f"Composed context with {len(d.get('citations', []))} citations, "
+        f"coverage: {coverage:.2f}, contexts: {len(d.get('contexts', []))}"
+    )
+
+
+def _fmt_verify(d: dict) -> str:
+    return (
+        f"Verification: {d.get('verified', False)} "
+        f"(confidence: {float(d.get('confidence', 0) or 0):.3f}, "
+        f"threshold: {d.get('threshold', 0.6)}, docs: {d.get('documents_found', 0)})"
+    )
+
+
+def _fmt_query_plan(d: dict) -> str:
+    plan = d.get("plan", {})
+    queries = plan.get("normalized_queries", [])
+    return f"Plan: {len(queries)} queries, k={plan.get('k_per_query', 0)}, fusion={plan.get('fusion', '?')}"
+
+
+def _fmt_final_answer(d: dict) -> str:
+    return f"Final answer prepared ({len(str(d.get('answer', '')).strip())} chars)"
+
+
+def _fmt_hot_topics(d: dict) -> str:
+    parts = [f"period: {d.get('period', '?')}"]
+    if d.get("fallback_used"):
+        parts.append(f"(fallback: запрошен {d.get('requested_period')}, показан {d.get('resolved_period')})")
+    parts.append(f"posts: {d.get('post_count', 0)}")
+    summary = (d.get("summary") or "")[:200]
+    if summary:
+        parts.append(f"summary: {summary}")
+    for t in (d.get("topics") or [])[:5]:
+        chs = ",".join((t.get("channels") or [])[:3])
+        parts.append(f"- {t.get('label', '?')} (score={t.get('hot_score', 0)}, {t.get('post_count', 0)} posts, channels: {chs})")
+    ents = d.get("top_entities") or []
+    if ents:
+        parts.append("top entities: " + ", ".join(f"{e['entity']}({e['count']})" for e in ents[:5]))
+    return "; ".join(parts[:3]) + "\n" + "\n".join(parts[3:])
+
+
+def _fmt_channel_expertise(d: dict) -> str:
+    if d.get("channel"):
+        return f"Channel {d['channel']}: authority={d.get('authority_score', 0)}, summary: {(d.get('profile_summary') or '')[:200]}"
+    channels = d.get("channels") or []
+    metric = d.get("metric", "authority")
+    return (
+        f"Found {len(channels)} channels for topic='{d.get('topic', '')}', metric={metric}: "
+        + ", ".join(f"{c.get('channel', '?')}({c.get(metric + '_score', 0)})" for c in channels[:5])
+    )
+
+
+def _fmt_cross_channel(d: dict) -> str:
+    groups = d.get("groups", [])
+    channels = [g.get("channel", "?") for g in groups]
+    return (
+        f"Compared {len(groups)} channels on topic='{d.get('topic', '?')}': "
+        f"{', '.join(channels[:5])}. Total hits: {d.get('total_found', 0)}"
+    )
+
+
+def _fmt_summarize_channel(d: dict) -> str:
+    return (
+        f"Channel {d.get('channel', '?')} ({d.get('period', '?')}): "
+        f"{d.get('post_count', 0)} posts"
+    )
+
+
+def _fmt_list_channels(d: dict) -> str:
+    channels = d.get("channels", [])
+    total = d.get("total", len(channels))
+    top = ", ".join(f"{c.get('channel', '?')}({c.get('count', 0)})" for c in channels[:5])
+    return f"{total} channels: {top}"
+
+
+def _fmt_related_posts(d: dict) -> str:
+    hits = d.get("hits", [])
+    return f"Found {len(hits)} related posts for source={d.get('source_id', '?')}"
+
+
+def _fmt_entity_tracker(d: dict) -> str:
+    mode = d.get("mode", "?")
+    summary = d.get("summary", "")
+    return f"entity_tracker({mode}): {summary[:200]}" if summary else f"entity_tracker({mode}): {len(d.get('data', []))} items"
+
+
+def _fmt_arxiv_tracker(d: dict) -> str:
+    mode = d.get("mode", "?")
+    summary = d.get("summary", "")
+    return f"arxiv_tracker({mode}): {summary[:200]}" if summary else f"arxiv_tracker({mode}): {len(d.get('data', []))} items"
+
+
+def _fmt_default(d: dict) -> str:
+    parts = []
+    for key, value in d.items():
+        if key in {"error", "result", "answer", "route", "prompt"}:
+            parts.append(f"{key}: {value}")
+        elif isinstance(value, list):
+            parts.append(f"{key}: {len(value)}")
+        elif isinstance(value, dict):
+            parts.append(f"{key}: object")
+        else:
+            parts.append(f"{key}: {str(value)[:100]}")
+    return "; ".join(parts) if parts else str(d)
+
+
+_FORMATTERS: dict[str, Any] = {
+    "search": _fmt_search,
+    "temporal_search": _fmt_search,
+    "channel_search": _fmt_search,
+    "cross_channel_compare": _fmt_cross_channel,
+    "summarize_channel": _fmt_summarize_channel,
+    "list_channels": _fmt_list_channels,
+    "related_posts": _fmt_related_posts,
+    "entity_tracker": _fmt_entity_tracker,
+    "arxiv_tracker": _fmt_arxiv_tracker,
+    "rerank": _fmt_rerank,
+    "compose_context": _fmt_compose,
+    "verify": _fmt_verify,
+    "query_plan": _fmt_query_plan,
+    "final_answer": _fmt_final_answer,
+    "hot_topics": _fmt_hot_topics,
+    "channel_expertise": _fmt_channel_expertise,
+}
+
+
 def format_observation(tool_response: ToolResponse, tool_name: str = "") -> str:
     """Форматирует результат инструмента для observation SSE."""
     if not tool_response.ok:
         return f"Ошибка: {tool_response.meta.error or 'Неизвестная ошибка'}"
-
     if not tool_response.data:
         return "Результат получен (пустые данные)"
-
     try:
-        if tool_name == "search" and isinstance(
-            tool_response.data.get("hits"), list
-        ):
-            hits = tool_response.data["hits"]
-            hit_ids = [
-                hit.get("id", "unknown")
-                for hit in hits
-                if isinstance(hit, dict)
-            ]
-            route_used = tool_response.data.get("route_used", "unknown")
-            total_found = tool_response.data.get("total_found", len(hits))
-            return (
-                f"Found {len(hits)} documents (total: {total_found}). "
-                f"Route: {route_used}. Use these IDs for compose_context: {hit_ids}"
-            )
-
-        if tool_name == "rerank":
-            indices = tool_response.data.get("indices", [])
-            scores = tool_response.data.get("scores", [])
-            top_n = tool_response.data.get("top_n", len(indices))
-            score_str = ""
-            if scores:
-                score_str = f", scores: [{', '.join(f'{s:.3f}' for s in scores[:5])}]"
-            return (
-                f"Reranked {top_n} documents by relevance{score_str}. "
-                f"Call compose_context() to build context from reranked results."
-            )
-
-        if tool_name == "compose_context":
-            coverage = float(
-                tool_response.data.get("citation_coverage", 0.0) or 0.0
-            )
-            citations_count = len(tool_response.data.get("citations", []))
-            contexts_count = len(tool_response.data.get("contexts", []))
-            return (
-                f"Composed context with {citations_count} citations, "
-                f"coverage: {coverage:.2f}, contexts: {contexts_count}"
-            )
-
-        if tool_name == "verify":
-            verified = tool_response.data.get("verified", False)
-            confidence = float(tool_response.data.get("confidence", 0.0) or 0.0)
-            docs_found = tool_response.data.get("documents_found", 0)
-            threshold = tool_response.data.get("threshold", 0.6)
-            return (
-                "Verification: "
-                f"{verified} (confidence: {confidence:.3f}, "
-                f"threshold: {threshold}, docs: {docs_found})"
-            )
-
-        if tool_name == "query_plan":
-            plan = tool_response.data.get("plan", {})
-            queries = plan.get("normalized_queries", [])
-            k_per_query = plan.get("k_per_query", 0)
-            fusion = plan.get("fusion", "unknown")
-            return f"Plan: {len(queries)} queries, k={k_per_query}, fusion={fusion}"
-
-        if tool_name == "final_answer":
-            answer = str(tool_response.data.get("answer", "")).strip()
-            return f"Final answer prepared ({len(answer)} chars)"
-
-        # SPEC-RAG-16: compact observation для hot_topics/channel_expertise
-        if tool_name == "hot_topics":
-            d = tool_response.data
-            parts = [f"period: {d.get('period', '?')}"]
-            if d.get("fallback_used"):
-                parts.append(f"(fallback: запрошен {d.get('requested_period')}, показан {d.get('resolved_period')})")
-            parts.append(f"posts: {d.get('post_count', 0)}")
-            summary = (d.get("summary") or "")[:200]
-            if summary:
-                parts.append(f"summary: {summary}")
-            for t in (d.get("topics") or [])[:5]:
-                parts.append(f"- {t.get('label', '?')} (score={t.get('hot_score', 0)}, {t.get('post_count', 0)} posts, channels: {','.join((t.get('channels') or [])[:3])})")
-            ents = d.get("top_entities") or []
-            if ents:
-                parts.append(f"top entities: {', '.join(e['entity']+'('+str(e['count'])+')' for e in ents[:5])}")
-            return "; ".join(parts[:3]) + "\n" + "\n".join(parts[3:])
-
-        if tool_name == "channel_expertise":
-            d = tool_response.data
-            if d.get("channel"):
-                return f"Channel {d['channel']}: authority={d.get('authority_score', 0)}, summary: {(d.get('profile_summary') or '')[:200]}"
-            channels = d.get("channels") or []
-            return f"Found {len(channels)} channels for topic='{d.get('topic', '')}', metric={d.get('metric', '')}: " + ", ".join(
-                f"{c.get('channel', '?')}({c.get(d.get('metric','authority')+'_score', 0)})" for c in channels[:5]
-            )
-
-        result_parts = []
-        for key, value in tool_response.data.items():
-            if key in {"error", "result", "answer", "route", "prompt"}:
-                result_parts.append(f"{key}: {value}")
-            elif isinstance(value, list):
-                result_parts.append(f"{key}: {len(value)}")
-            elif isinstance(value, dict):
-                result_parts.append(f"{key}: object")
-            else:
-                result_parts.append(f"{key}: {str(value)[:100]}")
-
-        return "; ".join(result_parts) if result_parts else str(tool_response.data)
+        formatter = _FORMATTERS.get(tool_name, _fmt_default)
+        return formatter(tool_response.data)
     except Exception as exc:
         logger.warning("Failed to format observation for %s: %s", tool_name, exc)
         return str(tool_response.data)[:500]

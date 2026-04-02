@@ -37,7 +37,7 @@ def summarize_channel(
     if not channel:
         return {"hits": [], "error": "channel is required"}
 
-    store = hybrid_retriever._store
+    store = hybrid_retriever.store
     delta = _TIME_DELTAS.get(time_range, 7)
     start = time.perf_counter()
 
@@ -48,7 +48,7 @@ def summarize_channel(
     # ложное "постов нет" — считаем window от реальной max date.
     async def _get_latest_date():
         """Scroll 1 post desc → дата последнего поста канала."""
-        pts, _ = await store._client.scroll(
+        pts, _ = await store.client.scroll(
             collection_name=store.collection,
             scroll_filter=models.Filter(must=[
                 models.FieldCondition(
@@ -66,7 +66,7 @@ def summarize_channel(
         return None
 
     try:
-        latest_date_str = hybrid_retriever._run_sync(_get_latest_date())
+        latest_date_str = hybrid_retriever.run_sync(_get_latest_date())
     except Exception:
         latest_date_str = None
 
@@ -81,7 +81,7 @@ def summarize_channel(
     date_from = (ref_date - timedelta(days=delta)).isoformat()
 
     async def _scroll():
-        results, _ = await store._client.scroll(
+        results, _ = await store.client.scroll(
             collection_name=store.collection,
             scroll_filter=models.Filter(must=[
                 models.FieldCondition(
@@ -101,7 +101,7 @@ def summarize_channel(
         return results
 
     try:
-        results = hybrid_retriever._run_sync(_scroll())
+        results = hybrid_retriever.run_sync(_scroll())
     except Exception as exc:
         logger.error("summarize_channel failed for %s: %s", channel, exc)
         return {"hits": [], "error": str(exc), "channel": channel}

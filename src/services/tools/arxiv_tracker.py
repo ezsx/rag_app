@@ -34,7 +34,7 @@ def arxiv_tracker(
         return {"error": "HybridRetriever not provided"}
 
     t0 = time.perf_counter()
-    store = hybrid_retriever._store
+    store = hybrid_retriever.store
 
     try:
         if mode == "top":
@@ -67,7 +67,7 @@ def _mode_top(store, retriever, period_from, period_to, limit):
     facet_filter = models.Filter(must=conditions) if conditions else None
 
     async def _facet():
-        return await store._client.facet(
+        return await store.client.facet(
             collection_name=store.collection,
             key="arxiv_ids",
             limit=limit,
@@ -75,7 +75,7 @@ def _mode_top(store, retriever, period_from, period_to, limit):
             facet_filter=facet_filter,
         )
 
-    result = retriever._run_sync(_facet())
+    result = retriever.run_sync(_facet())
     data = [{"arxiv_id": h.value, "mentions": h.count} for h in result.hits]
 
     top_str = ", ".join(
@@ -93,7 +93,7 @@ def _mode_lookup(store, retriever, arxiv_id, limit):
     Возвращает hits для citation pipeline.
     """
     async def _scroll():
-        results, _ = await store._client.scroll(
+        results, _ = await store.client.scroll(
             collection_name=store.collection,
             scroll_filter=models.Filter(must=[
                 models.FieldCondition(
@@ -108,7 +108,7 @@ def _mode_lookup(store, retriever, arxiv_id, limit):
         )
         return results
 
-    results = retriever._run_sync(_scroll())
+    results = retriever.run_sync(_scroll())
 
     # Dedup по root_message_id (chunk-level → post-level)
     seen_roots: set = set()

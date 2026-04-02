@@ -37,16 +37,16 @@ def cross_channel_compare(
     if not topic:
         return {"hits": [], "error": "topic is required"}
 
-    store = hybrid_retriever._store
+    store = hybrid_retriever.store
     start = time.perf_counter()
 
     # Embed topic: async через sync bridge.
     # Важно: coroutine создаётся внутри async context, не снаружи.
     async def _embed():
-        return await hybrid_retriever._embedding_client.embed_query(topic)
-    dense_vector = hybrid_retriever._run_sync(_embed())
+        return await hybrid_retriever.embedding_client.embed_query(topic)
+    dense_vector = hybrid_retriever.run_sync(_embed())
     # Sparse: fastembed query_embed (не embed — для query-side encoding)
-    sparse = next(iter(hybrid_retriever._sparse_encoder.query_embed(topic)))
+    sparse = next(iter(hybrid_retriever.sparse_encoder.query_embed(topic)))
 
     # Фильтр по дате
     from qdrant_client import models
@@ -67,7 +67,7 @@ def cross_channel_compare(
     query_filter = models.Filter(must=filter_conditions) if filter_conditions else None
 
     async def _grouped_search():
-        return await store._client.query_points_groups(
+        return await store.client.query_points_groups(
             collection_name=store.collection,
             prefetch=[
                 models.Prefetch(
@@ -93,7 +93,7 @@ def cross_channel_compare(
         )
 
     try:
-        results = hybrid_retriever._run_sync(_grouped_search())
+        results = hybrid_retriever.run_sync(_grouped_search())
     except Exception as exc:
         logger.error("cross_channel_compare failed: %s", exc)
         return {"hits": [], "error": str(exc), "topic": topic}

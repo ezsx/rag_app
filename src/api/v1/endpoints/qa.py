@@ -21,35 +21,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-async def get_from_cache(redis_client, cache_key: str) -> dict | None:
-    """Получить результат из кеша"""
-    if not redis_client:
-        return None
-    try:
-        import json
-
-        cached = redis_client.get(cache_key)
-        if cached:
-            logger.info(f"Найден кеш для: {cache_key[:50]}...")
-            return json.loads(cached)
-    except Exception as e:
-        logger.warning(f"Ошибка чтения кеша: {e}")
-    return None
-
-
-async def save_to_cache(redis_client, cache_key: str, data: dict, ttl: int):
-    """Сохранить результат в кеш"""
-    if not redis_client:
-        return
-    try:
-        import json
-
-        redis_client.setex(
-            cache_key, ttl, json.dumps(data, ensure_ascii=False, default=str)
-        )
-        logger.info(f"Результат сохранен в кеш: {cache_key[:50]}...")
-    except Exception as e:
-        logger.warning(f"Ошибка записи в кеш: {e}")
+from core.cache import cache_get, cache_set
 
 
 @router.post(
@@ -88,7 +60,7 @@ async def answer_question(
 
         # Проверяем кеш
         if settings.redis_enabled:
-            cached_result = await get_from_cache(redis_client, cache_key)
+            cached_result = cache_get(redis_client, cache_key)
             if cached_result:
                 if request.include_context:
                     context_items = [
@@ -139,7 +111,7 @@ async def answer_question(
                     ],
                     "context_count": result["context_count"],
                 }
-                await save_to_cache(
+                cache_set(
                     redis_client, cache_key, cache_data, settings.cache_ttl
                 )
 
@@ -150,7 +122,7 @@ async def answer_question(
             # Сохраняем в кеш
             if settings.redis_enabled:
                 cache_data = {"answer": answer, "query": request.query}
-                await save_to_cache(
+                cache_set(
                     redis_client, cache_key, cache_data, settings.cache_ttl
                 )
 
