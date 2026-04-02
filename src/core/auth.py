@@ -62,12 +62,14 @@ def create_access_token(
         "metadata": metadata or {},
     }
 
+    assert JWT_SECRET is not None, "JWT_SECRET must be set"
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
 def verify_token(token: str) -> TokenData:
     """Проверяет и декодирует JWT токен"""
     try:
+        assert JWT_SECRET is not None, "JWT_SECRET must be set"
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         return TokenData(**payload)
     except jwt.ExpiredSignatureError:

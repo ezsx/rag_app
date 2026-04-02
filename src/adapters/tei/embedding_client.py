@@ -95,6 +95,7 @@ class TEIEmbeddingClient:
     def _apply_whitening(self, vec: list[float]) -> list[float]:
         """PCA whitening: center → project → scale → normalize."""
         import numpy as np
+        assert self._whitening is not None
         x = np.array(vec, dtype=np.float32)
         centered = x - self._whitening["mean"]
         projected = centered @ self._whitening["components"].T

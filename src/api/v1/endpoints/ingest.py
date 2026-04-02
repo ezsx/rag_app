@@ -41,8 +41,8 @@ async def start_telegram_ingestion(request: TelegramIngestRequest) -> IngestJobR
         if request.channels:
             channels.extend([c for c in request.channels if c])
         # Уникализуем, сохраняя порядок
-        seen = set()
-        channels = [c for c in channels if not (c in seen or seen.add(c))]
+        seen: set[str] = set()
+        channels = [c for c in channels if c not in seen and not seen.add(c)]  # type: ignore[func-returns-value]
 
         logger.info(
             "Запуск Telegram ingestion: каналы=%s, период=%s - %s, коллекция=%s",

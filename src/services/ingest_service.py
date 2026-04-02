@@ -72,8 +72,8 @@ class IngestJobManager:
             channels.append(request.channel)
         if request.channels:
             channels.extend([c for c in request.channels if c])
-        seen = set()
-        channels = [c for c in channels if not (c in seen or seen.add(c))]
+        seen: set[str] = set()
+        channels = [c for c in channels if c not in seen and not seen.add(c)]  # type: ignore[func-returns-value]
         if channels:
             job.add_log(f"Задача создана для каналов: {channels}")
         else:
@@ -133,7 +133,7 @@ class IngestJobManager:
         """Основная функция выполнения ingestion"""
         try:
             from dateutil import parser as date_parser
-            from scripts.ingest_telegram import (
+            from scripts.ingest_telegram import (  # type: ignore[attr-defined]
                 _gather_with_retries,
                 _to_utc_naive,
                 create_chroma_collection,
@@ -178,8 +178,8 @@ class IngestJobManager:
                     chs.append(request.channel)
                 if request.channels:
                     chs.extend([c for c in request.channels if c])
-                seen_local = set()
-                chs = [c for c in chs if not (c in seen_local or seen_local.add(c))]
+                seen_local: set[str] = set()
+                chs = [c for c in chs if c not in seen_local and not seen_local.add(c)]  # type: ignore[func-returns-value]
                 if not chs:
                     raise ValueError("Не указан ни один канал для инжеста")
 
@@ -217,8 +217,8 @@ class IngestJobManager:
                     )
 
                     # Инжест с прогрессом и возвратом статистики
-                    stats = await ingest_batches(
-                        request.collection,
+                    stats = await ingest_batches(  # type: ignore[call-arg]
+                        request.collection,  # type: ignore[arg-type]
                         collection,
                         messages,
                         batch_size,

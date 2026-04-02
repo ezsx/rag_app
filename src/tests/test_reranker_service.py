@@ -44,7 +44,7 @@ def _make_service(
 ) -> RerankerService:
     """Создаёт сервис с подменённым async TEI-клиентом."""
     return RerankerService(
-        _FakeTEIRerankerClient(scores=scores, error=error, health=health)
+        _FakeTEIRerankerClient(scores=scores, error=error, health=health)  # type: ignore[arg-type]
     )
 
 

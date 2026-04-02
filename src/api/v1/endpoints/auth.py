@@ -53,6 +53,7 @@ def admin_login(body: AdminLoginRequest) -> TokenResponse:
         "metadata": {"auth_method": "admin_key"},
     }
 
+    assert JWT_SECRET is not None, "JWT_SECRET must be set"
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return TokenResponse(access_token=token)
 
@@ -79,5 +80,6 @@ def demo_login() -> TokenResponse:
         "metadata": {"auth_method": "demo"},
     }
 
+    assert JWT_SECRET is not None, "JWT_SECRET must be set"
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return TokenResponse(access_token=token, expires_in_hours=1)

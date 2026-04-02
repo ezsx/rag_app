@@ -196,8 +196,8 @@ class NLIVerifier:
 
         # Готовим пары claim × document chunks
         # Структура: (claim_idx, doc_id, chunk_idx, premise, hypothesis)
-        all_pairs = []
-        pair_meta = []  # параллельный массив метаданных
+        all_pairs: list[dict[str, str]] = []
+        pair_meta: list[dict[str, Any]] = []  # параллельный массив метаданных
         for ci, claim in enumerate(verifiable):
             for doc in documents:
                 doc_text = doc.get("text", "")
@@ -248,16 +248,16 @@ class NLIVerifier:
             if idx >= len(pair_meta):
                 break
             meta = pair_meta[idx]
-            ci = meta["claim_idx"]
+            ci = int(meta["claim_idx"])
             scores = nli_res.get("scores", {})
             ent_score = scores.get("entailment", 0.0)
             con_score = scores.get("contradiction", 0.0)
             # Трекаем best entailment
             if ent_score > claim_best[ci].nli_score:
                 claim_best[ci].nli_score = ent_score
-                claim_best[ci].nli_label = nli_res.get("label", "neutral")
-                claim_best[ci].best_document_id = meta["doc_id"]
-                claim_best[ci].best_chunk_idx = meta["chunk_idx"]
+                claim_best[ci].nli_label = str(nli_res.get("label", "neutral"))
+                claim_best[ci].best_document_id = str(meta["doc_id"])
+                claim_best[ci].best_chunk_idx = int(meta["chunk_idx"])
                 claim_scores_map[ci] = scores
             # Трекаем max contradiction только от best-entailment документа.
             # Нерелевантные документы дают false positive contradiction

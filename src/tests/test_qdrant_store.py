@@ -93,7 +93,7 @@ async def test_ensure_collection_handles_race_condition(
         status_code=400,
         reason_phrase="Bad Request",
         content=b'{"status": {"error": "Collection already exists"}}',
-        headers={},
+        headers={},  # type: ignore[arg-type]
     )
     mock_qdrant_client.create_collection.side_effect = exc
 

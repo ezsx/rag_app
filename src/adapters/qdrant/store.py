@@ -159,7 +159,7 @@ class QdrantStore:
                 await self._client.create_payload_index(
                     self._collection,
                     field_name,
-                    field_schema=field_schema,
+                    field_schema=field_schema,  # type: ignore[arg-type]
                 )
                 logger.debug("Payload index '%s' создан", field_name)
             except Exception as exc:

@@ -638,8 +638,8 @@ async def main() -> None:
             part = part.strip()
             if part:
                 channels.append(part)
-    seen = set()
-    channels = [c for c in channels if not (c in seen or seen.add(c))]
+    seen: set[str] = set()
+    channels = [c for c in channels if c not in seen and not seen.add(c)]  # type: ignore[func-returns-value]
     if not channels:
         logger.error("Не указан ни один канал. Используйте --channel или --channels")
         sys.exit(2)

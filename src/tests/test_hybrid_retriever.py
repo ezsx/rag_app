@@ -91,9 +91,9 @@ def test_build_filter_channel_usernames() -> None:
     filters = MetadataFilters(channel_usernames=["@news", "@finance"])
     result = _build_filter(filters)
     assert result is not None
-    cond = result.must[0]
-    assert cond.key == "channel"
-    assert set(cond.match.any) == {"news", "finance"}
+    cond = result.must[0]  # type: ignore[index]
+    assert cond.key == "channel"  # type: ignore[union-attr]
+    assert set(cond.match.any) == {"news", "finance"}  # type: ignore[union-attr]
 
 
 def test_build_filter_date_range() -> None:
@@ -103,10 +103,10 @@ def test_build_filter_date_range() -> None:
     )
     result = _build_filter(filters)
     assert result is not None
-    cond = result.must[0]
-    assert cond.key == "date"
+    cond = result.must[0]  # type: ignore[index]
+    assert cond.key == "date"  # type: ignore[union-attr]
     # DatetimeRange — gte через .range
-    assert "2026-01-01" in str(cond.range.gte)
+    assert "2026-01-01" in str(cond.range.gte)  # type: ignore[union-attr]
 
 
 def test_to_candidates_extracts_fields() -> None:

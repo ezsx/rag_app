@@ -190,9 +190,8 @@ def extract_tool_calls(
         if not isinstance(item, dict):
             continue
 
-        function_block = (
-            item.get("function") if isinstance(item.get("function"), dict) else item
-        )
+        fn = item.get("function")
+        function_block: dict = fn if isinstance(fn, dict) else item
         tool_name = function_block.get("name")
 
         # FIX-04: whitelist по visible set
@@ -238,7 +237,7 @@ def assistant_message_for_history(assistant_message: dict[str, Any]) -> dict[str
     message с tool_calls как "response prefill", что конфликтует с
     enable_thinking. Поэтому content="" не добавляем.
     """
-    message = {"role": "assistant"}
+    message: dict[str, Any] = {"role": "assistant"}
     content = assistant_message.get("content")
     if content:
         message["content"] = content

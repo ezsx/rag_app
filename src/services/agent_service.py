@@ -431,19 +431,19 @@ class AgentService:
 
                 # No tool_calls — direct answer or fallback
                 if content and result.finish_reason == "stop":
-                    verify_res: dict[str, Any] = {}
+                    verify_res_direct: dict[str, Any] = {}
                     direct_answer = content
                     if self.settings.enable_verify_step and direct_answer:
-                        verify_res = await verify_answer(
+                        verify_res_direct = await verify_answer(
                             direct_answer, conversation_history,
                             ctx=self._ctx, tool_runner=self.tool_runner,
                         )
-                        if not verify_res.get("verified", False):
+                        if not verify_res_direct.get("verified", False):
                             direct_answer += " (⚠️ Ответ не подтверждён с высокой уверенностью)"
                     final_payload = build_final_payload(
                         base_payload={"answer": content},
                         answer=direct_answer,
-                        verify_res=verify_res,
+                        verify_res=verify_res_direct,
                         agent_state=agent_state,
                         request_id=request_id,
                         step=step,

@@ -78,6 +78,7 @@ async def answer_question(
                     )
 
         # Генерируем ответ
+        response: Union[QAResponse, QAResponseWithContext]
         if request.include_context:
             result = qa_service.answer_with_context(request.query)
             context_items = [

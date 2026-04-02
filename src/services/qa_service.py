@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import logging
 from collections.abc import AsyncIterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -8,6 +10,10 @@ from core.settings import Settings, get_settings
 from services.query_planner_service import QueryPlannerService
 from utils.prompt import build_prompt
 from utils.ranking import _get_item_id, mmr_select, rrf_merge
+
+if TYPE_CHECKING:
+    from adapters.search.hybrid_retriever import HybridRetriever
+    from services.reranker_service import RerankerService
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +34,8 @@ class QAService:
         top_k: int = 5,
         settings: Settings | None = None,
         planner: QueryPlannerService | None = None,
-        reranker: object | None = None,
-        hybrid: object | None = None,
+        reranker: RerankerService | None = None,
+        hybrid: HybridRetriever | None = None,
     ):
         self.retriever = retriever
         # Ленивая инициализация LLM: поддерживаем как готовый инстанс, так и фабрику (callable)
@@ -304,7 +310,7 @@ class QAService:
                     if emb is None:
                         raise ValueError("Отсутствуют эмбеддинги документов для MMR")
                     docs_embs.append(np.asarray(emb, dtype=float))
-                candidates = [
+                mmr_candidates: list[dict[str, Any]] = [
                     {
                         "id": it.get("id"),
                         "text": it.get("text"),
@@ -314,11 +320,11 @@ class QAService:
                     for it in merged_items[:top_n]
                 ]
                 selected = mmr_select(
-                    candidates=candidates,
+                    candidates=mmr_candidates,
                     query_embedding=np.asarray(query_emb, dtype=float),
                     doc_embeddings=np.vstack(docs_embs),
                     lambda_=self.settings.mmr_lambda,
-                    out_k=min(self.settings.mmr_output_k, len(candidates)),
+                    out_k=min(self.settings.mmr_output_k, len(mmr_candidates)),
                 )
                 # Восстанавливаем полные items по id, сохраняя порядок MMR
                 id_to_item = {it.get("id"): it for it in merged_items}
