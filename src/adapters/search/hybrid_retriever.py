@@ -12,7 +12,6 @@ Fallback путь при недоступном ColBERT:
 
 dense_score каждого кандидата — cosine similarity с query vector,
 а не RRF score (RRF scores неинтерпретируемы для coverage metric).
-Legacy MMR helper сохранён только для compatibility/testing путей.
 """
 
 from __future__ import annotations
@@ -36,6 +35,93 @@ from schemas.search import Candidate, MetadataFilters, SearchPlan
 
 logger = logging.getLogger(__name__)
 _T = TypeVar("_T")
+
+
+# ── Standalone pure functions (extracted from HybridRetriever) ──────
+
+
+def _cosine_similarity(a: list[float], b: list[float]) -> float:
+    """Cosine similarity между двумя векторами."""
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = math.sqrt(sum(x * x for x in a))
+    norm_b = math.sqrt(sum(x * x for x in b))
+    if norm_a == 0.0 or norm_b == 0.0:
+        return 0.0
+    return dot / (norm_a * norm_b)
+
+
+def _build_filter(filters: MetadataFilters | None) -> models.Filter | None:
+    """Преобразует MetadataFilters в qdrant_client.models.Filter."""
+    if not filters:
+        return None
+
+    conditions: list[models.FieldCondition] = []
+
+    if filters.channel_usernames:
+        clean_names = [u.lstrip("@") for u in filters.channel_usernames]
+        conditions.append(
+            models.FieldCondition(
+                key="channel",
+                match=models.MatchAny(any=clean_names),
+            )
+        )
+
+    if filters.date_from or filters.date_to:
+        conditions.append(
+            models.FieldCondition(
+                key="date",
+                range=models.DatetimeRange(
+                    gte=filters.date_from or None,
+                    lte=filters.date_to or None,
+                ),
+            )
+        )
+
+    return models.Filter(must=conditions) if conditions else None
+
+
+def _to_candidates(
+    points: list[Any],
+    query_vector: list[float] | None = None,
+) -> list[Candidate]:
+    """Конвертирует ScoredPoint из Qdrant в Candidate.
+
+    dense_score вычисляется как cosine similarity между query_vector и
+    document dense_vector. Если query_vector не передан или у документа
+    нет dense vector — fallback на point.score.
+    """
+    candidates: list[Candidate] = []
+    for point in points:
+        payload: dict[str, Any] = point.payload or {}
+
+        dense_vec: list[float] | None = None
+        if isinstance(point.vector, dict):
+            dense_vec = point.vector.get(QdrantStore.DENSE_VECTOR)
+
+        if query_vector and dense_vec:
+            cosine_sim = _cosine_similarity(query_vector, dense_vec)
+        else:
+            cosine_sim = float(point.score)
+
+        candidates.append(
+            Candidate(
+                id=str(point.id),
+                text=payload.get("text", ""),
+                metadata={
+                    "channel": payload.get("channel"),
+                    "channel_id": payload.get("channel_id"),
+                    "message_id": payload.get("message_id"),
+                    "date": payload.get("date"),
+                    "author": payload.get("author"),
+                    "url": payload.get("url"),
+                    "_dense_vector": dense_vec,
+                },
+                bm25_score=None,
+                dense_score=cosine_sim,
+                source="hybrid",
+            )
+        )
+    return candidates
 
 
 class HybridRetriever:
@@ -186,7 +272,7 @@ class HybridRetriever:
             values=sparse_result.values.tolist(),
         )
 
-        query_filter = self._build_filter(plan.metadata_filters)
+        query_filter = _build_filter(plan.metadata_filters)
         rrf_limit = max(plan.k_per_query * 5, 50)
 
         # Асимметричный prefetch: BM25 берёт больше кандидатов (100 vs 20).
@@ -260,7 +346,7 @@ class HybridRetriever:
                 limit=plan.k_per_query * 2,  # запрашиваем 2x, dedup сузит
             )
 
-        candidates = self._to_candidates(result.points, dense_vector)
+        candidates = _to_candidates(result.points, dense_vector)
 
         # Channel dedup: max 2 docs per channel для diversity
         candidates = self._channel_dedup(candidates, max_per_channel=2)
@@ -308,150 +394,7 @@ class HybridRetriever:
             logger.warning("ColBERT query encoding failed: %s", e)
         return None
 
-    @staticmethod
-    def _mmr_rerank(
-        candidates: list[Candidate],
-        query_vector: list[float],
-        k: int,
-        lambda_: float,
-    ) -> list[Candidate]:
-        """MMR post-processing: выбирает k кандидатов, балансируя relevance и diversity.
-
-        Использует dense_score (cosine с query) как relevance,
-        и cosine между документами как similarity для diversity penalty.
-        """
-        import numpy as np
-
-        from utils.ranking import mmr_select
-
-        # Подготовка данных для mmr_select
-        query_emb = np.asarray(query_vector, dtype=np.float32)
-        doc_embs = []
-        mmr_candidates = []
-
-        for c in candidates:
-            dense_vec = (c.metadata or {}).get("_dense_vector")
-            if dense_vec is None:
-                continue
-            doc_embs.append(dense_vec)
-            mmr_candidates.append({
-                "id": c.id,
-                "text": c.text,
-                "score": c.dense_score,
-                "metadata": c.metadata,
-                "bm25_score": c.bm25_score,
-                "dense_score": c.dense_score,
-                "source": c.source,
-            })
-
-        if len(mmr_candidates) <= k:
-            return candidates[:k]
-
-        doc_embs_np = np.asarray(doc_embs, dtype=np.float32)
-        selected = mmr_select(
-            mmr_candidates, query_emb, doc_embs_np,
-            lambda_=lambda_, out_k=k,
-        )
-
-        # Конвертируем обратно в Candidate
-        return [
-            Candidate(
-                id=s["id"],
-                text=s["text"],
-                metadata=s["metadata"],
-                bm25_score=s.get("bm25_score"),
-                dense_score=s.get("dense_score", 0.0),
-                source=s.get("source", "hybrid"),
-            )
-            for s in selected
-        ]
-
     async def _async_embed_texts(self, texts: list[str]) -> list[list[float]]:
         """Возвращает эмбеддинги без добавления префиксов."""
         return await self._embedding_client._embed_batch(texts, normalize=True)
 
-    def _build_filter(
-        self, filters: MetadataFilters | None
-    ) -> models.Filter | None:
-        """Преобразует MetadataFilters в qdrant_client.models.Filter."""
-        if not filters:
-            return None
-
-        conditions: list[models.FieldCondition] = []
-
-        if filters.channel_usernames:
-            clean_names = [u.lstrip("@") for u in filters.channel_usernames]
-            conditions.append(
-                models.FieldCondition(
-                    key="channel",
-                    match=models.MatchAny(any=clean_names),
-                )
-            )
-
-        if filters.date_from or filters.date_to:
-            conditions.append(
-                models.FieldCondition(
-                    key="date",
-                    range=models.DatetimeRange(
-                        gte=filters.date_from or None,
-                        lte=filters.date_to or None,
-                    ),
-                )
-            )
-
-        return models.Filter(must=conditions) if conditions else None
-
-    @staticmethod
-    def _cosine_similarity(a: list[float], b: list[float]) -> float:
-        """Cosine similarity между двумя векторами."""
-        dot = sum(x * y for x, y in zip(a, b))
-        norm_a = math.sqrt(sum(x * x for x in a))
-        norm_b = math.sqrt(sum(x * x for x in b))
-        if norm_a == 0.0 or norm_b == 0.0:
-            return 0.0
-        return dot / (norm_a * norm_b)
-
-    def _to_candidates(
-        self,
-        points: list[Any],
-        query_vector: list[float] | None = None,
-    ) -> list[Candidate]:
-        """Конвертирует ScoredPoint из Qdrant в Candidate.
-
-        dense_score вычисляется как cosine similarity между query_vector и
-        document dense_vector. Если query_vector не передан или у документа
-        нет dense vector — fallback на point.score.
-        """
-        candidates: list[Candidate] = []
-        for point in points:
-            payload: dict[str, Any] = point.payload or {}
-
-            dense_vec: list[float] | None = None
-            if isinstance(point.vector, dict):
-                dense_vec = point.vector.get(QdrantStore.DENSE_VECTOR)
-
-            # Cosine similarity вместо RRF/MMR score для coverage metric
-            if query_vector and dense_vec:
-                cosine_sim = self._cosine_similarity(query_vector, dense_vec)
-            else:
-                cosine_sim = float(point.score)
-
-            candidates.append(
-                Candidate(
-                    id=str(point.id),
-                    text=payload.get("text", ""),
-                    metadata={
-                        "channel": payload.get("channel"),
-                        "channel_id": payload.get("channel_id"),
-                        "message_id": payload.get("message_id"),
-                        "date": payload.get("date"),
-                        "author": payload.get("author"),
-                        "url": payload.get("url"),
-                        "_dense_vector": dense_vec,
-                    },
-                    bm25_score=None,
-                    dense_score=cosine_sim,
-                    source="hybrid",
-                )
-            )
-        return candidates

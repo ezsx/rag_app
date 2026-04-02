@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from qdrant_client import models as qdrant_models
 
-from adapters.search.hybrid_retriever import HybridRetriever
+from adapters.search.hybrid_retriever import HybridRetriever, _build_filter, _to_candidates
 from schemas.search import MetadataFilters, SearchPlan
 
 
@@ -82,16 +82,14 @@ async def test_async_search_uses_weighted_rrf() -> None:
 
 def test_build_filter_none_when_no_filters() -> None:
     """Без фильтров возвращает None."""
-    retriever, *_ = make_retriever()
-    result = retriever._build_filter(None)
+    result = _build_filter(None)
     assert result is None
 
 
 def test_build_filter_channel_usernames() -> None:
     """channel_usernames с @ → MatchAny без @."""
-    retriever, *_ = make_retriever()
     filters = MetadataFilters(channel_usernames=["@news", "@finance"])
-    result = retriever._build_filter(filters)
+    result = _build_filter(filters)
     assert result is not None
     cond = result.must[0]
     assert cond.key == "channel"
@@ -100,11 +98,10 @@ def test_build_filter_channel_usernames() -> None:
 
 def test_build_filter_date_range() -> None:
     """date_from/date_to конвертируется в DatetimeRange."""
-    retriever, *_ = make_retriever()
     filters = MetadataFilters(
         date_from="2026-01-01T00:00:00", date_to="2026-03-01T00:00:00"
     )
-    result = retriever._build_filter(filters)
+    result = _build_filter(filters)
     assert result is not None
     cond = result.must[0]
     assert cond.key == "date"
@@ -114,8 +111,6 @@ def test_build_filter_date_range() -> None:
 
 def test_to_candidates_extracts_fields() -> None:
     """ScoredPoint → Candidate с id, text, metadata, dense_score."""
-    retriever, *_ = make_retriever()
-
     point = MagicMock()
     point.id = "channel:123"
     point.score = 0.42
@@ -128,7 +123,7 @@ def test_to_candidates_extracts_fields() -> None:
     point.vector = {"dense_vector": [0.1] * 1024}
 
     query_vector = [0.1] * 1024
-    candidates = retriever._to_candidates([point], query_vector)
+    candidates = _to_candidates([point], query_vector)
 
     assert len(candidates) == 1
     c = candidates[0]

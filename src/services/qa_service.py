@@ -13,7 +13,13 @@ logger = logging.getLogger(__name__)
 
 
 class QAService:
-    """Сервис для ответов на вопросы с использованием RAG"""
+    """RAG baseline path — прямой pipeline без agent loop.
+
+    plan → search → rerank → LLM answer.
+    Используется /v1/qa и /v1/qa/stream.
+    НЕ legacy: это дефолтный RAG путь для A/B сравнения с AgentService.
+    Рядом потом заведём LlamaIndex baseline — тот же Qdrant, framework wrapper.
+    """
 
     def __init__(
         self,

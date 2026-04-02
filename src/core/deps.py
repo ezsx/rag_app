@@ -23,7 +23,6 @@ from services.agent_service import AgentService
 from services.qa_service import QAService
 from services.query_planner_service import QueryPlannerService
 from services.reranker_service import RerankerService
-from services.tools.tool_runner import ToolRunner
 
 logger = logging.getLogger(__name__)
 
@@ -183,109 +182,19 @@ def get_redis_client() -> Any | None:
 
 @lru_cache
 def get_agent_service() -> AgentService:
-    """Singleton AgentService с полным набором инструментов Phase 1."""
+    """Singleton AgentService с полным набором инструментов."""
+    from services.tools.registry import build_tool_runner
+
     settings = get_settings()
-
-    tool_runner = ToolRunner(default_timeout_sec=settings.agent_tool_timeout)
-
-    from services.tools.arxiv_tracker import arxiv_tracker
-    from services.tools.compose_context import compose_context
-    from services.tools.cross_channel_compare import cross_channel_compare
-    from services.tools.entity_tracker import entity_tracker
-    from services.tools.fetch_docs import fetch_docs
-    from services.tools.final_answer import final_answer
-    from services.tools.list_channels import list_channels
-    from services.tools.query_plan import query_plan
-    from services.tools.related_posts import related_posts
-    from services.tools.rerank import rerank
-    from services.tools.search import search
-    from services.tools.summarize_channel import summarize_channel
-    from services.tools.verify import verify
-
-    qdrant_store = get_qdrant_store()
-    hybrid_retriever = get_hybrid_retriever()
-    reranker = get_reranker()
-    query_planner = get_query_planner() if settings.enable_query_planner else None
-
-    def search_wrapper(**kwargs):
-        return search(hybrid_retriever=hybrid_retriever, **kwargs)
-
-    def verify_wrapper(**kwargs):
-        return verify(hybrid_retriever=hybrid_retriever, **kwargs)
-
-    def fetch_docs_wrapper(**kwargs):
-        return fetch_docs(qdrant_store=qdrant_store, **kwargs)
-
-    def query_plan_wrapper(**kwargs):
-        return query_plan(query_planner=query_planner, **kwargs)
-
-    def rerank_wrapper(**kwargs):
-        return rerank(reranker=reranker, **kwargs)
-
-    tool_runner.register(
-        "query_plan", query_plan_wrapper, timeout_sec=settings.planner_timeout
+    tool_runner = build_tool_runner(
+        settings=settings,
+        hybrid_retriever=get_hybrid_retriever(),
+        qdrant_store=get_qdrant_store(),
+        reranker=get_reranker(),
+        query_planner=get_query_planner() if settings.enable_query_planner else None,
     )
-    tool_runner.register(
-        "search",
-        search_wrapper,
-        timeout_sec=settings.agent_tool_timeout,
-    )
-    tool_runner.register(
-        "rerank",
-        rerank_wrapper,
-        timeout_sec=settings.agent_tool_timeout,
-    )
-    tool_runner.register("fetch_docs", fetch_docs_wrapper)
-    tool_runner.register("compose_context", compose_context)
-    tool_runner.register("verify", verify_wrapper)
-    tool_runner.register("final_answer", final_answer)
-
-    # SPEC-RAG-13: новые tools — все через hybrid_retriever sync bridge
-    def list_channels_wrapper(**kwargs):
-        return list_channels(hybrid_retriever=hybrid_retriever, **kwargs)
-
-    def related_posts_wrapper(**kwargs):
-        return related_posts(hybrid_retriever=hybrid_retriever, **kwargs)
-
-    def cross_channel_compare_wrapper(**kwargs):
-        return cross_channel_compare(hybrid_retriever=hybrid_retriever, **kwargs)
-
-    def summarize_channel_wrapper(**kwargs):
-        return summarize_channel(hybrid_retriever=hybrid_retriever, **kwargs)
-
-    tool_runner.register("list_channels", list_channels_wrapper)
-    tool_runner.register("related_posts", related_posts_wrapper)
-    tool_runner.register(
-        "cross_channel_compare", cross_channel_compare_wrapper,
-        timeout_sec=settings.agent_tool_timeout,
-    )
-    tool_runner.register(
-        "summarize_channel", summarize_channel_wrapper,
-        timeout_sec=settings.agent_tool_timeout,
-    )
-
-    # SPEC-RAG-15: analytics tools — через hybrid_retriever sync bridge
-    def entity_tracker_wrapper(**kwargs):
-        return entity_tracker(hybrid_retriever=hybrid_retriever, **kwargs)
-
-    def arxiv_tracker_wrapper(**kwargs):
-        return arxiv_tracker(hybrid_retriever=hybrid_retriever, **kwargs)
-
-    tool_runner.register("entity_tracker", entity_tracker_wrapper)
-    tool_runner.register("arxiv_tracker", arxiv_tracker_wrapper)
-
-    # SPEC-RAG-16: pre-computed analytics — свой QdrantClient, не через DI
-    from services.tools.channel_expertise import channel_expertise
-    from services.tools.hot_topics import hot_topics
-
-    tool_runner.register("hot_topics", hot_topics)
-    tool_runner.register("channel_expertise", channel_expertise)
-
-    def _llm_factory():
-        return get_llm()
-
     return AgentService(
-        llm_factory=_llm_factory,
+        llm_factory=get_llm,
         tool_runner=tool_runner,
         settings=settings,
     )
