@@ -56,7 +56,7 @@ filterwarnings = [
 [tool.mypy]
 python_version = "3.11"
 mypy_path = "src"
-namespace_packages = true
+explicit_package_bases = true
 ignore_missing_imports = true
 check_untyped_defs = false
 warn_return_any = false
