@@ -1,3 +1,3 @@
 from .store import PointDocument, QdrantStore
 
-__all__ = ["QdrantStore", "PointDocument"]
+__all__ = ["PointDocument", "QdrantStore"]

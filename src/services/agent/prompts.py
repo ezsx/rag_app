@@ -6,7 +6,7 @@ SPEC-RAG-20c Step 1: System prompt и tool schemas для ReAct агента.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 SYSTEM_PROMPT = """You are a RAG agent for searching and analyzing AI/ML news from 36 Russian-language Telegram channels.
 Database contains posts from July 2025 to March 2026.
@@ -60,7 +60,7 @@ For questions about available channels, post counts.
   • In final_answer you MUST fill the sources field.
 """
 
-AGENT_TOOLS: List[Dict[str, Any]] = [
+AGENT_TOOLS: list[dict[str, Any]] = [
     {
         "type": "function",
         "function": {

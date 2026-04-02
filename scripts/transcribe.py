@@ -55,7 +55,7 @@ def main():
     lines = []
     # Инкрементальная запись в файл (защита от segfault)
     out_path = args.output or (args.audio.rsplit(".", 1)[0] + "_transcript.txt")
-    out_file = open(out_path, "w", encoding="utf-8")
+    out_file = open(out_path, "w", encoding="utf-8")  # noqa: SIM115
 
     for segment in segments:
         # Фильтруем по таймкодам

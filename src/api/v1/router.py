@@ -5,14 +5,14 @@
 from fastapi import APIRouter
 
 from api.v1.endpoints import (
-    system,
-    qa,
-    search,
+    agent,
+    ingest,
     # collections — отключён до переписывания на Qdrant (SPEC-RAG-06).
     # Phase 0 код импортирует get_chroma_client из deps.py, который удалён в Phase 1.
     models,
-    ingest,
-    agent,
+    qa,
+    search,
+    system,
 )
 
 # Создаем главный роутер для API v1

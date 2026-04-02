@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class AgentState:
         self.analytics_done: bool = False  # entity_tracker/arxiv_tracker ответили
         # Adaptive retrieval state
         self.strategy: str = "broad"
-        self.applied_filters: Dict[str, Any] = {}
+        self.applied_filters: dict[str, Any] = {}
         self.routing_source: str = "default"
 
 
@@ -47,21 +47,21 @@ class RequestContext:
     query_signals: Any = None
     agent_state: AgentState = field(default_factory=AgentState)
     step: int = 1
-    search_hits: List[Dict[str, Any]] = field(default_factory=list)
-    search_route: Optional[str] = None
-    plan_summary: Optional[Dict[str, Any]] = None
-    compose_citations: List[Dict[str, Any]] = field(default_factory=list)
+    search_hits: list[dict[str, Any]] = field(default_factory=list)
+    search_route: str | None = None
+    plan_summary: dict[str, Any] | None = None
+    compose_citations: list[dict[str, Any]] = field(default_factory=list)
     coverage_score: float = 0.0
-    deadline: Optional[float] = None  # FIX-08: wall-clock deadline (monotonic)
-    final_answer_text: Optional[str] = None  # SPEC-RAG-20b: для trace output
+    deadline: float | None = None  # FIX-08: wall-clock deadline (monotonic)
+    final_answer_text: str | None = None  # SPEC-RAG-20b: для trace output
     # SPEC-RAG-20d: token usage aggregation для observability
     total_prompt_tokens: int = 0
     total_completion_tokens: int = 0
     # LANCER-style: nuggets не покрытые документами — для targeted refinement
-    uncovered_nuggets: List[str] = field(default_factory=list)
+    uncovered_nuggets: list[str] = field(default_factory=list)
 
 
-_request_ctx: ContextVar[Optional[RequestContext]] = ContextVar(
+_request_ctx: ContextVar[RequestContext | None] = ContextVar(
     "agent_request_ctx", default=None
 )
 

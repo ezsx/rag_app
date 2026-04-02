@@ -8,18 +8,16 @@ import json
 import logging
 import time
 import uuid
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional
+from collections.abc import AsyncIterator, Callable
+from typing import Any
 
-from core.observability import get_langfuse, observe_trace, observe_span
+from core.observability import get_langfuse, observe_span, observe_trace
 from core.security import sanitize_for_logging, security_manager
 from core.settings import Settings
 from schemas.agent import (
     AgentAction,
     AgentRequest,
     AgentStepEvent,
-    ToolMeta,
-    ToolRequest,
-    ToolResponse,
 )
 from services.qa_service import QAService
 from services.query_signals import extract_query_signals
@@ -28,30 +26,32 @@ from services.tools.tool_runner import ToolRunner
 logger = logging.getLogger(__name__)
 
 # SPEC-RAG-20c Step 2: routing вынесен в services/agent/routing.py
-from services.agent.routing import load_tool_keywords as _load_tool_keywords
+from services.agent.coverage import compute_nugget_coverage  # LANCER-style coverage
+from services.agent.executor import execute_action  # SPEC-RAG-20c Step 6
+from services.agent.finalization import (  # SPEC-RAG-20c Step 7
+    build_final_payload,
+    trim_refusal_alternatives,
+    verify_answer,
+)
+from services.agent.formatting import (  # SPEC-RAG-20c Step 5
+    assistant_message_for_history,
+    extract_tool_calls,
+    format_observation,
+    tool_error_action,
+    tool_message_for_history,
+    trim_messages,
+)
+from services.agent.prompts import SYSTEM_PROMPT  # SPEC-RAG-20c Step 1
 from services.agent.routing import load_policy as _load_policy
-
-
-from services.agent.prompts import SYSTEM_PROMPT, AGENT_TOOLS  # SPEC-RAG-20c Step 1
-
-
-
-
 
 # SPEC-RAG-20c Step 3: state вынесен в services/agent/state.py
 from services.agent.state import (
-    AgentState, RequestContext, _request_ctx, apply_action_state,
+    AgentState,
+    RequestContext,
+    _request_ctx,
+    apply_action_state,
 )
-from services.agent.visibility import get_step_tools, get_available_tools  # SPEC-RAG-20c Step 4
-from services.agent.executor import execute_action  # SPEC-RAG-20c Step 6
-from services.agent.finalization import (  # SPEC-RAG-20c Step 7
-    trim_refusal_alternatives, verify_answer, build_final_payload,
-)
-from services.agent.coverage import compute_nugget_coverage  # LANCER-style coverage
-from services.agent.formatting import (  # SPEC-RAG-20c Step 5
-    format_observation, extract_tool_calls, assistant_message_for_history,
-    tool_message_for_history, trim_messages, tool_error_action,
-)
+from services.agent.visibility import get_available_tools, get_step_tools  # SPEC-RAG-20c Step 4
 
 
 class AgentService:
@@ -62,7 +62,7 @@ class AgentService:
         llm_factory: Callable,
         tool_runner: ToolRunner,
         settings: Settings,
-        qa_service: Optional[QAService] = None,
+        qa_service: QAService | None = None,
     ) -> None:
         self.llm_factory = llm_factory
         self.tool_runner = tool_runner
@@ -70,7 +70,7 @@ class AgentService:
         self.qa_service = qa_service
         self.system_prompt = SYSTEM_PROMPT
 
-    def get_available_tools(self) -> Dict[str, Any]:
+    def get_available_tools(self) -> dict[str, Any]:
         """Обёртка для API endpoint /v1/agent/tools."""
         return get_available_tools()
 
@@ -145,7 +145,7 @@ class AgentService:
                 "You may override if incorrect."
             )
 
-        messages: List[Dict[str, Any]] = [
+        messages: list[dict[str, Any]] = [
             {"role": "system", "content": system_content},
             {"role": "user", "content": request.query},
         ]
@@ -186,11 +186,11 @@ class AgentService:
             agent_state = ctx.agent_state
 
             # Tool repeat guard — блокируем зацикливание на одном tool
-            _tool_call_counts: Dict[str, int] = {}
+            _tool_call_counts: dict[str, int] = {}
             _NO_REPEAT_TOOLS = {"entity_tracker", "arxiv_tracker", "hot_topics",
                                 "channel_expertise", "list_channels", "related_posts"}
             _MAX_REPEAT = 2  # search/rerank можно 2 раза (refinement), остальные — 1
-            _last_analytics_obs: Optional[str] = None  # последний observation от analytics tool
+            _last_analytics_obs: str | None = None  # последний observation от analytics tool
 
             while step <= max_steps:
                 # FIX-08: deadline check перед каждым шагом
@@ -678,7 +678,7 @@ class AgentService:
 
                         if tool_name == "final_answer":
                             answer = str(action.output.data.get("answer", "")).strip()
-                            verify_res: Dict[str, Any] = {}
+                            verify_res: dict[str, Any] = {}
 
                             # SPEC-RAG-15: skip verify для analytics-only ответов
                             # (агрегации без документов — verify по документам бессмыслен)
@@ -828,7 +828,7 @@ class AgentService:
                     continue
 
                 if content and finish_reason == "stop":
-                    verify_res: Dict[str, Any] = {}
+                    verify_res: dict[str, Any] = {}
                     direct_answer = content
                     if self.settings.enable_verify_step and direct_answer:
                         verify_res = await verify_answer(
@@ -908,7 +908,7 @@ class AgentService:
             yield AgentStepEvent(
                 type="final",
                 data={
-                    "answer": f"Извините, произошла ошибка при обработке запроса: {str(exc)}",
+                    "answer": f"Извините, произошла ошибка при обработке запроса: {exc!s}",
                     "step": step,
                     "request_id": request_id,
                     "error": str(exc),
@@ -974,7 +974,7 @@ class AgentService:
 
     async def _perform_refinement(
         self, query: str, agent_state: AgentState, request_id: str, step: int
-    ) -> List[AgentAction]:
+    ) -> list[AgentAction]:
         """Targeted refinement: ищет конкретно то чего не хватает (SEAL-RAG + LANCER).
 
         Использует uncovered_nuggets из nugget coverage вместо повторного
@@ -1001,7 +1001,7 @@ class AgentService:
         if isinstance(plan_filters, dict):
             filters = {k: v for k, v in plan_filters.items() if v is not None}
 
-        actions: List[AgentAction] = []
+        actions: list[AgentAction] = []
         search_action = await execute_action(
             tool_name="search",
             params={

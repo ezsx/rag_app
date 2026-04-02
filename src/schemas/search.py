@@ -1,28 +1,29 @@
-from typing import List, Optional, Dict, Literal
-from pydantic import BaseModel, Field, validator
 from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel, Field, validator
 
 
 class MetadataFilters(BaseModel):
-    channel_usernames: Optional[List[str]] = Field(
+    channel_usernames: list[str] | None = Field(
         None, description="Список @username каналов Telegram"
     )
-    channel_ids: Optional[List[int]] = Field(
+    channel_ids: list[int] | None = Field(
         None, description="Список ID каналов Telegram"
     )
-    date_from: Optional[str] = Field(
+    date_from: str | None = Field(
         None, description="Начальная дата (ISO, YYYY-MM-DD или YYYY-MM-DDTHH:MM:SS)"
     )
-    date_to: Optional[str] = Field(
+    date_to: str | None = Field(
         None, description="Конечная дата (ISO, YYYY-MM-DD или YYYY-MM-DDTHH:MM:SS)"
     )
-    min_views: Optional[int] = Field(None, ge=0, description="Минимум просмотров")
-    reply_to: Optional[int] = Field(
+    min_views: int | None = Field(None, ge=0, description="Минимум просмотров")
+    reply_to: int | None = Field(
         None, description="ID сообщения, на которое был ответ"
     )
 
     @validator("date_from", "date_to")
-    def validate_iso_date(cls, v: Optional[str]):
+    def validate_iso_date(cls, v: str | None):
         if v is None:
             return v
         try:
@@ -38,12 +39,12 @@ class MetadataFilters(BaseModel):
 
 
 class SearchPlan(BaseModel):
-    normalized_queries: List[str] = Field(
+    normalized_queries: list[str] = Field(
         ..., description="Нормализованные под-запросы"
     )
-    must_phrases: List[str] = Field(default_factory=list)
-    should_phrases: List[str] = Field(default_factory=list)
-    metadata_filters: Optional[MetadataFilters] = None
+    must_phrases: list[str] = Field(default_factory=list)
+    should_phrases: list[str] = Field(default_factory=list)
+    metadata_filters: MetadataFilters | None = None
     k_per_query: int = Field(..., gt=0)
     fusion: Literal["rrf", "mmr"] = Field("rrf")
     strategy: Literal["broad", "temporal", "channel", "entity"] = Field(
@@ -51,7 +52,7 @@ class SearchPlan(BaseModel):
     )
 
     @validator("normalized_queries")
-    def non_empty_queries(cls, v: List[str]):
+    def non_empty_queries(cls, v: list[str]):
         v = [q.strip() for q in v if q and q.strip()]
         if not v:
             raise ValueError("normalized_queries не может быть пустым")
@@ -69,17 +70,17 @@ class SearchRequest(BaseModel):
 
 
 class SearchResponse(BaseModel):
-    documents: List[str]
-    distances: List[float]
-    metadatas: List[Dict]
-    plan: Optional[SearchPlan] = None
+    documents: list[str]
+    distances: list[float]
+    metadatas: list[dict]
+    plan: SearchPlan | None = None
 
 
 # === Hybrid/BM25 общий формат кандидата ===
 class Candidate(BaseModel):
     id: str
     text: str
-    metadata: Dict
-    bm25_score: Optional[float] = None
-    dense_score: Optional[float] = None
+    metadata: dict
+    bm25_score: float | None = None
+    dense_score: float | None = None
     source: Literal["bm25", "dense", "hybrid"]

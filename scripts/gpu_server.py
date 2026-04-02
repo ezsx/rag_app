@@ -19,7 +19,7 @@ import json
 import logging
 import os
 import time
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import torch
 from transformers import AutoModel, AutoModelForSequenceClassification, AutoTokenizer

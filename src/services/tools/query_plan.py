@@ -5,21 +5,20 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
-
 import time
-from schemas.search import SearchPlan
-from services.query_planner_service import QueryPlannerService
+from typing import Any
+
 from core.settings import Settings
+from services.query_planner_service import QueryPlannerService
 
 logger = logging.getLogger(__name__)
 
 
 def query_plan(
     query: str,
-    settings: Optional[Settings] = None,
-    query_planner: Optional[QueryPlannerService] = None,
-) -> Dict[str, Any]:
+    settings: Settings | None = None,
+    query_planner: QueryPlannerService | None = None,
+) -> dict[str, Any]:
     """
     Создает план поиска для заданного запроса
 

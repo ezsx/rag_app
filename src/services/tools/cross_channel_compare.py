@@ -8,19 +8,19 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 def cross_channel_compare(
     topic: str = "",
-    date_from: Optional[str] = None,
-    date_to: Optional[str] = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
     max_channels: int = 10,
     posts_per_channel: int = 2,
     hybrid_retriever=None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Ищет как разные каналы обсуждают одну тему.
 
     Использует Qdrant query_points_groups с prefetch + RRF fusion.
@@ -51,7 +51,7 @@ def cross_channel_compare(
     # Фильтр по дате
     from qdrant_client import models
 
-    filter_conditions: List[Any] = []
+    filter_conditions: list[Any] = []
     if date_from:
         filter_conditions.append(
             models.FieldCondition(
@@ -102,8 +102,8 @@ def cross_channel_compare(
     # Dedup по root_message_id внутри каждой группы.
     # dense_score=1.0 фиксированный — RRF/group score не калиброван
     # для coverage metric, поэтому не используем как dense_score.
-    all_hits: List[Dict[str, Any]] = []
-    groups: List[Dict[str, Any]] = []
+    all_hits: list[dict[str, Any]] = []
+    groups: list[dict[str, Any]] = []
 
     for group in results.groups:
         posts = []

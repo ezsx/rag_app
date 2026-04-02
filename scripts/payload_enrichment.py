@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # ─── Regex patterns ──────────────────────────────────────────────
 
@@ -26,10 +25,10 @@ _DOMAIN_RE = re.compile(r"https?://([^/\s]+)")
 
 _ENTITY_DICT_PATH = Path(__file__).parent.parent / "datasets" / "entity_dictionary.json"
 
-_entity_patterns: Optional[List[tuple]] = None  # (canonical, compiled_re, category)
+_entity_patterns: list[tuple] | None = None  # (canonical, compiled_re, category)
 
 
-def _load_entity_patterns() -> List[tuple]:
+def _load_entity_patterns() -> list[tuple]:
     """Загрузить и скомпилировать словарь entities."""
     global _entity_patterns
     if _entity_patterns is not None:
@@ -44,7 +43,7 @@ def _load_entity_patterns() -> List[tuple]:
         category = info.get("category", "other")
         case_sensitive = info.get("case_sensitive", False)
         # Собираем regex: canonical + все aliases, сортируем по длине (longest first)
-        all_forms = [canonical] + aliases
+        all_forms = [canonical, *aliases]
         all_forms.sort(key=len, reverse=True)
         # Escape и join
         escaped = [re.escape(form) for form in all_forms]
@@ -59,7 +58,7 @@ def _load_entity_patterns() -> List[tuple]:
 # ─── Text extraction ─────────────────────────────────────────────
 
 
-def extract_from_text(text: str) -> Dict[str, Any]:
+def extract_from_text(text: str) -> dict[str, Any]:
     """Regex-based extraction из текста поста.
 
     Возвращает dict с полями для payload:
@@ -68,7 +67,7 @@ def extract_from_text(text: str) -> Dict[str, Any]:
     has_arxiv, has_links, year_week, year_month (последние два — заглушка,
     заполняются из даты в build_enriched_payload).
     """
-    result: Dict[str, Any] = {}
+    result: dict[str, Any] = {}
 
     # URLs
     urls = _URL_RE.findall(text)
@@ -128,13 +127,13 @@ def extract_from_text(text: str) -> Dict[str, Any]:
 # ─── Message metadata extraction ─────────────────────────────────
 
 
-def extract_from_message(msg: Any) -> Dict[str, Any]:
+def extract_from_message(msg: Any) -> dict[str, Any]:
     """Извлечь metadata из Telethon Message object.
 
     Поля: is_forward, forwarded_from_id (str), forwarded_from_name,
     reply_to_msg_id, media_types.
     """
-    result: Dict[str, Any] = {}
+    result: dict[str, Any] = {}
 
     # Forward info
     fwd = getattr(msg, "fwd_from", None)
@@ -173,7 +172,7 @@ def extract_from_message(msg: Any) -> Dict[str, Any]:
 # ─── Derived temporal fields ─────────────────────────────────────
 
 
-def compute_temporal_fields(date_str: str) -> Dict[str, str]:
+def compute_temporal_fields(date_str: str) -> dict[str, str]:
     """Вычислить year_week и year_month из ISO date string."""
     try:
         dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
@@ -195,13 +194,13 @@ def build_enriched_payload(
     channel_name: str,
     date_iso: str,
     point_id: str,
-    author: Optional[str] = None,
-) -> Dict[str, Any]:
+    author: str | None = None,
+) -> dict[str, Any]:
     """Полный enriched payload для одного Qdrant point.
 
     Объединяет base fields + text extraction + message metadata + temporal.
     """
-    payload: Dict[str, Any] = {
+    payload: dict[str, Any] = {
         "text": text,
         "channel": channel_name,
         "channel_id": int(message.chat_id),

@@ -22,14 +22,15 @@ import json
 import logging
 import math
 import threading
-from typing import Any, Coroutine, Optional, TypeVar
+from collections.abc import Coroutine
+from typing import Any, TypeVar
 
 from fastembed import SparseTextEmbedding
 from qdrant_client import models
 
 from adapters.qdrant.store import QdrantStore
-from core.observability import observe_span
 from adapters.tei.embedding_client import TEIEmbeddingClient
+from core.observability import observe_span
 from core.settings import Settings
 from schemas.search import Candidate, MetadataFilters, SearchPlan
 
@@ -300,6 +301,7 @@ class HybridRetriever:
         и cosine между документами как similarity для diversity penalty.
         """
         import numpy as np
+
         from utils.ranking import mmr_select
 
         # Подготовка данных для mmr_select
@@ -349,8 +351,8 @@ class HybridRetriever:
         return await self._embedding_client._embed_batch(texts, normalize=True)
 
     def _build_filter(
-        self, filters: Optional[MetadataFilters]
-    ) -> Optional[models.Filter]:
+        self, filters: MetadataFilters | None
+    ) -> models.Filter | None:
         """Преобразует MetadataFilters в qdrant_client.models.Filter."""
         if not filters:
             return None

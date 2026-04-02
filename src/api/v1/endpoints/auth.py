@@ -6,11 +6,11 @@ import os
 from datetime import datetime, timedelta
 from typing import Any
 
+import jwt
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from core.auth import JWT_SECRET, JWT_ALGORITHM
-import jwt
+from core.auth import JWT_ALGORITHM, JWT_SECRET
 
 
 class AdminLoginRequest(BaseModel):

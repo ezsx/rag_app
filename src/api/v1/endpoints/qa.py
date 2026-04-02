@@ -3,26 +3,25 @@ QA (Question Answering) endpoints
 """
 
 import logging
-from typing import Union, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from typing import Union
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import ValidationError
 from sse_starlette.sse import EventSourceResponse
 
 from core.deps import (
     get_qa_service,
     get_redis_client,
-    get_retriever,
-    get_query_planner,
 )
-from core.settings import get_settings, Settings
+from core.settings import Settings, get_settings
+from schemas.qa import ContextItem, QARequest, QAResponse, QAResponseWithContext
 from services.qa_service import QAService
-from schemas.qa import QARequest, QAResponse, QAResponseWithContext, ContextItem
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-async def get_from_cache(redis_client, cache_key: str) -> Optional[dict]:
+async def get_from_cache(redis_client, cache_key: str) -> dict | None:
     """Получить результат из кеша"""
     if not redis_client:
         return None
@@ -161,7 +160,7 @@ async def answer_question(
         logger.error(f"Ошибка валидации: {e}")
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Ошибка валидации запроса: {str(e)}",
+            detail=f"Ошибка валидации запроса: {e!s}",
         )
     except FileNotFoundError as e:
         logger.error(f"Файл модели не найден: {e}")
@@ -173,7 +172,7 @@ async def answer_question(
         logger.error(f"Неожиданная ошибка: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Внутренняя ошибка сервера: {str(e)}",
+            detail=f"Внутренняя ошибка сервера: {e!s}",
         )
 
 
@@ -226,7 +225,7 @@ async def qa_stream(
         except Exception as e:
             logger.error(f"Ошибка в SSE стриме: {e}")
             # Отправляем сообщение об ошибке
-            yield {"event": "error", "data": f"Ошибка: {str(e)}", "retry": 3000}
+            yield {"event": "error", "data": f"Ошибка: {e!s}", "retry": 3000}
             yield {"event": "end", "data": "[DONE]", "retry": 3000}
 
     return EventSourceResponse(

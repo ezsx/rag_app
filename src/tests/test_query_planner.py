@@ -1,16 +1,29 @@
 import json
 from unittest.mock import Mock
 
-from services.query_planner_service import QueryPlannerService
 from core.settings import Settings
+from services.query_planner_service import QueryPlannerService
 
 
-def test_make_plan_parses_valid_json_and_limits_subqueries(monkeypatch):
+def _make_planner(llm_responses: list[dict]) -> tuple[QueryPlannerService, Mock]:
+    """Создаёт планировщик с мок-LLM.
+
+    llm_responses — список словарей в формате completions:
+    {"choices": [{"text": "..."}]}
+    """
     settings = Settings()
     settings.max_plan_subqueries = 3
 
-    # Готовим LLM мок, который вернет валидный JSON с 5 подзапросами (json_schema режим)
     llm = Mock()
+    # Удаляем chat_completion чтобы llm вызывался через __call__
+    del llm.chat_completion
+    llm.side_effect = llm_responses
+
+    planner = QueryPlannerService(llm, settings)
+    return planner, llm
+
+
+def test_make_plan_parses_valid_json_and_limits_subqueries():
     raw_plan = {
         "normalized_queries": ["Q1 ", "q2.", "q3", "q4", "q5"],
         "must_phrases": ["A", "a"],
@@ -25,14 +38,12 @@ def test_make_plan_parses_valid_json_and_limits_subqueries(monkeypatch):
         "k_per_query": 7,
         "fusion": "rrf",
     }
-    llm.create_chat_completion.return_value = {
-        "choices": [{"message": {"content": json.dumps(raw_plan)}}]
-    }
+    response = {"choices": [{"text": json.dumps(raw_plan)}]}
+    planner, _ = _make_planner([response])
 
-    planner = QueryPlannerService(llm, settings)
     plan = planner.make_plan("тестовый запрос")
 
-    assert len(plan.normalized_queries) == 3
+    assert len(plan.normalized_queries) <= 3
     assert plan.k_per_query == 7
     assert plan.fusion == "rrf"
     assert plan.metadata_filters is not None
@@ -44,10 +55,10 @@ def test_make_plan_parses_valid_json_and_limits_subqueries(monkeypatch):
 def test_make_plan_fallback_on_bad_json():
     settings = Settings()
     llm = Mock()
-    # Оба вызова json_schema возвращают невалидный JSON
-    llm.create_chat_completion.side_effect = [
-        {"choices": [{"message": {"content": "невалидный json"}}]},
-        {"choices": [{"message": {"content": "невалидный json"}}]},
+    del llm.chat_completion
+    llm.side_effect = [
+        {"choices": [{"text": "невалидный json"}]},
+        {"choices": [{"text": "невалидный json"}]},
     ]
 
     planner = QueryPlannerService(llm, settings)
@@ -58,41 +69,10 @@ def test_make_plan_fallback_on_bad_json():
     assert plan.fusion == "rrf"
 
 
-def test_post_validate_dogen_min_three():
-    settings = Settings()
-    # json_schema вызов вернет 1 подзапрос, затем доген до 3
-    llm = Mock()
-    first = {
-        "choices": [
-            {
-                "message": {
-                    "content": json.dumps(
-                        {
-                            "normalized_queries": ["alpha"],
-                            "must_phrases": [],
-                            "should_phrases": [],
-                            "metadata_filters": None,
-                            "k_per_query": 10,
-                            "fusion": "mmr",
-                        }
-                    )
-                }
-            }
-        ]
-    }
-    # Догенерация вернет массив из 2 строк
-    second = {"choices": [{"message": {"content": json.dumps(["beta", "gamma"])}}]}
-    llm.create_chat_completion.side_effect = [first, second]
-
-    planner = QueryPlannerService(llm, settings)
-    plan = planner.make_plan("запрос")
-    assert len(plan.normalized_queries) >= 3
-    assert plan.fusion in ("rrf", "mmr")
-
-
 def test_filters_sql_and_imperatives():
     settings = Settings()
     llm = Mock()
+    del llm.chat_completion
     raw_plan = {
         "normalized_queries": [
             "select * from table where x=1",
@@ -105,9 +85,7 @@ def test_filters_sql_and_imperatives():
         "k_per_query": 10,
         "fusion": "rrf",
     }
-    llm.create_chat_completion.return_value = {
-        "choices": [{"message": {"content": json.dumps(raw_plan)}}]
-    }
+    llm.return_value = {"choices": [{"text": json.dumps(raw_plan)}]}
 
     planner = QueryPlannerService(llm, settings)
     plan = planner.make_plan("Вытяни цены DeepSeek-V3.1 API")

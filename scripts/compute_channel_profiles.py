@@ -24,7 +24,7 @@ import uuid as _uuid
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 logging.basicConfig(
     level=logging.INFO,
@@ -64,7 +64,7 @@ def _ensure_profiles_collection(client) -> None:
     logger.info("Создана коллекция %s", PROFILES_COLLECTION)
 
 
-def _load_entity_dictionary() -> Dict[str, str]:
+def _load_entity_dictionary() -> dict[str, str]:
     """Загрузить entity_dictionary.json для подсчёта entity_coverage."""
     paths = [
         _PROJECT_ROOT / "datasets" / "entity_dictionary.json",
@@ -78,7 +78,7 @@ def _load_entity_dictionary() -> Dict[str, str]:
 
             # Current format: flat dictionary keyed by canonical entity name.
             if isinstance(data, dict) and "categories" not in data:
-                for canonical in data.keys():
+                for canonical in data:
                     if isinstance(canonical, str) and canonical.strip():
                         all_entities.add(canonical.strip())
 
@@ -106,9 +106,9 @@ def _load_bertopic_model():
         return pickle.load(f)
 
 
-def _scroll_all_by_channel(client) -> Dict[str, List[Dict]]:
+def _scroll_all_by_channel(client) -> dict[str, list[dict]]:
     """Scroll весь корпус, группировка по channel."""
-    channels: Dict[str, List[Dict]] = defaultdict(list)
+    channels: dict[str, list[dict]] = defaultdict(list)
     offset = None
     batch_size = 256
 
@@ -137,7 +137,7 @@ def _scroll_all_by_channel(client) -> Dict[str, List[Dict]]:
     return dict(channels)
 
 
-def _format_top_topics(topic_ids: List[int], topic_model) -> List[str]:
+def _format_top_topics(topic_ids: list[int], topic_model) -> list[str]:
     """Конвертировать topic IDs в human-readable labels через BERTopic."""
     if not topic_ids or topic_model is None:
         return []
@@ -152,9 +152,9 @@ def _format_top_topics(topic_ids: List[int], topic_model) -> List[str]:
     return labels
 
 
-def _top_n_topics(topic_ids: List[int], n: int = 5) -> List[int]:
+def _top_n_topics(topic_ids: list[int], n: int = 5) -> list[int]:
     """Топ-N topic IDs по частоте (без outlier -1)."""
-    counts: Dict[int, int] = {}
+    counts: dict[int, int] = {}
     for t in topic_ids:
         if t != -1:
             counts[t] = counts.get(t, 0) + 1
@@ -163,14 +163,14 @@ def _top_n_topics(topic_ids: List[int], n: int = 5) -> List[int]:
 
 def _compute_scores(
     channel: str,
-    posts: List[Dict],
+    posts: list[dict],
     all_known_entities: set,
     total_weeks: int,
     max_posts_across: int,
-    entity_first_mentions: Dict[str, datetime],
-    post_topics: Optional[List[int]] = None,
+    entity_first_mentions: dict[str, datetime],
+    post_topics: list[int] | None = None,
     total_topic_count: int = 1,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Вычислить authority/speed/breadth/volume scores для канала."""
 
     # Entity coverage
@@ -251,11 +251,11 @@ def _compute_scores(
 
 
 def _compute_entity_first_mentions(
-    channels_data: Dict[str, List[Dict]],
+    channels_data: dict[str, list[dict]],
     top_n: int = 20,
-) -> Dict[str, datetime]:
+) -> dict[str, datetime]:
     """Найти first global mention для top-N entities (для speed_score)."""
-    entity_counts: Dict[str, int] = defaultdict(int)
+    entity_counts: dict[str, int] = defaultdict(int)
     for posts in channels_data.values():
         for p in posts:
             for e in p.get("entities", []):
@@ -264,7 +264,7 @@ def _compute_entity_first_mentions(
     top_entities = sorted(entity_counts.items(), key=lambda x: x[1], reverse=True)[:top_n]
     top_names = {e for e, _ in top_entities}
 
-    first_mentions: Dict[str, datetime] = {}
+    first_mentions: dict[str, datetime] = {}
     for posts in channels_data.values():
         for p in posts:
             date_str = p.get("date", "")
@@ -282,7 +282,7 @@ def _compute_entity_first_mentions(
     return first_mentions
 
 
-def _generate_profile_summary(channel: str, posts: List[Dict], scores: Dict) -> str:
+def _generate_profile_summary(channel: str, posts: list[dict], scores: dict) -> str:
     """LLM-generated профиль канала (100 слов)."""
     top_ents = defaultdict(int)
     for p in posts:
@@ -326,7 +326,7 @@ def _generate_profile_summary(channel: str, posts: List[Dict], scores: Dict) -> 
         return f"Канал @{channel}: {len(posts)} постов, authority={scores['authority_score']}"
 
 
-def _embed_text(text: str) -> List[float]:
+def _embed_text(text: str) -> list[float]:
     payload = json.dumps({"inputs": [text]}).encode()
     req = urllib.request.Request(
         f"{EMBEDDING_URL}/embed",
@@ -366,7 +366,7 @@ def main():
     # BERTopic: assign topics to all posts (для breadth + top_topics)
     topic_model = _load_bertopic_model()
     # Build text→topic map for all posts across channels
-    post_topic_map: Dict[str, int] = {}  # key = "channel:message_id"
+    post_topic_map: dict[str, int] = {}  # key = "channel:message_id"
     total_topic_count = 1
     if topic_model is not None:
         logger.info("Assigning topics via BERTopic model (with pre-computed embeddings)...")
@@ -440,7 +440,7 @@ def main():
         )
 
         # Top entities
-        ent_counts: Dict[str, int] = defaultdict(int)
+        ent_counts: dict[str, int] = defaultdict(int)
         for p in posts:
             for e in p.get("entities", []):
                 ent_counts[e] += 1
@@ -448,7 +448,7 @@ def main():
                     for e, c in sorted(ent_counts.items(), key=lambda x: x[1], reverse=True)[:15]]
 
         # Post frequency
-        weekly_counts: Dict[str, int] = defaultdict(int)
+        weekly_counts: dict[str, int] = defaultdict(int)
         for p in posts:
             yw = p.get("year_week", "")
             if yw:

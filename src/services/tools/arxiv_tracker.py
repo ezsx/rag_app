@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 from qdrant_client import models
 
@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 
 def arxiv_tracker(
     mode: str = "top",
-    arxiv_id: Optional[str] = None,
-    period_from: Optional[str] = None,
-    period_to: Optional[str] = None,
+    arxiv_id: str | None = None,
+    period_from: str | None = None,
+    period_to: str | None = None,
     limit: int = 10,
     hybrid_retriever=None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Аналитический tool: arxiv-статьи в корпусе через Qdrant Facet/Scroll API.
 
     Modes:

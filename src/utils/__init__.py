@@ -1,7 +1,7 @@
 """Общие утилиты и статическая мета-конфигурация моделей."""
 
 from .prompt import build_prompt
-from .ranking import rrf_merge, mmr_select
+from .ranking import mmr_select, rrf_merge
 
 RECOMMENDED_MODELS = {
     "llm": {
@@ -61,6 +61,6 @@ RECOMMENDED_MODELS = {
 __all__ = [
     "RECOMMENDED_MODELS",
     "build_prompt",
-    "rrf_merge",
     "mmr_select",
+    "rrf_merge",
 ]

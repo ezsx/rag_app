@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from core.observability import observe_span
-
 
 _STOP_WORDS: frozenset[str] = frozenset(
     {
@@ -49,7 +48,7 @@ def _truncate_by_chars(text: str, max_chars: int) -> str:
     return text[:max_chars]
 
 
-def _format_citation_chunk(idx: int, doc: Dict[str, Any], cut: str) -> str:
+def _format_citation_chunk(idx: int, doc: dict[str, Any], cut: str) -> str:
     """Форматирует чанк контекста с metadata для жёсткого grounding."""
     meta = doc.get("metadata", {}) or {}
     channel = str(meta.get("channel", "") or "").strip()
@@ -62,7 +61,7 @@ def _format_citation_chunk(idx: int, doc: Dict[str, Any], cut: str) -> str:
     return f"[{idx}] {cut}"
 
 
-def _query_term_coverage(query: str, docs: List[Dict[str, Any]]) -> float:
+def _query_term_coverage(query: str, docs: list[dict[str, Any]]) -> float:
     """
     Считает долю значимых терминов запроса, покрытых текстами документов.
 
@@ -86,7 +85,7 @@ def _query_term_coverage(query: str, docs: List[Dict[str, Any]]) -> float:
 
 def _compute_coverage(
     query: str,
-    docs: List[Dict[str, Any]],
+    docs: list[dict[str, Any]],
     relevance_threshold: float = 0.55,
     target_k: int = 5,
 ) -> float:
@@ -96,7 +95,7 @@ def _compute_coverage(
     if not docs:
         return 0.0
 
-    sims: List[float] = sorted(
+    sims: list[float] = sorted(
         [float(doc.get("dense_score") or doc.get("score") or 0.0) for doc in docs],
         reverse=True,
     )
@@ -127,12 +126,12 @@ def _compute_coverage(
 
 
 def compose_context(
-    docs: List[Dict[str, Any]],
+    docs: list[dict[str, Any]],
     query: str = "",
     max_tokens_ctx: int = 1800,
     citation_format: str = "footnotes",
     enable_lost_in_middle_mitigation: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Собирает контекст и цитаты. MVP: ограничение по символам.
 
     Входные docs: [{id,text,metadata,score?}] — предполагается отсортированный список по релевантности.
@@ -149,9 +148,9 @@ def compose_context(
     # Примитивное соответствие символы~токены: 1 токен ≈ 4 символа
     max_chars = int(max_tokens_ctx * 4)
 
-    chunks: List[str] = []
-    citations: List[Dict[str, Any]] = []
-    contexts: List[str] = []
+    chunks: list[str] = []
+    citations: list[dict[str, Any]] = []
+    contexts: list[str] = []
     used = 0
 
     # Собираем все документы с индексами

@@ -15,7 +15,6 @@ Langfuse UI: http://localhost:3100
 import os
 import socket
 import subprocess
-import sys
 import threading
 
 LISTEN_HOST = "127.0.0.1"
@@ -103,7 +102,7 @@ def main():
 
     try:
         while True:
-            client, addr = srv.accept()
+            client, _addr = srv.accept()
             threading.Thread(target=_proxy, args=(client,), daemon=True).start()
     except KeyboardInterrupt:
         print("\nStopped.")

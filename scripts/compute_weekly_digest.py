@@ -23,7 +23,7 @@ import time
 import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -76,9 +76,8 @@ def _ensure_digest_collection(client) -> None:
     logger.info("Создана коллекция %s", DIGEST_COLLECTION)
 
 
-def _scroll_all_posts(client) -> Tuple[List[str], List[List[float]], List[Dict]]:
+def _scroll_all_posts(client) -> tuple[list[str], list[list[float]], list[dict]]:
     """Scroll весь корпус, вернуть (texts, embeddings, payloads)."""
-    from qdrant_client import models
     texts, embeddings, payloads = [], [], []
     offset = None
     batch_size = 256
@@ -114,13 +113,13 @@ def _scroll_all_posts(client) -> Tuple[List[str], List[List[float]], List[Dict]]
 # BERTopic
 # ---------------------------------------------------------------------------
 
-def _fit_bertopic(texts: List[str], embeddings: np.ndarray):
+def _fit_bertopic(texts: list[str], embeddings: np.ndarray):
     """Full-corpus BERTopic fit. Возвращает (model, topics, probs)."""
     from bertopic import BERTopic
-    from hdbscan import HDBSCAN
-    from umap import UMAP
-    from sklearn.feature_extraction.text import CountVectorizer
     from bertopic.vectorizers import ClassTfidfTransformer
+    from hdbscan import HDBSCAN
+    from sklearn.feature_extraction.text import CountVectorizer
+    from umap import UMAP
 
     logger.info("BERTopic fit на %d документах...", len(texts))
     t0 = time.time()
@@ -162,12 +161,12 @@ def _save_model(model) -> None:
 
 def _compute_hot_topics(
     topic_model,
-    topics: List[int],
-    payloads: List[Dict],
+    topics: list[int],
+    payloads: list[dict],
     week_start: datetime,
     week_end: datetime,
     top_n: int = 10,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Вычислить hot_score для топиков текущей недели."""
 
     # Индексы постов этой недели
@@ -189,7 +188,7 @@ def _compute_hot_topics(
         return []
 
     # Группировка по topic
-    topic_posts: Dict[int, List[int]] = {}
+    topic_posts: dict[int, list[int]] = {}
     for idx in week_indices:
         t = topics[idx]
         if t == -1:  # outlier
@@ -211,7 +210,7 @@ def _compute_hot_topics(
         if prev_start <= post_date_naive < week_start:
             prev_indices.append(i)
 
-    prev_topic_counts: Dict[int, int] = {}
+    prev_topic_counts: dict[int, int] = {}
     for idx in prev_indices:
         t = topics[idx]
         if t != -1:
@@ -287,17 +286,17 @@ def _compute_hot_topics(
 # ---------------------------------------------------------------------------
 
 def _detect_bursts(
-    topics: List[int],
-    payloads: List[Dict],
+    topics: list[int],
+    payloads: list[dict],
     week_start: datetime,
     week_end: datetime,
     min_channels: int = 5,
     window_hours: int = 48,
-) -> List[Dict]:
+) -> list[dict]:
     """Обнаружить burst events: topic в min_channels+ каналах за window_hours."""
     bursts = []
     # Group week posts by topic
-    topic_channel_times: Dict[int, List[Tuple[str, datetime]]] = {}
+    topic_channel_times: dict[int, list[tuple[str, datetime]]] = {}
     for i, p in enumerate(payloads):
         t = topics[i]
         if t == -1:
@@ -316,7 +315,7 @@ def _detect_bursts(
     for topic_id, entries in topic_channel_times.items():
         entries.sort(key=lambda x: x[1])
         # Sliding window
-        for i, (ch_i, dt_i) in enumerate(entries):
+        for i, (_ch_i, dt_i) in enumerate(entries):
             window_end = dt_i + timedelta(hours=window_hours)
             channels_in_window = set()
             for ch_j, dt_j in entries[i:]:
@@ -339,13 +338,13 @@ def _detect_bursts(
 # ---------------------------------------------------------------------------
 
 def _top_entities_for_week(
-    payloads: List[Dict],
+    payloads: list[dict],
     week_start: datetime,
     week_end: datetime,
     top_n: int = 10,
-) -> List[Dict]:
+) -> list[dict]:
     """Топ entities за неделю из payload.entities[]."""
-    entity_counts: Dict[str, int] = {}
+    entity_counts: dict[str, int] = {}
     for p in payloads:
         d = p.get("date", "")
         if not d:
@@ -366,7 +365,7 @@ def _top_entities_for_week(
 # LLM summary generation
 # ---------------------------------------------------------------------------
 
-def _generate_summary(hot_topics: List[Dict], top_entities: List[Dict], week_label: str) -> str:
+def _generate_summary(hot_topics: list[dict], top_entities: list[dict], week_label: str) -> str:
     """Сгенерировать дайджест через LLM (Qwen3-30B)."""
     topics_text = "\n".join(
         f"- {t['label']} (score={t['hot_score']}, posts={t['post_count']}, channels={t['channels']})"
@@ -415,7 +414,7 @@ def _generate_summary(hot_topics: List[Dict], top_entities: List[Dict], week_lab
 # Embedding
 # ---------------------------------------------------------------------------
 
-def _embed_text(text: str) -> List[float]:
+def _embed_text(text: str) -> list[float]:
     """Embed текст через gpu_server (Qwen3-Embedding-0.6B)."""
     payload = json.dumps({"inputs": [text]}).encode()
     req = urllib.request.Request(
@@ -438,15 +437,16 @@ def _upsert_digest(
     week_start: datetime,
     week_end: datetime,
     summary: str,
-    summary_vector: List[float],
-    hot_topics: List[Dict],
-    top_entities: List[Dict],
-    burst_events: List[Dict],
+    summary_vector: list[float],
+    hot_topics: list[dict],
+    top_entities: list[dict],
+    burst_events: list[dict],
     post_count: int,
 ) -> None:
     """Upsert one point в weekly_digests."""
-    from qdrant_client import models
     import uuid as _uuid
+
+    from qdrant_client import models
 
     point_id = str(_uuid.uuid5(_uuid.NAMESPACE_DNS, f"digest:{week_label}"))
 
@@ -477,7 +477,7 @@ def _upsert_digest(
 # Main
 # ---------------------------------------------------------------------------
 
-def _parse_week(week_str: Optional[str]) -> Tuple[str, datetime, datetime]:
+def _parse_week(week_str: str | None) -> tuple[str, datetime, datetime]:
     """Parse --week arg или вернуть текущую неделю."""
     if week_str:
         # Format: 2026-W12

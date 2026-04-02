@@ -2,10 +2,9 @@
 Утилиты для работы с промптами для LLM
 """
 
-from typing import List
 
 
-def build_prompt(query: str, context: List[str], max_context_length: int = 2000) -> str:
+def build_prompt(query: str, context: list[str], max_context_length: int = 2000) -> str:
     """
     Строит промпт для LLM на основе запроса пользователя и контекста
     Оптимизирован для модели Vikhr (использует формат <s>{role}\n{content}</s>)
@@ -65,7 +64,7 @@ def build_prompt(query: str, context: List[str], max_context_length: int = 2000)
     return prompt
 
 
-def build_simple_prompt(query: str, context: List[str]) -> str:
+def build_simple_prompt(query: str, context: list[str]) -> str:
     """
     Упрощенная версия промпта для базовых LLM без поддержки ChatML
     Оптимизирована для русского языка

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import uuid
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from qdrant_client import AsyncQdrantClient, models
 from qdrant_client.http.exceptions import UnexpectedResponse
@@ -53,7 +53,7 @@ class PointDocument:
     sparse_indices: list[int]
     sparse_values: list[float]
     payload: dict[str, Any]
-    colbert_vectors: Optional[list[list[float]]] = None  # per-token 128-dim
+    colbert_vectors: list[list[float]] | None = None  # per-token 128-dim
 
 
 class QdrantStore:

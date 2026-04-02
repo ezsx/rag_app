@@ -13,7 +13,8 @@ import asyncio
 import logging
 import math
 import threading
-from typing import Coroutine, List, TypeVar
+from collections.abc import Coroutine
+from typing import TypeVar
 
 from adapters.tei.reranker_client import TEIRerankerClient
 
@@ -47,8 +48,8 @@ class RerankerService:
         )
 
     def rerank(
-        self, query: str, docs: List[str], top_n: int, batch_size: int = 16
-    ) -> List[int]:
+        self, query: str, docs: list[str], top_n: int, batch_size: int = 16
+    ) -> list[int]:
         """
         Возвращает индексы документов, отсортированные по убыванию релевантности к запросу.
         """
@@ -65,8 +66,8 @@ class RerankerService:
             return list(range(min(len(docs), top_n)))
 
     def rerank_with_scores(
-        self, query: str, docs: List[str], top_n: int, batch_size: int = 16
-    ) -> tuple[List[int], List[float]]:
+        self, query: str, docs: list[str], top_n: int, batch_size: int = 16
+    ) -> tuple[list[int], list[float]]:
         """Переранжирует документы и возвращает нормализованные scores."""
         if not docs:
             return [], []
@@ -102,7 +103,7 @@ class RerankerService:
         self._thread.join(timeout=5.0)
         self._loop.close()
 
-    def _get_raw_scores(self, query: str, passages: List[str]) -> List[float]:
+    def _get_raw_scores(self, query: str, passages: list[str]) -> list[float]:
         """
         Возвращает raw relevance scores в порядке входных passages.
 

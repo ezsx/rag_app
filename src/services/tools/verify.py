@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from adapters.search.hybrid_retriever import HybridRetriever
 from schemas.search import SearchPlan
@@ -16,8 +17,8 @@ def verify(
     claim: str,
     hybrid_retriever: HybridRetriever,
     top_k: int = 3,
-    docs: Optional[Sequence[Dict[str, Any]]] = None,
-) -> Dict[str, Any]:
+    docs: Sequence[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Проверяет утверждение через повторный поиск в базе знаний."""
     if not claim.strip():
         return {
@@ -28,7 +29,7 @@ def verify(
         }
 
     try:
-        retrieved_docs: List[Dict[str, Any]] = []
+        retrieved_docs: list[dict[str, Any]] = []
 
         if docs:
             for item in docs:
@@ -67,8 +68,8 @@ def verify(
                 "note": "Релевантные документы не найдены",
             }
 
-        evidence: List[str] = []
-        confidences: List[float] = []
+        evidence: list[str] = []
+        confidences: list[float] = []
         for idx, doc in enumerate(retrieved_docs[:top_k]):
             text = doc.get("text", "")
             confidence = max(0.3, 0.9 - idx * 0.1)
@@ -94,5 +95,5 @@ def verify(
             "verified": False,
             "confidence": 0.0,
             "evidence": [],
-            "error": f"Ошибка поиска: {str(exc)}",
+            "error": f"Ошибка поиска: {exc!s}",
         }

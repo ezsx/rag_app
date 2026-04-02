@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ def related_posts(
     post_id: str = "",
     limit: int = 5,
     hybrid_retriever=None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Находит посты семантически похожие на указанный.
 
     Args:

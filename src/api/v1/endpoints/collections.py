@@ -3,11 +3,11 @@ Collections endpoints для управления коллекциями ChromaD
 """
 
 import logging
-from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from core.deps import get_chroma_client
-from core.settings import get_settings, Settings
+from core.settings import Settings, get_settings
 from schemas.qa import (
     CollectionInfo,
     CollectionsResponse,
@@ -56,7 +56,7 @@ async def list_collections(
                     CollectionInfo(
                         name=collection.name,
                         count=0,
-                        metadata={"error": f"Недоступна: {str(e)}"},
+                        metadata={"error": f"Недоступна: {e!s}"},
                     )
                 )
 
@@ -70,7 +70,7 @@ async def list_collections(
         logger.error(f"Ошибка при получении списка коллекций: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось получить список коллекций: {str(e)}",
+            detail=f"Не удалось получить список коллекций: {e!s}",
         )
 
 
@@ -123,7 +123,7 @@ async def select_collection(
         logger.error(f"Ошибка при выборе коллекции: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось выбрать коллекцию: {str(e)}",
+            detail=f"Не удалось выбрать коллекцию: {e!s}",
         )
 
 
@@ -166,5 +166,5 @@ async def get_collection_info(
         logger.error(f"Ошибка при получении информации о коллекции: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось получить информацию о коллекции: {str(e)}",
+            detail=f"Не удалось получить информацию о коллекции: {e!s}",
         )

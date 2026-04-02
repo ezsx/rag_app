@@ -32,11 +32,10 @@ import json
 import logging
 import os
 import random
-import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import httpx
 
@@ -53,7 +52,7 @@ RU_KEYBOARD_NEIGHBORS = {
     "р": "пол", "о": "рлд", "л": "одж", "д": "лжэ", "ж": "дэ",
     "я": "чс", "ч": "ясм", "с": "чми", "м": "сит", "и": "мтб",
     "т": "иьб", "ь": "тбю", "б": "ьюи", "ю": "бь",
-    "ё": "е", "е": "ёкн",
+    "ё": "е", "е": "ёкн",  # noqa: F601
 }
 
 # Latin↔Cyrillic визуально похожие
@@ -147,7 +146,7 @@ def call_agent(
     api_url: str,
     api_key: str,
     timeout: int = 120,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Отправить query в agent API (SSE), собрать ответ."""
     payload = {"query": query}
     answer = ""
@@ -157,26 +156,25 @@ def call_agent(
 
     t0 = time.time()
     try:
-        with httpx.Client(timeout=timeout) as client:
-            with client.stream(
-                "POST", api_url,
-                json=payload,
-                headers={"Authorization": f"Bearer {api_key}"},
-            ) as response:
-                response.raise_for_status()
-                for event_name, event_data in iter_sse_events(response):
-                    try:
-                        decoded = json.loads(event_data)
-                    except json.JSONDecodeError:
-                        continue
-                    if event_name == "final":
-                        answer = decoded.get("answer", "")
-                    elif event_name == "citations":
-                        citations = decoded.get("citations", [])
-                    elif event_name == "tool_invoked":
-                        tool = decoded.get("tool") or decoded.get("name", "")
-                        if tool:
-                            tools_invoked.append(tool)
+        with httpx.Client(timeout=timeout) as client, client.stream(
+            "POST", api_url,
+            json=payload,
+            headers={"Authorization": f"Bearer {api_key}"},
+        ) as response:
+            response.raise_for_status()
+            for event_name, event_data in iter_sse_events(response):
+                try:
+                    decoded = json.loads(event_data)
+                except json.JSONDecodeError:
+                    continue
+                if event_name == "final":
+                    answer = decoded.get("answer", "")
+                elif event_name == "citations":
+                    citations = decoded.get("citations", [])
+                elif event_name == "tool_invoked":
+                    tool = decoded.get("tool") or decoded.get("name", "")
+                    if tool:
+                        tools_invoked.append(tool)
     except Exception as exc:
         error = True
         answer = str(exc)
@@ -197,7 +195,7 @@ def call_agent(
 _bert_scorer = None
 
 
-def bertscore_f1(candidate: str, reference: str) -> Optional[float]:
+def bertscore_f1(candidate: str, reference: str) -> float | None:
     """BERTScore F1 (lazy init). None если недоступен."""
     global _bert_scorer
     if _bert_scorer is None:
@@ -220,7 +218,7 @@ def bertscore_f1(candidate: str, reference: str) -> Optional[float]:
 # ─── Checkpoint / Resume ──────────────────────────────────────────
 
 
-def load_checkpoint(path: Path) -> Dict[str, Any]:
+def load_checkpoint(path: Path) -> dict[str, Any]:
     """Загрузить checkpoint для resume."""
     if path.exists():
         with path.open("r", encoding="utf-8") as f:
@@ -228,20 +226,20 @@ def load_checkpoint(path: Path) -> Dict[str, Any]:
     return {"completed": {}}
 
 
-def save_checkpoint(path: Path, checkpoint: Dict[str, Any]) -> None:
+def save_checkpoint(path: Path, checkpoint: dict[str, Any]) -> None:
     """Сохранить checkpoint после каждого question."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         json.dump(checkpoint, f, ensure_ascii=False, indent=2)
 
 
-def is_completed(checkpoint: Dict, question_id: str, test_type: str, variant: str = "") -> bool:
+def is_completed(checkpoint: dict, question_id: str, test_type: str, variant: str = "") -> bool:
     """Проверить пройден ли (question_id, test_type, variant)."""
     key = f"{question_id}:{test_type}:{variant}"
     return key in checkpoint.get("completed", {})
 
 
-def mark_completed(checkpoint: Dict, question_id: str, test_type: str, variant: str, result: Any) -> None:
+def mark_completed(checkpoint: dict, question_id: str, test_type: str, variant: str, result: Any) -> None:
     """Отметить (question_id, test_type, variant) как пройденный."""
     key = f"{question_id}:{test_type}:{variant}"
     checkpoint.setdefault("completed", {})[key] = result
@@ -251,12 +249,12 @@ def mark_completed(checkpoint: Dict, question_id: str, test_type: str, variant: 
 
 
 def test_query_perturbation(
-    dataset: List[Dict],
+    dataset: list[dict],
     api_url: str,
     api_key: str,
-    checkpoint: Dict,
+    checkpoint: dict,
     checkpoint_path: Path,
-) -> List[Dict]:
+) -> list[dict]:
     """Query perturbation: noise/substitution/reorder stability."""
     results = []
 
@@ -279,7 +277,7 @@ def test_query_perturbation(
         q_results = {"id": qid, "original_answer": orig_answer, "variants": {}}
 
         for ptype, perturbed_query in perturbations.items():
-            variant_key = f"perturbation:{ptype}"
+            _variant_key = f"perturbation:{ptype}"
             if is_completed(checkpoint, qid, "perturbation", ptype):
                 pert_result = checkpoint["completed"].get(f"{qid}:perturbation:{ptype}", {})
             else:
@@ -307,12 +305,12 @@ def test_query_perturbation(
 
 
 def test_proxy_ndr(
-    dataset: List[Dict],
+    dataset: list[dict],
     api_url: str,
     api_key: str,
-    checkpoint: Dict,
+    checkpoint: dict,
     checkpoint_path: Path,
-) -> List[Dict]:
+) -> list[dict]:
     """Proxy-NDR: retrieval vs no-retrieval baseline."""
     results = []
 
@@ -363,11 +361,11 @@ def test_proxy_ndr(
 
 
 def aggregate_robustness(
-    perturbation_results: List[Dict],
-    ndr_results: List[Dict],
-) -> Dict[str, Any]:
+    perturbation_results: list[dict],
+    ndr_results: list[dict],
+) -> dict[str, Any]:
     """Агрегирует robustness результаты."""
-    agg: Dict[str, Any] = {}
+    agg: dict[str, Any] = {}
 
     # Query perturbation
     if perturbation_results:
@@ -397,7 +395,7 @@ def aggregate_robustness(
     return agg
 
 
-def build_robustness_report(agg: Dict, perturbation_results: List, ndr_results: List) -> str:
+def build_robustness_report(agg: dict, perturbation_results: list, ndr_results: list) -> str:
     """Markdown robustness report."""
     lines = ["# Robustness Evaluation Report", f"**Date:** {datetime.now().isoformat()}", ""]
 
@@ -446,8 +444,8 @@ def main():
     checkpoint_path = args.output / "checkpoint.json"
     checkpoint = load_checkpoint(args.resume or checkpoint_path)
 
-    perturbation_results: List[Dict] = []
-    ndr_results: List[Dict] = []
+    perturbation_results: list[dict] = []
+    ndr_results: list[dict] = []
 
     if "query_perturbation" in args.tests:
         # Нужен robustness dataset с perturbations

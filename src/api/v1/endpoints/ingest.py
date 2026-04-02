@@ -4,16 +4,16 @@ Ingest endpoints для управления задачами Telegram ingestion
 
 import logging
 from datetime import datetime
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
 
-from services.ingest_service import job_manager
+from fastapi import APIRouter, HTTPException, status
+
 from schemas.qa import (
-    TelegramIngestRequest,
     IngestJobResponse,
-    IngestJobStatusResponse,
     IngestJobStatus,
+    IngestJobStatusResponse,
+    TelegramIngestRequest,
 )
+from services.ingest_service import job_manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -35,7 +35,7 @@ async def start_telegram_ingestion(request: TelegramIngestRequest) -> IngestJobR
     """
     try:
         # Собираем итоговый список каналов для логов
-        channels: List[str] = []
+        channels: list[str] = []
         if request.channel:
             channels.append(request.channel)
         if request.channels:
@@ -93,7 +93,7 @@ async def start_telegram_ingestion(request: TelegramIngestRequest) -> IngestJobR
         logger.error(f"Ошибка при создании задачи ingestion: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось создать задачу: {str(e)}",
+            detail=f"Не удалось создать задачу: {e!s}",
         )
 
 
@@ -128,7 +128,7 @@ async def get_ingestion_status(job_id: str) -> IngestJobStatusResponse:
         logger.error(f"Ошибка при получении статуса задачи: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось получить статус задачи: {str(e)}",
+            detail=f"Не удалось получить статус задачи: {e!s}",
         )
 
 
@@ -182,12 +182,12 @@ async def cancel_ingestion(job_id: str) -> dict:
         logger.error(f"Ошибка при отмене задачи: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось отменить задачу: {str(e)}",
+            detail=f"Не удалось отменить задачу: {e!s}",
         )
 
 
-@router.get("/ingest", response_model=List[IngestJobStatusResponse], tags=["ingest"])
-async def list_ingestion_jobs() -> List[IngestJobStatusResponse]:
+@router.get("/ingest", response_model=list[IngestJobStatusResponse], tags=["ingest"])
+async def list_ingestion_jobs() -> list[IngestJobStatusResponse]:
     """
     Получает список всех задач ingestion
 
@@ -209,5 +209,5 @@ async def list_ingestion_jobs() -> List[IngestJobStatusResponse]:
         logger.error(f"Ошибка при получении списка задач: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось получить список задач: {str(e)}",
+            detail=f"Не удалось получить список задач: {e!s}",
         )

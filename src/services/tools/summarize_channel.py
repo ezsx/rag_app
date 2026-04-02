@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ def summarize_channel(
     time_range: str = "week",
     limit: int = 20,
     hybrid_retriever=None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Получает посты канала за период в хронологическом порядке.
 
     LLM суммаризует на этапе final_answer.

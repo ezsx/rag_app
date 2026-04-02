@@ -26,7 +26,7 @@ from qdrant_client import AsyncQdrantClient, models
 
 # SPEC-RAG-20a: единый source of truth для payload indexes
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent.parent / "src"))
-from adapters.qdrant.store import PAYLOAD_INDEXES  # noqa: E402
+from adapters.qdrant.store import PAYLOAD_INDEXES
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ async def verify_collection(client: AsyncQdrantClient) -> None:
     print(f"  Points: {info.points_count}")
     print(f"  Vectors: {list(info.config.params.vectors.keys())}")
     print(f"  Sparse: {list(info.config.params.sparse_vectors.keys())}")
-    print(f"  Payload schema:")
+    print("  Payload schema:")
     for field, schema in (info.payload_schema or {}).items():
         print(f"    {field}: {schema}")
 

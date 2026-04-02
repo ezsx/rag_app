@@ -9,7 +9,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from qdrant_client import models
 
@@ -28,10 +28,10 @@ def _find_datasets_file(filename: str) -> Path:
 
 
 _ENTITY_DICT_PATH = _find_datasets_file("entity_dictionary.json")
-_alias_map: Optional[Dict[str, str]] = None
+_alias_map: dict[str, str] | None = None
 
 
-def _load_alias_map() -> Dict[str, str]:
+def _load_alias_map() -> dict[str, str]:
     """Загрузить маппинг alias→canonical из entity_dictionary.json."""
     global _alias_map
     if _alias_map is not None:
@@ -58,14 +58,14 @@ def _normalize_entity(name: str) -> str:
 
 def entity_tracker(
     mode: str = "top",
-    entity: Optional[str] = None,
-    entities: Optional[List[str]] = None,
-    period_from: Optional[str] = None,
-    period_to: Optional[str] = None,
-    category: Optional[str] = None,
+    entity: str | None = None,
+    entities: list[str] | None = None,
+    period_from: str | None = None,
+    period_to: str | None = None,
+    category: str | None = None,
     limit: int = 10,
     hybrid_retriever=None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Аналитический tool: агрегации по AI/ML сущностям через Qdrant Facet API.
 
     Modes:
@@ -120,9 +120,9 @@ def entity_tracker(
 # --- Helpers ---
 
 def _build_period_filter(
-    period_from: Optional[str] = None,
-    period_to: Optional[str] = None,
-) -> Optional[models.Filter]:
+    period_from: str | None = None,
+    period_to: str | None = None,
+) -> models.Filter | None:
     """Фильтр по дате через DatetimeRange на поле 'date'.
 
     Принимает ISO dates (YYYY-MM-DD). НЕ Range на keyword year_week.

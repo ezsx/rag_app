@@ -22,7 +22,6 @@ import re
 import sys
 import time
 import urllib.request
-from typing import Any, Dict, List, Optional
 
 sys.stdout.reconfigure(encoding="utf-8")
 random.seed(42)
@@ -50,7 +49,7 @@ QUESTION_PROMPT = """Ты генератор поисковых запросов
 
 def generate_question(
     text: str, channel: str, date: str, category: str, llm_url: str,
-) -> Optional[str]:
+) -> str | None:
     """Генерирует вопрос через локальный LLM."""
     prompt = QUESTION_PROMPT.format(
         text=text[:800], channel=channel, date=date, category=category,
@@ -73,7 +72,8 @@ def generate_question(
         # Убираем think tags если есть
         raw = re.sub(r"</?think>", "", raw).strip()
         # Убираем кавычки
-        raw = raw.strip('"«»""\' ')
+        for ch in '"«»"\' ':
+            raw = raw.strip(ch)
         # Убираем нумерацию ("1. Вопрос")
         raw = re.sub(r"^\d+[.)]\s*", "", raw)
         # Валидация
@@ -96,14 +96,14 @@ def qdrant_post(url: str, path: str, body: dict) -> dict:
     return json.loads(urllib.request.urlopen(req, timeout=30).read())
 
 
-def get_channels(qdrant_url: str, collection: str) -> List[dict]:
+def get_channels(qdrant_url: str, collection: str) -> list[dict]:
     resp = qdrant_post(qdrant_url, f"{collection}/facet", {"key": "channel", "limit": 100})
     return resp.get("result", {}).get("hits", [])
 
 
 def scroll_channel(
     qdrant_url: str, collection: str, channel: str, limit: int = 50,
-) -> List[dict]:
+) -> list[dict]:
     body = {
         "filter": {"must": [{"key": "channel", "match": {"value": channel}}]},
         "limit": limit,
@@ -116,7 +116,7 @@ def scroll_channel(
 
 # ─── Post selection ──────────────────────────────────────────────────
 
-def select_posts(posts: List[dict], n: int = 3) -> List[dict]:
+def select_posts(posts: list[dict], n: int = 3) -> list[dict]:
     """Выбирает N постов: свежий, старый, случайный. Фильтрует chunks и короткие."""
     good = []
     for p in posts:
@@ -167,11 +167,11 @@ def generate_dataset(
     llm_url: str,
     posts_per_channel: int = 3,
     max_total: int = 100,
-) -> List[dict]:
+) -> list[dict]:
     channels = get_channels(qdrant_url, collection)
     print(f"Каналов: {len(channels)}")
 
-    candidates: List[dict] = []
+    candidates: list[dict] = []
 
     # Собираем посты из всех каналов
     for ch_info in channels:
@@ -197,7 +197,7 @@ def generate_dataset(
     candidates = candidates[:max_total]
 
     # Генерируем вопросы через LLM
-    dataset: List[dict] = []
+    dataset: list[dict] = []
     failed = 0
     t_start = time.time()
 
@@ -213,7 +213,7 @@ def generate_dataset(
         if not question:
             failed += 1
             # Fallback: первое предложение
-            lines = [l.strip() for l in cand["text"].split("\n") if len(l.strip()) >= 20]
+            lines = [ln.strip() for ln in cand["text"].split("\n") if len(ln.strip()) >= 20]
             question = (lines[0][:80] if lines else cand["text"][:80]) + "?"
             cand["category"] = "fallback"
 
@@ -271,7 +271,7 @@ def main():
     print(f"\nСохранено в {args.output}")
 
     # Превью
-    print(f"\nПревью (5 вопросов):")
+    print("\nПревью (5 вопросов):")
     for item in dataset[:5]:
         print(f"  [{item['category']:15s}] {item['query']}")
         print(f"    → {item['expected_documents']} | {item['date']}")

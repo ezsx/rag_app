@@ -7,16 +7,16 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 def list_channels(
-    channel: Optional[str] = None,
+    channel: str | None = None,
     sort_by: str = "count",
     hybrid_retriever=None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Возвращает список каналов с количеством постов (point-level counts).
 
     Args:
@@ -31,7 +31,6 @@ def list_channels(
     start = time.perf_counter()
 
     async def _facet():
-        from qdrant_client import models
         return await store._client.facet(
             collection_name=store.collection,
             key="channel",

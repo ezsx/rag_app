@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from services.reranker_service import RerankerService
 
@@ -12,12 +12,12 @@ logger = logging.getLogger(__name__)
 
 def rerank(
     query: str,
-    docs: List[str],
-    top_n: Optional[int] = None,
-    reranker: Optional[RerankerService] = None,
-    hits: Optional[List[Dict[str, Any]]] = None,
+    docs: list[str],
+    top_n: int | None = None,
+    reranker: RerankerService | None = None,
+    hits: list[dict[str, Any]] | None = None,
     filter_threshold: float = 0.0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """CRAG-style: ранжирует + фильтрует документы по relevance score.
 
     Документы с score < filter_threshold помечаются как нерелевантные

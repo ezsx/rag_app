@@ -2,13 +2,14 @@
 Модуль аутентификации и авторизации для API
 """
 
-import os
 import logging
-from typing import Optional, Dict, Any
+import os
 from datetime import datetime, timedelta
-from fastapi import HTTPException, Security, Depends, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Any
+
 import jwt
+from fastapi import Depends, HTTPException, Request, Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -43,11 +44,11 @@ class TokenData(BaseModel):
     exp: datetime
     iat: datetime
     scopes: list[str] = []
-    metadata: Dict[str, Any] = {}
+    metadata: dict[str, Any] = {}
 
 
 def create_access_token(
-    subject: str, scopes: list[str] = None, metadata: Dict[str, Any] = None
+    subject: str, scopes: list[str] | None = None, metadata: dict[str, Any] | None = None
 ) -> str:
     """Создает JWT токен"""
     now = datetime.utcnow()
@@ -77,7 +78,7 @@ def verify_token(token: str) -> TokenData:
 
 async def get_current_user(
     request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(security),
+    credentials: HTTPAuthorizationCredentials | None = Security(security),
 ) -> TokenData:
     """Dependency для проверки аутентификации"""
 

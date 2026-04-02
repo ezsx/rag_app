@@ -1,9 +1,10 @@
-from typing import Dict, List, Tuple, Any, Optional
 import math
+from typing import Any
+
 import numpy as np
 
 
-def _get_item_id(document: str, metadata: Dict[str, Any]) -> str:
+def _get_item_id(document: str, metadata: dict[str, Any]) -> str:
     # Пытаемся использовать стабильный идентификатор из метаданных
     candidate_keys = [
         "id",
@@ -20,8 +21,8 @@ def _get_item_id(document: str, metadata: Dict[str, Any]) -> str:
 
 
 def rrf_merge(
-    list_of_ranked_results: List[List[Tuple[str, float, Dict[str, Any]]]], k: int = 60
-) -> List[Tuple[str, float, Dict[str, Any]]]:
+    list_of_ranked_results: list[list[tuple[str, float, dict[str, Any]]]], k: int = 60
+) -> list[tuple[str, float, dict[str, Any]]]:
     """
     Reciprocal Rank Fusion.
 
@@ -31,8 +32,8 @@ def rrf_merge(
 
     Возвращает слитый и отсортированный список тех же кортежей без дубликатов.
     """
-    scores: Dict[str, float] = {}
-    best_item_by_id: Dict[str, Tuple[str, float, Dict[str, Any]]] = {}
+    scores: dict[str, float] = {}
+    best_item_by_id: dict[str, tuple[str, float, dict[str, Any]]] = {}
 
     for results in list_of_ranked_results:
         for rank, (doc, distance, meta) in enumerate(results):
@@ -71,12 +72,12 @@ def _safe_cosine_similarity(vec_a: np.ndarray, vec_b: np.ndarray) -> float:
 
 
 def mmr_select(
-    candidates: List[Dict[str, Any]],
+    candidates: list[dict[str, Any]],
     query_embedding: np.ndarray,
     doc_embeddings: np.ndarray,
     lambda_: float,
     out_k: int,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Классический Maximal Marginal Relevance (MMR) отбирает подмножество документов,
     балансируя релевантность и диверсификацию.
@@ -116,13 +117,13 @@ def mmr_select(
         raise ValueError("MMR: query_embedding должен быть вектором (D,)")
 
     # Предрасчет релевантности: sim(query, d)
-    relevance: List[float] = [
+    relevance: list[float] = [
         _safe_cosine_similarity(query_embedding, doc_embeddings[i])
         for i in range(num_docs)
     ]
 
-    selected_indices: List[int] = []
-    candidate_indices: List[int] = list(range(num_docs))
+    selected_indices: list[int] = []
+    candidate_indices: list[int] = list(range(num_docs))
     k = max(0, min(out_k, num_docs))
 
     # Быстрый путь: k == 0
@@ -137,7 +138,7 @@ def mmr_select(
     # Итеративный отбор
     while len(selected_indices) < k and candidate_indices:
         best_score = -math.inf
-        best_idx: Optional[int] = None
+        best_idx: int | None = None
         # Для каждого еще не выбранного кандидата считаем MMR-оценку
         for idx in candidate_indices:
             # Максимальное сходство с уже выбранными (diversity penalty)

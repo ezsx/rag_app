@@ -1,188 +1,157 @@
 """
-Конфигурация приложения — Phase 1 (Qdrant + TEI HTTP).
+Конфигурация приложения — Pydantic BaseSettings.
 
-Изменения по сравнению с Phase 0:
-- Удалены: ChromaDB поля, BM25 поля, local-model пути
-- Добавлены: qdrant_url, qdrant_collection, embedding_tei_url, reranker_tei_url
-- Исправлены: coverage_threshold=0.65, max_refinements=2, LLM=qwen3-30b-a3b
-- Текущий embedding: Qwen3-Embedding-0.6B + instruction prefix
-- Добавлены настройки chunking для ingest
+Все параметры читаются из переменных окружения с поддержкой .env файлов.
+Singleton через get_settings().
 """
 
-import os
-from typing import List, Optional
-from functools import lru_cache
 import logging
+from functools import lru_cache
+
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
 
 
-class Settings:
-    """Настройки приложения Phase 1. Singleton через get_settings()."""
+class Settings(BaseSettings):
+    """Настройки приложения. Singleton через get_settings()."""
 
-    def __init__(self):
-        # === LLM — llama-server (V100 на Windows Host) ===
-        # llama-server.exe запускается на хосте, Docker обращается через host.docker.internal.
-        # V100 TCC недоступен в WSL2/Docker — только через HTTP на хосте.
-        self.current_llm_key: str = os.getenv("LLM_MODEL_KEY", "qwen3-30b-a3b")
-        self.llm_base_url: str = os.getenv(
-            "LLM_BASE_URL", "http://host.docker.internal:8080"
-        )
-        self.llm_model_name: str = os.getenv("LLM_MODEL_NAME", "qwen3-30b-a3b")
-        self.llm_request_timeout: int = int(os.getenv("LLM_REQUEST_TIMEOUT", "120"))
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
 
-        # Query Planner может использовать отдельный endpoint.
-        # Если PLANNER_LLM_BASE_URL не задан — используется тот же llama-server.
-        self.planner_llm_base_url: str = os.getenv("PLANNER_LLM_BASE_URL", "")
-        self.planner_llm_key: str = os.getenv(
-            "PLANNER_LLM_MODEL_KEY", "qwen3-30b-a3b"
-        )
+    # ── LLM — llama-server (V100 на Windows Host) ─────────────
+    current_llm_key: str = Field("qwen3-30b-a3b", alias="LLM_MODEL_KEY")
+    llm_base_url: str = Field(
+        "http://host.docker.internal:8080", alias="LLM_BASE_URL"
+    )
+    llm_model_name: str = Field("qwen3-30b-a3b", alias="LLM_MODEL_NAME")
+    llm_request_timeout: int = Field(120, alias="LLM_REQUEST_TIMEOUT")
 
-        # === Embedding — TEI HTTP (WSL2 native, RTX 5060 Ti, порт 8082) ===
-        # Модель: Qwen/Qwen3-Embedding-0.6B (1024-dim, cosine, long context).
-        # TEI запускается отдельно в WSL2, не в Docker (DEC-0024).
-        self.current_embedding_key: str = os.getenv(
-            "EMBEDDING_MODEL_KEY", "qwen3-embedding-0.6b"
-        )
-        self.embedding_tei_url: str = os.getenv(
-            "EMBEDDING_TEI_URL", "http://host.docker.internal:8082"
-        )
-        self.embedding_query_instruction: str = os.getenv(
-            "EMBEDDING_QUERY_INSTRUCTION",
-            (
-                "Instruct: Given a user question about ML, AI, LLM or tech news, "
-                "retrieve relevant Telegram channel posts\n"
-                "Query: "
-            ),
-        )
+    # Query Planner — отдельный endpoint (если задан)
+    planner_llm_base_url: str = Field("", alias="PLANNER_LLM_BASE_URL")
+    planner_llm_key: str = Field("qwen3-30b-a3b", alias="PLANNER_LLM_MODEL_KEY")
 
-        # === Reranker — gpu_server.py (WSL2 native, RTX 5060 Ti, порт 8082) ===
-        # Embedding и Reranker обслуживаются одним процессом на порту 8082.
-        self.reranker_tei_url: str = os.getenv(
-            "RERANKER_TEI_URL", "http://host.docker.internal:8082"
-        )
-        self.enable_reranker: bool = (
-            os.getenv("ENABLE_RERANKER", "true").lower() == "true"
-        )
-        self.reranker_top_n: int = int(os.getenv("RERANKER_TOP_N", "80"))
-        self.reranker_batch_size: int = int(os.getenv("RERANKER_BATCH_SIZE", "16"))
+    # ── Embedding — gpu_server.py (WSL2, RTX 5060 Ti, порт 8082) ─
+    current_embedding_key: str = Field(
+        "qwen3-embedding-0.6b", alias="EMBEDDING_MODEL_KEY"
+    )
+    embedding_tei_url: str = Field(
+        "http://host.docker.internal:8082", alias="EMBEDDING_TEI_URL"
+    )
+    embedding_query_instruction: str = Field(
+        (
+            "Instruct: Given a user question about ML, AI, LLM or tech news, "
+            "retrieve relevant Telegram channel posts\n"
+            "Query: "
+        ),
+        alias="EMBEDDING_QUERY_INSTRUCTION",
+    )
 
-        # === Qdrant (Docker CPU, порт 6333) ===
-        self.qdrant_url: str = os.getenv("QDRANT_URL", "http://qdrant:6333")
-        self.qdrant_collection: str = os.getenv("QDRANT_COLLECTION", "news_colbert")
-        # Алиас для обратной совместимости с кодом, обращающимся к current_collection
-        self.current_collection: str = self.qdrant_collection
+    # ── Reranker — gpu_server.py (тот же порт 8082) ──────────
+    reranker_tei_url: str = Field(
+        "http://host.docker.internal:8082", alias="RERANKER_TEI_URL"
+    )
+    enable_reranker: bool = Field(True, alias="ENABLE_RERANKER")
+    reranker_top_n: int = Field(80, alias="RERANKER_TOP_N")
+    reranker_batch_size: int = Field(16, alias="RERANKER_BATCH_SIZE")
 
-        # === PCA Whitening (1024→512 dim) ===
-        # Пустой путь = whitening отключён. Включить через WHITENING_PARAMS_PATH env.
-        self.whitening_params_path: str = os.getenv("WHITENING_PARAMS_PATH", "")
+    # ── Qdrant (Docker CPU, порт 6333) ───────────────────────
+    qdrant_url: str = Field("http://qdrant:6333", alias="QDRANT_URL")
+    qdrant_collection: str = Field("news_colbert", alias="QDRANT_COLLECTION")
 
-        # === Redis кеширование (отключён по умолчанию) ===
-        self.redis_enabled: bool = os.getenv("REDIS_ENABLED", "false").lower() == "true"
-        self.redis_host: str = os.getenv("REDIS_HOST", "localhost")
-        self.redis_port: int = int(os.getenv("REDIS_PORT", "6379"))
-        self.redis_password: Optional[str] = os.getenv("REDIS_PASSWORD")
-        self.cache_ttl: int = int(os.getenv("CACHE_TTL", "3600"))
+    # ── PCA Whitening ────────────────────────────────────────
+    whitening_params_path: str = Field("", alias="WHITENING_PARAMS_PATH")
 
-        # === Query Planner / Fusion ===
-        self.enable_query_planner: bool = (
-            os.getenv("ENABLE_QUERY_PLANNER", "true").lower() == "true"
-        )
-        self.fusion_strategy: str = os.getenv("FUSION_STRATEGY", "rrf").lower()
-        self.k_fusion: int = int(os.getenv("K_FUSION", "60"))
+    # ── Redis кеширование ────────────────────────────────────
+    redis_enabled: bool = Field(False, alias="REDIS_ENABLED")
+    redis_host: str = Field("localhost", alias="REDIS_HOST")
+    redis_port: int = Field(6379, alias="REDIS_PORT")
+    redis_password: str | None = Field(None, alias="REDIS_PASSWORD")
+    cache_ttl: int = Field(3600, alias="CACHE_TTL")
 
-        # MMR — нативно через Qdrant MmrQuery
-        self.enable_mmr: bool = os.getenv("ENABLE_MMR", "true").lower() == "true"
-        try:
-            self.mmr_lambda: float = float(os.getenv("MMR_LAMBDA", "0.7"))
-        except Exception:
-            self.mmr_lambda = 0.7
-        self.mmr_top_n: int = int(os.getenv("MMR_TOP_N", "120"))
-        self.mmr_output_k: int = int(os.getenv("MMR_OUTPUT_K", "60"))
+    # ── Query Planner / Fusion ───────────────────────────────
+    enable_query_planner: bool = Field(True, alias="ENABLE_QUERY_PLANNER")
+    fusion_strategy: str = Field("rrf", alias="FUSION_STRATEGY")
+    k_fusion: int = Field(60, alias="K_FUSION")
 
-        self.search_k_per_query_default: int = int(
-            os.getenv("SEARCH_K_PER_QUERY_DEFAULT", "10")
-        )
-        self.max_plan_subqueries: int = int(os.getenv("MAX_PLAN_SUBQUERIES", "5"))
+    # MMR
+    enable_mmr: bool = Field(True, alias="ENABLE_MMR")
+    mmr_lambda: float = Field(0.7, alias="MMR_LAMBDA")
+    mmr_top_n: int = Field(120, alias="MMR_TOP_N")
+    mmr_output_k: int = Field(60, alias="MMR_OUTPUT_K")
 
-        # === Hybrid Retriever ===
-        self.hybrid_enabled: bool = (
-            os.getenv("HYBRID_ENABLED", "true").lower() == "true"
-        )
-        # Лимиты prefetch для dense и sparse в Qdrant prefetch запросе
-        self.hybrid_top_dense: int = int(os.getenv("HYBRID_TOP_DENSE", "100"))
-        self.hybrid_top_sparse: int = int(os.getenv("HYBRID_TOP_SPARSE", "100"))
-        self.enforce_router_route: bool = (
-            os.getenv("ENFORCE_ROUTER_ROUTE", "false").lower() == "true"
-        )
-        # Алиас для совместимости
-        self.enable_hybrid_retriever: bool = self.hybrid_enabled
+    search_k_per_query_default: int = Field(10, alias="SEARCH_K_PER_QUERY_DEFAULT")
+    max_plan_subqueries: int = Field(5, alias="MAX_PLAN_SUBQUERIES")
 
-        # === Planner параметры декодинга ===
-        self.use_gbnf_planner: bool = (
-            os.getenv("USE_GBNF_PLANNER", "true").lower() == "true"
-        )
-        self.planner_timeout: float = float(os.getenv("PLANNER_TIMEOUT", "30.0"))
-        self.planner_token_budget: int = int(os.getenv("PLANNER_TOKEN_BUDGET", "4096"))
-        self.planner_temp: float = float(os.getenv("PLANNER_TEMP", "0.2"))
-        self.planner_top_p: float = float(os.getenv("PLANNER_TOP_P", "0.9"))
-        self.planner_top_k: int = int(os.getenv("PLANNER_TOP_K", "40"))
-        self.planner_repeat_penalty: float = float(
-            os.getenv("PLANNER_REPEAT_PENALTY", "1.1")
-        )
-        self.planner_stop: List[str] = os.getenv(
-            "PLANNER_STOP", "Observation:"
-        ).split("||")
+    # ── Hybrid Retriever ─────────────────────────────────────
+    hybrid_enabled: bool = Field(True, alias="HYBRID_ENABLED")
+    hybrid_top_dense: int = Field(100, alias="HYBRID_TOP_DENSE")
+    hybrid_top_sparse: int = Field(100, alias="HYBRID_TOP_SPARSE")
+    enforce_router_route: bool = Field(False, alias="ENFORCE_ROUTER_ROUTE")
 
-        # === In-memory кеш (TTL) ===
-        self.enable_cache: bool = os.getenv("ENABLE_CACHE", "true").lower() == "true"
+    # ── Planner декодинг ─────────────────────────────────────
+    use_gbnf_planner: bool = Field(True, alias="USE_GBNF_PLANNER")
+    planner_timeout: float = Field(30.0, alias="PLANNER_TIMEOUT")
+    planner_token_budget: int = Field(4096, alias="PLANNER_TOKEN_BUDGET")
+    planner_temp: float = Field(0.2, alias="PLANNER_TEMP")
+    planner_top_p: float = Field(0.9, alias="PLANNER_TOP_P")
+    planner_top_k: int = Field(40, alias="PLANNER_TOP_K")
+    planner_repeat_penalty: float = Field(1.1, alias="PLANNER_REPEAT_PENALTY")
+    planner_stop: str = Field("Observation:", alias="PLANNER_STOP")
 
-        # === ReAct Agent ===
-        self.enable_agent: bool = os.getenv("ENABLE_AGENT", "true").lower() == "true"
-        self.agent_max_steps: int = int(os.getenv("AGENT_MAX_STEPS", "15"))
-        self.agent_default_steps: int = int(os.getenv("AGENT_DEFAULT_STEPS", "8"))
-        self.agent_tool_timeout: float = float(os.getenv("AGENT_TOOL_TIMEOUT", "15.0"))
-        self.agent_token_budget: int = int(os.getenv("AGENT_TOKEN_BUDGET", "2000"))
+    # ── In-memory кеш ────────────────────────────────────────
+    enable_cache: bool = Field(True, alias="ENABLE_CACHE")
 
-        # Параметры декодинга для tool-шагов (короткие, детерминированные)
-        self.agent_tool_temp: float = float(os.getenv("AGENT_TOOL_TEMP", "0.7"))
-        self.agent_tool_top_p: float = float(os.getenv("AGENT_TOOL_TOP_P", "0.8"))
-        self.agent_tool_top_k: int = int(os.getenv("AGENT_TOOL_TOP_K", "20"))
-        self.agent_tool_presence_penalty: float = float(
-            os.getenv("AGENT_TOOL_PRESENCE_PENALTY", "1.5")
-        )
-        self.agent_tool_repeat_penalty: float = float(
-            os.getenv("AGENT_TOOL_REPEAT_PENALTY", "1.15")
-        )
-        self.agent_tool_max_tokens: int = int(os.getenv("AGENT_TOOL_MAX_TOKENS", "384"))
+    # ── ReAct Agent ──────────────────────────────────────────
+    enable_agent: bool = Field(True, alias="ENABLE_AGENT")
+    agent_max_steps: int = Field(15, alias="AGENT_MAX_STEPS")
+    agent_default_steps: int = Field(8, alias="AGENT_DEFAULT_STEPS")
+    agent_tool_timeout: float = Field(15.0, alias="AGENT_TOOL_TIMEOUT")
+    agent_token_budget: int = Field(2000, alias="AGENT_TOKEN_BUDGET")
 
-        # Параметры декодинга для финального ответа
-        self.agent_final_temp: float = float(os.getenv("AGENT_FINAL_TEMP", "0.3"))
-        self.agent_final_top_p: float = float(os.getenv("AGENT_FINAL_TOP_P", "0.9"))
-        self.agent_final_max_tokens: int = int(
-            os.getenv("AGENT_FINAL_MAX_TOKENS", "1024")
-        )
+    # Agent tool-step декодинг
+    agent_tool_temp: float = Field(0.7, alias="AGENT_TOOL_TEMP")
+    agent_tool_top_p: float = Field(0.8, alias="AGENT_TOOL_TOP_P")
+    agent_tool_top_k: int = Field(20, alias="AGENT_TOOL_TOP_K")
+    agent_tool_presence_penalty: float = Field(1.5, alias="AGENT_TOOL_PRESENCE_PENALTY")
+    agent_tool_repeat_penalty: float = Field(1.15, alias="AGENT_TOOL_REPEAT_PENALTY")
+    agent_tool_max_tokens: int = Field(384, alias="AGENT_TOOL_MAX_TOKENS")
 
-        # === Coverage / Refinement (LANCER-style nugget coverage) ===
-        # 0.75 = 3/4 nuggets покрыты. С nugget-based coverage шкала другая:
-        # query_plan даёт 3-5 subqueries, 1 непокрытый из 4 = 0.75.
-        # Было 0.65 при cosine-based метрике (DEC-0018, R04).
-        self.coverage_threshold: float = float(
-            os.getenv("COVERAGE_THRESHOLD", "0.75")
-        )
-        # 1 targeted refinement обычно достаточен (ищем конкретно непокрытые nuggets).
-        # Было 2 при generic repeat search.
-        self.max_refinements: int = int(os.getenv("MAX_REFINEMENTS", "1"))
-        self.enable_verify_step: bool = (
-            os.getenv("ENABLE_VERIFY_STEP", "true").lower() == "true"
-        )
+    # Agent final-answer декодинг
+    agent_final_temp: float = Field(0.3, alias="AGENT_FINAL_TEMP")
+    agent_final_top_p: float = Field(0.9, alias="AGENT_FINAL_TOP_P")
+    agent_final_max_tokens: int = Field(1024, alias="AGENT_FINAL_MAX_TOKENS")
 
-        # === Chunking для ingest ===
-        self.chunk_char_threshold: int = int(
-            os.getenv("CHUNK_CHAR_THRESHOLD", "1500")
-        )
-        self.chunk_target_size: int = int(os.getenv("CHUNK_TARGET_SIZE", "1200"))
+    # ── Coverage / Refinement (LANCER-style) ─────────────────
+    coverage_threshold: float = Field(0.75, alias="COVERAGE_THRESHOLD")
+    max_refinements: int = Field(1, alias="MAX_REFINEMENTS")
+    enable_verify_step: bool = Field(True, alias="ENABLE_VERIFY_STEP")
 
+    # ── Chunking для ingest ──────────────────────────────────
+    chunk_char_threshold: int = Field(1500, alias="CHUNK_CHAR_THRESHOLD")
+    chunk_target_size: int = Field(1200, alias="CHUNK_TARGET_SIZE")
+
+    @property
+    def current_collection(self) -> str:
+        """Алиас для обратной совместимости."""
+        return self.qdrant_collection
+
+    @property
+    def enable_hybrid_retriever(self) -> bool:
+        """Алиас для обратной совместимости."""
+        return self.hybrid_enabled
+
+    @property
+    def planner_stop_list(self) -> list[str]:
+        """planner_stop как список (разделитель ||)."""
+        return self.planner_stop.split("||")
+
+    def model_post_init(self, __context) -> None:
+        """Логирование после инициализации."""
         logger.info(
             "Настройки загружены: LLM=%s, Embedding=%s, Qdrant=%s/%s, "
             "EmbTEI=%s, RerankTEI=%s, Coverage=%.2f, MaxRefinements=%d",
@@ -233,11 +202,10 @@ class Settings:
         """Горячая смена Qdrant-коллекции. Сбрасывает lru_cache фабрик."""
         old = self.qdrant_collection
         self.qdrant_collection = collection_name
-        self.current_collection = collection_name  # синхронизируем алиас
         from core.deps import (
             get_hybrid_retriever,
-            get_qdrant_store,
             get_qa_service,
+            get_qdrant_store,
             get_retriever,
         )
 
@@ -254,7 +222,7 @@ class Settings:
         logger.info("Qdrant коллекция изменена: %s → %s", old, collection_name)
 
 
-@lru_cache()
+@lru_cache
 def get_settings() -> Settings:
     """Singleton настроек приложения."""
     return Settings()

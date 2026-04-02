@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +31,8 @@ class CoverageResult:
     score: float  # 0.0-1.0
     total_nuggets: int
     covered_nuggets: int
-    uncovered: List[str]  # nuggets без покрытия — для targeted refinement
-    details: Dict[str, bool] = field(default_factory=dict)  # nugget → covered
+    uncovered: list[str]  # nuggets без покрытия — для targeted refinement
+    details: dict[str, bool] = field(default_factory=dict)  # nugget → covered
 
 
 def _extract_terms(text: str) -> set[str]:
@@ -44,7 +44,7 @@ def _extract_terms(text: str) -> set[str]:
     }
 
 
-def _nugget_covered(nugget: str, docs: List[Dict[str, Any]], threshold: float = 0.5) -> bool:
+def _nugget_covered(nugget: str, docs: list[dict[str, Any]], threshold: float = 0.5) -> bool:
     """Проверяет покрыт ли nugget хотя бы одним документом.
 
     Покрытие = доля значимых терминов nugget найденных в тексте документа.
@@ -64,8 +64,8 @@ def _nugget_covered(nugget: str, docs: List[Dict[str, Any]], threshold: float = 
 
 def compute_nugget_coverage(
     query: str,
-    docs: List[Dict[str, Any]],
-    nuggets: Optional[List[str]] = None,
+    docs: list[dict[str, Any]],
+    nuggets: list[str] | None = None,
     nugget_threshold: float = 0.5,
 ) -> CoverageResult:
     """Вычисляет покрытие запроса документами через nugget decomposition.
@@ -90,10 +90,10 @@ def compute_nugget_coverage(
 
     # Всегда добавляем оригинальный query как nugget если его нет в списке
     if nuggets and query not in nuggets:
-        effective_nuggets = [query] + list(nuggets)
+        effective_nuggets = [query, *list(nuggets)]
 
-    details: Dict[str, bool] = {}
-    uncovered: List[str] = []
+    details: dict[str, bool] = {}
+    uncovered: list[str] = []
 
     for nugget in effective_nuggets:
         covered = _nugget_covered(nugget, docs, nugget_threshold)

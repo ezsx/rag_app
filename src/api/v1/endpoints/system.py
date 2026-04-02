@@ -3,7 +3,8 @@
 """
 
 from fastapi import APIRouter, Depends
-from core.settings import get_settings, Settings
+
+from core.settings import Settings, get_settings
 
 router = APIRouter()
 

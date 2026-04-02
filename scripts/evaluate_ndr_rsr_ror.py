@@ -27,7 +27,6 @@ import time
 import urllib.request
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 
 logging.basicConfig(
     level=logging.INFO,
@@ -37,8 +36,7 @@ logger = logging.getLogger(__name__)
 
 # Reuse retrieval functions из calibrate_coverage.py
 sys.path.insert(0, str(Path(__file__).parent))
-from calibrate_coverage import embed_query, colbert_encode, search_qdrant
-
+from calibrate_coverage import search_qdrant
 
 # ─── Config ───────────────────────────────────────────────────────
 
@@ -65,7 +63,7 @@ MAX_DOC_CHARS = 800
 # ─── Dataset ──────────────────────────────────────────────────────
 
 
-def load_dataset(path: Path) -> List[Dict]:
+def load_dataset(path: Path) -> list[dict]:
     """Загрузить golden_v2 dataset."""
     data = json.load(path.open("r", encoding="utf-8"))
     if isinstance(data, list):
@@ -73,7 +71,7 @@ def load_dataset(path: Path) -> List[Dict]:
     return data.get("questions", data)
 
 
-def filter_for_test(questions: List[Dict], test: str) -> List[Dict]:
+def filter_for_test(questions: list[dict], test: str) -> list[dict]:
     """NDR = все вопросы, RSR/ROR = только retrieval_evidence."""
     if test == "ndr":
         return questions
@@ -83,14 +81,14 @@ def filter_for_test(questions: List[Dict], test: str) -> List[Dict]:
 # ─── Checkpoint ───────────────────────────────────────────────────
 
 
-def load_checkpoint(path: Path) -> Dict:
+def load_checkpoint(path: Path) -> dict:
     if path and path.exists():
         with path.open("r", encoding="utf-8") as f:
             return json.load(f)
     return {"retrieval_cache": {}, "generations": {}}
 
 
-def save_checkpoint(path: Path, checkpoint: Dict) -> None:
+def save_checkpoint(path: Path, checkpoint: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp")
     with tmp.open("w", encoding="utf-8") as f:
@@ -101,7 +99,7 @@ def save_checkpoint(path: Path, checkpoint: Dict) -> None:
 # ─── LLM Generation ──────────────────────────────────────────────
 
 
-def build_messages(query: str, docs: List[Dict]) -> List[Dict]:
+def build_messages(query: str, docs: list[dict]) -> list[dict]:
     """Промпт для LLM: с документами или без (parametric)."""
     if not docs:
         return [
@@ -123,12 +121,12 @@ def build_messages(query: str, docs: List[Dict]) -> List[Dict]:
 
 
 def call_llm(
-    messages: List[Dict],
+    messages: list[dict],
     llm_url: str,
     max_tokens: int = 1024,
     temperature: float = 0.0,
     seed: int = 42,
-) -> Tuple[str, float]:
+) -> tuple[str, float]:
     """Прямой вызов llama-server. Возвращает (answer, latency_sec)."""
     payload = {
         "messages": messages,
@@ -159,11 +157,11 @@ def call_llm(
 
 
 def retrieve_and_cache(
-    questions: List[Dict],
+    questions: list[dict],
     args,
     sparse_model,
-    cache: Dict,
-) -> Dict:
+    cache: dict,
+) -> dict:
     """Retrieve top-20 для каждого question. Cache в checkpoint."""
     for q in questions:
         qid = q["id"]
@@ -192,7 +190,7 @@ def retrieve_and_cache(
 # ─── Conditions ───────────────────────────────────────────────────
 
 
-def get_conditions(test: str, docs: List[Dict]) -> List[Tuple[str, List[Dict]]]:
+def get_conditions(test: str, docs: list[dict]) -> list[tuple[str, list[dict]]]:
     """Вернуть (condition_name, docs) для теста."""
     if test == "ndr":
         return [
@@ -225,12 +223,12 @@ def canonical_key(qid: str, test: str, cond: str) -> str:
 
 
 def run_test(
-    questions: List[Dict],
+    questions: list[dict],
     test: str,
-    retrieval_cache: Dict,
-    generations: Dict,
+    retrieval_cache: dict,
+    generations: dict,
     llm_url: str,
-    checkpoint: Dict,
+    checkpoint: dict,
     checkpoint_path: Path,
 ) -> None:
     """Генерация ответов для всех (question, condition)."""
@@ -268,7 +266,7 @@ def run_test(
 _scorer = None
 
 
-def bertscore_f1(candidate: str, reference: str) -> Optional[float]:
+def bertscore_f1(candidate: str, reference: str) -> float | None:
     """BERTScore F1 (lazy init ruBert-large)."""
     global _scorer
     if not candidate or not reference:
@@ -291,10 +289,10 @@ def bertscore_f1(candidate: str, reference: str) -> Optional[float]:
 
 
 def score_generations(
-    questions: List[Dict],
-    generations: Dict,
-    tests: List[str],
-) -> Dict[str, float]:
+    questions: list[dict],
+    generations: dict,
+    tests: list[str],
+) -> dict[str, float]:
     """BERTScore для всех generations. Возвращает {canonical_key: score}."""
     scores = {}
     q_map = {q["id"]: q for q in questions}
@@ -317,7 +315,7 @@ def score_generations(
 # ─── Metric Computation ──────────────────────────────────────────
 
 
-def compute_ndr(questions: List[Dict], generations: Dict, scores: Dict) -> Dict:
+def compute_ndr(questions: list[dict], generations: dict, scores: dict) -> dict:
     """NDR = fraction where RAG (k=20) ≥ no-RAG (k=0)."""
     results = []
     for q in questions:
@@ -348,7 +346,7 @@ def compute_ndr(questions: List[Dict], generations: Dict, scores: Dict) -> Dict:
     }
 
 
-def compute_rsr(questions: List[Dict], generations: Dict, scores: Dict) -> Dict:
+def compute_rsr(questions: list[dict], generations: dict, scores: dict) -> dict:
     """RSR = fraction where scores are monotonically non-decreasing across k."""
     filtered = filter_for_test(questions, "rsr")
     results = []
@@ -391,7 +389,7 @@ def compute_rsr(questions: List[Dict], generations: Dict, scores: Dict) -> Dict:
     }
 
 
-def compute_ror(questions: List[Dict], generations: Dict, scores: Dict) -> Dict:
+def compute_ror(questions: list[dict], generations: dict, scores: dict) -> dict:
     """ROR = mean(1 - 2σ) across questions."""
     import statistics
     filtered = filter_for_test(questions, "ror")
@@ -428,7 +426,7 @@ def compute_ror(questions: List[Dict], generations: Dict, scores: Dict) -> Dict:
 # ─── Report ───────────────────────────────────────────────────────
 
 
-def build_report(ndr: Dict, rsr: Dict, ror: Dict, metadata: Dict) -> str:
+def build_report(ndr: dict, rsr: dict, ror: dict, metadata: dict) -> str:
     """Markdown report."""
     composite = 0.0
     rates = [ndr.get("rate", 0), rsr.get("rate", 0), ror.get("rate", 0)]
@@ -444,8 +442,8 @@ def build_report(ndr: Dict, rsr: Dict, ror: Dict, metadata: Dict) -> str:
         "",
         f"**Date**: {metadata['timestamp']}",
         f"**Dataset**: {metadata['dataset']} ({metadata['total_questions']} Qs)",
-        f"**Scoring**: BERTScore F1 (ruBert-large, layer 18)",
-        f"**Pipeline**: BM25(100)+Dense(20) → RRF 3:1 → ColBERT → top-20",
+        "**Scoring**: BERTScore F1 (ruBert-large, layer 18)",
+        "**Pipeline**: BM25(100)+Dense(20) → RRF 3:1 → ColBERT → top-20",
         "",
         "## Summary",
         "",
@@ -456,7 +454,7 @@ def build_report(ndr: Dict, rsr: Dict, ror: Dict, metadata: Dict) -> str:
         f"| **ROR** | **{ror.get('rate', 'N/A')}** | Mean order robustness |",
         f"| **Composite** | **{composite}** | Geometric mean |",
         "",
-        f"> Note: simplified protocol (see docs/planning/robustness_experiments.md for comparison with Cao et al.)",
+        "> Note: simplified protocol (see docs/planning/robustness_experiments.md for comparison with Cao et al.)",
         "",
     ]
 
@@ -505,9 +503,9 @@ def build_report(ndr: Dict, rsr: Dict, ror: Dict, metadata: Dict) -> str:
 
 
 def build_judge_artifact(
-    questions: List[Dict],
-    ndr: Dict,
-    generations: Dict,
+    questions: list[dict],
+    ndr: dict,
+    generations: dict,
     top_n: int = 20,
 ) -> str:
     """Export worst-delta NDR pairs для Claude manual judge."""

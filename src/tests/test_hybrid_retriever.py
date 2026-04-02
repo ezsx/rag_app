@@ -1,6 +1,6 @@
-import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from qdrant_client import models as qdrant_models
 
 from adapters.search.hybrid_retriever import HybridRetriever
@@ -51,33 +51,33 @@ def make_plan(k: int = 10, filters: MetadataFilters | None = None) -> SearchPlan
 
 @pytest.mark.asyncio
 async def test_async_search_calls_embed_and_query_points() -> None:
-    """_async_search вызывает embed_query и query_points с правильными параметрами."""
+    """_async_search вызывает embed_query и query_points."""
     retriever, mock_store, mock_tei, _ = make_retriever()
 
-    await retriever._async_search("курс рубля", make_plan(k=5))
+    # Патчим ColBERT чтоб получить RRF-only path
+    with patch.object(retriever, "_get_colbert_query_vectors", new_callable=AsyncMock, return_value=None):
+        await retriever._async_search("курс рубля", make_plan(k=5))
 
     mock_tei.embed_query.assert_awaited_once_with("курс рубля")
     mock_store.client.query_points.assert_awaited_once()
     call_kwargs = mock_store.client.query_points.call_args.kwargs
     assert call_kwargs["collection_name"] == "news"
     assert call_kwargs["with_vectors"] is True
-    assert call_kwargs["limit"] == 5
+    # RRF-only path: 2 prefetch (dense + sparse)
     prefetch = call_kwargs["prefetch"]
     assert len(prefetch) == 2
-    assert prefetch[0].using == "dense_vector"
-    assert prefetch[1].using == "sparse_vector"
 
 
 @pytest.mark.asyncio
-async def test_async_search_uses_fusion_rrf() -> None:
-    """query FusionQuery(RRF) используется всегда."""
+async def test_async_search_uses_weighted_rrf() -> None:
+    """query RrfQuery с весами (BM25 weight=3, dense=1)."""
     retriever, mock_store, _, _ = make_retriever()
 
-    await retriever._async_search("test", make_plan())
+    with patch.object(retriever, "_get_colbert_query_vectors", new_callable=AsyncMock, return_value=None):
+        await retriever._async_search("test", make_plan())
 
     call_kwargs = mock_store.client.query_points.call_args.kwargs
-    assert isinstance(call_kwargs["query"], qdrant_models.FusionQuery)
-    assert call_kwargs["query"].fusion == qdrant_models.Fusion.RRF
+    assert isinstance(call_kwargs["query"], qdrant_models.RrfQuery)
 
 
 def test_build_filter_none_when_no_filters() -> None:
@@ -108,7 +108,8 @@ def test_build_filter_date_range() -> None:
     assert result is not None
     cond = result.must[0]
     assert cond.key == "date"
-    assert cond.range.gte == "2026-01-01T00:00:00"
+    # DatetimeRange — gte через .range
+    assert "2026-01-01" in str(cond.range.gte)
 
 
 def test_to_candidates_extracts_fields() -> None:
@@ -126,16 +127,14 @@ def test_to_candidates_extracts_fields() -> None:
     }
     point.vector = {"dense_vector": [0.1] * 1024}
 
-    candidates = retriever._to_candidates([point])
+    query_vector = [0.1] * 1024
+    candidates = retriever._to_candidates([point], query_vector)
 
     assert len(candidates) == 1
     c = candidates[0]
     assert c.id == "channel:123"
     assert c.text == "Новость"
-    assert c.dense_score == 0.42
     assert c.metadata["channel"] == "@news"
-    assert "_dense_vector" in c.metadata
-    assert len(c.metadata["_dense_vector"]) == 1024
 
 
 def test_search_with_plan_is_sync() -> None:

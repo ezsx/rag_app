@@ -7,7 +7,7 @@ SPEC-RAG-20c Step 7: Final answer preparation — build payload, refusal trim, v
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from schemas.agent import ToolRequest
 from services.agent.routing import load_policy
@@ -44,10 +44,10 @@ def trim_refusal_alternatives(answer: str) -> str:
 
 async def verify_answer(
     final_answer: str,
-    conversation_history: List[str],
+    conversation_history: list[str],
     ctx: RequestContext,
     tool_runner,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Проверяет финальный ответ через verify tool."""
     try:
         original_query = conversation_history[0] if conversation_history else ""
@@ -82,14 +82,14 @@ async def verify_answer(
 
 
 def build_final_payload(
-    base_payload: Dict[str, Any],
+    base_payload: dict[str, Any],
     answer: str,
-    verify_res: Dict[str, Any],
+    verify_res: dict[str, Any],
     agent_state: AgentState,
     request_id: str,
     step: int,
     ctx: RequestContext,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Собирает финальный SSE payload без изменения публичной схемы."""
     final_answer = answer.strip()
 

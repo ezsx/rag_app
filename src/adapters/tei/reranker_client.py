@@ -11,7 +11,6 @@ bge-reranker-v2-m3 НЕ требует instruction prefix.
 from __future__ import annotations
 
 import logging
-from typing import List
 
 import httpx
 
@@ -44,7 +43,7 @@ class TEIRerankerClient:
         )
         logger.info("TEIRerankerClient инициализирован: %s", self.base_url)
 
-    async def rerank(self, query: str, passages: List[str]) -> List[float]:
+    async def rerank(self, query: str, passages: list[str]) -> list[float]:
         """
         Переранжирует passages по релевантности к query.
 

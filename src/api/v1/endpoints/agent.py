@@ -4,12 +4,13 @@ ReAct Agent API endpoints
 
 import json
 import logging
-from typing import Dict, Any
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sse_starlette.sse import EventSourceResponse
 
 from core.deps import get_agent_service
-from core.settings import get_settings, Settings
+from core.settings import Settings, get_settings
 from schemas.agent import AgentRequest
 from services.agent_service import AgentService
 
@@ -112,13 +113,13 @@ async def agent_stream(
             # Отправляем сообщение об ошибке
             yield {
                 "event": "error",
-                "data": {"error": f"Ошибка сервера: {str(e)}"},
+                "data": {"error": f"Ошибка сервера: {e!s}"},
                 "retry": 3000,
             }
             yield {
                 "event": "final",
                 "data": {
-                    "answer": f"Извините, произошла ошибка: {str(e)}",
+                    "answer": f"Извините, произошла ошибка: {e!s}",
                     "error": True,
                 },
                 "retry": 3000,
@@ -137,7 +138,7 @@ async def agent_stream(
 @router.get("/agent/tools", tags=["agent"])
 async def list_tools(
     agent_service: AgentService = Depends(get_agent_service),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Список доступных инструментов агента
 
@@ -169,14 +170,14 @@ async def list_tools(
         logger.error(f"Ошибка получения списка инструментов: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось получить список инструментов: {str(e)}",
+            detail=f"Не удалось получить список инструментов: {e!s}",
         )
 
 
 @router.get("/agent/status", tags=["agent"])
 async def agent_status(
     settings: Settings = Depends(get_settings),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Статус и конфигурация агента
 
@@ -205,5 +206,5 @@ async def agent_status(
         logger.error(f"Ошибка получения статуса агента: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось получить статус агента: {str(e)}",
+            detail=f"Не удалось получить статус агента: {e!s}",
         )

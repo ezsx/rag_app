@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List
-
+from typing import Any
 
 _NUMERIC_RE = re.compile(r"\b\d+[\d\-:\./]*\b")
 _DATE_RE = re.compile(
@@ -11,7 +10,7 @@ _DATE_RE = re.compile(
 _ENTITY_HINT_RE = re.compile(r"[@#][\w_]+|https?://\S+", re.IGNORECASE)
 
 
-def router_select(query: str) -> Dict[str, Any]:
+def router_select(query: str) -> dict[str, Any]:
     """Простая эвристика выбора маршрута {bm25|dense|hybrid}.
 
     - короткие, терминальные, числовые, даты → bm25
@@ -20,7 +19,7 @@ def router_select(query: str) -> Dict[str, Any]:
     Возвращает: {route: str, reasons: [str]}
     """
     text = (query or "").strip()
-    reasons: List[str] = []
+    reasons: list[str] = []
     route = "dense"
 
     length = len(text)

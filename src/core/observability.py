@@ -16,7 +16,7 @@ import json
 import logging
 import sys
 from contextlib import contextmanager
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def _try_init():
     if _enabled is not None:
         return _enabled
     try:
-        from langfuse import get_client  # noqa: F811
+        from langfuse import get_client
         _client = get_client()
         _enabled = True
         logger.info("Langfuse observability enabled")
@@ -146,10 +146,10 @@ def _set_trace_attributes(span, *, name=None, session_id=None, tags=None,
 def observe_trace(
     name: str,
     *,
-    session_id: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    input_data: Optional[Dict[str, Any]] = None,
-    metadata: Optional[Dict[str, Any]] = None,
+    session_id: str | None = None,
+    tags: list[str] | None = None,
+    input_data: dict[str, Any] | None = None,
+    metadata: dict[str, Any] | None = None,
 ):
     """Root trace context manager. Все child observe_span/observe_llm_call вложатся внутрь.
 

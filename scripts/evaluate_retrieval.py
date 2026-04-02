@@ -225,7 +225,7 @@ def main():
         if "error" not in r:
             ch = r["expected"][0].split(":")[0] if r.get("expected") else "?"
             by_channel[ch].append(r["recall_5"])
-    print(f"\nRecall@5 по каналам:")
+    print("\nRecall@5 по каналам:")
     for ch, vals in sorted(by_channel.items(), key=lambda x: sum(x[1])/len(x[1])):
         mean = sum(vals) / len(vals)
         print(f"  {ch:35s} {mean:.2f} ({sum(1 for v in vals if v==1.0)}/{len(vals)})")

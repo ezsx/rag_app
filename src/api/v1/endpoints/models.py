@@ -3,18 +3,18 @@ Models endpoints для управления LLM и embedding моделями
 """
 
 import logging
-from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from core.settings import get_settings, Settings
-from utils import RECOMMENDED_MODELS
+from core.settings import Settings, get_settings
 from schemas.qa import (
+    AvailableModelsResponse,
     ModelInfo,
     ModelType,
-    AvailableModelsResponse,
     SelectModelRequest,
     SelectModelResponse,
 )
+from utils import RECOMMENDED_MODELS
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -72,7 +72,7 @@ async def list_available_models(
         logger.error(f"Ошибка при получении списка моделей: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось получить список моделей: {str(e)}",
+            detail=f"Не удалось получить список моделей: {e!s}",
         )
 
 
@@ -147,7 +147,7 @@ async def select_model(
         logger.error(f"Ошибка при выборе модели: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось выбрать модель: {str(e)}",
+            detail=f"Не удалось выбрать модель: {e!s}",
         )
 
 
@@ -212,5 +212,5 @@ async def get_current_model(
         logger.error(f"Ошибка при получении информации о модели: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Не удалось получить информацию о модели: {str(e)}",
+            detail=f"Не удалось получить информацию о модели: {e!s}",
         )

@@ -7,14 +7,14 @@ PRE-SEARCH → POST-SEARCH → NAV-COMPLETE → ANALYTICS-COMPLETE.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from services.agent.prompts import AGENT_TOOLS
-from services.agent.routing import load_tool_keywords, load_policy
+from services.agent.routing import load_policy, load_tool_keywords
 from services.agent.state import AgentState, RequestContext
 
 
-def get_step_tools(agent_state: AgentState, ctx: RequestContext) -> List[Dict[str, Any]]:
+def get_step_tools(agent_state: AgentState, ctx: RequestContext) -> list[dict[str, Any]]:
     """Phase-based visibility — фиксированные наборы по фазе агента.
 
     SPEC-RAG-13 + SPEC-RAG-15: 15 tools, max 5 видимых.
@@ -91,9 +91,9 @@ def get_step_tools(agent_state: AgentState, ctx: RequestContext) -> List[Dict[st
     return [t for t in AGENT_TOOLS if t["function"]["name"] in visible_names]
 
 
-def get_available_tools() -> Dict[str, Any]:
+def get_available_tools() -> dict[str, Any]:
     """Полный обзор LLM-visible и системных инструментов агента."""
-    tools_info: Dict[str, Any] = {}
+    tools_info: dict[str, Any] = {}
     for tool in AGENT_TOOLS:
         function = tool.get("function", {})
         name = function.get("name")

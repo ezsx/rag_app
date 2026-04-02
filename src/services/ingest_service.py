@@ -4,13 +4,12 @@
 
 import asyncio
 import logging
-import uuid
 import traceback
-from datetime import datetime, timezone
-from typing import Dict, Optional, List
+import uuid
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 
-from schemas.qa import IngestJobStatus, TelegramIngestRequest, IngestJobStatusResponse
+from schemas.qa import IngestJobStatus, IngestJobStatusResponse, TelegramIngestRequest
 
 logger = logging.getLogger(__name__)
 
@@ -24,16 +23,16 @@ class IngestJob:
     status: IngestJobStatus = IngestJobStatus.QUEUED
     progress: float = 0.0
     messages_processed: int = 0
-    total_messages: Optional[int] = None
-    error_message: Optional[str] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    log_messages: List[str] = field(default_factory=list)
-    task: Optional[asyncio.Task] = None
+    total_messages: int | None = None
+    error_message: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    log_messages: list[str] = field(default_factory=list)
+    task: asyncio.Task | None = None
 
     def add_log(self, message: str):
         """Добавляет сообщение в лог задачи"""
-        timestamp = datetime.now(timezone.utc).strftime("%H:%M:%S")
+        timestamp = datetime.now(UTC).strftime("%H:%M:%S")
         log_entry = f"[{timestamp}] {message}"
         self.log_messages.append(log_entry)
         # Оставляем только последние 50 сообщений
@@ -60,7 +59,7 @@ class IngestJobManager:
     """Менеджер для управления задачами ingestion"""
 
     def __init__(self):
-        self.jobs: Dict[str, IngestJob] = {}
+        self.jobs: dict[str, IngestJob] = {}
         self.max_concurrent_jobs = 2  # Максимум параллельных задач
 
     def create_job(self, request: TelegramIngestRequest) -> str:
@@ -68,7 +67,7 @@ class IngestJobManager:
         job_id = str(uuid.uuid4())
         job = IngestJob(job_id=job_id, request=request)
         # Список каналов для логов
-        channels: List[str] = []
+        channels: list[str] = []
         if request.channel:
             channels.append(request.channel)
         if request.channels:
@@ -90,7 +89,7 @@ class IngestJobManager:
 
         return job_id
 
-    def get_job(self, job_id: str) -> Optional[IngestJob]:
+    def get_job(self, job_id: str) -> IngestJob | None:
         """Получает задачу по ID"""
         return self.jobs.get(job_id)
 
@@ -124,7 +123,7 @@ class IngestJobManager:
     def _start_job(self, job: IngestJob):
         """Запускает выполнение задачи"""
         job.status = IngestJobStatus.RUNNING
-        job.started_at = datetime.now(timezone.utc)
+        job.started_at = datetime.now(UTC)
         job.add_log("Задача запущена")
 
         # Создаем асинхронную задачу
@@ -133,19 +132,19 @@ class IngestJobManager:
     async def _run_ingestion(self, job: IngestJob):
         """Основная функция выполнения ingestion"""
         try:
-            from scripts.ingest_telegram import (
-                create_telegram_client,
-                create_chroma_collection,
-                gather_messages,
-                _gather_with_retries,
-                ingest_batches,
-                _to_utc_naive,
-                detect_optimal_device,
-                get_optimal_batch_size,
-                resolve_embedding_model,
-                estimate_processing_time,
-            )
             from dateutil import parser as date_parser
+            from scripts.ingest_telegram import (
+                _gather_with_retries,
+                _to_utc_naive,
+                create_chroma_collection,
+                create_telegram_client,
+                detect_optimal_device,
+                estimate_processing_time,
+                get_optimal_batch_size,
+                ingest_batches,
+                resolve_embedding_model,
+            )
+
             from core.deps import release_llm_vram_temporarily
 
             request = job.request
@@ -176,7 +175,7 @@ class IngestJobManager:
 
             try:
                 # Собираем итоговый список каналов
-                chs: List[str] = []
+                chs: list[str] = []
                 if request.channel:
                     chs.append(request.channel)
                 if request.channels:
@@ -251,7 +250,7 @@ class IngestJobManager:
                 )
                 job.status = IngestJobStatus.COMPLETED
                 job.progress = 1.0
-                job.completed_at = datetime.now(timezone.utc)
+                job.completed_at = datetime.now(UTC)
 
             finally:
                 await client.disconnect()
@@ -259,14 +258,14 @@ class IngestJobManager:
         except asyncio.CancelledError:
             job.add_log("Задача была отменена")
             job.status = IngestJobStatus.CANCELLED
-            job.completed_at = datetime.now(timezone.utc)
+            job.completed_at = datetime.now(UTC)
         except Exception as e:
-            error_msg = f"Ошибка выполнения: {str(e)}"
+            error_msg = f"Ошибка выполнения: {e!s}"
             job.add_log(error_msg)
             job.add_log(f"Детали ошибки:\n{traceback.format_exc()}")
             job.error_message = error_msg
             job.status = IngestJobStatus.FAILED
-            job.completed_at = datetime.now(timezone.utc)
+            job.completed_at = datetime.now(UTC)
             logger.error(f"Job {job.job_id} failed: {e}")
 
         finally:

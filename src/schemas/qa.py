@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional, Literal
 from datetime import datetime
 from enum import Enum
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
 
 
 class QARequest(BaseModel):
@@ -11,7 +12,7 @@ class QARequest(BaseModel):
         ..., description="Вопрос пользователя", min_length=1, max_length=1000
     )
     include_context: bool = Field(False, description="Включить ли контекст в ответ")
-    collection: Optional[str] = Field(
+    collection: str | None = Field(
         None, description="Название коллекции (опционально)"
     )
 
@@ -20,7 +21,7 @@ class ContextItem(BaseModel):
     """Элемент контекста с метаданными"""
 
     document: str = Field(..., description="Текст документа")
-    metadata: Dict[str, Any] = Field({}, description="Метаданные документа")
+    metadata: dict[str, Any] = Field({}, description="Метаданные документа")
     distance: float = Field(..., description="Расстояние в векторном пространстве")
 
 
@@ -34,7 +35,7 @@ class QAResponse(BaseModel):
 class QAResponseWithContext(QAResponse):
     """Расширенный ответ QA API с контекстом"""
 
-    context: List[ContextItem] = Field([], description="Использованный контекст")
+    context: list[ContextItem] = Field([], description="Использованный контекст")
     context_count: int = Field(0, description="Количество найденных документов")
 
 
@@ -48,7 +49,7 @@ class SearchRequest(BaseModel):
         ..., description="Поисковый запрос", min_length=1, max_length=1000
     )
     k: int = Field(5, description="Количество результатов", ge=1, le=50)
-    collection: Optional[str] = Field(
+    collection: str | None = Field(
         None, description="Название коллекции (опционально)"
     )
 
@@ -56,11 +57,11 @@ class SearchRequest(BaseModel):
 class SearchResponse(BaseModel):
     """Ответ семантического поиска"""
 
-    documents: List[str] = Field(..., description="Найденные документы")
-    distances: List[float] = Field(
+    documents: list[str] = Field(..., description="Найденные документы")
+    distances: list[float] = Field(
         ..., description="Расстояния в векторном пространстве"
     )
-    metadatas: List[Dict[str, Any]] = Field(..., description="Метаданные документов")
+    metadatas: list[dict[str, Any]] = Field(..., description="Метаданные документов")
     query: str = Field(..., description="Исходный запрос")
     total_results: int = Field(..., description="Общее количество результатов")
     collection_used: str = Field(..., description="Использованная коллекция")
@@ -74,13 +75,13 @@ class CollectionInfo(BaseModel):
 
     name: str = Field(..., description="Название коллекции")
     count: int = Field(..., description="Количество документов")
-    metadata: Dict[str, Any] = Field({}, description="Метаданные коллекции")
+    metadata: dict[str, Any] = Field({}, description="Метаданные коллекции")
 
 
 class CollectionsResponse(BaseModel):
     """Список коллекций"""
 
-    collections: List[CollectionInfo] = Field(..., description="Список коллекций")
+    collections: list[CollectionInfo] = Field(..., description="Список коллекций")
     current_collection: str = Field(..., description="Текущая активная коллекция")
 
 
@@ -120,8 +121,8 @@ class ModelInfo(BaseModel):
 class AvailableModelsResponse(BaseModel):
     """Список доступных моделей"""
 
-    llm_models: List[ModelInfo] = Field(..., description="Доступные LLM модели")
-    embedding_models: List[ModelInfo] = Field(
+    llm_models: list[ModelInfo] = Field(..., description="Доступные LLM модели")
+    embedding_models: list[ModelInfo] = Field(
         ..., description="Доступные embedding модели"
     )
     current_llm: str = Field(..., description="Текущая LLM модель")
@@ -160,10 +161,10 @@ class TelegramIngestRequest(BaseModel):
     """Запрос для запуска Telegram ingestion"""
 
     # Совместимость: один канал или список каналов
-    channel: Optional[str] = Field(
+    channel: str | None = Field(
         None, description="Один Telegram канал (@username или ID)", min_length=1
     )
-    channels: Optional[List[str]] = Field(
+    channels: list[str] | None = Field(
         None, description="Список каналов (@username или ID)"
     )
     since: str = Field(..., description="Дата начала в формате ISO (YYYY-MM-DD)")
@@ -174,10 +175,10 @@ class TelegramIngestRequest(BaseModel):
     device: Literal["auto", "cpu", "cuda", "mps"] = Field(
         "auto", description="Устройство для обработки"
     )
-    max_messages: Optional[int] = Field(
+    max_messages: int | None = Field(
         None, description="Максимум сообщений (для тестирования)", ge=1
     )
-    chunk_size: Optional[int] = Field(
+    chunk_size: int | None = Field(
         0, description="Размер чанка для длинных сообщений (0 = без разбиения)", ge=0
     )
 
@@ -188,7 +189,7 @@ class IngestJobResponse(BaseModel):
     job_id: str = Field(..., description="Уникальный идентификатор задачи")
     status: IngestJobStatus = Field(..., description="Статус задачи")
     message: str = Field(..., description="Сообщение")
-    estimated_time: Optional[str] = Field(
+    estimated_time: str | None = Field(
         None, description="Примерное время выполнения"
     )
 
@@ -202,8 +203,8 @@ class IngestJobStatusResponse(BaseModel):
         0.0, description="Прогресс выполнения (0.0-1.0)", ge=0.0, le=1.0
     )
     messages_processed: int = Field(0, description="Обработано сообщений", ge=0)
-    total_messages: Optional[int] = Field(None, description="Всего сообщений", ge=0)
-    error_message: Optional[str] = Field(None, description="Сообщение об ошибке")
-    started_at: Optional[datetime] = Field(None, description="Время начала")
-    completed_at: Optional[datetime] = Field(None, description="Время завершения")
-    log_messages: List[str] = Field([], description="Последние логи")
+    total_messages: int | None = Field(None, description="Всего сообщений", ge=0)
+    error_message: str | None = Field(None, description="Сообщение об ошибке")
+    started_at: datetime | None = Field(None, description="Время начала")
+    completed_at: datetime | None = Field(None, description="Время завершения")
+    log_messages: list[str] = Field([], description="Последние логи")

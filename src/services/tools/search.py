@@ -6,25 +6,26 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, List, Optional, Sequence, Union
+from collections.abc import Sequence
+from typing import Any, Union
 
-from schemas.search import SearchPlan, MetadataFilters
 from adapters.search.hybrid_retriever import HybridRetriever
-from services.query_signals import extract_query_signals
 from core.observability import observe_span
+from schemas.search import MetadataFilters, SearchPlan
+from services.query_signals import extract_query_signals
 
 logger = logging.getLogger(__name__)
 
 
 def search(
-    queries: Optional[Union[List[str], str]] = None,
-    filters: Optional[Dict[str, Any]] = None,
+    queries: Union[list[str], str] | None = None,
+    filters: dict[str, Any] | None = None,
     k: int = 10,
     route: str = "hybrid",
-    hybrid_retriever: Optional[HybridRetriever] = None,
-    query: Optional[str] = None,
-    search_type: Optional[str] = None,
-) -> Dict[str, Any]:
+    hybrid_retriever: HybridRetriever | None = None,
+    query: str | None = None,
+    search_type: str | None = None,
+) -> dict[str, Any]:
     """
     Выполняет гибридный поиск по коллекции документов с RRF слиянием
 
@@ -62,7 +63,7 @@ def search(
     if not hybrid_retriever:
         return {"hits": [], "error": "HybridRetriever not provided"}
 
-    normalized_queries: List[str] = []
+    normalized_queries: list[str] = []
 
     if query and str(query).strip():
         normalized_queries.append(str(query).strip())
@@ -76,7 +77,7 @@ def search(
             )
 
     # Deduplicate while preserving order
-    deduped_queries: List[str] = []
+    deduped_queries: list[str] = []
     seen = set()
     for q in normalized_queries:
         if q and q not in seen:
@@ -170,16 +171,16 @@ def search(
             strategy=strategy,
         )
 
-        candidates: List[Any] = []
+        candidates: list[Any] = []
         route_used = route
-        hybrid_duration_ms: Optional[int] = None
+        hybrid_duration_ms: int | None = None
 
         # Выполняем гибридный поиск ПО КАЖДОМУ subquery и merge результаты.
         # Ранее искали только по первому query — остальные subqueries пропадали.
         if hybrid_retriever is not None:
             start_ts = time.perf_counter()
             # Собираем результаты от каждого subquery отдельно
-            per_query_results: List[List[Any]] = []
+            per_query_results: list[list[Any]] = []
             seen_ids: set = set()
             for q in deduped_queries:
                 try:
@@ -189,7 +190,7 @@ def search(
                     logger.error("Hybrid retriever failed for query '%s': %s", q[:60], err)
             # Round-robin merge: чередуем top-1 от каждого subquery, потом top-2 и т.д.
             # Сохраняет ranking от ColBERT/RRF внутри каждого subquery.
-            all_candidates: List[Any] = []
+            all_candidates: list[Any] = []
             max_len = max((len(r) for r in per_query_results), default=0)
             for rank_idx in range(max_len):
                 for sub_result in per_query_results:
@@ -221,7 +222,7 @@ def search(
                 strategy="broad",
             )
             routing_source = "fallback"
-            fallback_results: List[Any] = []
+            fallback_results: list[Any] = []
             for q in deduped_queries:
                 try:
                     sub = hybrid_retriever.search_with_plan(q, fallback_plan)

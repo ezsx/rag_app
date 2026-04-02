@@ -10,8 +10,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import List, Optional
-
 
 # 36 каналов из нашей коллекции
 KNOWN_CHANNELS = [
@@ -72,12 +70,12 @@ _EN_MONTHS = {
 @dataclass
 class QuerySignals:
     """Результат rule-based анализа запроса."""
-    strategy_hint: Optional[str] = None  # "temporal" | "channel" | "entity" | None
+    strategy_hint: str | None = None  # "temporal" | "channel" | "entity" | None
     confidence: float = 0.0
-    date_from: Optional[str] = None      # ISO YYYY-MM-DD
-    date_to: Optional[str] = None        # ISO YYYY-MM-DD
-    channels: List[str] = field(default_factory=list)
-    entities: List[str] = field(default_factory=list)
+    date_from: str | None = None      # ISO YYYY-MM-DD
+    date_to: str | None = None        # ISO YYYY-MM-DD
+    channels: list[str] = field(default_factory=list)
+    entities: list[str] = field(default_factory=list)
 
 
 def extract_query_signals(query: str) -> QuerySignals:

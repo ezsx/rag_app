@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.security import security_manager
 from schemas.agent import AgentAction, ToolMeta, ToolRequest, ToolResponse
@@ -21,13 +21,13 @@ logger = logging.getLogger(__name__)
 
 async def execute_action(
     tool_name: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     request_id: str,
     step: int,
     ctx: RequestContext,
     tool_runner,
     settings,
-) -> Optional[AgentAction]:
+) -> AgentAction | None:
     """Нормализует параметры и выполняет инструмент через ToolRunner."""
     try:
         safe_params = dict(params or {})
@@ -80,7 +80,7 @@ async def execute_action(
         )
 
 
-def _temporal_guard(tool_name: str, safe_params: Dict[str, Any], step: int = 0) -> Optional[AgentAction]:
+def _temporal_guard(tool_name: str, safe_params: dict[str, Any], step: int = 0) -> AgentAction | None:
     """Temporal guard: refusal если даты полностью вне корпуса."""
     _corpus_min = "2025-07-01"
     _corpus_max = "2026-03-31"
@@ -109,11 +109,11 @@ def _temporal_guard(tool_name: str, safe_params: Dict[str, Any], step: int = 0) 
 
 def normalize_tool_params(
     tool_name: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     ctx: RequestContext,
     tool_runner,
     settings,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Нормализует параметры инструментов для совместимости и системных вызовов."""
     normalized = dict(params or {})
 
@@ -210,12 +210,12 @@ def normalize_tool_params(
         normalized["query"] = ctx.query or ""
 
         last_hits = ctx.search_hits
-        selected_hits: List[Dict[str, Any]] = [
+        selected_hits: list[dict[str, Any]] = [
             hit for hit in last_hits if isinstance(hit, dict)
         ]
 
-        normalized_docs: List[Dict[str, Any]] = []
-        missing_ids: List[str] = []
+        normalized_docs: list[dict[str, Any]] = []
+        missing_ids: list[str] = []
         for doc in selected_hits:
             doc_id = doc.get("id")
             text_value = (

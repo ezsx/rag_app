@@ -7,9 +7,8 @@
 import re
 import sys
 import time
-from urllib.request import urlopen, Request
 from urllib.error import HTTPError, URLError
-
+from urllib.request import Request, urlopen
 
 # Все 32 канала из research report (без отклонённых dlinnlp, machinelearning_ru, ml_world)
 CHANNELS = [
@@ -114,7 +113,7 @@ def main():
 
     for i, username in enumerate(all_channels, 1):
         result = check_channel(username)
-        marker = "EXISTS" if username in EXISTING else "NEW"
+        _marker = "EXISTS" if username in EXISTING else "NEW"
         status_icon = "OK" if result["status"] == "ok" and result["posts"] > 0 else "XX"
 
         print(
@@ -149,7 +148,7 @@ def main():
 
     if valid_new:
         channels_str = ",".join(f"@{c}" for c in valid_new)
-        print(f"\nIngest команда (new channels):")
+        print("\nIngest команда (new channels):")
         print(
             f"  docker compose -f deploy/compose/compose.dev.yml run --rm ingest "
             f'--channels "{channels_str}" '

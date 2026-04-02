@@ -9,14 +9,14 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
-_ROUTING_DATA: Optional[Dict[str, Any]] = None
+_ROUTING_DATA: dict[str, Any] | None = None
 
 
-def _load_routing_data() -> Dict[str, Any]:
+def _load_routing_data() -> dict[str, Any]:
     """Загрузить tool_keywords.json (routing + policies).
 
     Lazy load + global cache. Структура: {tool_keywords: {...}, agent_policies: {...}}.
@@ -44,7 +44,7 @@ def _load_routing_data() -> Dict[str, Any]:
     return _ROUTING_DATA
 
 
-def load_tool_keywords() -> Dict[str, List[str]]:
+def load_tool_keywords() -> dict[str, list[str]]:
     """Keyword routing: {tool_name: [keywords]}."""
     data = _load_routing_data()
     section = data.get("tool_keywords", {})
@@ -55,7 +55,7 @@ def load_tool_keywords() -> Dict[str, List[str]]:
     }
 
 
-def load_policy(name: str) -> List[str]:
+def load_policy(name: str) -> list[str]:
     """Загрузить список values из agent_policies.{name}.values."""
     data = _load_routing_data()
     return data.get("agent_policies", {}).get(name, {}).get("values", [])

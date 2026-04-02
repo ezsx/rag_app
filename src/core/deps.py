@@ -9,15 +9,15 @@ Dependency Injection — Phase 1.
 import logging
 import os
 from functools import lru_cache
-from typing import Optional
+
+from fastembed import SparseTextEmbedding
 
 from adapters.llm.llama_server_client import LlamaServerClient
 from adapters.qdrant.store import QdrantStore
 from adapters.search.hybrid_retriever import HybridRetriever
 from adapters.tei.embedding_client import TEIEmbeddingClient
 from adapters.tei.reranker_client import TEIRerankerClient
-from core.settings import Settings, get_settings
-from fastembed import SparseTextEmbedding
+from core.settings import get_settings
 from services.agent_service import AgentService
 from services.qa_service import QAService
 from services.query_planner_service import QueryPlannerService
@@ -101,7 +101,7 @@ def get_sparse_encoder() -> SparseTextEmbedding:
 
 
 @lru_cache
-def get_hybrid_retriever() -> Optional[HybridRetriever]:
+def get_hybrid_retriever() -> HybridRetriever | None:
     """Singleton HybridRetriever."""
     settings = get_settings()
     if not settings.hybrid_enabled:
@@ -120,13 +120,13 @@ def get_hybrid_retriever() -> Optional[HybridRetriever]:
 
 
 @lru_cache
-def get_retriever() -> Optional[HybridRetriever]:
+def get_retriever() -> HybridRetriever | None:
     """Backward-compatible алиас для кода, ожидающего get_retriever()."""
     return get_hybrid_retriever()
 
 
 @lru_cache
-def get_reranker() -> Optional[RerankerService]:
+def get_reranker() -> RerankerService | None:
     """Singleton sync-обёртки над async TEI reranker client."""
     settings = get_settings()
     if not settings.enable_reranker:
@@ -187,20 +187,20 @@ def get_agent_service() -> AgentService:
 
     tool_runner = ToolRunner(default_timeout_sec=settings.agent_tool_timeout)
 
+    from services.tools.arxiv_tracker import arxiv_tracker
     from services.tools.compose_context import compose_context
+    from services.tools.cross_channel_compare import cross_channel_compare
+    from services.tools.entity_tracker import entity_tracker
     from services.tools.fetch_docs import fetch_docs
     from services.tools.final_answer import final_answer
+    from services.tools.list_channels import list_channels
     from services.tools.query_plan import query_plan
+    from services.tools.related_posts import related_posts
     from services.tools.rerank import rerank
     from services.tools.router_select import router_select
     from services.tools.search import search
-    from services.tools.verify import verify
-    from services.tools.list_channels import list_channels
-    from services.tools.related_posts import related_posts
-    from services.tools.cross_channel_compare import cross_channel_compare
     from services.tools.summarize_channel import summarize_channel
-    from services.tools.entity_tracker import entity_tracker
-    from services.tools.arxiv_tracker import arxiv_tracker
+    from services.tools.verify import verify
 
     qdrant_store = get_qdrant_store()
     hybrid_retriever = get_hybrid_retriever()
@@ -276,8 +276,8 @@ def get_agent_service() -> AgentService:
     tool_runner.register("arxiv_tracker", arxiv_tracker_wrapper)
 
     # SPEC-RAG-16: pre-computed analytics — свой QdrantClient, не через DI
-    from services.tools.hot_topics import hot_topics
     from services.tools.channel_expertise import channel_expertise
+    from services.tools.hot_topics import hot_topics
 
     tool_runner.register("hot_topics", hot_topics)
     tool_runner.register("channel_expertise", channel_expertise)

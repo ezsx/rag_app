@@ -1,4 +1,3 @@
-import json
 import pytest
 
 
@@ -7,8 +6,8 @@ import pytest
 )
 def test_query_planner_gbnf_smoke():
     from core.deps import get_planner_llm
-    from services.query_planner_service import QueryPlannerService
     from core.settings import get_settings
+    from services.query_planner_service import QueryPlannerService
 
     settings = get_settings()
     settings.use_gbnf_planner = True

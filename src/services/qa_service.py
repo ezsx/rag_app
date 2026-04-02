@@ -1,10 +1,13 @@
 import logging
-from typing import List, Dict, Any, AsyncIterator, Optional, Tuple
+from collections.abc import AsyncIterator
+from typing import Any
+
 import numpy as np
-from utils.prompt import build_prompt
+
 from core.settings import Settings, get_settings
 from services.query_planner_service import QueryPlannerService
-from utils.ranking import rrf_merge, mmr_select, _get_item_id
+from utils.prompt import build_prompt
+from utils.ranking import _get_item_id, mmr_select, rrf_merge
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +20,10 @@ class QAService:
         retriever,
         llm,
         top_k: int = 5,
-        settings: Optional[Settings] = None,
-        planner: Optional[QueryPlannerService] = None,
-        reranker: Optional[object] = None,
-        hybrid: Optional[object] = None,
+        settings: Settings | None = None,
+        planner: QueryPlannerService | None = None,
+        reranker: object | None = None,
+        hybrid: object | None = None,
     ):
         self.retriever = retriever
         # Ленивая инициализация LLM: поддерживаем как готовый инстанс, так и фабрику (callable)
@@ -81,9 +84,9 @@ class QAService:
 
         except Exception as e:
             logger.error(f"Ошибка при генерации ответа: {e}")
-            return f"Извините, произошла ошибка при обработке вашего запроса: {str(e)}"
+            return f"Извините, произошла ошибка при обработке вашего запроса: {e!s}"
 
-    def answer_with_context(self, query: str) -> Dict[str, Any]:
+    def answer_with_context(self, query: str) -> dict[str, Any]:
         """
         Расширенная версия, возвращающая ответ вместе с использованным контекстом
 
@@ -120,7 +123,7 @@ class QAService:
         except Exception as e:
             logger.error(f"Ошибка при генерации ответа с контекстом: {e}")
             return {
-                "answer": f"Извините, произошла ошибка при обработке вашего запроса: {str(e)}",
+                "answer": f"Извините, произошла ошибка при обработке вашего запроса: {e!s}",
                 "context": [],
                 "query": query,
                 "context_count": 0,
@@ -171,7 +174,7 @@ class QAService:
             for chunk in stream:
                 if "choices" in chunk and len(chunk["choices"]) > 0:
                     choice = chunk["choices"][0]
-                    if "text" in choice and choice["text"]:
+                    if choice.get("text"):
                         token = choice["text"]
                         token_count += 1
                         yield token
@@ -181,17 +184,17 @@ class QAService:
         except Exception as e:
             logger.error(f"Ошибка при стриминге ответа: {e}")
             # Отправляем сообщение об ошибке как финальный токен
-            yield f"Извините, произошла ошибка при обработке вашего запроса: {str(e)}"
+            yield f"Извините, произошла ошибка при обработке вашего запроса: {e!s}"
 
     def _fetch_context(
         self, query: str, return_metadata: bool = False
-    ) -> Tuple[List[str], List[Dict[str, Any]]]:
+    ) -> tuple[list[str], list[dict[str, Any]]]:
         if self.settings.enable_query_planner and self.planner is not None:
             plan = self.planner.make_plan(query)
             # Проверяем кеш фьюжна
             fusion_key = f"fusion:{hash(query + plan.json())}"
             cached = self.planner.get_cached_fusion(fusion_key)
-            merged_items: List[Dict[str, Any]] = []
+            merged_items: list[dict[str, Any]] = []
             if cached is not None:
                 merged = cached  # type: ignore
             else:
@@ -216,10 +219,10 @@ class QAService:
 
                 if not merged_items:
                     # Сбор результатов поиска для каждого подзапроса (dense‑ветка)
-                    results_for_fusion: List[
-                        List[Tuple[str, float, Dict[str, Any]]]
+                    results_for_fusion: list[
+                        list[tuple[str, float, dict[str, Any]]]
                     ] = []
-                    items_by_id: Dict[str, Dict[str, Any]] = {}
+                    items_by_id: dict[str, dict[str, Any]] = {}
                     for q in plan.normalized_queries:
                         items = self.retriever.search(
                             q,
@@ -230,7 +233,7 @@ class QAService:
                                 else None
                             ),
                         )
-                        triples: List[Tuple[str, float, Dict[str, Any]]] = []
+                        triples: list[tuple[str, float, dict[str, Any]]] = []
                         for it in items:
                             doc = it.get("text", "")
                             dist = float(it.get("distance", 0.0))
@@ -259,7 +262,7 @@ class QAService:
 
             # Если есть кешированный merged без items_by_id, нам нужны эмбеддинги top-N для MMR/ререйка
             # Соберем embeddings для первых N если отсутствуют
-            def ensure_embeddings(items: List[Dict[str, Any]], top_n: int) -> None:
+            def ensure_embeddings(items: list[dict[str, Any]], top_n: int) -> None:
                 need_indices = [
                     i
                     for i in range(min(len(items), top_n))
@@ -276,7 +279,7 @@ class QAService:
                         # продолжим без эмбеддингов — далее MMR выбросит понятную ошибку
                         pass
 
-            final_items: List[Dict[str, Any]] = []
+            final_items: list[dict[str, Any]] = []
 
             # MMR (опционально)
             if self.settings.enable_mmr and merged_items:
@@ -289,7 +292,7 @@ class QAService:
                     query_emb = None
                 if query_emb is None:
                     raise ValueError("Не удалось получить эмбеддинг запроса для MMR")
-                docs_embs: List[np.ndarray] = []
+                docs_embs: list[np.ndarray] = []
                 for it in merged_items[:top_n]:
                     emb = it.get("embedding")
                     if emb is None:
@@ -355,17 +358,17 @@ class QAService:
             return documents, []
 
     # === КОРОТКИЙ ПУТЬ: answer_v2 с tool_runner и трассировкой ===
-    def answer_v2(self, query: str) -> Dict[str, Any]:
+    def answer_v2(self, query: str) -> dict[str, Any]:
         """Короткий путь ReAct без оркестратора: router_select → plan → retrieval → fusion → (mmr?) → (rerank?) → compose_context → answer.
 
         Возвращает словарь с ключами: answer, prompt, citations, trace.
         Не меняет публичные контракты API, используется из тестов/скриптов.
         """
         from schemas.agent import ToolRequest
-        from services.tools.tool_runner import ToolRunner
-        from services.tools.router_select import router_select
-        from services.tools.dedup_diversify import dedup_diversify
         from services.tools.compose_context import compose_context
+        from services.tools.dedup_diversify import dedup_diversify
+        from services.tools.router_select import router_select
+        from services.tools.tool_runner import ToolRunner
 
         settings = self.settings
         runner = ToolRunner(default_timeout_sec=5.0)
@@ -378,7 +381,7 @@ class QAService:
 
         req_id = str(_uuid.uuid4())
         step = 1
-        trace: List[Dict[str, Any]] = []
+        trace: list[dict[str, Any]] = []
 
         # 1) router_select
         act1 = runner.run(
@@ -391,7 +394,7 @@ class QAService:
         # 2) plan (используем существующий планировщик)
         plan = None
         if self.settings.enable_query_planner and self.planner is not None:
-            t0 = np.int64(
+            _t0 = np.int64(
                 np.round(1000 * np.random.random())
             )  # псевдо-начало для стабильности формата
             import time as _t
@@ -425,9 +428,9 @@ class QAService:
             )
 
         # 3) retrieval по route
-        items_for_fusion: List[List[Tuple[str, float, Dict[str, Any]]]] = []
-        merged_items: List[Dict[str, Any]] = []
-        items_by_id: Dict[str, Dict[str, Any]] = {}
+        items_for_fusion: list[list[tuple[str, float, dict[str, Any]]]] = []
+        merged_items: list[dict[str, Any]] = []
+        items_by_id: dict[str, dict[str, Any]] = {}
 
         if route == "hybrid" and self.hybrid is not None:
             try:
@@ -453,7 +456,7 @@ class QAService:
             )
             for q in plan.normalized_queries:
                 items = self.retriever.search(q, k=plan.k_per_query, filters=filters)
-                triples: List[Tuple[str, float, Dict[str, Any]]] = []
+                triples: list[tuple[str, float, dict[str, Any]]] = []
                 for it in items:
                     doc = it.get("text", "")
                     dist = float(it.get("distance", 0.0))
@@ -498,7 +501,7 @@ class QAService:
         step += 1
 
         # 5) (опц.) MMR
-        final_items: List[Dict[str, Any]] = merged_items
+        final_items: list[dict[str, Any]] = merged_items
         if settings.enable_mmr and merged_items:
             # обеспечим эмбеддинги для первых N
             top_n = min(len(merged_items), settings.mmr_top_n)

@@ -20,12 +20,13 @@ import os
 import re
 import sys
 import time
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from statistics import fmean
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
+from typing import Any
 
 import httpx
 
@@ -69,36 +70,36 @@ class EvalItem:
     query: str
     category: str
     answerable: bool
-    expected_answer: Optional[str] = None
-    notes: Optional[str] = None
+    expected_answer: str | None = None
+    notes: str | None = None
 
     # Legacy
-    expected_documents: List[str] = field(default_factory=list)
+    expected_documents: list[str] = field(default_factory=list)
 
     # Golden format (SPEC-RAG-14)
-    key_tools: List[str] = field(default_factory=list)
-    forbidden_tools: List[str] = field(default_factory=list)
-    acceptable_alternatives: List[str] = field(default_factory=list)
+    key_tools: list[str] = field(default_factory=list)
+    forbidden_tools: list[str] = field(default_factory=list)
+    acceptable_alternatives: list[str] = field(default_factory=list)
     expected_refusal: bool = False
-    refusal_reason: Optional[str] = None
-    source_post_ids: List[str] = field(default_factory=list)
+    refusal_reason: str | None = None
+    source_post_ids: list[str] = field(default_factory=list)
     calibration: bool = False
     difficulty: str = "medium"
     eval_mode: str = "retrieval_evidence"
-    required_claims: List[str] = field(default_factory=list)
-    expected_entities: List[str] = field(default_factory=list)
-    expected_topics: List[str] = field(default_factory=list)
-    expected_channels: List[str] = field(default_factory=list)
-    acceptable_evidence_sets: List[List[str]] = field(default_factory=list)
+    required_claims: list[str] = field(default_factory=list)
+    expected_entities: list[str] = field(default_factory=list)
+    expected_topics: list[str] = field(default_factory=list)
+    expected_channels: list[str] = field(default_factory=list)
+    acceptable_evidence_sets: list[list[str]] = field(default_factory=list)
     strict_anchor_recall_eligible: bool = False
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def is_golden(self) -> bool:
         """Auto-detect golden vs legacy формат."""
         return bool(self.key_tools) or self.expected_refusal or self.eval_mode != "retrieval_evidence"
 
-    def dataset_contract(self) -> Dict[str, Any]:
+    def dataset_contract(self) -> dict[str, Any]:
         """Нормализованный контракт вопроса для offline judge packet."""
         return {
             "id": self.id,
@@ -125,7 +126,7 @@ class EvalItem:
         }
 
 
-def infer_eval_mode(record: Dict[str, Any]) -> str:
+def infer_eval_mode(record: dict[str, Any]) -> str:
     """Пытается вывести eval_mode для legacy/golden_v1 записей."""
     explicit = record.get("eval_mode")
     if explicit:
@@ -144,7 +145,7 @@ def infer_eval_mode(record: Dict[str, Any]) -> str:
     return "retrieval_evidence"
 
 
-def load_dataset(path: Path) -> List[EvalItem]:
+def load_dataset(path: Path) -> list[EvalItem]:
     """Загрузка датасета с auto-detect формата (golden vs legacy)."""
     source_path = path
     if not path.exists():
@@ -166,7 +167,7 @@ def load_dataset(path: Path) -> List[EvalItem]:
     else:
         raise ValueError(f"Неизвестный формат: {source_path}")
 
-    items: List[EvalItem] = []
+    items: list[EvalItem] = []
     for record in records:
         eval_mode = infer_eval_mode(record)
         strict_recall_eligible = record.get("strict_anchor_recall_eligible")
@@ -211,7 +212,7 @@ def load_dataset(path: Path) -> List[EvalItem]:
     return items
 
 
-def compact_thought(text: str, limit: int = 200) -> Optional[str]:
+def compact_thought(text: str, limit: int = 200) -> str | None:
     """Очищает thought event до компактного judge-friendly вида."""
     cleaned = (text or "").replace("</think>", " ").strip()
     cleaned = re.sub(r"\s+", " ", cleaned)
@@ -220,7 +221,7 @@ def compact_thought(text: str, limit: int = 200) -> Optional[str]:
     return cleaned[:limit]
 
 
-def normalize_citation(citation: Dict[str, Any]) -> Dict[str, Any]:
+def normalize_citation(citation: dict[str, Any]) -> dict[str, Any]:
     """Приводит citation к компактному стабильному формату."""
     metadata = citation.get("metadata", {}) if isinstance(citation, dict) else {}
     channel = (
@@ -242,7 +243,7 @@ def normalize_citation(citation: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def extract_doc_ids_from_observation(content: str) -> List[str]:
+def extract_doc_ids_from_observation(content: str) -> list[str]:
     """Пытается извлечь doc IDs из search observation строки."""
     match = re.search(r"Use these IDs for compose_context:\s*(\[[^\]]*\])", content or "")
     if not match:
@@ -256,12 +257,12 @@ def extract_doc_ids_from_observation(content: str) -> List[str]:
     return [str(doc_id) for doc_id in ids if isinstance(doc_id, (str, int))]
 
 
-def extract_search_docs_from_observation(tool_name: str, content: str) -> List[Dict[str, Any]]:
+def extract_search_docs_from_observation(tool_name: str, content: str) -> list[dict[str, Any]]:
     """Best-effort извлечение retrieved docs из observation без новых SSE событий."""
     if tool_name not in SEARCH_TYPE_TOOLS:
         return []
     doc_ids = extract_doc_ids_from_observation(content)
-    docs: List[Dict[str, Any]] = []
+    docs: list[dict[str, Any]] = []
     for doc_id in doc_ids[:20]:
         channel = None
         message_id = None
@@ -283,10 +284,10 @@ def extract_search_docs_from_observation(tool_name: str, content: str) -> List[D
 # ─── SSE parsing ──────────────────────────────────────────────────
 
 
-def iter_sse_events(response: httpx.Response) -> Iterator[Tuple[str, str]]:
+def iter_sse_events(response: httpx.Response) -> Iterator[tuple[str, str]]:
     """Парсинг SSE потока."""
-    event_type: Optional[str] = None
-    data_lines: List[str] = []
+    event_type: str | None = None
+    data_lines: list[str] = []
 
     for raw_line in response.iter_lines():
         if raw_line is None:
@@ -316,9 +317,9 @@ def iter_sse_events(response: httpx.Response) -> Iterator[Tuple[str, str]]:
 
 
 def compute_key_tool_accuracy(
-    predicted_tools: List[str],
+    predicted_tools: list[str],
     item: EvalItem,
-) -> Optional[float]:
+) -> float | None:
     """
     Binary whitelist: key_tools ∪ acceptable_alternatives.
     Forbidden = hard 0.
@@ -346,9 +347,9 @@ SCAFFOLD_TOOLS = {"query_plan", "rerank", "compose_context", "final_answer"}
 
 
 def compute_tool_call_f1(
-    predicted_tools: List[str],
+    predicted_tools: list[str],
     item: EvalItem,
-) -> Optional[float]:
+) -> float | None:
     """ToolCallF1: F1 по tool calls с partial credit (SPEC-RAG-22).
 
     Precision = |called ∩ key_tools| / |called − scaffold|
@@ -380,9 +381,9 @@ def compute_tool_call_f1(
 
 
 def compute_retrieval_ir_metrics(
-    citation_hits: List[str],
+    citation_hits: list[str],
     item: EvalItem,
-) -> Dict[str, Optional[float]]:
+) -> dict[str, float | None]:
     """Precision@5, MRR, nDCG@5 по citation_hits vs acceptable_evidence_sets (SPEC-RAG-22).
 
     Только для retrieval_evidence eval_mode. Возвращает None для остальных.
@@ -431,11 +432,11 @@ def compute_retrieval_ir_metrics(
 
 def classify_failure(
     item: EvalItem,
-    agent_result: Dict[str, Any],
-    factual_score: Optional[float],
-    usefulness_score: Optional[float],
-    key_tool_acc: Optional[float],
-) -> Optional[str]:
+    agent_result: dict[str, Any],
+    factual_score: float | None,
+    usefulness_score: float | None,
+    key_tool_acc: float | None,
+) -> str | None:
     """
     Классификация причины ошибки.
     Trigger: factual < 0.5 or usefulness == 0 or key_tool == 0.
@@ -486,7 +487,7 @@ def classify_failure(
     if not should_trigger:
         return None
 
-    tools_invoked = agent_result.get("tools_invoked", [])
+    _tools_invoked = agent_result.get("tools_invoked", [])
     visible_tools_all = agent_result.get("visible_tools_history", [])
 
     # Tool hidden — key tool не был в visible set
@@ -533,7 +534,7 @@ class LangfuseTraceExporter:
             timeout=30.0,
         )
 
-    def fetch_recent_traces(self, limit: int = 36, tags: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    def fetch_recent_traces(self, limit: int = 36, tags: list[str] | None = None) -> list[dict[str, Any]]:
         """Получает последние traces из Langfuse."""
         params = {"limit": limit, "orderBy": "timestamp.desc"}
         try:
@@ -547,7 +548,7 @@ class LangfuseTraceExporter:
             logger.error("Langfuse fetch_recent_traces failed: %s", exc)
             return []
 
-    def fetch_trace(self, trace_id: str) -> Optional[Dict[str, Any]]:
+    def fetch_trace(self, trace_id: str) -> dict[str, Any] | None:
         """Получает полный trace с observations."""
         try:
             resp = self._client.get(f"/api/public/traces/{trace_id}")
@@ -557,7 +558,7 @@ class LangfuseTraceExporter:
             logger.error("Langfuse fetch_trace(%s) failed: %s", trace_id, exc)
             return None
 
-    def extract_trace_data(self, trace: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_trace_data(self, trace: dict[str, Any]) -> dict[str, Any]:
         """Извлекает ключевые данные из trace для offline judge."""
         trace_input = trace.get("input") or "{}"
         trace_output = trace.get("output") or "{}"
@@ -688,7 +689,7 @@ class BERTScorer:
     """
 
     def __init__(self) -> None:
-        self._available: Optional[bool] = None
+        self._available: bool | None = None
         self._scorer = None
 
     def _ensure_loaded(self) -> bool:
@@ -719,11 +720,11 @@ class BERTScorer:
             self._available = False
         return self._available
 
-    def score(self, candidate: str, reference: str) -> Optional[float]:
+    def score(self, candidate: str, reference: str) -> float | None:
         """BERTScore F1 между candidate и reference. None если недоступен."""
         if not self._ensure_loaded() or not candidate or not reference:
             return None
-        P, R, F1 = self._scorer.score([candidate], [reference])
+        _P, _R, F1 = self._scorer.score([candidate], [reference])
         return round(float(F1[0]), 4)
 
 
@@ -731,11 +732,11 @@ class BERTScorer:
 _bert_scorer = BERTScorer()
 
 
-def safe_mean(values: Sequence[float]) -> Optional[float]:
+def safe_mean(values: Sequence[float]) -> float | None:
     return fmean(values) if values else None
 
 
-def percentile(values: Sequence[float], p: float) -> Optional[float]:
+def percentile(values: Sequence[float], p: float) -> float | None:
     if not values:
         return None
     if len(values) == 1:
@@ -749,7 +750,7 @@ def percentile(values: Sequence[float], p: float) -> Optional[float]:
     return sorted_vals[lower] + (sorted_vals[upper] - sorted_vals[lower]) * (rank - lower)
 
 
-def fmt(v: Optional[float], decimals: int = 3) -> str:
+def fmt(v: float | None, decimals: int = 3) -> str:
     """Форматирование float для отчёта."""
     return f"{v:.{decimals}f}" if v is not None else "N/A"
 
@@ -762,19 +763,19 @@ class AgentEvaluationRunner:
 
     def __init__(
         self,
-        dataset: List[EvalItem],
+        dataset: list[EvalItem],
         *,
         agent_url: str,
         qa_url: str,
-        collection: Optional[str],
+        collection: str | None,
         max_steps: int,
         planner_enabled: bool,
         agent_timeout: float,
         baseline_timeout: float,
-        api_key: Optional[str],
+        api_key: str | None,
         agent_retries: int,
         baseline_retries: int,
-        judge: Optional[Any] = None,  # deprecated, kept for backward compat
+        judge: Any | None = None,  # deprecated, kept for backward compat
         dry_run: bool = False,
         limit: int = 0,
         run_baseline: bool = False,
@@ -795,12 +796,12 @@ class AgentEvaluationRunner:
         self.limit = min(limit, len(dataset)) if limit > 0 else len(dataset)
         self.run_baseline = run_baseline
 
-        self._headers: Dict[str, str] = {}
+        self._headers: dict[str, str] = {}
         if api_key:
             self._headers["Authorization"] = f"Bearer {api_key}"
 
-    def run(self) -> List[Dict[str, Any]]:
-        results: List[Dict[str, Any]] = []
+    def run(self) -> list[dict[str, Any]]:
+        results: list[dict[str, Any]] = []
         for idx, item in enumerate(self.dataset[: self.limit]):
             logger.info(
                 "[%d/%d] %s (%s, %s)",
@@ -873,11 +874,11 @@ class AgentEvaluationRunner:
     def _build_offline_judge_packet(
         *,
         item: EvalItem,
-        agent_result: Dict[str, Any],
-        metrics: Dict[str, Any],
-        qdrant_url: Optional[str] = None,
-        qdrant_collection: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        agent_result: dict[str, Any],
+        metrics: dict[str, Any],
+        qdrant_url: str | None = None,
+        qdrant_collection: str | None = None,
+    ) -> dict[str, Any]:
         """Строит самодостаточный packet для offline judge review.
 
         Если qdrant_url указан — дополучает тексты документов по citation IDs.
@@ -934,9 +935,9 @@ class AgentEvaluationRunner:
             },
         }
 
-    def _call_agent(self, item: EvalItem) -> Dict[str, Any]:
+    def _call_agent(self, item: EvalItem) -> dict[str, Any]:
         """Вызов агента через SSE. Собирает tools_invoked и visible_tools."""
-        payload: Dict[str, Any] = {"query": item.query, "max_steps": self.max_steps}
+        payload: dict[str, Any] = {"query": item.query, "max_steps": self.max_steps}
         if self.collection:
             payload["collection"] = self.collection
         if not self.planner_enabled:
@@ -946,25 +947,24 @@ class AgentEvaluationRunner:
         payload["tags"] = [item.id, "eval"]
         payload["trace_name"] = f"agent_request_{item.id.replace('golden_', '')}"
 
-        last_error: Optional[str] = None
+        last_error: str | None = None
 
         for attempt in range(1, self.agent_retries + 1):
-            citation_hits: List[str] = []
-            tools_invoked: List[str] = []
-            visible_tools_history: List[List[str]] = []
-            citations_detailed: List[Dict[str, Any]] = []
-            tool_observations: List[Dict[str, Any]] = []
-            agent_thoughts: List[str] = []
-            retrieved_docs: List[Dict[str, Any]] = []
-            final_payload: Optional[Dict[str, Any]] = None
-            coverage: Optional[float] = None
+            citation_hits: list[str] = []
+            tools_invoked: list[str] = []
+            visible_tools_history: list[list[str]] = []
+            citations_detailed: list[dict[str, Any]] = []
+            tool_observations: list[dict[str, Any]] = []
+            agent_thoughts: list[str] = []
+            retrieved_docs: list[dict[str, Any]] = []
+            final_payload: dict[str, Any] | None = None
+            coverage: float | None = None
             refinements: int = 0
-            pending_observation_tool: Optional[str] = None
+            pending_observation_tool: str | None = None
 
             try:
                 start = time.perf_counter()
-                with httpx.Client(timeout=self.agent_timeout, headers=self._headers) as client:
-                    with client.stream("POST", self.agent_url, json=payload) as response:
+                with httpx.Client(timeout=self.agent_timeout, headers=self._headers) as client, client.stream("POST", self.agent_url, json=payload) as response:
                         response.raise_for_status()
                         for event_name, event_data in iter_sse_events(response):
                             try:
@@ -1066,11 +1066,11 @@ class AgentEvaluationRunner:
             "tool_observations": [], "agent_thoughts": [], "retrieved_docs": [],
         }
 
-    def _call_baseline(self, item: EvalItem) -> Dict[str, Any]:
-        payload: Dict[str, Any] = {"query": item.query}
+    def _call_baseline(self, item: EvalItem) -> dict[str, Any]:
+        payload: dict[str, Any] = {"query": item.query}
         if self.collection:
             payload["collection"] = self.collection
-        last_error: Optional[str] = None
+        last_error: str | None = None
 
         for attempt in range(1, self.baseline_retries + 1):
             start = time.perf_counter()
@@ -1087,7 +1087,7 @@ class AgentEvaluationRunner:
                 logger.warning("Baseline error (attempt %d/%d): %s", attempt, self.baseline_retries, exc)
         return {"error": True, "error_message": last_error, "latency_sec": None}
 
-    def _run_judge(self, item: EvalItem, agent_result: Dict[str, Any]) -> Dict[str, Any]:
+    def _run_judge(self, item: EvalItem, agent_result: dict[str, Any]) -> dict[str, Any]:
         """Judge scores — заполняются offline через Langfuse trace review.
 
         Все score поля = None при eval прогоне. Заполняются вручную
@@ -1098,10 +1098,10 @@ class AgentEvaluationRunner:
     def _compute_metrics(
         self,
         item: EvalItem,
-        agent_result: Dict[str, Any],
-        baseline_result: Dict[str, Any],
-        judge_scores: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        agent_result: dict[str, Any],
+        baseline_result: dict[str, Any],
+        judge_scores: dict[str, Any],
+    ) -> dict[str, Any]:
         """Primary + grounding + diagnostic metrics."""
         citation_hits = agent_result.get("citation_hits") or []
         expected = item.expected_documents or item.source_post_ids or []
@@ -1181,7 +1181,7 @@ class AgentEvaluationRunner:
         }
 
     @staticmethod
-    def _fake_agent_result() -> Dict[str, Any]:
+    def _fake_agent_result() -> dict[str, Any]:
         return {
             "answer": "[dry-run]", "citations": [], "coverage": None,
             "refinements": 0, "verification": None, "fallback": False,
@@ -1192,11 +1192,11 @@ class AgentEvaluationRunner:
         }
 
     @staticmethod
-    def _fake_baseline_result() -> Dict[str, Any]:
+    def _fake_baseline_result() -> dict[str, Any]:
         return {"answer": "[dry-run]", "latency_sec": None, "error": True, "error_message": "dry_run"}
 
     @staticmethod
-    def _status(agent_result: Dict[str, Any], baseline_result: Dict[str, Any]) -> str:
+    def _status(agent_result: dict[str, Any], baseline_result: dict[str, Any]) -> str:
         a_err = bool(agent_result.get("error"))
         b_err = bool(baseline_result.get("error"))
         if a_err and b_err:
@@ -1211,7 +1211,7 @@ class AgentEvaluationRunner:
 # ─── Aggregation ──────────────────────────────────────────────────
 
 
-def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+def aggregate_results(results: Sequence[dict[str, Any]]) -> dict[str, Any]:
     """Агрегация метрик + failure breakdown."""
     agent_latencies = [r["metrics"]["agent_latency_sec"] for r in results if r["metrics"].get("agent_latency_sec") is not None]
     baseline_latencies = [r["metrics"]["baseline_latency_sec"] for r in results if r["metrics"].get("baseline_latency_sec") is not None]
@@ -1231,14 +1231,14 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     usefulness_scores = [r["metrics"]["usefulness"] for r in results if r["metrics"].get("usefulness") is not None]
 
     # Failure breakdown
-    failure_counts: Dict[str, int] = {}
+    failure_counts: dict[str, int] = {}
     for r in results:
         ft = r.get("failure_type")
         if ft:
             failure_counts[ft] = failure_counts.get(ft, 0) + 1
 
     # By category
-    by_category: Dict[str, Dict[str, Any]] = {}
+    by_category: dict[str, dict[str, Any]] = {}
     for r in results:
         cat = r["category"]
         if cat not in by_category:
@@ -1387,10 +1387,10 @@ def aggregate_results(results: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def build_markdown_report(
-    agg: Dict[str, Any],
+    agg: dict[str, Any],
     timestamp: datetime,
     dataset_path: Path,
-    judge_model: Optional[str],
+    judge_model: str | None,
 ) -> str:
     """Markdown отчёт с failure breakdown и per-category."""
     primary = agg["primary"]
@@ -1462,7 +1462,7 @@ def chunked(seq: Sequence[Any], size: int) -> Iterator[Sequence[Any]]:
         yield seq[i:i + size]
 
 
-def build_offline_judge_markdown(batch: Sequence[Dict[str, Any]], batch_no: int) -> str:
+def build_offline_judge_markdown(batch: Sequence[dict[str, Any]], batch_no: int) -> str:
     """Строит markdown packet для offline judge review."""
     lines = [
         f"# Offline Judge Batch {batch_no:02d}",
@@ -1587,15 +1587,15 @@ def build_offline_judge_markdown(batch: Sequence[Dict[str, Any]], batch_no: int)
 
 def export_offline_judge_batches(
     *,
-    results: Sequence[Dict[str, Any]],
+    results: Sequence[dict[str, Any]],
     output_dir: Path,
     eval_id: str,
     batch_size: int,
-) -> List[Path]:
+) -> list[Path]:
     """Экспортирует judging packets батчами в JSON и Markdown."""
     judge_dir = output_dir / "judge_batches" / eval_id
     ensure_dirs(judge_dir)
-    written: List[Path] = []
+    written: list[Path] = []
     for batch_index, batch in enumerate(chunked(results, batch_size), start=1):
         batch_name = f"judge_batch_{batch_index:02d}"
         batch_json = judge_dir / f"{batch_name}.json"
@@ -1677,7 +1677,7 @@ def main() -> int:
         logger.info("Фильтр: %d вопросов — %s", len(dataset), [item.id for item in dataset])
 
     # Judge is offline-only (через Langfuse trace review)
-    judge_model: Optional[str] = None
+    judge_model: str | None = None
 
     runner = AgentEvaluationRunner(
         dataset,
@@ -1740,7 +1740,7 @@ def main() -> int:
         md = build_markdown_report(aggregated, timestamp, args.dataset, judge_model)
         markdown_path.write_text(md, encoding="utf-8")
 
-    exported_batches: List[Path] = []
+    exported_batches: list[Path] = []
     if args.export_offline_judge:
         # Enrich offline judge packets with Langfuse trace data
         langfuse_host = os.environ.get("LANGFUSE_EXPORT_HOST", "http://localhost:3100")

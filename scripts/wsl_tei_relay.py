@@ -11,7 +11,6 @@ import os
 import subprocess
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("WSL_TEI_RELAY_PORT", "18082"))
 WSL_DISTRO = os.environ.get("WSL_TEI_RELAY_DISTRO", "Ubuntu-22.04")
@@ -97,7 +96,7 @@ class Handler(BaseHTTPRequestHandler):
         status, response = _run_wsl_curl("POST", self.path, body)
         self._send(status, response)
 
-    def log_message(self, format: str, *args) -> None:  # noqa: A003
+    def log_message(self, format: str, *args) -> None:
         return
 
 

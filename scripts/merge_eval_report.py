@@ -15,7 +15,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("merge_eval")
@@ -37,14 +37,14 @@ def merge_reports(
     questions = eval_results.get("per_question", [])
 
     # Index judge verdicts by id
-    verdicts_map: Dict[str, dict] = {}
+    verdicts_map: dict[str, dict] = {}
     vlist = judge_verdicts.get("verdicts", judge_verdicts if isinstance(judge_verdicts, list) else [])
     for v in vlist:
         vid = v.get("id", v.get("query_id", ""))
         verdicts_map[vid] = v
 
     # Index claims by id
-    claims_map: Dict[str, list] = {}
+    claims_map: dict[str, list] = {}
     if isinstance(claims_data, dict) and "questions" in claims_data:
         for q in claims_data["questions"]:
             claims_map[q["id"]] = q.get("claims", [])
@@ -53,12 +53,12 @@ def merge_reports(
             claims_map[q.get("id", "")] = q.get("claims", [])
 
     # Index NLI scores by query_id
-    nli_map: Dict[str, dict] = {}
+    nli_map: dict[str, dict] = {}
     for nq in nli_scores.get("per_question", []):
         nli_map[nq["query_id"]] = nq
 
     # Merge per question
-    merged_questions: List[dict] = []
+    merged_questions: list[dict] = []
     for q in questions:
         qid = q.get("query_id", "")
         verdict = verdicts_map.get(qid, {})

@@ -2,15 +2,14 @@
 Rate limiting middleware для защиты от спама и DDoS
 """
 
-import time
-import logging
-from typing import Dict, Tuple, Optional
-from collections import defaultdict
-from datetime import datetime, timedelta
-from fastapi import Request, HTTPException, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from threading import Lock
 import hashlib
+import logging
+import time
+from collections import defaultdict
+from threading import Lock
+
+from fastapi import Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +41,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Хранилище для отслеживания запросов
         # {client_id: [(timestamp, endpoint), ...]}
-        self.requests: Dict[str, list] = defaultdict(list)
+        self.requests: dict[str, list] = defaultdict(list)
 
         # Счетчик нарушений для exponential backoff
         # {client_id: (violation_count, last_violation_time)}
-        self.violations: Dict[str, Tuple[int, float]] = {}
+        self.violations: dict[str, tuple[int, float]] = {}
 
         # Thread-safe lock
         self.lock = Lock()
@@ -101,7 +100,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         self.last_cleanup = now
 
-    def _check_rate_limit(self, client_id: str, endpoint: str) -> Optional[int]:
+    def _check_rate_limit(self, client_id: str, endpoint: str) -> int | None:
         """
         Проверяет rate limit для клиента.
         Возвращает None если OK, или количество секунд до разблокировки.

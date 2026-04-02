@@ -2,15 +2,15 @@ import json
 import logging
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeoutError
 from datetime import datetime
-from typing import Optional, Any, Dict, List
+from typing import Any
 
 from core.observability import observe_span
 from core.settings import Settings, get_settings
-from utils.gbnf import get_searchplan_grammar, get_string_array_grammar, gbnf_selfcheck
-from schemas.search import SearchPlan, SearchPlanRequest, MetadataFilters
-
+from schemas.search import MetadataFilters, SearchPlan
+from utils.gbnf import gbnf_selfcheck, get_searchplan_grammar, get_string_array_grammar
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +31,13 @@ class _TTLCache:
             return None
         return payload
 
-    def set(self, key: str, value: object, ttl: Optional[int] = None):
+    def set(self, key: str, value: object, ttl: int | None = None):
         expires_at = time.time() + (ttl if ttl is not None else self._ttl)
         self._store[key] = (expires_at, value)
 
 
 class QueryPlannerService:
-    def __init__(self, llm, settings: Optional[Settings] = None):
+    def __init__(self, llm, settings: Settings | None = None):
         self.llm = llm
         self.settings = settings or get_settings()
         # TTL: план — 10 минут, слияние — 5 минут
@@ -64,7 +64,7 @@ class QueryPlannerService:
                 )
 
     # Строгая JSON-схема ответа планировщика (для llama.cpp json_schema)
-    JSON_SCHEMA: Dict[str, Any] = {
+    JSON_SCHEMA: dict[str, Any] = {
         "type": "object",
         "additionalProperties": False,
         "properties": {
@@ -158,10 +158,7 @@ class QueryPlannerService:
             r"\bизвлеки\b",
             r"\bсделай\b",
         ]
-        for p in sql_patterns + imperative_patterns:
-            if re.search(p, t):
-                return True
-        return False
+        return any(re.search(p, t) for p in sql_patterns + imperative_patterns)
 
     @staticmethod
     def _process_phrase(text: str) -> str:
@@ -180,9 +177,9 @@ class QueryPlannerService:
         return s
 
     @staticmethod
-    def _dedupe_preserve_order(items: List[str]) -> List[str]:
+    def _dedupe_preserve_order(items: list[str]) -> list[str]:
         seen: set[str] = set()
-        result: List[str] = []
+        result: list[str] = []
         for it in items:
             key = re.sub(r"\s+", " ", it)
             if key not in seen:
@@ -191,7 +188,7 @@ class QueryPlannerService:
         return result
 
     @staticmethod
-    def _trim_date_yyyy_mm_dd(value: Optional[str]) -> Optional[str]:
+    def _trim_date_yyyy_mm_dd(value: str | None) -> str | None:
         if not value:
             return None
         s = value.strip()
@@ -206,9 +203,9 @@ class QueryPlannerService:
 
     @classmethod
     def post_validate(
-        cls, raw: Dict[str, Any], user_query: str, settings: Settings
+        cls, raw: dict[str, Any], user_query: str, settings: Settings
     ) -> SearchPlan:
-        def as_list_of_str(val: Any) -> List[str]:
+        def as_list_of_str(val: Any) -> list[str]:
             if val is None:
                 return []
             if isinstance(val, str):
@@ -225,7 +222,7 @@ class QueryPlannerService:
         if not normalized_queries:
             normalized_queries = [cls._normalize_phrase(user_query)]
         # Фильтрация и сжатие
-        processed: List[str] = []
+        processed: list[str] = []
         for q in normalized_queries:
             qq = cls._process_phrase(q)
             if not qq or cls._is_sql_like_or_imperative(qq):
@@ -254,7 +251,7 @@ class QueryPlannerService:
         )
 
         metadata = raw.get("metadata_filters") or None
-        meta_obj: Optional[Dict[str, Any]] = None
+        meta_obj: dict[str, Any] | None = None
         if isinstance(metadata, dict):
             meta_obj = {}
             if isinstance(metadata.get("channel_usernames"), list):
@@ -269,7 +266,7 @@ class QueryPlannerService:
                     )
 
             if isinstance(metadata.get("channel_ids"), list):
-                chan_ids: List[int] = []
+                chan_ids: list[int] = []
                 for x in metadata["channel_ids"]:
                     try:
                         xi = int(x)
@@ -361,16 +358,16 @@ class QueryPlannerService:
             strategy=strategy,
         )
 
-    def _call_planner_llm(self, prompt: str) -> Dict[str, Any]:
+    def _call_planner_llm(self, prompt: str) -> dict[str, Any]:
         """Вызов планировочной LLM с таймаутом на уровне приложения."""
 
-        kwargs: Dict[str, Any] = {
+        kwargs: dict[str, Any] = {
             "max_tokens": self.settings.planner_token_budget,
             "temperature": self.settings.planner_temp,
             "top_p": self.settings.planner_top_p,
             "top_k": getattr(self.settings, "planner_top_k", 40),
             "repeat_penalty": self.settings.planner_repeat_penalty,
-            "stop": self.settings.planner_stop,
+            "stop": self.settings.planner_stop_list,
         }
 
         if self._grammar:
@@ -588,8 +585,8 @@ class QueryPlannerService:
 """
 
     def _generate_additional_queries(
-        self, user_query: str, have: List[str], need: int
-    ) -> List[str]:
+        self, user_query: str, have: list[str], need: int
+    ) -> list[str]:
         """Догенерация недостающих подзапросов через микро-GBNF массив строк.
 
         Возвращает новые подзапросы (без дублей и шума).
@@ -617,7 +614,7 @@ class QueryPlannerService:
             text = (res["choices"][0].get("text") or "").strip()
             items = json.loads(text) if text else []
             have_set = {self._normalize_phrase(x) for x in have}
-            result: List[str] = []
+            result: list[str] = []
             for it in items:
                 s = self._normalize_phrase(str(it))
                 if not s or self._is_sql_like_or_imperative(s):
@@ -641,7 +638,7 @@ class QueryPlannerService:
             return None
         return self._fusion_cache.get(key)
 
-    def set_cached_fusion(self, key: str, value, ttl: Optional[int] = 300):
+    def set_cached_fusion(self, key: str, value, ttl: int | None = 300):
         if not self.settings.enable_cache:
             return
         self._fusion_cache.set(key, value, ttl=ttl)

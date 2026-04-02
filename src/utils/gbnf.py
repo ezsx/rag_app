@@ -4,7 +4,6 @@ GBNF грамматики для строгой генерации SearchPlan и
 Используется llama.cpp (llama-cpp-python) grammar-декодирование.
 """
 
-from typing import Optional
 import hashlib
 import logging
 
@@ -138,9 +137,9 @@ def get_string_array_grammar(n: int):
 
 __all__ = [
     "SEARCH_PLAN_GBNF",
-    "gbnf_selfcheck",
-    "build_searchplan_grammar",
     "build_micro_grammar",
+    "build_searchplan_grammar",
+    "gbnf_selfcheck",
     "get_searchplan_grammar",
     "get_string_array_grammar",
 ]

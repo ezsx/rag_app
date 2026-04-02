@@ -9,6 +9,7 @@ numpy
 filelock
 typing_extensions
 pydantic
+pydantic-settings
 sse-starlette
 requests
 PyJWT

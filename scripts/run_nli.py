@@ -23,7 +23,7 @@ from pathlib import Path
 # Добавляем корень проекта в path для импорта src/
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.services.eval.nli import NLIVerifier, QuestionFaithfulness
+from src.services.eval.nli import NLIVerifier
 
 logging.basicConfig(
     level=logging.INFO,

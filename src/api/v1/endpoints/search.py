@@ -3,39 +3,39 @@ Search endpoints: добавление маршрутов плана и выпо
 """
 
 import logging
-from typing import Optional, List, Dict, Tuple
+
+import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from core.deps import (
-    get_retriever,
-    get_redis_client,
-    get_query_planner,
-    get_reranker,
     get_hybrid_retriever,
+    get_query_planner,
+    get_redis_client,
+    get_reranker,
+    get_retriever,
 )
-from core.settings import get_settings, Settings
+from core.settings import Settings, get_settings
 from schemas.search import (
     Candidate,
-    SearchPlanRequest,
     SearchPlan,
+    SearchPlanRequest,
     SearchRequest,
     SearchResponse,
 )
-from utils.ranking import rrf_merge, mmr_select, _get_item_id
-import numpy as np
+from utils.ranking import _get_item_id, mmr_select, rrf_merge
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-def _normalize_search_items(search_results) -> List[Dict]:
+def _normalize_search_items(search_results) -> list[dict]:
     """Нормализует разные форматы search() к списку dict items."""
     if search_results is None:
         return []
 
     if isinstance(search_results, tuple) and len(search_results) == 3:
         documents, distances, metadatas = search_results
-        items: List[Dict] = []
+        items: list[dict] = []
         for idx, doc_text in enumerate(documents):
             items.append(
                 {
@@ -66,7 +66,7 @@ def _normalize_search_items(search_results) -> List[Dict]:
     return []
 
 
-async def get_from_cache(redis_client, cache_key: str) -> Optional[dict]:
+async def get_from_cache(redis_client, cache_key: str) -> dict | None:
     """Получить результат из кеша"""
     if not redis_client:
         return None
@@ -144,7 +144,7 @@ async def semantic_search(
             if settings.hybrid_enabled and hybrid is not None:
                 try:
                     candidates = hybrid.search_with_plan(request.query, plan)
-                    merged_items: List[Dict] = [
+                    merged_items: list[dict] = [
                         {
                             "id": c.id,
                             "text": c.text,
@@ -162,8 +162,8 @@ async def semantic_search(
                 merged_items = []
 
             # Сбор результатов поиска для каждого подзапроса (dense‑ветка) если гибрид не сработал
-            results_for_fusion: List[List[Tuple[str, float, Dict]]] = []
-            items_by_id: Dict[str, Dict] = {}
+            results_for_fusion: list[list[tuple[str, float, dict]]] = []
+            items_by_id: dict[str, dict] = {}
             if not merged_items:
                 for q in plan.normalized_queries:
                     raw_items = retriever.search(
@@ -176,7 +176,7 @@ async def semantic_search(
                         ),
                     )
                     items = _normalize_search_items(raw_items)
-                    triples: List[Tuple[str, float, Dict]] = []
+                    triples: list[tuple[str, float, dict]] = []
                     for it in items:
                         doc = it.get("text", "")
                         dist = float(it.get("distance", 0.0))
@@ -202,7 +202,7 @@ async def semantic_search(
                     merged_items.append(item)
 
             # MMR (опционально)
-            final_items: List[Dict] = merged_items
+            final_items: list[dict] = merged_items
             if settings.enable_mmr and merged_items:
                 top_n = min(len(merged_items), settings.mmr_top_n)
                 # Убедимся, что есть эмбеддинги для top-N
@@ -229,7 +229,7 @@ async def semantic_search(
                         status_code=500,
                         detail="Не удалось получить эмбеддинг запроса для MMR",
                     )
-                docs_embs: List[np.ndarray] = []
+                docs_embs: list[np.ndarray] = []
                 for it in merged_items[:top_n]:
                     emb = it.get("embedding")
                     if emb is None:
@@ -309,5 +309,5 @@ async def semantic_search(
         logger.error(f"Ошибка при поиске: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Ошибка при выполнении поиска: {str(e)}",
+            detail=f"Ошибка при выполнении поиска: {e!s}",
         )

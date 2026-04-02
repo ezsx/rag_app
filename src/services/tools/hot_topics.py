@@ -12,7 +12,7 @@ import logging
 import os
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -52,9 +52,8 @@ def _resolve_period(period: str) -> str:
         return period
 
 
-def _get_latest_available(client) -> Optional[str]:
+def _get_latest_available(client) -> str | None:
     """Найти последний доступный digest (для fallback)."""
-    from qdrant_client import models
     results = client.scroll(
         collection_name=_DIGEST_COLLECTION,
         limit=100,
@@ -73,7 +72,7 @@ def hot_topics(
     hybrid_retriever: Any = None,  # не используется, для совместимости с tool_runner
     period: str = "this_week",
     top_n: int = 5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Возвращает pre-computed hot topics за период.
 
     Читает из `weekly_digests` коллекции. Для "this_month" — агрегация
@@ -97,10 +96,10 @@ def hot_topics(
 
     except Exception as e:
         logger.error("hot_topics error: %s", e, exc_info=True)
-        return {"error": f"Ошибка при получении hot topics: {str(e)}"}
+        return {"error": f"Ошибка при получении hot topics: {e!s}"}
 
 
-def _get_week_digest(client, week_label: str, top_n: int) -> Dict[str, Any]:
+def _get_week_digest(client, week_label: str, top_n: int) -> dict[str, Any]:
     """Получить digest конкретной недели."""
     from qdrant_client import models
 
@@ -137,8 +136,8 @@ def _get_week_digest(client, week_label: str, top_n: int) -> Dict[str, Any]:
 
 def _get_week_digest_inner(
     client, week_label: str, top_n: int,
-    points=None, fallback_info: Optional[Dict] = None,
-) -> Dict[str, Any]:
+    points=None, fallback_info: dict | None = None,
+) -> dict[str, Any]:
     """Извлечь данные из найденных points."""
     if points is None:
         from qdrant_client import models
@@ -175,9 +174,8 @@ def _get_week_digest_inner(
     return result
 
 
-def _get_month_digest(client, year_month: str, top_n: int) -> Dict[str, Any]:
+def _get_month_digest(client, year_month: str, top_n: int) -> dict[str, Any]:
     """Агрегация последних 4 weekly digests для месячного обзора."""
-    from qdrant_client import models
 
     # Scroll all digests, filter by prefix
     results = client.scroll(
@@ -191,7 +189,7 @@ def _get_month_digest(client, year_month: str, top_n: int) -> Dict[str, Any]:
     year, month = year_month.split("-")
     relevant = []
     for p in points:
-        period = (p.payload or {}).get("period", "")
+        _period = (p.payload or {}).get("period", "")
         date_from = (p.payload or {}).get("date_from", "")
         if date_from and date_from.startswith(f"{year}-{month}"):
             relevant.append(p.payload)
@@ -200,8 +198,8 @@ def _get_month_digest(client, year_month: str, top_n: int) -> Dict[str, Any]:
         return {"period": f"month:{year_month}", "error": f"Дайджесты за {year_month} не найдены"}
 
     # Агрегация: объединяем topics, entities, summaries
-    all_topics: Dict[str, Dict] = {}
-    all_entities: Dict[str, int] = {}
+    all_topics: dict[str, dict] = {}
+    all_entities: dict[str, int] = {}
     total_posts = 0
     summaries = []
 

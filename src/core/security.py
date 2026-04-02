@@ -2,12 +2,10 @@
 Модуль безопасности для защиты от различных атак
 """
 
-import re
-import logging
 import hashlib
-from typing import Optional, List, Dict, Any
-from datetime import datetime
-import json
+import logging
+import re
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +119,7 @@ class SecurityManager:
 
         return input_text.strip()
 
-    def check_prompt_injection(self, text: str) -> List[str]:
+    def check_prompt_injection(self, text: str) -> list[str]:
         """
         Проверяет текст на наличие попыток prompt injection
 
@@ -161,7 +159,7 @@ class SecurityManager:
 
         return violations
 
-    def check_sql_injection(self, text: str) -> List[str]:
+    def check_sql_injection(self, text: str) -> list[str]:
         """Проверяет текст на SQL injection паттерны"""
         if not self.enable_sql_check:
             return []
@@ -181,7 +179,7 @@ class SecurityManager:
 
         return violations
 
-    def check_xss(self, text: str) -> List[str]:
+    def check_xss(self, text: str) -> list[str]:
         """Проверяет текст на XSS паттерны"""
         if not self.enable_xss_check:
             return []
@@ -198,7 +196,7 @@ class SecurityManager:
 
         return violations
 
-    def check_path_traversal(self, text: str) -> List[str]:
+    def check_path_traversal(self, text: str) -> list[str]:
         """Проверяет текст на path traversal паттерны"""
         if not self.enable_path_traversal_check:
             return []
@@ -213,7 +211,7 @@ class SecurityManager:
 
     def validate_input(
         self, text: str, context: str = "general"
-    ) -> tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         """
         Полная валидация входного текста
 

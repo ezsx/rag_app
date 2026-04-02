@@ -1,6 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from qdrant_client import models
 from qdrant_client.http.exceptions import UnexpectedResponse
 
@@ -104,19 +104,19 @@ async def test_ensure_collection_handles_race_condition(
 async def test_ensure_collection_creates_payload_indices(
     store: QdrantStore, mock_qdrant_client: AsyncMock
 ) -> None:
-    """После create_collection создаются 4 payload-индекса."""
+    """После create_collection создаются payload-индексы (16 штук)."""
     mock_qdrant_client.collection_exists.return_value = False
 
     await store.ensure_collection()
 
-    assert mock_qdrant_client.create_payload_index.call_count == 4
+    assert mock_qdrant_client.create_payload_index.call_count == 16
     calls_fields = [
         c.args[1] for c in mock_qdrant_client.create_payload_index.call_args_list
     ]
     assert "channel" in calls_fields
     assert "date" in calls_fields
-    assert "author" in calls_fields
-    assert "message_id" in calls_fields
+    assert "entities" in calls_fields
+    assert "year_week" in calls_fields
 
 
 @pytest.mark.asyncio
@@ -147,7 +147,8 @@ async def test_upsert_single_batch(
     assert len(points) == 2
     assert "dense_vector" in points[0].vector
     assert "sparse_vector" in points[0].vector
-    assert points[0].id == "channel:0"
+    # ID теперь UUID5 от point_id, проверяем что он не пустой
+    assert points[0].id is not None
 
 
 @pytest.mark.asyncio

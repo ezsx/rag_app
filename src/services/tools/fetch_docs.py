@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from adapters.qdrant.store import QdrantStore
 
@@ -13,12 +13,12 @@ logger = logging.getLogger(__name__)
 
 def fetch_docs(
     qdrant_store: QdrantStore,
-    ids: Optional[List[str]] = None,
-    window: Optional[List[int]] = None,
-    doc_ids: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    ids: list[str] | None = None,
+    window: list[int] | None = None,
+    doc_ids: list[str] | None = None,
+) -> dict[str, Any]:
     """Батч-выгрузка документов по IDs из Qdrant."""
-    final_ids: List[str] = ids or doc_ids or []
+    final_ids: list[str] = ids or doc_ids or []
     if not final_ids:
         logger.debug("fetch_docs вызван без ids")
         return {"docs": []}

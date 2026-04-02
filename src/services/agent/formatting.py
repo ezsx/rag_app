@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from schemas.agent import AgentAction, ToolMeta, ToolResponse
 
@@ -129,15 +129,15 @@ def format_observation(tool_response: ToolResponse, tool_name: str = "") -> str:
 
 
 def extract_tool_calls(
-    assistant_message: Dict[str, Any],
-    visible_tools: Optional[set] = None,
-) -> List[Dict[str, Any]]:
+    assistant_message: dict[str, Any],
+    visible_tools: set | None = None,
+) -> list[dict[str, Any]]:
     """Приводит tool_calls llama-server к единому внутреннему формату.
 
     FIX-04: если visible_tools задан, отбрасывает tool names вне visible set.
     """
     raw_tool_calls = assistant_message.get("tool_calls") or []
-    normalized_calls: List[Dict[str, Any]] = []
+    normalized_calls: list[dict[str, Any]] = []
 
     for item in raw_tool_calls:
         if not isinstance(item, dict):
@@ -184,7 +184,7 @@ def extract_tool_calls(
     return normalized_calls
 
 
-def assistant_message_for_history(assistant_message: Dict[str, Any]) -> Dict[str, Any]:
+def assistant_message_for_history(assistant_message: dict[str, Any]) -> dict[str, Any]:
     """Сохраняет assistant message в chat history без искажения tool_calls.
 
     Qwen3 jinja template с --jinja трактует пустой content в assistant
@@ -201,7 +201,7 @@ def assistant_message_for_history(assistant_message: Dict[str, Any]) -> Dict[str
 
 
 def serialize_tool_payload(
-    payload: Dict[str, Any], max_chars: int = 8000, tool_name: str = "",
+    payload: dict[str, Any], max_chars: int = 8000, tool_name: str = "",
 ) -> str:
     """Безопасно сериализует payload инструмента для chat history.
 
@@ -261,12 +261,12 @@ def serialize_tool_payload(
 
 
 def tool_message_for_history(
-    tool_call: Dict[str, Any],
+    tool_call: dict[str, Any],
     tool_name: str,
-    payload: Dict[str, Any],
-) -> Dict[str, Any]:
+    payload: dict[str, Any],
+) -> dict[str, Any]:
     """Сериализует результат инструмента в стандартный `role=tool` message."""
-    message: Dict[str, Any] = {
+    message: dict[str, Any] = {
         "role": "tool",
         "name": tool_name,
         "content": serialize_tool_payload(payload, tool_name=tool_name),
@@ -358,7 +358,7 @@ def trim_messages(
 
 def tool_error_action(
     tool_name: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     step: int,
     error: str,
 ) -> AgentAction:

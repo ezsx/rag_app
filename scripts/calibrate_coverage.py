@@ -24,7 +24,7 @@ import sys
 import time
 import urllib.request
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -37,7 +37,7 @@ _STOP_WORDS = frozenset({
 })
 
 
-def _query_term_coverage(query: str, docs: List[Dict[str, Any]]) -> float:
+def _query_term_coverage(query: str, docs: list[dict[str, Any]]) -> float:
     if not query or not docs:
         return 0.0
     tokens = [t.lower() for t in re.findall(r"\w+", query, re.UNICODE)
@@ -51,7 +51,7 @@ def _query_term_coverage(query: str, docs: List[Dict[str, Any]]) -> float:
 
 def compute_coverage(
     query: str,
-    docs: List[Dict[str, Any]],
+    docs: list[dict[str, Any]],
     relevance_threshold: float = 0.55,
     target_k: int = 5,
 ) -> float:
@@ -528,7 +528,7 @@ def main():
     if all_coverages:
         sorted_cov = sorted(all_coverages)
         n = len(sorted_cov)
-        print(f"\nCoverage Distribution (current _compute_coverage):")
+        print("\nCoverage Distribution (current _compute_coverage):")
         print(f"  min:    {sorted_cov[0]:.4f}")
         print(f"  p10:    {sorted_cov[int(n*0.1)]:.4f}")
         print(f"  p25:    {sorted_cov[int(n*0.25)]:.4f}")
@@ -539,7 +539,7 @@ def main():
         print(f"  mean:   {statistics.mean(sorted_cov):.4f}")
 
         # Threshold simulation
-        print(f"\nThreshold Simulation (% queries that would trigger refinement):")
+        print("\nThreshold Simulation (% queries that would trigger refinement):")
         for t in [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70]:
             below = sum(1 for c in all_coverages if c < t)
             pct = 100 * below / len(all_coverages)
@@ -567,9 +567,9 @@ def main():
         print(f"\n  MONOTONICITY VIOLATIONS ({len(violations)}):")
         for k_idx, prev, curr in violations:
             print(f"    r@{k_idx} ({prev:.3f}) → r@{k_idx+1} ({curr:.3f}) DROPPED by {prev - curr:.3f}")
-        print(f"  WARNING: non-monotonic recall suggests ranking quality issues!")
+        print("  WARNING: non-monotonic recall suggests ranking quality issues!")
     else:
-        print(f"\n  Monotonicity: OK (recall never drops with increasing k)")
+        print("\n  Monotonicity: OK (recall never drops with increasing k)")
 
     # Reranker comparison (if --test-reranker)
     reranked_results = [r for r in valid if r.get("reranked_recall_per_k")]
@@ -596,7 +596,7 @@ def main():
             for k_idx, prev, curr in re_violations:
                 print(f"    r@{k_idx} ({prev:.3f}) → r@{k_idx+1} ({curr:.3f}) DROPPED by {prev - curr:.3f}")
         else:
-            print(f"\n  Reranker monotonicity: OK")
+            print("\n  Reranker monotonicity: OK")
 
     # Pipeline v2 comparison
     v2_results = [r for r in valid if r.get("v2_recall_per_k")]
@@ -623,7 +623,7 @@ def main():
             for k_idx, prev, curr in v2_violations:
                 print(f"    r@{k_idx} ({prev:.3f}) → r@{k_idx+1} ({curr:.3f}) DROPPED by {prev - curr:.3f}")
         else:
-            print(f"\n  V2 monotonicity: OK")
+            print("\n  V2 monotonicity: OK")
 
     # CE score distribution (для калибровки filter_threshold)
     if all_ce_scores:
@@ -649,7 +649,7 @@ def main():
             med_irr = sorted(ce_scores_irrelevant)[len(ce_scores_irrelevant)//2]
             suggested = (med_rel + med_irr) / 2
             print(f"\n  Suggested filter_threshold: {suggested:.2f} (midpoint of medians)")
-            print(f"  Threshold simulation:")
+            print("  Threshold simulation:")
             for t in [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, suggested]:
                 kept_rel = sum(1 for s in ce_scores_relevant if s >= t)
                 lost_rel = len(ce_scores_relevant) - kept_rel
@@ -662,7 +662,7 @@ def main():
         cat = r.get("category", "unknown")
         by_cat[cat].append(r["recall_per_k"].get(5, 0.0))
     if len(by_cat) > 1:
-        print(f"\nRecall@5 по категориям:")
+        print("\nRecall@5 по категориям:")
         for cat, vals in sorted(by_cat.items()):
             print(f"  {cat:30s}: {statistics.mean(vals):.3f} ({len(vals)} qs)")
 

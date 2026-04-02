@@ -15,22 +15,20 @@ from __future__ import annotations
 import argparse
 import json
 import math
-import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
-
 
 # ─── Bootstrap CI ─────────────────────────────────────────────────
 
 
 def bootstrap_ci(
-    scores: List[float],
+    scores: list[float],
     B: int = 1000,
     alpha: float = 0.05,
     statistic=np.mean,
-) -> Tuple[float, float, float]:
+) -> tuple[float, float, float]:
     """Bootstrap confidence interval (percentile method).
 
     Returns: (mean, ci_lower, ci_upper).
@@ -59,7 +57,7 @@ def wilson_ci(
     successes: int,
     total: int,
     alpha: float = 0.05,
-) -> Tuple[float, float, float]:
+) -> tuple[float, float, float]:
     """Wilson score interval для пропорций (лучше normal approx для малых n).
 
     Returns: (proportion, ci_lower, ci_upper).
@@ -84,10 +82,10 @@ def wilson_ci(
 
 
 def paired_bootstrap_test(
-    scores_a: List[float],
-    scores_b: List[float],
+    scores_a: list[float],
+    scores_b: list[float],
     B: int = 10000,
-) -> Tuple[float, float, float]:
+) -> tuple[float, float, float]:
     """Paired bootstrap: is system B better than A?
 
     Returns: (mean_diff, p_value, ci_diff_95).
@@ -124,7 +122,7 @@ BINARY_METRICS = [
 ]
 
 
-def extract_metric(results: List[Dict], metric: str) -> List[float]:
+def extract_metric(results: list[dict], metric: str) -> list[float]:
     """Извлечь per-question metric values из eval results."""
     values = []
     for r in results:
@@ -135,7 +133,7 @@ def extract_metric(results: List[Dict], metric: str) -> List[float]:
     return values
 
 
-def compute_all_cis(results: List[Dict], B: int = 1000) -> Dict[str, Any]:
+def compute_all_cis(results: list[dict], B: int = 1000) -> dict[str, Any]:
     """Вычислить CIs для всех метрик."""
     cis = {}
 
@@ -170,7 +168,7 @@ def compute_all_cis(results: List[Dict], B: int = 1000) -> Dict[str, Any]:
     return cis
 
 
-def build_ci_report(cis: Dict[str, Any]) -> str:
+def build_ci_report(cis: dict[str, Any]) -> str:
     """Markdown отчёт с confidence intervals."""
     lines = [
         "# Confidence Intervals Report",

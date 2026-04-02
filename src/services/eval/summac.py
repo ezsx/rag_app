@@ -13,7 +13,7 @@ Inconsistency Detection in Summarization" (TACL 2022).
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -28,7 +28,7 @@ except ImportError:
     logger.warning("razdel не установлен, SummaC fallback на naive split. pip install razdel")
 
 
-def sentenize(text: str) -> List[str]:
+def sentenize(text: str) -> list[str]:
     """Разбить текст на предложения. razdel если доступен, иначе naive split."""
     if not text or not text.strip():
         return []
@@ -44,12 +44,12 @@ def sentenize(text: str) -> List[str]:
 class SummaCResult:
     """Результат SummaC-ZS для одного вопроса."""
     query_id: str
-    summac_faithfulness: Optional[float] = None
+    summac_faithfulness: float | None = None
     answer_sentences: int = 0
     supported_sentences: int = 0  # max_entailment ≥ threshold
     unsupported_sentences: int = 0  # max_entailment < threshold
     nli_pairs_count: int = 0
-    per_sentence: List[Dict[str, Any]] = field(default_factory=list)
+    per_sentence: list[dict[str, Any]] = field(default_factory=list)
 
 
 class SummaCVerifier:
@@ -76,7 +76,7 @@ class SummaCVerifier:
         self,
         query_id: str,
         answer: str,
-        documents: List[Dict[str, Any]],
+        documents: list[dict[str, Any]],
     ) -> SummaCResult:
         """Верифицирует answer против cited documents на уровне предложений.
 
@@ -90,7 +90,7 @@ class SummaCVerifier:
         result.answer_sentences = len(answer_sents)
 
         # Собираем все предложения из документов
-        doc_sents: List[str] = []
+        doc_sents: list[str] = []
         for doc in documents:
             text = doc.get("text", "")
             if text:
@@ -103,8 +103,8 @@ class SummaCVerifier:
             return result
 
         # Строим NLI pair matrix: каждый answer_sent × каждый doc_sent
-        all_pairs: List[Dict[str, str]] = []
-        pair_map: List[int] = []  # answer_sent index для каждой пары
+        all_pairs: list[dict[str, str]] = []
+        pair_map: list[int] = []  # answer_sent index для каждой пары
 
         for ai, a_sent in enumerate(answer_sents):
             for d_sent in doc_sents:
@@ -119,8 +119,8 @@ class SummaCVerifier:
             return result
 
         # Для каждого answer sentence — max entailment across all doc sentences
-        max_entailments: Dict[int, float] = {i: 0.0 for i in range(len(answer_sents))}
-        best_evidence: Dict[int, str] = {}
+        max_entailments: dict[int, float] = {i: 0.0 for i in range(len(answer_sents))}
+        best_evidence: dict[int, str] = {}
 
         for pair_idx, nli_res in enumerate(nli_results):
             ai = pair_map[pair_idx]
@@ -149,12 +149,12 @@ class SummaCVerifier:
         result.summac_faithfulness = round(sum(scores) / len(scores), 4) if scores else None
         return result
 
-    def _call_nli_batched(self, pairs: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+    def _call_nli_batched(self, pairs: list[dict[str, str]]) -> list[dict[str, Any]]:
         """Вызов /nli endpoint батчами."""
         if not pairs:
             return []
 
-        all_results: List[Dict[str, Any]] = []
+        all_results: list[dict[str, Any]] = []
         for i in range(0, len(pairs), self.batch_size):
             batch = pairs[i : i + self.batch_size]
             try:

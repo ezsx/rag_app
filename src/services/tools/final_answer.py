@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 def final_answer(
     *,
     answer: str,
-    sources: Optional[List[int]] = None,
-    citations: Optional[List[Dict[str, Any]]] = None,
-    verification: Optional[Dict[str, Any]] = None,
-    coverage: Optional[float] = None,
-    refinements: Optional[int] = None,
+    sources: list[int] | None = None,
+    citations: list[dict[str, Any]] | None = None,
+    verification: dict[str, Any] | None = None,
+    coverage: float | None = None,
+    refinements: int | None = None,
     **extra: Any,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Формирует финальный ответ с валидацией citations и observability."""
     normalized_answer = answer or ""
     cited_in_text = set(
@@ -43,14 +43,14 @@ def final_answer(
             "\n\n⚠️ Источники не указаны. Информация может быть неточной."
         )
 
-    payload: Dict[str, Any] = {
+    payload: dict[str, Any] = {
         "answer": normalized_answer,
         "sources": all_sources,
     }
 
     if citations:
         # Сохраняем только основные поля citation, чтобы не раздувать SSE payload.
-        norm_citations: List[Dict[str, Any]] = []
+        norm_citations: list[dict[str, Any]] = []
         for c in citations[:50]:  # hard cap to avoid oversized frames
             if isinstance(c, dict):
                 norm_citations.append(

@@ -7,7 +7,7 @@ Eval-only модуль, НЕ runtime. Проверяет grounding ответо�
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -26,9 +26,9 @@ class ClaimResult:
     """Результат NLI верификации одного claim."""
     text: str
     claim_type: str  # verifiable / common_knowledge / meta
-    nli_label: Optional[str] = None  # entailment / neutral / contradiction
+    nli_label: str | None = None  # entailment / neutral / contradiction
     nli_score: float = 0.0
-    best_document_id: Optional[str] = None
+    best_document_id: str | None = None
     best_chunk_idx: int = 0
 
 
@@ -37,8 +37,8 @@ class QuestionFaithfulness:
     """Faithfulness результат для одного вопроса."""
     query_id: str
     eval_mode: str
-    faithfulness: Optional[float] = None  # None для analytics/navigation/refusal
-    faithfulness_strict: Optional[float] = None
+    faithfulness: float | None = None  # None для analytics/navigation/refusal
+    faithfulness_strict: float | None = None
     claims_total: int = 0
     claims_verifiable: int = 0
     claims_supported: int = 0
@@ -46,8 +46,8 @@ class QuestionFaithfulness:
     claims_neutral: int = 0
     claims_common_knowledge: int = 0
     nli_pairs_count: int = 0  # фактическое число NLI пар (с учётом chunking)
-    per_claim: List[Dict[str, Any]] = field(default_factory=list)
-    contradictions: List[Dict[str, Any]] = field(default_factory=list)
+    per_claim: list[dict[str, Any]] = field(default_factory=list)
+    contradictions: list[dict[str, Any]] = field(default_factory=list)
 
 
 class NLIVerifier:
@@ -95,7 +95,7 @@ class NLIVerifier:
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
-    def _chunk_document(self, text: str) -> List[str]:
+    def _chunk_document(self, text: str) -> list[str]:
         """Разбивает длинный документ на чанки по словам (~max_doc_tokens).
 
         Приблизительный подсчёт: 1 русский токен ≈ 3-4 символа.
@@ -131,7 +131,7 @@ class NLIVerifier:
             start = end - overlap_chars
         return [c for c in chunks if c]
 
-    def _call_nli(self, pairs: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+    def _call_nli(self, pairs: list[dict[str, str]]) -> list[dict[str, Any]]:
         """Вызов /nli endpoint на gpu_server.py."""
         if not pairs:
             return []
@@ -156,8 +156,8 @@ class NLIVerifier:
         self,
         query_id: str,
         eval_mode: str,
-        claims: List[Dict[str, str]],
-        documents: List[Dict[str, Any]],
+        claims: list[dict[str, str]],
+        documents: list[dict[str, Any]],
     ) -> QuestionFaithfulness:
         """Верифицирует claims одного вопроса против cited documents.
 
@@ -227,9 +227,9 @@ class NLIVerifier:
         nli_results = self._call_nli(all_pairs)
 
         # Агрегация: per claim — best entailment + max contradiction across all doc chunks
-        claim_best: Dict[int, ClaimResult] = {}
-        claim_scores_map: Dict[int, Dict[str, float]] = {}  # best entailment scores
-        claim_max_contradiction: Dict[int, tuple] = {}  # (score, doc_id)
+        claim_best: dict[int, ClaimResult] = {}
+        claim_scores_map: dict[int, dict[str, float]] = {}  # best entailment scores
+        claim_max_contradiction: dict[int, tuple] = {}  # (score, doc_id)
         for ci, claim in enumerate(verifiable):
             claim_best[ci] = ClaimResult(
                 text=claim["text"],

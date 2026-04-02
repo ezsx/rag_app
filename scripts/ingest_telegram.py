@@ -15,14 +15,15 @@ import asyncio
 import logging
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from dateutil import parser as date_parser
 from dotenv import load_dotenv
-from telethon import TelegramClient, errors as tg_errors
+from telethon import TelegramClient
+from telethon import errors as tg_errors
 
 # payload_enrichment — в том же каталоге scripts/
 sys.path.insert(0, os.path.dirname(__file__))
@@ -103,11 +104,11 @@ def _compute_embed_retry_delay(attempt: int) -> float:
 
 async def _embed_documents_with_retry(
     embedding_client: TEIEmbeddingClient,
-    texts: List[str],
+    texts: list[str],
     *,
-    channel_hint: Optional[str],
+    channel_hint: str | None,
     batch_no: int,
-) -> List[List[float]]:
+) -> list[list[float]]:
     """Запрашивает dense embeddings с retry для transient ошибок сети/таймаутов.
 
     Если TEI временно недоступен, делаем несколько повторных попыток с backoff.
@@ -211,7 +212,7 @@ async def create_telegram_client() -> TelegramClient:
     return client
 
 
-def split_into_batches(seq: List[Any], batch_size: int):
+def split_into_batches(seq: list[Any], batch_size: int):
     for i in range(0, len(seq), batch_size):
         yield seq[i : i + batch_size]
 
@@ -221,8 +222,8 @@ async def gather_messages(
     channel: str,
     start: datetime,
     end: datetime,
-    limit: Optional[int] = None,
-) -> List[Message]:
+    limit: int | None = None,
+) -> list[Message]:
     """Fetch messages with *start* ≤ date < *end*.
 
     Telegram's API returns history in reverse-chronological order by default
@@ -230,7 +231,7 @@ async def gather_messages(
     busy channels: request messages older than *end* and stop once we cross
     *start*."""
 
-    collected: List[Message] = []
+    collected: list[Message] = []
 
     # Request messages older-than `end` (exclusive). We keep the default
     # order (newest→oldest) so once we reach dates older than `start` we can
@@ -259,13 +260,13 @@ async def gather_messages(
     return collected
 
 
-def _split_text(text: str, chunk_size: int) -> List[str]:
+def _split_text(text: str, chunk_size: int) -> list[str]:
     if chunk_size and chunk_size > 0 and len(text) > chunk_size:
         return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
     return [text]
 
 
-def _recursive_split(text: str, target: int, separators: List[str]) -> List[str]:
+def _recursive_split(text: str, target: int, separators: list[str]) -> list[str]:
     """Рекурсивно делит длинный текст по иерархии сепараторов."""
     if len(text) <= target:
         return [text]
@@ -276,7 +277,7 @@ def _recursive_split(text: str, target: int, separators: List[str]) -> List[str]
     sep = separators[0]
     rest_seps = separators[1:]
     parts = text.split(sep)
-    chunks: List[str] = []
+    chunks: list[str] = []
     current = ""
 
     for part in parts:
@@ -304,7 +305,7 @@ def _smart_chunk(
     text: str,
     threshold: int = CHUNK_CHAR_THRESHOLD,
     target: int = CHUNK_TARGET_SIZE,
-) -> List[str]:
+) -> list[str]:
     """Two-tier chunking: короткие посты целиком, длинные — recursive split."""
     if len(text) <= threshold:
         return [text]
@@ -318,7 +319,7 @@ async def _gather_with_retries(
     channel: str,
     start: datetime,
     end: datetime,
-    limit: Optional[int] = None,
+    limit: int | None = None,
     max_retries: int = 5,
 ):
     attempt = 0
@@ -353,14 +354,14 @@ async def _gather_with_retries(
 
 
 def _build_point_docs_flat(
-    source_messages: List[Message],
-    texts: List[str],
-    dense_vectors: List[List[float]],
-    sparse_results: List[Any],
+    source_messages: list[Message],
+    texts: list[str],
+    dense_vectors: list[list[float]],
+    sparse_results: list[Any],
     channel_name: str,
     chunk_size: int,
-    colbert_vectors: Optional[List[List[List[float]]]] = None,
-) -> List[PointDocument]:
+    colbert_vectors: list[list[list[float]]] | None = None,
+) -> list[PointDocument]:
     """
     Flat-вариант построения PointDocument, где `source_messages[i] ↔ texts[i]`.
 
@@ -368,9 +369,9 @@ def _build_point_docs_flat(
     Для стабильного upsert `point_id` строится только от `channel_id`,
     чтобы rename канала или разный CLI hint не меняли UUID точки.
     """
-    docs: List[PointDocument] = []
-    msg_chunk_counter: Dict[int, int] = {}
-    msg_chunk_totals: Dict[int, int] = {}
+    docs: list[PointDocument] = []
+    msg_chunk_counter: dict[int, int] = {}
+    msg_chunk_totals: dict[int, int] = {}
 
     for message in source_messages:
         msg_chunk_totals[int(message.id)] = msg_chunk_totals.get(int(message.id), 0) + 1
@@ -385,7 +386,7 @@ def _build_point_docs_flat(
         else:
             point_id = f"{stable_channel_id}:{int(message.id)}"
 
-        author: Optional[str] = None
+        author: str | None = None
         sender = getattr(message, "sender", None)
         if sender is not None:
             first = getattr(sender, "first_name", None) or ""
@@ -420,18 +421,18 @@ def _build_point_docs_flat(
 
 
 async def ingest_batches(
-    messages: List[Message],
+    messages: list[Message],
     batch_size: int,
     embedding_client: TEIEmbeddingClient,
     sparse_encoder: SparseTextEmbedding,
     qdrant_store: QdrantStore,
-    channel_hint: Optional[str] = None,
+    channel_hint: str | None = None,
     chunk_size: int = 0,
     chunk_char_threshold: int = CHUNK_CHAR_THRESHOLD,
     chunk_target_size: int = CHUNK_TARGET_SIZE,
-    progress_cb: Optional[Any] = None,
+    progress_cb: Any | None = None,
     log_every: int = 200,
-) -> Dict[str, int]:
+) -> dict[str, int]:
     """
     Основной цикл инжеста: Telegram messages → TEI dense → fastembed sparse → Qdrant.
     """
@@ -452,8 +453,8 @@ async def ingest_batches(
         ),
         start=1,
     ):
-        texts: List[str] = []
-        source_messages: List[Message] = []
+        texts: list[str] = []
+        source_messages: list[Message] = []
 
         for message in batch:
             text_full = (message.message or "").strip()
@@ -584,14 +585,14 @@ def _to_utc_naive(dt: datetime) -> datetime:
     Telegram timestamps (which Telethon returns as naive UTC)."""
     if dt.tzinfo is None:
         return dt
-    return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt.astimezone(UTC).replace(tzinfo=None)
 
 
 def load_state(
     path: str = os.path.join(
         os.path.dirname(__file__), "sessions", "telegram_ingest.state.json"
     )
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     try:
         import json
 
@@ -601,7 +602,7 @@ def load_state(
                 "[checkpoint] state файл отсутствует: %s (пока не используется)", path
             )
             return {}
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         logger.warning("[checkpoint] не удалось загрузить state: %s", e)
@@ -609,7 +610,7 @@ def load_state(
 
 
 def save_state(
-    state: Dict[str, Any],
+    state: dict[str, Any],
     path: str = os.path.join(
         os.path.dirname(__file__), "sessions", "telegram_ingest.state.json"
     ),
@@ -629,7 +630,7 @@ async def main() -> None:
     args = _parse_args()
     logger.setLevel(args.log_level.upper())
 
-    channels: List[str] = []
+    channels: list[str] = []
     if getattr(args, "channel", None):
         channels.append(args.channel)
     if getattr(args, "channels", None):
@@ -682,7 +683,7 @@ async def main() -> None:
     total_processed = 0
     total_written_qdrant = 0
 
-    def _progress_cb(batch_stats: Dict[str, Any]) -> Dict[str, Any]:
+    def _progress_cb(batch_stats: dict[str, Any]) -> dict[str, Any]:
         nonlocal total_processed, total_written_qdrant
         total_processed += int(batch_stats.get("batch_size", 0))
         total_written_qdrant = int(batch_stats.get("written_qdrant", 0))

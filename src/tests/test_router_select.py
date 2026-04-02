@@ -10,7 +10,8 @@ def test_router_select_entity():
 
 
 def test_router_select_conversational():
-    r = router_select("почему вырос курс нефти в 2023?")
+    # Длинный разговорный запрос без чисел → dense
+    r = router_select("почему вырос курс нефти и как это связано с санкциями на импорт")
     assert r["route"] in ("dense", "hybrid")
 
 

@@ -12,7 +12,7 @@ import json
 import logging
 import os
 import urllib.request
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ def _get_client():
     return QdrantClient(url=_get_qdrant_url())
 
 
-def _embed_query(text: str) -> List[float]:
+def _embed_query(text: str) -> list[float]:
     """Embed query через gpu_server для vector search."""
     payload = json.dumps({"inputs": [text]}).encode()
     req = urllib.request.Request(
@@ -48,10 +48,10 @@ def _embed_query(text: str) -> List[float]:
 def channel_expertise(
     *,
     hybrid_retriever: Any = None,  # не используется
-    channel: Optional[str] = None,
-    topic: Optional[str] = None,
+    channel: str | None = None,
+    topic: str | None = None,
     metric: str = "authority",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Возвращает channel profiles / ranking / topic-based search.
 
     Modes:
@@ -75,10 +75,10 @@ def channel_expertise(
 
     except Exception as e:
         logger.error("channel_expertise error: %s", e, exc_info=True)
-        return {"error": f"Ошибка: {str(e)}"}
+        return {"error": f"Ошибка: {e!s}"}
 
 
-def _get_channel_profile(client, channel: str) -> Dict[str, Any]:
+def _get_channel_profile(client, channel: str) -> dict[str, Any]:
     """Получить профиль конкретного канала."""
     from qdrant_client import models
 
@@ -114,7 +114,7 @@ def _get_channel_profile(client, channel: str) -> Dict[str, Any]:
     }
 
 
-def _search_by_topic(client, topic: str, metric: str, top_n: int = 10) -> Dict[str, Any]:
+def _search_by_topic(client, topic: str, metric: str, top_n: int = 10) -> dict[str, Any]:
     """Vector search по profile summaries → каналы-эксперты по теме."""
     query_vector = _embed_query(topic)
 
@@ -148,7 +148,7 @@ def _search_by_topic(client, topic: str, metric: str, top_n: int = 10) -> Dict[s
     }
 
 
-def _get_ranking(client, metric: str, top_n: int = 15) -> Dict[str, Any]:
+def _get_ranking(client, metric: str, top_n: int = 15) -> dict[str, Any]:
     """Ranking всех каналов по metric."""
     results = client.scroll(
         collection_name=_PROFILES_COLLECTION,

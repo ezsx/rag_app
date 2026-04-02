@@ -6,11 +6,12 @@
     PYTHONPATH=src python3 scripts/smoke_test_analytics.py
 """
 import sys
+
 sys.path.insert(0, "src")
 
-from services.tools.entity_tracker import entity_tracker, _normalize_entity, _load_alias_map
-from services.tools.arxiv_tracker import arxiv_tracker
 from core.deps import get_hybrid_retriever
+from services.tools.arxiv_tracker import arxiv_tracker
+from services.tools.entity_tracker import _load_alias_map, _normalize_entity, entity_tracker
 
 
 def main():

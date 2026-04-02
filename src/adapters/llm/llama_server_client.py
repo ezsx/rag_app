@@ -15,7 +15,7 @@ Docker-контейнер обращается по: http://host.docker.internal
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 
@@ -52,18 +52,18 @@ class LlamaServerClient:
         top_p: float = 0.95,
         top_k: int = 40,
         repeat_penalty: float = 1.1,
-        stop: Optional[List[str]] = None,
-        seed: Optional[int] = None,
-        logit_bias: Optional[Dict[int, float]] = None,
-        grammar: Optional[str] = None,
+        stop: list[str] | None = None,
+        seed: int | None = None,
+        logit_bias: dict[int, float] | None = None,
+        grammar: str | None = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Вызывает /v1/completions и возвращает ответ в формате llama_cpp.
 
         Returns:
             {"choices": [{"text": "...", "finish_reason": "stop"}], ...}
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "prompt": prompt,
             "max_tokens": max_tokens,
             "temperature": temperature,
@@ -109,16 +109,16 @@ class LlamaServerClient:
 
     def chat_completion(
         self,
-        messages: List[Dict[str, Any]],
-        tools: Optional[List[Dict[str, Any]]] = None,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
         max_tokens: int = 512,
         temperature: float = 0.7,
         top_p: float = 0.8,
         top_k: int = 20,
         presence_penalty: float = 1.5,
-        stop: Optional[List[str]] = None,
-        seed: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        stop: list[str] | None = None,
+        seed: int | None = None,
+    ) -> dict[str, Any]:
         """
         Вызывает `/v1/chat/completions` с поддержкой native function calling.
 
@@ -126,7 +126,7 @@ class LlamaServerClient:
         (`qa_service`, `query_planner_service`). Этот метод используется
         агентом с `messages` и `tools` schema.
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "messages": messages,
             "max_tokens": max_tokens,
             "temperature": temperature,
@@ -234,7 +234,7 @@ class LlamaServerClient:
                 pass
             return data
 
-    def tokenize(self, text: bytes, add_bos: bool = True) -> List[int]:
+    def tokenize(self, text: bytes, add_bos: bool = True) -> list[int]:
         """Токенизирует текст через /tokenize endpoint.
 
         Метод оставлен для совместимости со старыми вызовами и отладкой токенизации.

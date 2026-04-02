@@ -5,7 +5,7 @@ Unit-тесты для ключевых функций scripts/ingest_telegram.p
 from __future__ import annotations
 
 import importlib.util
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
@@ -32,7 +32,7 @@ def _make_message(msg_id: int, text: str, chat_id: int = 100) -> MagicMock:
     msg.id = msg_id
     msg.chat_id = chat_id
     msg.message = text
-    msg.date = datetime(2024, 6, 1, tzinfo=timezone.utc)
+    msg.date = datetime(2024, 6, 1, tzinfo=UTC)
     msg.sender = None
     msg.reply_to_msg_id = None
     msg.views = None

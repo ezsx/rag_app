@@ -11,7 +11,6 @@ pplx-embed-v1-0.6B НЕ использует instruction prefix —
 from __future__ import annotations
 
 import logging
-from typing import List
 
 import httpx
 
@@ -77,7 +76,7 @@ class TEIEmbeddingClient:
 
         logger.info("TEIEmbeddingClient инициализирован: %s", self.base_url)
 
-    async def embed_query(self, text: str) -> List[float]:
+    async def embed_query(self, text: str) -> list[float]:
         """
         Встраивает один поисковый запрос.
 
@@ -93,7 +92,7 @@ class TEIEmbeddingClient:
 
         return vec
 
-    def _apply_whitening(self, vec: List[float]) -> List[float]:
+    def _apply_whitening(self, vec: list[float]) -> list[float]:
         """PCA whitening: center → project → scale → normalize."""
         import numpy as np
         x = np.array(vec, dtype=np.float32)
@@ -105,7 +104,7 @@ class TEIEmbeddingClient:
             whitened = whitened / norm
         return whitened.tolist()
 
-    async def embed_documents(self, texts: List[str]) -> List[List[float]]:
+    async def embed_documents(self, texts: list[str]) -> list[list[float]]:
         """
         Батчевое встраивание документов для ingest.
 
@@ -126,8 +125,8 @@ class TEIEmbeddingClient:
         return await self._embed_batch(prefixed, normalize=True)
 
     async def _embed_batch(
-        self, texts: List[str], normalize: bool = True, max_batch: int = 32
-    ) -> List[List[float]]:
+        self, texts: list[str], normalize: bool = True, max_batch: int = 32
+    ) -> list[list[float]]:
         """Внутренний метод: POST /embed с автоматическим разбиением на суб-батчи.
 
         TEI имеет серверный лимит на размер батча (обычно 32).
@@ -136,7 +135,7 @@ class TEIEmbeddingClient:
         if not texts:
             return []
 
-        all_vectors: List[List[float]] = []
+        all_vectors: list[list[float]] = []
         for i in range(0, len(texts), max_batch):
             chunk = texts[i : i + max_batch]
             try:
@@ -145,7 +144,7 @@ class TEIEmbeddingClient:
                     json={"inputs": chunk, "normalize": normalize},
                 )
                 response.raise_for_status()
-                vectors: List[List[float]] = response.json()
+                vectors: list[list[float]] = response.json()
                 all_vectors.extend(vectors)
                 logger.debug(
                     "TEI embed: sub-batch %d-%d → %d векторов",
