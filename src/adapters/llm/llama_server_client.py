@@ -118,6 +118,7 @@ class LlamaServerClient:
         presence_penalty: float = 1.5,
         stop: list[str] | None = None,
         seed: int | None = None,
+        response_format: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         """
         Вызывает `/v1/chat/completions` с поддержкой native function calling.
@@ -144,6 +145,8 @@ class LlamaServerClient:
             payload["model"] = self.model
         if tools:
             payload["tools"] = tools
+        if response_format:
+            payload["response_format"] = response_format
         if stop:
             payload["stop"] = stop
         if seed is not None:

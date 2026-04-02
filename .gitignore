@@ -49,3 +49,7 @@ datasets/bertopic_model/
 # MCP tool state
 .serena/memories/
 .serena/cache/
+
+# Local notes (not for repo)
+fix_tcc.md
+nul

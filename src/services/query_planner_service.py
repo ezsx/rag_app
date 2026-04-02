@@ -5,14 +5,49 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeoutError
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from core.observability import observe_span
 from core.settings import Settings, get_settings
 from schemas.search import MetadataFilters, SearchPlan
-from utils.gbnf import gbnf_selfcheck, get_searchplan_grammar, get_string_array_grammar
+from services.planner_prompts import (
+    PLANNER_SYSTEM_PROMPT,
+    PLANNER_USER_PROMPT,
+)
 
 logger = logging.getLogger(__name__)
+
+
+# ── Stopword dictionaries (loaded once) ──────────────────────────
+def _load_stopwords() -> dict[str, list[str]]:
+    """Загружает словари из datasets/planner_stopwords.json."""
+    candidates = [
+        Path(__file__).resolve().parent.parent.parent / "datasets" / "planner_stopwords.json",
+        Path("datasets/planner_stopwords.json"),
+    ]
+    for p in candidates:
+        if p.is_file():
+            with open(p, encoding="utf-8") as f:
+                return json.load(f)
+    logger.warning("planner_stopwords.json not found, using empty dictionaries")
+    return {}
+
+
+_STOPWORDS = _load_stopwords()
+_SQL_KEYWORDS: list[str] = _STOPWORDS.get("sql_keywords", [])
+_IMPERATIVE_RU: list[str] = _STOPWORDS.get("imperative_verbs_ru", [])
+_IMPERATIVE_EN: list[str] = _STOPWORDS.get("imperative_verbs_en", [])
+_FILLER_RU: list[str] = _STOPWORDS.get("filler_words_ru", [])
+
+# Compiled regex для фильтрации (word boundary + case insensitive)
+_SQL_PATTERNS = [re.compile(rf"\b{w}\b", re.IGNORECASE) for w in _SQL_KEYWORDS]
+_IMPERATIVE_PATTERNS = [
+    re.compile(rf"\b{w}\b", re.IGNORECASE) for w in _IMPERATIVE_RU + _IMPERATIVE_EN
+]
+# Единый regex для удаления стоп-слов из фраз
+_STRIP_WORDS = _IMPERATIVE_RU + _IMPERATIVE_EN + _SQL_KEYWORDS + _FILLER_RU
+_STRIP_RE = re.compile(r"\b(" + "|".join(re.escape(w) for w in _STRIP_WORDS) + r")\b", re.IGNORECASE) if _STRIP_WORDS else None
 
 
 class _TTLCache:
@@ -44,24 +79,7 @@ class QueryPlannerService:
         self._plan_cache = _TTLCache(default_ttl_seconds=600)
         self._fusion_cache = _TTLCache(default_ttl_seconds=300)
 
-        # Фиксированный seed для стабильности генераций планировщика
         self._seed: int = 42
-
-        # GBNF грамматика (инициализируется один раз)
-        self._grammar = None
-        if getattr(self.settings, "use_gbnf_planner", False):
-            try:
-                try:
-                    gbnf_selfcheck()
-                    logger.info("QueryPlanner: GBNF self-check passed")
-                except Exception as _e:
-                    logger.warning("QueryPlanner: GBNF self-check failed: %s", _e)
-                self._grammar = get_searchplan_grammar()
-                logger.info("QueryPlanner: GBNF grammar initialized")
-            except Exception as e:
-                logger.warning(
-                    "QueryPlanner: GBNF init failed: %s. Will use fallback", e
-                )
 
     # Строгая JSON-схема ответа планировщика (для llama.cpp json_schema)
     JSON_SCHEMA: dict[str, Any] = {
@@ -137,44 +155,27 @@ class QueryPlannerService:
 
     @staticmethod
     def _is_sql_like_or_imperative(text: str) -> bool:
-        """Фильтруем SQL/DSL и императивные команды, бесполезные для dense/BM25."""
+        """Фильтруем SQL/DSL и императивные команды, бесполезные для dense/BM25.
+
+        Словари загружаются из datasets/planner_stopwords.json.
+        """
         t = (text or "").lower()
-        sql_patterns = [
-            r"\bselect\b",
-            r"\bfrom\b",
-            r"\bwhere\b",
-            r"\border\s+by\b",
-            r"\bgroup\s+by\b",
-            r"\binsert\b",
-            r"\bupdate\b",
-            r"\bdelete\b",
-            r"\bjoin\b",
-        ]
-        imperative_patterns = [
-            r"\bвытяни\b",
-            r"\bнайди\b",
-            r"\bскажи\b",
-            r"\bпокажи\b",
-            r"\bизвлеки\b",
-            r"\bсделай\b",
-        ]
-        return any(re.search(p, t) for p in sql_patterns + imperative_patterns)
+        return any(p.search(t) for p in _SQL_PATTERNS + _IMPERATIVE_PATTERNS)
 
     @staticmethod
     def _process_phrase(text: str) -> str:
-        """Санитизация фразы: убираем императивы/SQL-слова, сжимаем до 12 слов."""
+        """Санитизация фразы: убираем императивы/SQL/filler-слова, сжимаем до 12 слов.
+
+        Словари загружаются из datasets/planner_stopwords.json.
+        """
         s = QueryPlannerService._normalize_phrase(text)
-        s = re.sub(r"\b(вытяни|найди|скажи|покажи|извлеки|сделай)\b", "", s)
-        s = re.sub(
-            r"\b(select|from|where|order|group|by|insert|update|delete|join)\b", "", s
-        )
-        s = re.sub(r"\b(если|пожалуйста|прошу|что|когда|как)\b", "", s)
+        if _STRIP_RE:
+            s = _STRIP_RE.sub("", s)
         s = re.sub(r"\s+", " ", s).strip()
-        words = [w for w in s.split(" ") if w]
+        words = [w for w in s.split() if w]
         if len(words) > 12:
             words = words[:12]
-        s = " ".join(words)
-        return s
+        return " ".join(words)
 
     @staticmethod
     def _dedupe_preserve_order(items: list[str]) -> list[str]:
@@ -370,9 +371,6 @@ class QueryPlannerService:
             "stop": self.settings.planner_stop_list,
         }
 
-        if self._grammar:
-            kwargs["grammar"] = self._grammar
-
         timeout_sec = max(float(self.settings.planner_timeout), 0.1)
 
         import contextvars
@@ -396,6 +394,7 @@ class QueryPlannerService:
                     top_p=kwargs.get("top_p", 0.9),
                     top_k=kwargs.get("top_k", 40),
                     seed=42,
+                    response_format={"type": "json_object"},
                 )
                 # Адаптируем формат ответа к completions-compatible
                 content = resp.get("choices", [{}])[0].get("message", {}).get("content", "")
@@ -414,7 +413,7 @@ class QueryPlannerService:
                 )
 
     def _generate_plan(self, query: str) -> SearchPlan:
-        """Генерирует план поиска через LLM с GBNF грамматикой."""
+        """Генерирует план поиска через LLM (chat_completion + json_object)."""
         prompt = self._build_prompt(query)
 
         try:
@@ -526,111 +525,13 @@ class QueryPlannerService:
         return system, user
 
     def _build_prompt(self, query: str) -> str:
-        return f"""<s>system
-Ты — помощник-планировщик для семантического поиска по Telegram данным. Верни строго JSON, без пояснений снаружи.
-
-ПРАВИЛА:
-- normalized_queries: 3–6 коротких подзапросов (ключевые слова/словосочетания), без глаголов и лишних слов, 3–8 слов каждый.
-- Фокус: сущности (модели, версии), предмет (что ищем), уточнения (API, тарифы, дата), без фраз типа «вытяни/скажи/если нет данных».
-- must_phrases: обязательные точные маркеры (например, названия моделей: DeepSeek-V3.1, API, тарифы).
-- should_phrases: полезные, но необязательные уточнения (цены, стоимость, прайс, дата вступления и т.п.).
-- Если видны даты в запросе — metadata_filters.date_from/date_to (ISO YYYY-MM-DD), иначе null.
-- Остальные фильтры (channel_usernames, channel_ids, min_views, reply_to) заполняй только если явно просили.
-- k_per_query разумное значение (по умолчанию {self.settings.search_k_per_query_default}).
-- fusion — "rrf" или "mmr" (по умолчанию {self.settings.fusion_strategy}).
-- strategy — одно из: "broad", "temporal", "channel", "entity":
-  * "temporal" — запрос упоминает конкретные даты, месяцы, периоды, "недавно", "последний"
-  * "channel" — запрос упоминает конкретный Telegram-канал или автора канала
-  * "entity" — запрос о конкретном продукте, компании, человеке, технологии (NVIDIA, GPT-5, Claude)
-  * "broad" — default для общих, сравнительных, обзорных запросов
-
-ПРИМЕР:
-Запрос: "Найди новости про DeepSeek-V3.1: новые цены API, когда вступают" ->
-{{
-  "normalized_queries": [
-    "DeepSeek-V3.1 API цены",
-    "изменение тарифов DeepSeek API",
-    "дата вступления новых тарифов"
-  ],
-  "must_phrases": ["DeepSeek-V3.1", "API", "тарифы"],
-  "should_phrases": ["цены", "стоимость", "дата вступления"],
-  "metadata_filters": null,
-  "k_per_query": {self.settings.search_k_per_query_default},
-  "fusion": "{self.settings.fusion_strategy}",
-  "strategy": "entity"
-}}
-
-ФОРМАТ ОТВЕТА (ТОЛЬКО JSON):
-{{
-  "normalized_queries": ["..."],
-  "must_phrases": ["..."],
-  "should_phrases": ["..."],
-  "metadata_filters": {{
-      "channel_usernames": ["@..."],
-      "channel_ids": [123],
-      "date_from": "YYYY-MM-DD",
-      "date_to": "YYYY-MM-DD",
-      "min_views": 0,
-      "reply_to": 123
-  }},
-  "k_per_query": {self.settings.search_k_per_query_default},
-  "fusion": "{self.settings.fusion_strategy}",
-  "strategy": "broad"
-}}
-</s>
-<s>user
-Построй поисковый план для запроса (на русском): {query}
-</s>
-<s>bot
-"""
-
-    def _generate_additional_queries(
-        self, user_query: str, have: list[str], need: int
-    ) -> list[str]:
-        """Догенерация недостающих подзапросов через микро-GBNF массив строк.
-
-        Возвращает новые подзапросы (без дублей и шума).
-        """
-        if need <= 0:
-            return []
-        try:
-            prompt = (
-                f"<s>system\n"
-                f"Ты — планировщик. Добавь ещё {need} коротких нормализованных подзапросов по теме пользовательского запроса.\n"
-                f"Ответь строго JSON-массивом строк без пояснений.\n"
-                f"</s>\n<s>user\nЗапрос: {user_query}\nУже есть: {have}\n</s>\n<s>bot"
-            )
-            grammar = get_string_array_grammar(need)
-            res = self.llm(
-                prompt,
-                grammar=grammar,
-                temperature=0.2,
-                top_p=0.9,
-                top_k=40,
-                repeat_penalty=1.2,
-                max_tokens=128,
-                seed=self._seed,
-            )
-            text = (res["choices"][0].get("text") or "").strip()
-            items = json.loads(text) if text else []
-            have_set = {self._normalize_phrase(x) for x in have}
-            result: list[str] = []
-            for it in items:
-                s = self._normalize_phrase(str(it))
-                if not s or self._is_sql_like_or_imperative(s):
-                    continue
-                words = [w for w in re.split(r"\s+", s) if w]
-                if len(words) > 12:
-                    words = words[:12]
-                if len(words) == 1 and len(words[0]) < 3:
-                    continue
-                norm = " ".join(words)
-                if norm and norm not in have_set:
-                    result.append(norm)
-            return result
-        except Exception as e:
-            logger.warning("QueryPlanner[dogen] failed: %s", e)
-            return []
+        """Собирает prompt из шаблонов в planner_prompts.py."""
+        system = PLANNER_SYSTEM_PROMPT.format(
+            k_default=self.settings.search_k_per_query_default,
+            fusion_default=self.settings.fusion_strategy,
+        )
+        user = PLANNER_USER_PROMPT.format(query=query)
+        return f"<s>system\n{system}\n</s>\n<s>user\n{user}\n</s>\n<s>bot\n"
 
     # Публичный доступ к кешу результатов фьюжна
     def get_cached_fusion(self, key: str):
