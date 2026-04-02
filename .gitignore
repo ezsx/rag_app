@@ -42,3 +42,10 @@ test_*.json
 # Results & reports (generated, inside container and host)
 /results/
 src/results/
+
+# Binary models (regeneratable)
+datasets/bertopic_model/
+
+# MCP tool state
+.serena/memories/
+.serena/cache/

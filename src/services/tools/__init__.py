@@ -13,7 +13,6 @@ from .list_channels import list_channels
 from .query_plan import query_plan
 from .related_posts import related_posts
 from .rerank import rerank
-from .router_select import router_select
 from .search import search
 from .summarize_channel import summarize_channel
 from .verify import verify
@@ -30,7 +29,6 @@ __all__ = [
     "query_plan",
     "related_posts",
     "rerank",
-    "router_select",
     "search",
     "summarize_channel",
     "verify",

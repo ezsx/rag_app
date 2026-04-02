@@ -19,7 +19,6 @@ from schemas.agent import (
     AgentRequest,
     AgentStepEvent,
 )
-from services.qa_service import QAService
 from services.query_signals import extract_query_signals
 from services.tools.tool_runner import ToolRunner
 
@@ -62,12 +61,10 @@ class AgentService:
         llm_factory: Callable,
         tool_runner: ToolRunner,
         settings: Settings,
-        qa_service: QAService | None = None,
     ) -> None:
         self.llm_factory = llm_factory
         self.tool_runner = tool_runner
         self.settings = settings
-        self.qa_service = qa_service
         self.system_prompt = SYSTEM_PROMPT
 
     def get_available_tools(self) -> dict[str, Any]:

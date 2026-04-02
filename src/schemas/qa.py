@@ -67,38 +67,6 @@ class SearchResponse(BaseModel):
     collection_used: str = Field(..., description="Использованная коллекция")
 
 
-# === Схемы для управления коллекциями ===
-
-
-class CollectionInfo(BaseModel):
-    """Информация о коллекции ChromaDB"""
-
-    name: str = Field(..., description="Название коллекции")
-    count: int = Field(..., description="Количество документов")
-    metadata: dict[str, Any] = Field({}, description="Метаданные коллекции")
-
-
-class CollectionsResponse(BaseModel):
-    """Список коллекций"""
-
-    collections: list[CollectionInfo] = Field(..., description="Список коллекций")
-    current_collection: str = Field(..., description="Текущая активная коллекция")
-
-
-class SelectCollectionRequest(BaseModel):
-    """Запрос для выбора коллекции"""
-
-    collection_name: str = Field(..., description="Название коллекции", min_length=1)
-
-
-class SelectCollectionResponse(BaseModel):
-    """Ответ на выбор коллекции"""
-
-    collection_name: str = Field(..., description="Выбранная коллекция")
-    document_count: int = Field(..., description="Количество документов в коллекции")
-    message: str = Field(..., description="Сообщение об успехе")
-
-
 # === Схемы для управления моделями ===
 
 

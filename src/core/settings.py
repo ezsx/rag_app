@@ -8,7 +8,7 @@ Singleton через get_settings().
 import logging
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
@@ -150,7 +150,8 @@ class Settings(BaseSettings):
         """planner_stop как список (разделитель ||)."""
         return self.planner_stop.split("||")
 
-    def model_post_init(self, __context) -> None:
+    @model_validator(mode="after")
+    def _log_settings(self) -> "Settings":
         """Логирование после инициализации."""
         logger.info(
             "Настройки загружены: LLM=%s, Embedding=%s, Qdrant=%s/%s, "
@@ -164,6 +165,7 @@ class Settings(BaseSettings):
             self.coverage_threshold,
             self.max_refinements,
         )
+        return self
 
     def update_llm_model(self, model_key: str) -> None:
         """Горячая смена LLM модели. Сбрасывает lru_cache фабрик."""

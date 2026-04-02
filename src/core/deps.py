@@ -197,7 +197,6 @@ def get_agent_service() -> AgentService:
     from services.tools.query_plan import query_plan
     from services.tools.related_posts import related_posts
     from services.tools.rerank import rerank
-    from services.tools.router_select import router_select
     from services.tools.search import search
     from services.tools.summarize_channel import summarize_channel
     from services.tools.verify import verify
@@ -222,7 +221,6 @@ def get_agent_service() -> AgentService:
     def rerank_wrapper(**kwargs):
         return rerank(reranker=reranker, **kwargs)
 
-    tool_runner.register("router_select", router_select)
     tool_runner.register(
         "query_plan", query_plan_wrapper, timeout_sec=settings.planner_timeout
     )
@@ -285,11 +283,8 @@ def get_agent_service() -> AgentService:
     def _llm_factory():
         return get_llm()
 
-    qa_service = get_qa_service()
-
     return AgentService(
         llm_factory=_llm_factory,
         tool_runner=tool_runner,
         settings=settings,
-        qa_service=qa_service,
     )

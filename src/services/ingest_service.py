@@ -145,8 +145,6 @@ class IngestJobManager:
                 resolve_embedding_model,
             )
 
-            from core.deps import release_llm_vram_temporarily
-
             request = job.request
 
             # Определяем устройство
@@ -194,54 +192,52 @@ class IngestJobManager:
                 total_processed_all = 0
                 total_messages_all = 0
 
-                # Временное освобождение VRAM LLM (если он загружен), чтобы не блокировать cuda VRAM
-                async with release_llm_vram_temporarily():
-                    for ch in chs:
-                        job.add_log(
-                            f"▶ Старт канала {ch}: {start_date.date()}→{end_date.date()}"
-                        )
-                        # Сбор сообщений с ретраями
-                        job.add_log("Сбор сообщений (с ретраями)...")
-                        messages = await _gather_with_retries(
-                            client, ch, start_date, end_date, request.max_messages
-                        )
-                        if not messages:
-                            job.add_log(f"Канал {ch}: сообщений не найдено — пропуск")
-                            continue
-                        job.add_log(f"Канал {ch}: получено {len(messages)} сообщений")
-                        total_messages_all += len(messages)
+                for ch in chs:
+                    job.add_log(
+                        f"▶ Старт канала {ch}: {start_date.date()}→{end_date.date()}"
+                    )
+                    # Сбор сообщений с ретраями
+                    job.add_log("Сбор сообщений (с ретраями)...")
+                    messages = await _gather_with_retries(
+                        client, ch, start_date, end_date, request.max_messages
+                    )
+                    if not messages:
+                        job.add_log(f"Канал {ch}: сообщений не найдено — пропуск")
+                        continue
+                    job.add_log(f"Канал {ch}: получено {len(messages)} сообщений")
+                    total_messages_all += len(messages)
 
-                        # Оценка времени и батчей
-                        estimated_time = estimate_processing_time(
-                            len(messages), batch_size, device
-                        )
-                        est_batches = (len(messages) + batch_size - 1) // batch_size
-                        job.add_log(
-                            f"Оценка: {estimated_time}, батчей ~{est_batches} (batch_size={batch_size})"
-                        )
+                    # Оценка времени и батчей
+                    estimated_time = estimate_processing_time(
+                        len(messages), batch_size, device
+                    )
+                    est_batches = (len(messages) + batch_size - 1) // batch_size
+                    job.add_log(
+                        f"Оценка: {estimated_time}, батчей ~{est_batches} (batch_size={batch_size})"
+                    )
 
-                        # Инжест с прогрессом и возвратом статистики
-                        stats = await ingest_batches(
-                            request.collection,
-                            collection,
-                            messages,
-                            batch_size,
-                            chunk_size=int(getattr(request, "chunk_size", 0) or 0),
-                            channel_hint=ch,
-                            progress_cb=None,
-                            log_every=200,
-                        )
-                        total_processed_all += int(stats.get("processed_in_channel", 0))
-                        job.messages_processed = total_processed_all
-                        job.total_messages = total_messages_all
-                        job.progress = (
-                            (job.messages_processed / job.total_messages)
-                            if job.total_messages
-                            else 0.0
-                        )
-                        job.add_log(
-                            f"✔ Завершён канал {ch}: read={stats.get('processed_in_channel', 0)} chroma={stats.get('written_chroma', 0)} bm25={stats.get('written_bm25', 0)}"
-                        )
+                    # Инжест с прогрессом и возвратом статистики
+                    stats = await ingest_batches(
+                        request.collection,
+                        collection,
+                        messages,
+                        batch_size,
+                        chunk_size=int(getattr(request, "chunk_size", 0) or 0),
+                        channel_hint=ch,
+                        progress_cb=None,
+                        log_every=200,
+                    )
+                    total_processed_all += int(stats.get("processed_in_channel", 0))
+                    job.messages_processed = total_processed_all
+                    job.total_messages = total_messages_all
+                    job.progress = (
+                        (job.messages_processed / job.total_messages)
+                        if job.total_messages
+                        else 0.0
+                    )
+                    job.add_log(
+                        f"✔ Завершён канал {ch}: read={stats.get('processed_in_channel', 0)} chroma={stats.get('written_chroma', 0)} bm25={stats.get('written_bm25', 0)}"
+                    )
 
                 # Завершаем успешно
                 final_count = collection.count()
