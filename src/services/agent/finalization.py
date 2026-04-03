@@ -1,7 +1,7 @@
 """
 SPEC-RAG-20c Step 7: Final answer preparation — build payload, refusal trim, verify.
 
-Ответственность: подготовка и проверка финального ответа перед SSE yield.
+Responsible for preparing and validating the final answer before SSE yield.
 """
 
 from __future__ import annotations

@@ -196,7 +196,7 @@ class HybridRetriever:
             return results
 
     def search(self, query: str, k: int = 10, **_kwargs) -> list[dict[str, Any]]:
-        """Compatibility shim для QAService и /v1/search."""
+        """Convenience wrapper used by QAService and /v1/search."""
         plan = SearchPlan(
             normalized_queries=[query],
             k_per_query=k,

@@ -1,9 +1,9 @@
 """
-SPEC-RAG-20c Step 3: Agent state — per-request isolation через ContextVar.
+SPEC-RAG-20c Step 3: Agent state — per-request isolation via ContextVar.
 
-AgentState: динамическое состояние агента между шагами.
-RequestContext: per-request контекст (ContextVar isolation, SPEC-RAG-17 FIX-01).
-apply_action_state: обновление state после tool execution.
+AgentState: dynamic agent state across steps.
+RequestContext: per-request context (ContextVar isolation, SPEC-RAG-17 FIX-01).
+apply_action_state: state update after tool execution.
 """
 
 from __future__ import annotations

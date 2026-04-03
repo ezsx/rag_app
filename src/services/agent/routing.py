@@ -1,7 +1,7 @@
 """
-SPEC-RAG-20c Step 2: Data-driven routing и policies из tool_keywords.json.
+SPEC-RAG-20c Step 2: Data-driven routing and policies from tool_keywords.json.
 
-Вынесено из agent_service.py. Lazy load + global cache.
+Extracted from agent_service.py.  Lazy load + global cache.
 """
 
 from __future__ import annotations

@@ -4,7 +4,6 @@
 
 import asyncio
 import logging
-import traceback
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -130,192 +129,16 @@ class IngestJobManager:
         job.task = asyncio.create_task(self._run_ingestion(job))
 
     async def _run_ingestion(self, job: IngestJob):
-        """Основная функция выполнения ingestion"""
-        try:
-            from dateutil import parser as date_parser
-            from scripts.ingest_telegram import (  # type: ignore[attr-defined]
-                _gather_with_retries,
-                _to_utc_naive,
-                create_chroma_collection,
-                create_telegram_client,
-                detect_optimal_device,
-                estimate_processing_time,
-                get_optimal_batch_size,
-                ingest_batches,
-                resolve_embedding_model,
-            )
+        """Run ingestion job.
 
-            request = job.request
-
-            # Определяем устройство
-            if request.device == "auto":
-                device = detect_optimal_device()
-            else:
-                device = request.device
-            job.add_log(f"Используем устройство: {device}")
-
-            # Определяем модель embedding
-            embed_model = resolve_embedding_model(None, None)
-            job.add_log(f"Embedding модель: {embed_model}")
-
-            # Определяем batch size
-            batch_size = get_optimal_batch_size(device)
-            job.add_log(f"Размер batch: {batch_size}")
-
-            # Парсим даты
-            start_date = _to_utc_naive(date_parser.isoparse(request.since))
-            end_date = _to_utc_naive(date_parser.isoparse(request.until))
-            job.add_log(f"Период: {start_date.date()} - {end_date.date()}")
-
-            # Подключаемся к Telegram
-            job.add_log("Подключение к Telegram...")
-            client = await create_telegram_client()
-
-            try:
-                # Собираем итоговый список каналов
-                chs: list[str] = []
-                if request.channel:
-                    chs.append(request.channel)
-                if request.channels:
-                    chs.extend([c for c in request.channels if c])
-                seen_local: set[str] = set()
-                chs = [c for c in chs if c not in seen_local and not seen_local.add(c)]  # type: ignore[func-returns-value]
-                if not chs:
-                    raise ValueError("Не указан ни один канал для инжеста")
-
-                # Подключаемся к ChromaDB один раз
-                job.add_log("Подключение к ChromaDB...")
-                collection = create_chroma_collection(
-                    request.collection, embed_model, device
-                )
-
-                total_processed_all = 0
-                total_messages_all = 0
-
-                for ch in chs:
-                    job.add_log(
-                        f"▶ Старт канала {ch}: {start_date.date()}→{end_date.date()}"
-                    )
-                    # Сбор сообщений с ретраями
-                    job.add_log("Сбор сообщений (с ретраями)...")
-                    messages = await _gather_with_retries(
-                        client, ch, start_date, end_date, request.max_messages
-                    )
-                    if not messages:
-                        job.add_log(f"Канал {ch}: сообщений не найдено — пропуск")
-                        continue
-                    job.add_log(f"Канал {ch}: получено {len(messages)} сообщений")
-                    total_messages_all += len(messages)
-
-                    # Оценка времени и батчей
-                    estimated_time = estimate_processing_time(
-                        len(messages), batch_size, device
-                    )
-                    est_batches = (len(messages) + batch_size - 1) // batch_size
-                    job.add_log(
-                        f"Оценка: {estimated_time}, батчей ~{est_batches} (batch_size={batch_size})"
-                    )
-
-                    # Инжест с прогрессом и возвратом статистики
-                    stats = await ingest_batches(  # type: ignore[call-arg]
-                        request.collection,  # type: ignore[arg-type]
-                        collection,
-                        messages,
-                        batch_size,
-                        chunk_size=int(getattr(request, "chunk_size", 0) or 0),
-                        channel_hint=ch,
-                        progress_cb=None,
-                        log_every=200,
-                    )
-                    total_processed_all += int(stats.get("processed_in_channel", 0))
-                    job.messages_processed = total_processed_all
-                    job.total_messages = total_messages_all
-                    job.progress = (
-                        (job.messages_processed / job.total_messages)
-                        if job.total_messages
-                        else 0.0
-                    )
-                    job.add_log(
-                        f"✔ Завершён канал {ch}: read={stats.get('processed_in_channel', 0)} chroma={stats.get('written_chroma', 0)} bm25={stats.get('written_bm25', 0)}"
-                    )
-
-                # Завершаем успешно
-                final_count = collection.count()
-                job.add_log(
-                    f"Обработка завершена. Всего в коллекции: {final_count} документов"
-                )
-                job.status = IngestJobStatus.COMPLETED
-                job.progress = 1.0
-                job.completed_at = datetime.now(UTC)
-
-            finally:
-                await client.disconnect()
-
-        except asyncio.CancelledError:
-            job.add_log("Задача была отменена")
-            job.status = IngestJobStatus.CANCELLED
-            job.completed_at = datetime.now(UTC)
-        except Exception as e:  # broad: ingest job safety
-            error_msg = f"Ошибка выполнения: {e!s}"
-            job.add_log(error_msg)
-            job.add_log(f"Детали ошибки:\n{traceback.format_exc()}")
-            job.error_message = error_msg
-            job.status = IngestJobStatus.FAILED
-            job.completed_at = datetime.now(UTC)
-            logger.error("Job %s failed: %s", job.job_id, e)
-
-        finally:
-            # Проверяем очередь и запускаем следующую задачу
-            self._check_queue()
-
-    async def _ingest_with_progress(
-        self, job: IngestJob, collection, messages, batch_size
-    ):
-        """Выполняет ingestion с обновлением прогресса"""
-        total_messages = len(messages)
-        processed = 0
-
-        # Разбиваем на батчи
-        for i in range(0, total_messages, batch_size):
-            if job.status == IngestJobStatus.CANCELLED:
-                break
-
-            batch = messages[i : i + batch_size]
-
-            try:
-                # Подготавливаем данные для batch
-                docs = [m.message for m in batch]
-                ids = [f"{m.id}_{uuid.uuid4().hex[:6]}" for m in batch]
-                metas = []
-                for m in batch:
-                    meta = {
-                        "channel_id": m.chat_id,
-                        "msg_id": m.id,
-                        "date": m.date.isoformat(),
-                    }
-                    if m.reply_to_msg_id is not None:
-                        meta["reply_to"] = m.reply_to_msg_id
-                    views = getattr(m, "views", None)
-                    if views is not None:
-                        meta["views"] = views
-                    metas.append(meta)
-
-                # Добавляем в коллекцию
-                collection.add(documents=docs, metadatas=metas, ids=ids)
-
-                processed += len(batch)
-                job.messages_processed = processed
-                job.progress = processed / total_messages
-
-                # Добавляем лог каждые 10 батчей
-                if (i // batch_size + 1) % 10 == 0:
-                    job.add_log(
-                        f"Обработано {processed}/{total_messages} сообщений ({job.progress:.1%})"
-                    )
-
-            except Exception as e:  # broad: ingest batch safety
-                job.add_log(f"Ошибка обработки batch {i//batch_size + 1}: {e}")
-                # Продолжаем обработку следующих батчей
+        LEGACY: this code path is broken since the ChromaDB → Qdrant migration.
+        Real ingest goes through: docker compose run --rm ingest
+        """
+        raise NotImplementedError(
+            "API-based ingest is disabled.  "
+            "Use: docker compose -f deploy/compose/compose.dev.yml run --rm ingest "
+            "--channel @name --since YYYY-MM-DD --until YYYY-MM-DD"
+        )
 
     def _check_queue(self):
         """Проверяет очередь и запускает следующую задачу если возможно"""

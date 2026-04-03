@@ -1,8 +1,8 @@
 """
 SPEC-RAG-20c Step 6: Tool execution — normalize params, temporal guard, execute.
 
-Runtime-coupled: execute вызывает normalize, normalize для compose_context
-дёргает fetch_docs через tool_runner.
+Runtime-coupled: execute calls normalize; normalize for compose_context
+invokes fetch_docs via tool_runner.
 """
 
 from __future__ import annotations

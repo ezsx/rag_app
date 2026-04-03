@@ -114,8 +114,8 @@ class LlamaServerClient:
     ) -> dict[str, Any]:
         """Call /v1/chat/completions with native function calling support.
 
-        __call__() is kept for legacy /v1/completions (QAService, QueryPlannerService).
-        This method is used by AgentService with messages + tools schema.
+        Used by AgentService with messages + tools schema.
+        See also __call__() for /v1/completions (QAService, QueryPlannerService).
         """
         payload: dict[str, Any] = {
             "messages": messages,

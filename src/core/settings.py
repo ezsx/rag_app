@@ -94,8 +94,7 @@ class Settings(BaseSettings):
     hybrid_top_sparse: int = Field(100, alias="HYBRID_TOP_SPARSE")
     enforce_router_route: bool = Field(False, alias="ENFORCE_ROUTER_ROUTE")
 
-    # ── Planner декодинг ─────────────────────────────────────
-    use_gbnf_planner: bool = Field(True, alias="USE_GBNF_PLANNER", description="Legacy, unused — planner uses chat_completion JSON mode")
+    # ── Planner ──────────────────────────────────────────────
     planner_timeout: float = Field(30.0, alias="PLANNER_TIMEOUT")
     planner_token_budget: int = Field(4096, alias="PLANNER_TOKEN_BUDGET")
     planner_temp: float = Field(0.2, alias="PLANNER_TEMP")

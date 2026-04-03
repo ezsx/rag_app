@@ -1,7 +1,7 @@
 """
 SPEC-RAG-20c Step 4: Phase-based tool visibility.
 
-Определяет какие tools видит LLM на каждом шаге:
+Determines which tools the LLM sees at each step:
 PRE-SEARCH → POST-SEARCH → NAV-COMPLETE → ANALYTICS-COMPLETE.
 """
 

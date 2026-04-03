@@ -1,11 +1,11 @@
 """
-LANCER-inspired nugget-based coverage для retrieval sufficiency.
+LANCER-inspired nugget-based coverage for retrieval sufficiency.
 
-Вместо cosine-based эвристики — проверяем покрытие конкретных аспектов
-(nuggets) запроса найденными документами.
+Instead of cosine-based heuristics, checks coverage of specific query
+aspects (nuggets) by retrieved documents.
 
-Nuggets = subqueries из query_plan. Если query_plan не вызывался,
-fallback на term coverage оригинального запроса.
+Nuggets = subqueries from query_plan.  If query_plan was not called,
+falls back to term coverage of the original query.
 """
 
 from __future__ import annotations

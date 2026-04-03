@@ -1,0 +1,27 @@
+# compose.mcp.yml — MCP repo-semantic-search (HTTP mode)
+#
+# Один MCP сервис, подключённый к проектному Qdrant и gpu_server.py.
+# Все клиенты (Claude Code, Codex) подключаются по HTTP к :8011.
+#
+# Запуск:
+#   docker compose -f deploy/compose/compose.mcp.yml up -d --build
+#
+# Зависимости (должны быть запущены ДО):
+#   1. docker compose -f deploy/compose/compose.dev.yml up -d  (Qdrant на :16333)
+#   2. gpu_server.py в WSL2 native (:8082)
+
+name: rag-mcp
+
+services:
+  repo-semantic-mcp:
+    build:
+      context: C:/cursor_mcp/repo-semantic-mcp
+      dockerfile: apps/repo-semantic-mcp/Dockerfile
+    container_name: repo-semantic-mcp
+    restart: unless-stopped
+    env_file:
+      - ../mcp.env
+    volumes:
+      - ${SEMANTIC_MCP_TARGET_REPO_PATH:-C:/llms/rag/rag_app}:/target_repo:ro
+    ports:
+      - "8011:8011"

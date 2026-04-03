@@ -1,7 +1,7 @@
 """
-SPEC-RAG-20c Step 5: Чистые formatting/serialization helpers.
+SPEC-RAG-20c Step 5: Pure formatting / serialization helpers.
 
-Без side effects, без state mutation. Только преобразование данных.
+No side effects, no state mutation.  Data transformation only.
 """
 
 from __future__ import annotations
