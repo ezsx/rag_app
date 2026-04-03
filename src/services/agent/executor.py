@@ -45,11 +45,9 @@ async def execute_action(
             if refusal is not None:
                 return refusal
 
-        # Security check только для user-facing полей (search queries, tool args).
-        # Пропускаем tools чей payload = LLM output или internal pipeline data:
-        # - rerank/compose_context: internal pipeline docs
-        # - final_answer: LLM-generated text (русская пунктуация ";" триггерит false SQL positive)
-        # - verify/fetch_docs: system-only tools, не вызываются LLM напрямую
+        # Pipeline-internal tools: payload содержит LLM output или Qdrant docs,
+        # которые могут содержать HTML, кавычки, перечисления через ";".
+        # Security validation только для user-facing input, не internal data.
         _skip_security = {"rerank", "compose_context", "final_answer", "verify", "fetch_docs"}
         if tool_name not in _skip_security:
             serialized = json.dumps(normalized, ensure_ascii=False, default=str)
