@@ -90,7 +90,18 @@ Built the same pipeline in LlamaIndex (best-effort) and measured against our cus
 
 Custom wins by **+0.30 factual**, **+0.56 usefulness**, **+0.40 grounding** vs best framework config.
 
-**Retrieval-only** (100 hand-crafted queries):
+**Retrieval-only** (100 auto-generated queries — exact text fragments from posts):
+
+| Pipeline | Recall@1 | Recall@5 | MRR | Latency |
+|----------|:---:|:---:|:---:|:---:|
+| Naive (dense only) | 0.820 | 0.920 | 0.861 | 0.1s |
+| LlamaIndex stock | 0.820 | 0.920 | 0.861 | 0.1s |
+| LlamaIndex maxed | 0.880 | 0.940 | 0.907 | 1.4s |
+| **Custom (RRF + ColBERT)** | **0.939** | **0.949** | **0.944** | **0.2s** |
+
+Custom wins clearly: **+12% Recall@1**, **+8% MRR** vs LlamaIndex maxed. ColBERT token-level matching shines on exact term queries (LLM, MoE, SSM).
+
+**Retrieval-only** (100 hand-crafted natural-language queries):
 
 | Pipeline | Recall@1 | Recall@5 | MRR | Latency |
 |----------|:---:|:---:|:---:|:---:|
@@ -99,8 +110,10 @@ Custom wins by **+0.30 factual**, **+0.56 usefulness**, **+0.40 grounding** vs b
 | LlamaIndex maxed | 0.780 | 0.980 | 0.865 | 1.4s |
 | **Custom (RRF + ColBERT)** | **0.780** | **0.970** | **0.866** | **0.2s** |
 
+On natural-language queries the retrieval gap narrows — dense embedding already captures semantics well. ColBERT ≈ cross-encoder here. The real differentiation comes from the agent layer (query planning, LANCER, specialized tools), not retrieval tuning alone.
+
 Key findings:
-- **LlamaIndex stock = naive**: default hybrid fusion adds zero gain
+- **LlamaIndex stock = naive**: default hybrid fusion adds zero gain on both datasets
 - **Reranker is not the differentiator**: li_maxed ≈ li_stock on agent E2E (+0.03 factual)
 - **Multi-query planning + LANCER + specialized tools = main gain source** (not retrieval tuning)
 - **Grounding 0.88 vs 0.48**: inline `[1][2][3]` citations via `compose_context` → `final_answer`
