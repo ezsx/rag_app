@@ -437,6 +437,13 @@ Eval-запросы: фактические, аналитические, tempora
 - CE score: relevant median=8.35, irrelevant median=-1.11 → threshold=0.0 (logit boundary)
 - Latency improvement: 45-76s → 14-49s (−40-65%) за счёт устранения refinements
 
+**Framework comparison benchmark (SPEC-RAG-29, 2026-04-03):**
+- Custom vs LlamaIndex (stock + maxed) vs naive, 2 датасета по 100 Qs
+- Custom R@1: 0.94 (auto) / 0.78 (calibration), MRR: 0.944 / 0.866
+- LlamaIndex stock = naive (zero gain from default hybrid)
+- Weighted RRF = main gain (+5-12% R@1), ColBERT ≈ cross-encoder на natural language queries
+- Custom 7x быстрее LI-maxed. Retrieval-level ablation нужен для дальнейшего улучшения
+
 **Осталось:**
 - [ ] CE filter_threshold=0.0 установить и smoke test
 - [ ] Full eval 36 Qs — baseline после pipeline changes

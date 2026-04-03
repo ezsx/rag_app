@@ -192,6 +192,37 @@ Robustness experiments (NDR/RSR/ROR): [robustness_experiments.md](robustness_exp
 5. **Data refresh** — re-ingest свежих постов, пересчёт weekly digests
 6. **Unit tests cleanup** — удалить мёртвые тесты, покрыть coverage/state machine
 
+### Framework comparison results (SPEC-RAG-29, 2026-04-03)
+
+4 pipeline: naive / LI-stock / LI-maxed / custom. Два датасета по 100 Qs.
+
+**Calibration dataset (hand-crafted, natural language):**
+
+| Pipeline | R@1 | R@5 | R@20 | MRR | Lat p50 |
+|----------|-----|-----|------|-----|---------|
+| naive | 0.730 | 0.940 | 0.990 | 0.825 | 0.1s |
+| LI-stock | 0.730 | 0.940 | 0.990 | 0.825 | 0.1s |
+| LI-maxed | 0.780 | 0.980 | 0.980 | 0.865 | 1.4s |
+| custom | 0.780 | 0.970 | 0.980 | 0.866 | 0.2s |
+
+**Findings:**
+- LlamaIndex default hybrid = zero gain over dense-only
+- Weighted RRF 3:1 = main differentiator (+5% R@1, +4% MRR)
+- ColBERT ≈ cross-encoder на natural language queries
+- Custom 7x быстрее LI-maxed (framework overhead)
+- Retrieval-only benchmark не покрывает query planning, LANCER, multi-query
+
+### Retrieval ablation backlog (после SPEC-RAG-29)
+
+| Experiment | Expected impact | Effort | Notes |
+|-----------|----------------|--------|-------|
+| DBSF fusion vs RRF | Может лучше на semantic queries | 0.5 day | Было close в experiment #18 |
+| BM25 weight sweep (2:1..5:1) | Tune для natural language vs exact match | 0.5 day | Текущий 3:1 эмпирический |
+| Multi-query retrieval benchmark | Query planning subqueries в retrieval eval | 1 day | Biggest untapped potential |
+| Instruction prefix A/B | Может помогать на определённых категориях | 0.5 day | DEC-0042 says no prefix, но evaluate_retrieval.py uses prefix |
+| ColBERT query formatting | is_query: true impact | 0.5 day | |
+| Top-K tuning (BM25 50 vs 100) | Precision vs recall tradeoff | 0.5 day | |
+
 ### Backlog (исследовано, не реализовано)
 
 | Technique | Expected impact | Effort | Reference |

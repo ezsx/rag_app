@@ -1,0 +1,8 @@
+# LlamaIndex — qdrant 0.10.0 requires core >=0.13.0
+llama-index-core>=0.13.0,<0.15
+llama-index-vector-stores-qdrant==0.10.0
+llama-index-llms-openai-like>=0.4.0
+# BM25 sparse query encoding (same model as production ingest)
+fastembed>=0.4.0
+# HTTP calls to gpu_server, Qdrant, llama-server
+requests>=2.31.0

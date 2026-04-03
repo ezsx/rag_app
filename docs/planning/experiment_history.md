@@ -64,6 +64,43 @@ Dataset: `datasets/eval_retrieval_calibration.json`. Script: `scripts/calibrate_
 - Pipeline v2 marginal (+0.02 r@2) — не стоит усложнения
 - Monotonicity OK — recall не падает при увеличении k
 
+### Framework comparison benchmark (SPEC-RAG-29, 2026-04-03)
+
+4 pipeline: naive (dense-only), LI-stock (LlamaIndex default hybrid), LI-maxed (LlamaIndex + weighted RRF + CE reranker), custom (BM25+Dense → RRF 3:1 → ColBERT).
+
+**Auto-generated dataset** (eval_retrieval_100.json, 100 Qs):
+
+| Pipeline | R@1 | R@5 | R@20 | MRR | Latency p50 |
+|----------|-----|-----|------|-----|-------------|
+| naive | 0.820 | 0.920 | 0.940 | 0.861 | 0.1s |
+| LI-stock | 0.820 | 0.920 | 0.940 | 0.861 | 0.1s |
+| LI-maxed | 0.880 | 0.940 | 0.940 | 0.907 | 1.4s |
+| **custom** | **0.939** | **0.949** | **0.949** | **0.944** | **0.2s** |
+
+**Calibration dataset** (eval_retrieval_calibration.json, 100 Qs, hand-crafted):
+
+| Pipeline | R@1 | R@5 | R@20 | MRR | Latency p50 |
+|----------|-----|-----|------|-----|-------------|
+| naive | 0.730 | 0.940 | 0.990 | 0.825 | 0.1s |
+| LI-stock | 0.730 | 0.940 | 0.990 | 0.825 | 0.1s |
+| LI-maxed | 0.780 | 0.980 | 0.980 | 0.865 | 1.4s |
+| **custom** | **0.780** | **0.970** | **0.980** | **0.866** | **0.2s** |
+
+**Ключевые результаты:**
+- LI-stock = naive: LlamaIndex default hybrid (relative_score_fusion) = zero gain
+- Weighted RRF = main differentiator: +5-12% R@1, +4-10% MRR
+- ColBERT ≈ cross-encoder на calibration dataset (R@1 0.78 vs 0.78, MRR 0.866 vs 0.865)
+- ColBERT > cross-encoder на auto-generated (R@1 0.94 vs 0.88) — exact token matching на цитатах
+- Custom pipeline 7x быстрее LI-maxed (0.2s vs 1.4s) — framework abstraction overhead
+- Retrieval-only benchmark не покрывает query planning, LANCER, multi-query — agent E2E нужен
+
+**TODO — ablation experiments:**
+- [ ] DBSF fusion vs RRF
+- [ ] BM25 weight sweep (2:1, 3:1, 4:1, 5:1)
+- [ ] Multi-query retrieval (query planning subqueries)
+- [ ] Instruction prefix impact на разных типах запросов
+- [ ] ColBERT query formatting (is_query vs без)
+
 CE score distribution (2000 docs):
 
 | | Relevant (n=143) | Irrelevant (n=1857) |
