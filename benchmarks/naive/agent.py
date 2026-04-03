@@ -10,7 +10,7 @@ import json
 import time
 import urllib.request
 
-from benchmarks.config import EMBEDDING_URL, LLM_MAX_TOKENS, LLM_TEMPERATURE, LLM_URL, QDRANT_URL
+from benchmarks.config import LLM_MAX_TOKENS, LLM_TEMPERATURE, LLM_URL
 from benchmarks.naive.retriever import NaiveRetriever
 from benchmarks.protocols import AgentResult
 

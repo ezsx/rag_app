@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import urllib.request
-from typing import Any
 
 from llama_index.core.embeddings import BaseEmbedding
 

@@ -6,8 +6,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -17,7 +17,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(_root))
     sys.path.insert(0, str(_root / "src"))
 
-from benchmarks.config import RESULTS_DIR
+from benchmarks.config import RESULTS_DIR  # noqa: E402
 
 
 DEFAULT_HOST = os.environ.get("LANGFUSE_EXPORT_HOST", "http://localhost:3100")

@@ -16,7 +16,6 @@ import argparse
 import json
 import os
 import sys
-import time
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")

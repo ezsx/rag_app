@@ -9,12 +9,6 @@ ColBERT vector (colbert_vector) невидим для LlamaIndex — нет API 
 
 from __future__ import annotations
 
-from fastembed import SparseTextEmbedding
-from llama_index.core import VectorStoreIndex
-from llama_index.core.schema import QueryBundle
-from llama_index.vector_stores.qdrant import QdrantVectorStore
-from qdrant_client import QdrantClient
-
 from benchmarks.config import (
     COLLECTION,
     DENSE_VECTOR_NAME,
@@ -27,6 +21,11 @@ from benchmarks.llamaindex_pipeline.embedding import PplxEmbedding
 from benchmarks.llamaindex_pipeline.fusion import weighted_rrf_fusion
 from benchmarks.llamaindex_pipeline.reranker import QwenReranker
 from benchmarks.protocols import RetrievalResult
+from fastembed import SparseTextEmbedding
+from llama_index.core import VectorStoreIndex
+from llama_index.core.schema import QueryBundle
+from llama_index.vector_stores.qdrant import QdrantVectorStore
+from qdrant_client import QdrantClient
 
 
 # Lazy singleton — fastembed BM25 модель загружается один раз

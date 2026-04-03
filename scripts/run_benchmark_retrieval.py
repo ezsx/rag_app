@@ -16,12 +16,11 @@ import math
 import os
 import sys
 import time
-from collections import defaultdict
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-from benchmarks.config import FINAL_TOP_K, RESULTS_DIR, RETRIEVAL_DATASET
+from benchmarks.config import FINAL_TOP_K, RESULTS_DIR, RETRIEVAL_DATASET  # noqa: E402
 
 
 # ─── Metrics ────────────────────────────────────────────────────

@@ -25,7 +25,6 @@
 
 import argparse
 import json
-import os
 import sys
 from datetime import datetime
 
@@ -103,7 +102,7 @@ def build_tree(observations: list) -> list:
         }
 
     roots = []
-    for obs_id, node in nodes.items():
+    for _obs_id, node in nodes.items():
         parent_id = node.pop("_parent_id")
         if parent_id and parent_id in nodes:
             nodes[parent_id]["children"].append(node)
@@ -177,7 +176,7 @@ def simplify_io(data):
         for item in data:
             if isinstance(item, dict) and "role" in item and "content" in item:
                 entry = {"role": item["role"], "content": item["content"]}
-                if "tool_calls" in item and item["tool_calls"]:
+                if item.get("tool_calls"):
                     entry["tool_calls"] = item["tool_calls"]
                 simplified.append(entry)
             else:
@@ -259,7 +258,7 @@ def main():
 
     langfuse = Langfuse()
 
-    print(f"Загружаю трейсы...")
+    print("Загружаю трейсы...")
     traces = fetch_traces(langfuse, args)
     print(f"Найдено трейсов: {len(traces)}")
 
