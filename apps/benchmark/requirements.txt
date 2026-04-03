@@ -6,3 +6,5 @@ llama-index-llms-openai-like>=0.4.0
 fastembed>=0.4.0
 # HTTP calls to gpu_server, Qdrant, llama-server
 requests>=2.31.0
+# Langfuse trace export
+langfuse>=3.0.0

@@ -1,0 +1,6849 @@
+[
+  {
+    "pipeline": "naive",
+    "questions": 100,
+    "errors": 0,
+    "recall_1": 0.82,
+    "recall_5": 0.92,
+    "recall_10": 0.94,
+    "recall_20": 0.94,
+    "mrr": 0.861095238095238,
+    "ndcg_5": 1.0129512857750336,
+    "latency_p50": 0.12914133071899414,
+    "latency_p95": 0.1608896255493164,
+    "per_question": [
+      {
+        "id": "ret_complete_ai_851",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 0.1341841220855713,
+        "top5": [
+          "oulenspiegel_channel:4894",
+          "complete_ai:851",
+          "scientific_opensource:166",
+          "scientific_opensource:178",
+          "scientific_opensource:139"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9623",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.1340928077697754,
+        "top5": [
+          "ai_newz:4455",
+          "ai_machinelearning_big_data:8110",
+          "ai_newz:4048",
+          "ai_machinelearning_big_data:9603",
+          "data_secrets:8036"
+        ]
+      },
+      {
+        "id": "ret_smalldatascience_1025",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.12860918045043945,
+        "top5": [
+          "gonzo_ml:4423",
+          "oulenspiegel_channel:4657",
+          "denissexy:10570",
+          "xor_journal:8036",
+          "gonzo_ml:4806"
+        ]
+      },
+      {
+        "id": "ret_cryptovalerii_844",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.5,
+        "latency": 0.12508153915405273,
+        "top5": [
+          "denissexy:10884",
+          "data_secrets:8370",
+          "cryptovalerii:844",
+          "boris_again:3299",
+          "protechietich:3653"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_861",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13326334953308105,
+        "top5": [
+          "complete_ai:861",
+          "oulenspiegel_channel:4924",
+          "data_secrets:8173",
+          "singularityfm:284",
+          "xor_journal:7333"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4231",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13350844383239746,
+        "top5": [
+          "ai_newz:4231",
+          "ai_machinelearning_big_data:8713",
+          "data_secrets:8572",
+          "ai_machinelearning_big_data:8161",
+          "aioftheday:3697"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5144",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.5,
+        "latency": 0.12474584579467773,
+        "top5": [
+          "protechietich:4032",
+          "protechietich:3878",
+          "techsparks:5144",
+          "protechietich:3925",
+          "techsparks:5284"
+        ]
+      },
+      {
+        "id": "ret_data_secrets_8444",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.12858033180236816,
+        "top5": [
+          "data_secrets:8444",
+          "data_secrets:8444",
+          "gonzo_ml:4345",
+          "complete_ai:770",
+          "ai_machinelearning_big_data:8100"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9237",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.9306765580733931,
+        "latency": 0.13262629508972168,
+        "top5": [
+          "aioftheday:3916",
+          "techsparks:5332",
+          "ai_machinelearning_big_data:9237",
+          "ai_machinelearning_big_data:9237",
+          "aioftheday:3592"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1908",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12568187713623047,
+        "top5": [
+          "neurohive:1908",
+          "ai_machinelearning_big_data:8853",
+          "ai_machinelearning_big_data:8329",
+          "ai_machinelearning_big_data:8861",
+          "neurohive:1933"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1926",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13411641120910645,
+        "top5": [
+          "neurohive:1926",
+          "ai_machinelearning_big_data:8348",
+          "ai_newz:4228",
+          "ai_machinelearning_big_data:8680",
+          "ai_machinelearning_big_data:9390"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_169",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13804244995117188,
+        "top5": [
+          "varim_ml:169",
+          "scientific_opensource:146",
+          "scientific_opensource:184",
+          "oulenspiegel_channel:4676",
+          "scientific_opensource:147"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1923",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.15152549743652344,
+        "top5": [
+          "neurohive:1923",
+          "ai_machinelearning_big_data:9774",
+          "seeallochnaya:2826",
+          "seeallochnaya:2826",
+          "seeallochnaya:3144"
+        ]
+      },
+      {
+        "id": "ret_toBeAnMLspecialist_1038",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.16923952102661133,
+        "top5": [
+          "toBeAnMLspecialist:1038",
+          "denissexy:11291",
+          "denissexy:11137",
+          "techno_yandex:4250",
+          "gonzo_ml:3788"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_644",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.13957738876342773,
+        "top5": [
+          "llm_under_hood:644",
+          "llm_under_hood:644",
+          "ml_product:970",
+          "llm_under_hood:768",
+          "ml_product:782"
+        ]
+      },
+      {
+        "id": "ret_ml_product_751",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13045287132263184,
+        "top5": [
+          "ml_product:751",
+          "addmeto:6185",
+          "complete_ai:747",
+          "ai_machinelearning_big_data:7933",
+          "data_easy:312"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5192",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 0.1338365077972412,
+        "top5": [
+          "protechietich:3995",
+          "techsparks:5192",
+          "protechietich:3868",
+          "xor_journal:7749",
+          "techno_yandex:4801"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3828",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13771867752075195,
+        "top5": [
+          "protechietich:3828",
+          "seeallochnaya:2813",
+          "protechietich:3620",
+          "seeallochnaya:2813",
+          "singularityfm:353"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_653",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 2.0177825608059994,
+        "latency": 0.13325190544128418,
+        "top5": [
+          "llm_under_hood:652",
+          "llm_under_hood:654",
+          "singularityfm:330",
+          "llm_under_hood:682",
+          "llm_under_hood:655"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_4760",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12935328483581543,
+        "top5": [
+          "oulenspiegel_channel:4760",
+          "xor_journal:8150",
+          "data_secrets:8080",
+          "ml_product:950",
+          "data_secrets:8834"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1926",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13007664680480957,
+        "top5": [
+          "neurohive:1926",
+          "ai_machinelearning_big_data:9506",
+          "ai_newz:4415",
+          "aioftheday:3295",
+          "ai_machinelearning_big_data:8161"
+        ]
+      },
+      {
+        "id": "ret_deep_school_614",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.1,
+        "ndcg_5": 0.0,
+        "latency": 0.1262657642364502,
+        "top5": [
+          "aioftheday:4232",
+          "techno_yandex:4442",
+          "techno_yandex:4976",
+          "techno_yandex:4608",
+          "techno_yandex:4356"
+        ]
+      },
+      {
+        "id": "ret_data_easy_306",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.1800861358642578,
+        "top5": [
+          "data_easy:306",
+          "data_easy:306",
+          "data_secrets:7611",
+          "data_secrets:7611",
+          "data_secrets:8159"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3780",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.13021111488342285,
+        "top5": [
+          "protechietich:3780",
+          "protechietich:3776",
+          "ai_machinelearning_big_data:8957",
+          "techsparks:5282",
+          "data_secrets:7644"
+        ]
+      },
+      {
+        "id": "ret_ml_product_711",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1346299648284912,
+        "top5": [
+          "ml_product:711",
+          "techno_yandex:4962",
+          "ai_newz:4277",
+          "denissexy:10982",
+          "techsparks:5492"
+        ]
+      },
+      {
+        "id": "ret_AIgobrr_84",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.13193225860595703,
+        "top5": [
+          "AIgobrr:83",
+          "AIgobrr:84",
+          "data_secrets:7905",
+          "aioftheday:3257",
+          "ai_newz:4219"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_133",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.14134883880615234,
+        "top5": [
+          "scientific_opensource:133",
+          "scientific_opensource:180",
+          "scientific_opensource:184",
+          "scientific_opensource:156",
+          "ai_machinelearning_big_data:8945"
+        ]
+      },
+      {
+        "id": "ret_data_easy_301",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12462496757507324,
+        "top5": [
+          "data_easy:301",
+          "data_secrets:7700",
+          "ai_machinelearning_big_data:9760",
+          "boris_again:3716",
+          "ai_machinelearning_big_data:9417"
+        ]
+      },
+      {
+        "id": "ret_stuffynlp_187",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.12194299697875977,
+        "top5": [
+          "stuffynlp:187",
+          "stuffynlp:187",
+          "stuffynlp:218",
+          "ai_machinelearning_big_data:8431",
+          "data_secrets:7685"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6170",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12932872772216797,
+        "top5": [
+          "addmeto:6170",
+          "seeallochnaya:3011",
+          "aioftheday:3577",
+          "denissexy:10803",
+          "seeallochnaya:2950"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6182",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13364458084106445,
+        "top5": [
+          "addmeto:6182",
+          "aioftheday:3722",
+          "data_secrets:8161",
+          "llm_under_hood:752",
+          "ai_machinelearning_big_data:9638"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6164",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1608896255493164,
+        "top5": [
+          "addmeto:6164",
+          "aioftheday:3515",
+          "ai_machinelearning_big_data:8578",
+          "aioftheday:3987",
+          "ai_machinelearning_big_data:8578"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1862",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 0.13085508346557617,
+        "top5": [
+          "neurohive:1862",
+          "data_secrets:7520",
+          "neurohive:1862",
+          "ml_product:899",
+          "aioftheday:3321"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2340",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12813305854797363,
+        "top5": [
+          "theworldisnoteasy:2340",
+          "ml_product:794",
+          "ml_product:915",
+          "theworldisnoteasy:2248",
+          "data_secrets:8083"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4643",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12096238136291504,
+        "top5": [
+          "gonzo_ml:4643",
+          "boris_again:3555",
+          "toBeAnMLspecialist:1083",
+          "data_secrets:7479",
+          "xor_journal:7291"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_128",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13055968284606934,
+        "top5": [
+          "MLunderhood:128",
+          "gonzo_ml:4261",
+          "MLunderhood:168",
+          "rybolos_channel:1670",
+          "gonzo_ml:4261"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6156",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12791037559509277,
+        "top5": [
+          "addmeto:6156",
+          "denissexy:10466",
+          "aioftheday:3969",
+          "techno_yandex:4912",
+          "aioftheday:3419"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5459",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 0.1266613006591797,
+        "top5": [
+          "techsparks:5459",
+          "protechietich:3992",
+          "ml_product:661",
+          "theworldisnoteasy:2305",
+          "techsparks:5459"
+        ]
+      },
+      {
+        "id": "ret_aioftheday_3250",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13159775733947754,
+        "top5": [
+          "aioftheday:3250",
+          "data_secrets:7390",
+          "ai_machinelearning_big_data:8069",
+          "ai_newz:4116",
+          "data_secrets:7828"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_749",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 2.3175293653079345,
+        "latency": 0.15375971794128418,
+        "top5": [
+          "llm_under_hood:749",
+          "llm_under_hood:756",
+          "llm_under_hood:745",
+          "llm_under_hood:753",
+          "llm_under_hood:747"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_363",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.16011667251586914,
+        "top5": [
+          "CVML_team:363",
+          "CVML_team:365",
+          "CVML_team:372",
+          "oulenspiegel_channel:4823",
+          "CVML_team:370"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_137",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.16300058364868164,
+        "top5": [
+          "scientific_opensource:137",
+          "xor_journal:7213",
+          "xor_journal:7666",
+          "xor_journal:8311",
+          "boris_again:3603"
+        ]
+      },
+      {
+        "id": "ret_aihappens_380",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.13239216804504395,
+        "top5": [
+          "aihappens:380",
+          "aihappens:380",
+          "boris_again:3434",
+          "seeallochnaya:2917",
+          "seeallochnaya:2822"
+        ]
+      },
+      {
+        "id": "ret_aioftheday_3944",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1271359920501709,
+        "top5": [
+          "aioftheday:3944",
+          "xor_journal:8766",
+          "complete_ai:716",
+          "boris_again:3366",
+          "aioftheday:3800"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_138",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13579154014587402,
+        "top5": [
+          "scientific_opensource:138",
+          "ai_machinelearning_big_data:9741",
+          "data_secrets:8923",
+          "ai_machinelearning_big_data:8945",
+          "xor_journal:8407"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4472",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12769746780395508,
+        "top5": [
+          "techno_yandex:4472",
+          "denissexy:11083",
+          "seeallochnaya:2905",
+          "denissexy:11083",
+          "boris_again:3349"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_383",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12430262565612793,
+        "top5": [
+          "CVML_team:383",
+          "denissexy:10399",
+          "data_secrets:7343",
+          "ai_newz:4016",
+          "ai_machinelearning_big_data:8003"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_172",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1261603832244873,
+        "top5": [
+          "varim_ml:172",
+          "inforetriever:380",
+          "scientific_opensource:179",
+          "smalldatascience:1024",
+          "ai_newz:4313"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4196",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.13446974754333496,
+        "top5": [
+          "boris_again:3819",
+          "techno_yandex:4418",
+          "ai_newz:4434",
+          "techno_yandex:4661",
+          "techno_yandex:4902"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_8923",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1322648525238037,
+        "top5": [
+          "ai_machinelearning_big_data:8923",
+          "ai_newz:4479",
+          "gonzo_ml:4199",
+          "xor_journal:8120",
+          "gonzo_ml:4420"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_383",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 0.13370990753173828,
+        "top5": [
+          "inforetriever:383",
+          "inforetriever:247",
+          "inforetriever:383",
+          "toBeAnMLspecialist:1057",
+          "boris_again:3441"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4785",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.12601828575134277,
+        "top5": [
+          "gonzo_ml:4785",
+          "gonzo_ml:4785",
+          "data_secrets:8155",
+          "gonzo_ml:4438",
+          "xor_journal:7580"
+        ]
+      },
+      {
+        "id": "ret_denissexy_10751",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12872028350830078,
+        "top5": [
+          "denissexy:10751",
+          "ai_newz:4296",
+          "ai_machinelearning_big_data:9090",
+          "aioftheday:3484",
+          "data_secrets:8290"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_5004",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13038945198059082,
+        "top5": [
+          "oulenspiegel_channel:5004",
+          "ai_newz:4114",
+          "ai_newz:4149",
+          "ai_newz:4398",
+          "data_secrets:7772"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2386",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12926888465881348,
+        "top5": [
+          "theworldisnoteasy:2386",
+          "inforetriever:247",
+          "toBeAnMLspecialist:1071",
+          "gonzo_ml:4030",
+          "techsparks:5175"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_278",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12184357643127441,
+        "top5": [
+          "singularityfm:278",
+          "xor_journal:8888",
+          "denissexy:11313",
+          "techsparks:5499",
+          "techno_yandex:4295"
+        ]
+      },
+      {
+        "id": "ret_toBeAnMLspecialist_1099",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1488056182861328,
+        "top5": [
+          "toBeAnMLspecialist:1099",
+          "xor_journal:7559",
+          "ai_machinelearning_big_data:8714",
+          "ai_machinelearning_big_data:8442",
+          "gonzo_ml:4452"
+        ]
+      },
+      {
+        "id": "ret_deep_school_576",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1380605697631836,
+        "top5": [
+          "deep_school:576",
+          "deep_school:605",
+          "data_secrets:8371",
+          "gonzo_ml:3934",
+          "gonzo_ml:4220"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1913",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 0.13196516036987305,
+        "top5": [
+          "ai_machinelearning_big_data:9604",
+          "neurohive:1913",
+          "xor_journal:8804",
+          "ai_machinelearning_big_data:8945",
+          "techno_yandex:4544"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_79",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.5,
+        "latency": 0.13454914093017578,
+        "top5": [
+          "complete_ai:725",
+          "oulenspiegel_channel:4602",
+          "dendi_math_ai:79",
+          "data_secrets:8371",
+          "oulenspiegel_channel:4602"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_382",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.18500185012817383,
+        "top5": [
+          "xor_journal:7268",
+          "theworldisnoteasy:2285",
+          "ai_newz:4133",
+          "seeallochnaya:3204",
+          "boris_again:3531"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_8099",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1312885284423828,
+        "top5": [
+          "ai_machinelearning_big_data:8099",
+          "ml_product:745",
+          "techno_yandex:4568",
+          "xor_journal:8804",
+          "seeallochnaya:3081"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_131",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13024282455444336,
+        "top5": [
+          "MLunderhood:131",
+          "data_secrets:7920",
+          "MLunderhood:285",
+          "MLunderhood:284",
+          "data_secrets:7920"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_96",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13161516189575195,
+        "top5": [
+          "dendi_math_ai:96",
+          "xor_journal:8142",
+          "ai_newz:4267",
+          "ai_machinelearning_big_data:8856",
+          "gonzo_ml:4153"
+        ]
+      },
+      {
+        "id": "ret_smalldatascience_1016",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 0.13350987434387207,
+        "top5": [
+          "smalldatascience:1016",
+          "toBeAnMLspecialist:1058",
+          "stuffynlp:214",
+          "xor_journal:7210",
+          "smalldatascience:1021"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_162",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1280536651611328,
+        "top5": [
+          "varim_ml:162",
+          "protechietich:3653",
+          "aioftheday:4331",
+          "CVML_team:388",
+          "boris_again:3531"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_4844",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12181663513183594,
+        "top5": [
+          "oulenspiegel_channel:4844",
+          "oulenspiegel_channel:4814",
+          "data_secrets:8380",
+          "oulenspiegel_channel:4816",
+          "xor_journal:8191"
+        ]
+      },
+      {
+        "id": "ret_ml_product_750",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.11975407600402832,
+        "top5": [
+          "oulenspiegel_channel:4686",
+          "AIgobrr:83",
+          "AIgobrr:84",
+          "AIgobrr:72",
+          "data_secrets:8133"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3734",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12139534950256348,
+        "top5": [
+          "protechietich:3734",
+          "aioftheday:4014",
+          "techno_yandex:4196",
+          "techsparks:5395",
+          "aioftheday:3433"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_83",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13250422477722168,
+        "top5": [
+          "dendi_math_ai:83",
+          "oulenspiegel_channel:4749",
+          "xor_journal:7210",
+          "denissexy:10662",
+          "rybolos_channel:1696"
+        ]
+      },
+      {
+        "id": "ret_ml_product_773",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12196493148803711,
+        "top5": [
+          "ml_product:773",
+          "data_secrets:7765",
+          "ai_machinelearning_big_data:8451",
+          "stuffynlp:147",
+          "ai_machinelearning_big_data:8705"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4126",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12211751937866211,
+        "top5": [
+          "ai_newz:4126",
+          "data_secrets:7681",
+          "aioftheday:3389",
+          "aioftheday:3217",
+          "xor_journal:7494"
+        ]
+      },
+      {
+        "id": "ret_seeallochnaya_3008",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.12160730361938477,
+        "top5": [
+          "seeallochnaya:3008",
+          "seeallochnaya:3008",
+          "ml_product:733",
+          "seeallochnaya:3200",
+          "seeallochnaya:2851"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_753",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12347650527954102,
+        "top5": [
+          "complete_ai:753",
+          "data_secrets:7574",
+          "data_secrets:7595",
+          "boris_again:3454",
+          "seeallochnaya:2759"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_253",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 0.12445831298828125,
+        "top5": [
+          "inforetriever:253",
+          "MLunderhood:165",
+          "MLunderhood:168",
+          "inforetriever:312",
+          "inforetriever:249"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_162",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12346148490905762,
+        "top5": [
+          "scientific_opensource:162",
+          "xor_journal:8191",
+          "ai_newz:4267",
+          "ai_machinelearning_big_data:9732",
+          "data_secrets:8380"
+        ]
+      },
+      {
+        "id": "ret_xor_journal_8139",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12914133071899414,
+        "top5": [
+          "xor_journal:8139",
+          "aioftheday:3790",
+          "denissexy:10967",
+          "denissexy:10944",
+          "aioftheday:3821"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2246",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12433576583862305,
+        "top5": [
+          "theworldisnoteasy:2246",
+          "theworldisnoteasy:2180",
+          "theworldisnoteasy:2215",
+          "theworldisnoteasy:2253",
+          "theworldisnoteasy:2405"
+        ]
+      },
+      {
+        "id": "ret_denissexy_10678",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12267518043518066,
+        "top5": [
+          "denissexy:10678",
+          "xor_journal:7795",
+          "ai_machinelearning_big_data:9569",
+          "denissexy:11290",
+          "techno_yandex:4948"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_411",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.14285714285714285,
+        "ndcg_5": 0.0,
+        "latency": 0.1278989315032959,
+        "top5": [
+          "xor_journal:7892",
+          "singularityfm:340",
+          "boris_again:3667",
+          "xor_journal:8844",
+          "toBeAnMLspecialist:1104"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_881",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1256263256072998,
+        "top5": [
+          "complete_ai:881",
+          "denissexy:11226",
+          "boris_again:3517",
+          "xor_journal:7934",
+          "toBeAnMLspecialist:1025"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_164",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12301397323608398,
+        "top5": [
+          "MLunderhood:164",
+          "MLunderhood:192",
+          "seeallochnaya:2826",
+          "inforetriever:336",
+          "data_secrets:8604"
+        ]
+      },
+      {
+        "id": "ret_rybolos_channel_1614",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.2,
+        "ndcg_5": 0.38685280723454163,
+        "latency": 0.12102651596069336,
+        "top5": [
+          "seeallochnaya:3103",
+          "dendi_math_ai:83",
+          "oulenspiegel_channel:4749",
+          "oulenspiegel_channel:4677",
+          "rybolos_channel:1614"
+        ]
+      },
+      {
+        "id": "ret_AIgobrr_81",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12558388710021973,
+        "top5": [
+          "AIgobrr:81",
+          "data_secrets:7779",
+          "data_secrets:7761",
+          "data_easy:287",
+          "rybolos_channel:1521"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5297",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 0.12312626838684082,
+        "top5": [
+          "techsparks:5297",
+          "techsparks:5316",
+          "techsparks:5292",
+          "techsparks:5326",
+          "toBeAnMLspecialist:1034"
+        ]
+      },
+      {
+        "id": "ret_data_secrets_7798",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.12612271308898926,
+        "top5": [
+          "data_secrets:7798",
+          "data_secrets:7795",
+          "xor_journal:7609",
+          "protechietich:3583",
+          "xor_journal:7689"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4545",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.5,
+        "latency": 0.12317156791687012,
+        "top5": [
+          "techno_yandex:4532",
+          "data_secrets:8138",
+          "techno_yandex:4545",
+          "ai_newz:4229",
+          "aioftheday:3710"
+        ]
+      },
+      {
+        "id": "ret_boris_again_3616",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12099480628967285,
+        "top5": [
+          "boris_again:3616",
+          "techsparks:5485",
+          "llm_under_hood:758",
+          "stuffynlp:186",
+          "stuffynlp:186"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9431",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12727928161621094,
+        "top5": [
+          "ai_machinelearning_big_data:9431",
+          "denissexy:10704",
+          "seeallochnaya:2660",
+          "denissexy:10549",
+          "aioftheday:3256"
+        ]
+      },
+      {
+        "id": "ret_seeallochnaya_3010",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 2.1309297535714578,
+        "latency": 0.12953925132751465,
+        "top5": [
+          "seeallochnaya:3010",
+          "seeallochnaya:3010",
+          "seeallochnaya:3010",
+          "ai_machinelearning_big_data:8959",
+          "ai_machinelearning_big_data:8959"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_294",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12985444068908691,
+        "top5": [
+          "inforetriever:294",
+          "ml_product:801",
+          "techno_yandex:4948",
+          "seeallochnaya:2767",
+          "singularityfm:389"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4166",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12555456161499023,
+        "top5": [
+          "gonzo_ml:4166",
+          "data_secrets:8635",
+          "stuffynlp:168",
+          "ml_product:905",
+          "data_secrets:7426"
+        ]
+      },
+      {
+        "id": "ret_rybolos_channel_1561",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12485122680664062,
+        "top5": [
+          "rybolos_channel:1561",
+          "ai_newz:4209",
+          "data_secrets:7999",
+          "boris_again:3482",
+          "stuffynlp:226"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_244",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12155652046203613,
+        "top5": [
+          "MLunderhood:244",
+          "MLunderhood:216",
+          "MLunderhood:235",
+          "MLunderhood:253",
+          "MLunderhood:220"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_847",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12755227088928223,
+        "top5": [
+          "complete_ai:847",
+          "techno_yandex:4714",
+          "rybolos_channel:1675",
+          "deep_school:620",
+          "llm_under_hood:723"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_805",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.1237330436706543,
+        "top5": [
+          "seeallochnaya:3204",
+          "data_secrets:8950",
+          "boris_again:3531",
+          "protechietich:3973",
+          "oulenspiegel_channel:4556"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4206",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12518310546875,
+        "top5": [
+          "techno_yandex:4206",
+          "toBeAnMLspecialist:1032",
+          "seeallochnaya:3216",
+          "techsparks:5130",
+          "aioftheday:3214"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_376",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 0.12265515327453613,
+        "top5": [
+          "aioftheday:3259",
+          "singularityfm:376",
+          "ai_machinelearning_big_data:8101",
+          "boris_again:3321",
+          "ai_machinelearning_big_data:8101"
+        ]
+      },
+      {
+        "id": "ret_stuffynlp_200",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 0.12514209747314453,
+        "top5": [
+          "stuffynlp:200",
+          "seeallochnaya:2781",
+          "stuffynlp:186",
+          "gonzo_ml:4315",
+          "stuffynlp:200"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4188",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12028694152832031,
+        "top5": [
+          "ai_newz:4188",
+          "denissexy:10782",
+          "techno_yandex:4418",
+          "ai_newz:4173",
+          "xor_journal:8909"
+        ]
+      }
+    ]
+  },
+  {
+    "pipeline": "li_stock",
+    "questions": 100,
+    "errors": 0,
+    "recall_1": 0.82,
+    "recall_5": 0.92,
+    "recall_10": 0.94,
+    "recall_20": 0.94,
+    "mrr": 0.861095238095238,
+    "ndcg_5": 1.0129512857750336,
+    "latency_p50": 0.12850618362426758,
+    "latency_p95": 0.20610761642456055,
+    "per_question": [
+      {
+        "id": "ret_complete_ai_851",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 0.24847960472106934,
+        "top5": [
+          "oulenspiegel_channel:4894",
+          "complete_ai:851",
+          "scientific_opensource:166",
+          "scientific_opensource:178",
+          "scientific_opensource:139"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9623",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.12627291679382324,
+        "top5": [
+          "ai_newz:4455",
+          "ai_machinelearning_big_data:8110",
+          "ai_newz:4048",
+          "ai_machinelearning_big_data:9603",
+          "data_secrets:8036"
+        ]
+      },
+      {
+        "id": "ret_smalldatascience_1025",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.1310124397277832,
+        "top5": [
+          "gonzo_ml:4423",
+          "oulenspiegel_channel:4657",
+          "denissexy:10570",
+          "xor_journal:8036",
+          "gonzo_ml:4806"
+        ]
+      },
+      {
+        "id": "ret_cryptovalerii_844",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.5,
+        "latency": 0.14629244804382324,
+        "top5": [
+          "denissexy:10884",
+          "data_secrets:8370",
+          "cryptovalerii:844",
+          "boris_again:3299",
+          "protechietich:3653"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_861",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.14027643203735352,
+        "top5": [
+          "complete_ai:861",
+          "oulenspiegel_channel:4924",
+          "data_secrets:8173",
+          "singularityfm:284",
+          "xor_journal:7333"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4231",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13501620292663574,
+        "top5": [
+          "ai_newz:4231",
+          "ai_machinelearning_big_data:8713",
+          "data_secrets:8572",
+          "ai_machinelearning_big_data:8161",
+          "aioftheday:3697"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5144",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.5,
+        "latency": 0.12861013412475586,
+        "top5": [
+          "protechietich:4032",
+          "protechietich:3878",
+          "techsparks:5144",
+          "protechietich:3925",
+          "techsparks:5284"
+        ]
+      },
+      {
+        "id": "ret_data_secrets_8444",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.1280841827392578,
+        "top5": [
+          "data_secrets:8444",
+          "data_secrets:8444",
+          "gonzo_ml:4345",
+          "complete_ai:770",
+          "ai_machinelearning_big_data:8100"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9237",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.9306765580733931,
+        "latency": 0.12256669998168945,
+        "top5": [
+          "aioftheday:3916",
+          "techsparks:5332",
+          "ai_machinelearning_big_data:9237",
+          "ai_machinelearning_big_data:9237",
+          "aioftheday:3592"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1908",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1234445571899414,
+        "top5": [
+          "neurohive:1908",
+          "ai_machinelearning_big_data:8853",
+          "ai_machinelearning_big_data:8329",
+          "ai_machinelearning_big_data:8861",
+          "neurohive:1933"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1926",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12385201454162598,
+        "top5": [
+          "neurohive:1926",
+          "ai_machinelearning_big_data:8348",
+          "ai_newz:4228",
+          "ai_machinelearning_big_data:8680",
+          "ai_machinelearning_big_data:9390"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_169",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12790703773498535,
+        "top5": [
+          "varim_ml:169",
+          "scientific_opensource:146",
+          "scientific_opensource:184",
+          "oulenspiegel_channel:4676",
+          "scientific_opensource:147"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1923",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.14757585525512695,
+        "top5": [
+          "neurohive:1923",
+          "ai_machinelearning_big_data:9774",
+          "seeallochnaya:2826",
+          "seeallochnaya:2826",
+          "seeallochnaya:3144"
+        ]
+      },
+      {
+        "id": "ret_toBeAnMLspecialist_1038",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12339544296264648,
+        "top5": [
+          "toBeAnMLspecialist:1038",
+          "denissexy:11291",
+          "denissexy:11137",
+          "techno_yandex:4250",
+          "gonzo_ml:3788"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_644",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.12593340873718262,
+        "top5": [
+          "llm_under_hood:644",
+          "llm_under_hood:644",
+          "ml_product:970",
+          "llm_under_hood:768",
+          "ml_product:782"
+        ]
+      },
+      {
+        "id": "ret_ml_product_751",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1309361457824707,
+        "top5": [
+          "ml_product:751",
+          "addmeto:6185",
+          "complete_ai:747",
+          "ai_machinelearning_big_data:7933",
+          "data_easy:312"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5192",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 0.12997078895568848,
+        "top5": [
+          "protechietich:3995",
+          "techsparks:5192",
+          "protechietich:3868",
+          "xor_journal:7749",
+          "techno_yandex:4801"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3828",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12271332740783691,
+        "top5": [
+          "protechietich:3828",
+          "seeallochnaya:2813",
+          "protechietich:3620",
+          "seeallochnaya:2813",
+          "singularityfm:353"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_653",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 2.0177825608059994,
+        "latency": 0.12646722793579102,
+        "top5": [
+          "llm_under_hood:652",
+          "llm_under_hood:654",
+          "singularityfm:330",
+          "llm_under_hood:682",
+          "llm_under_hood:655"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_4760",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1296520233154297,
+        "top5": [
+          "oulenspiegel_channel:4760",
+          "xor_journal:8150",
+          "data_secrets:8080",
+          "ml_product:950",
+          "data_secrets:8834"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1926",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12616252899169922,
+        "top5": [
+          "neurohive:1926",
+          "ai_machinelearning_big_data:9506",
+          "ai_newz:4415",
+          "aioftheday:3295",
+          "ai_machinelearning_big_data:8161"
+        ]
+      },
+      {
+        "id": "ret_deep_school_614",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.1,
+        "ndcg_5": 0.0,
+        "latency": 0.12272405624389648,
+        "top5": [
+          "aioftheday:4232",
+          "techno_yandex:4442",
+          "techno_yandex:4976",
+          "techno_yandex:4608",
+          "techno_yandex:4356"
+        ]
+      },
+      {
+        "id": "ret_data_easy_306",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.1248779296875,
+        "top5": [
+          "data_easy:306",
+          "data_easy:306",
+          "data_secrets:7611",
+          "data_secrets:7611",
+          "data_secrets:8159"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3780",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.13051748275756836,
+        "top5": [
+          "protechietich:3780",
+          "protechietich:3776",
+          "ai_machinelearning_big_data:8957",
+          "techsparks:5282",
+          "data_secrets:7644"
+        ]
+      },
+      {
+        "id": "ret_ml_product_711",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.15604519844055176,
+        "top5": [
+          "ml_product:711",
+          "techno_yandex:4962",
+          "ai_newz:4277",
+          "denissexy:10982",
+          "techsparks:5492"
+        ]
+      },
+      {
+        "id": "ret_AIgobrr_84",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.13456034660339355,
+        "top5": [
+          "AIgobrr:83",
+          "AIgobrr:84",
+          "data_secrets:7905",
+          "aioftheday:3257",
+          "ai_newz:4219"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_133",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13222217559814453,
+        "top5": [
+          "scientific_opensource:133",
+          "scientific_opensource:180",
+          "scientific_opensource:184",
+          "scientific_opensource:156",
+          "ai_machinelearning_big_data:8945"
+        ]
+      },
+      {
+        "id": "ret_data_easy_301",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12179303169250488,
+        "top5": [
+          "data_easy:301",
+          "data_secrets:7700",
+          "ai_machinelearning_big_data:9760",
+          "boris_again:3716",
+          "ai_machinelearning_big_data:9417"
+        ]
+      },
+      {
+        "id": "ret_stuffynlp_187",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.13295888900756836,
+        "top5": [
+          "stuffynlp:187",
+          "stuffynlp:187",
+          "stuffynlp:218",
+          "ai_machinelearning_big_data:8431",
+          "data_secrets:7685"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6170",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12556171417236328,
+        "top5": [
+          "addmeto:6170",
+          "seeallochnaya:3011",
+          "aioftheday:3577",
+          "denissexy:10803",
+          "seeallochnaya:2950"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6182",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1444075107574463,
+        "top5": [
+          "addmeto:6182",
+          "aioftheday:3722",
+          "data_secrets:8161",
+          "llm_under_hood:752",
+          "ai_machinelearning_big_data:9638"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6164",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13803935050964355,
+        "top5": [
+          "addmeto:6164",
+          "aioftheday:3515",
+          "ai_machinelearning_big_data:8578",
+          "aioftheday:3987",
+          "ai_machinelearning_big_data:8578"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1862",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 0.12552213668823242,
+        "top5": [
+          "neurohive:1862",
+          "data_secrets:7520",
+          "neurohive:1862",
+          "ml_product:899",
+          "aioftheday:3321"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2340",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12920451164245605,
+        "top5": [
+          "theworldisnoteasy:2340",
+          "ml_product:794",
+          "ml_product:915",
+          "theworldisnoteasy:2248",
+          "data_secrets:8083"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4643",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12235093116760254,
+        "top5": [
+          "gonzo_ml:4643",
+          "boris_again:3555",
+          "toBeAnMLspecialist:1083",
+          "data_secrets:7479",
+          "xor_journal:7291"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_128",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12613797187805176,
+        "top5": [
+          "MLunderhood:128",
+          "gonzo_ml:4261",
+          "MLunderhood:168",
+          "rybolos_channel:1670",
+          "gonzo_ml:4261"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6156",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12730813026428223,
+        "top5": [
+          "addmeto:6156",
+          "denissexy:10466",
+          "aioftheday:3969",
+          "techno_yandex:4912",
+          "aioftheday:3419"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5459",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 0.1386246681213379,
+        "top5": [
+          "techsparks:5459",
+          "protechietich:3992",
+          "ml_product:661",
+          "theworldisnoteasy:2305",
+          "techsparks:5459"
+        ]
+      },
+      {
+        "id": "ret_aioftheday_3250",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13516807556152344,
+        "top5": [
+          "aioftheday:3250",
+          "data_secrets:7390",
+          "ai_machinelearning_big_data:8069",
+          "ai_newz:4116",
+          "data_secrets:7828"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_749",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 2.3175293653079345,
+        "latency": 0.12279129028320312,
+        "top5": [
+          "llm_under_hood:749",
+          "llm_under_hood:756",
+          "llm_under_hood:745",
+          "llm_under_hood:753",
+          "llm_under_hood:747"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_363",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.12652301788330078,
+        "top5": [
+          "CVML_team:363",
+          "CVML_team:365",
+          "CVML_team:372",
+          "oulenspiegel_channel:4823",
+          "CVML_team:370"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_137",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12156939506530762,
+        "top5": [
+          "scientific_opensource:137",
+          "xor_journal:7213",
+          "xor_journal:7666",
+          "xor_journal:8311",
+          "boris_again:3603"
+        ]
+      },
+      {
+        "id": "ret_aihappens_380",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.12376093864440918,
+        "top5": [
+          "aihappens:380",
+          "aihappens:380",
+          "boris_again:3434",
+          "seeallochnaya:2917",
+          "seeallochnaya:2822"
+        ]
+      },
+      {
+        "id": "ret_aioftheday_3944",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12300467491149902,
+        "top5": [
+          "aioftheday:3944",
+          "xor_journal:8766",
+          "complete_ai:716",
+          "boris_again:3366",
+          "aioftheday:3800"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_138",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12804698944091797,
+        "top5": [
+          "scientific_opensource:138",
+          "ai_machinelearning_big_data:9741",
+          "data_secrets:8923",
+          "ai_machinelearning_big_data:8945",
+          "xor_journal:8407"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4472",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.15356683731079102,
+        "top5": [
+          "techno_yandex:4472",
+          "denissexy:11083",
+          "seeallochnaya:2905",
+          "denissexy:11083",
+          "boris_again:3349"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_383",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1888566017150879,
+        "top5": [
+          "CVML_team:383",
+          "denissexy:10399",
+          "data_secrets:7343",
+          "ai_newz:4016",
+          "ai_machinelearning_big_data:8003"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_172",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13643646240234375,
+        "top5": [
+          "varim_ml:172",
+          "inforetriever:380",
+          "scientific_opensource:179",
+          "smalldatascience:1024",
+          "ai_newz:4313"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4196",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.12850618362426758,
+        "top5": [
+          "boris_again:3819",
+          "techno_yandex:4418",
+          "ai_newz:4434",
+          "techno_yandex:4661",
+          "techno_yandex:4902"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_8923",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.19408774375915527,
+        "top5": [
+          "ai_machinelearning_big_data:8923",
+          "ai_newz:4479",
+          "gonzo_ml:4199",
+          "xor_journal:8120",
+          "gonzo_ml:4420"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_383",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 0.22738099098205566,
+        "top5": [
+          "inforetriever:383",
+          "inforetriever:247",
+          "inforetriever:383",
+          "toBeAnMLspecialist:1057",
+          "boris_again:3441"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4785",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.20610761642456055,
+        "top5": [
+          "gonzo_ml:4785",
+          "gonzo_ml:4785",
+          "data_secrets:8155",
+          "gonzo_ml:4438",
+          "xor_journal:7580"
+        ]
+      },
+      {
+        "id": "ret_denissexy_10751",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.24731731414794922,
+        "top5": [
+          "denissexy:10751",
+          "ai_newz:4296",
+          "ai_machinelearning_big_data:9090",
+          "aioftheday:3484",
+          "data_secrets:8290"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_5004",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12687969207763672,
+        "top5": [
+          "oulenspiegel_channel:5004",
+          "ai_newz:4114",
+          "ai_newz:4149",
+          "ai_newz:4398",
+          "data_secrets:7772"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2386",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13598155975341797,
+        "top5": [
+          "theworldisnoteasy:2386",
+          "inforetriever:247",
+          "toBeAnMLspecialist:1071",
+          "gonzo_ml:4030",
+          "techsparks:5175"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_278",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.14076709747314453,
+        "top5": [
+          "singularityfm:278",
+          "xor_journal:8888",
+          "denissexy:11313",
+          "techsparks:5499",
+          "techno_yandex:4295"
+        ]
+      },
+      {
+        "id": "ret_toBeAnMLspecialist_1099",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1334524154663086,
+        "top5": [
+          "toBeAnMLspecialist:1099",
+          "xor_journal:7559",
+          "ai_machinelearning_big_data:8714",
+          "ai_machinelearning_big_data:8442",
+          "gonzo_ml:4452"
+        ]
+      },
+      {
+        "id": "ret_deep_school_576",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1266651153564453,
+        "top5": [
+          "deep_school:576",
+          "deep_school:605",
+          "data_secrets:8371",
+          "gonzo_ml:3934",
+          "gonzo_ml:4220"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1913",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 0.1849501132965088,
+        "top5": [
+          "ai_machinelearning_big_data:9604",
+          "neurohive:1913",
+          "xor_journal:8804",
+          "ai_machinelearning_big_data:8945",
+          "techno_yandex:4544"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_79",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.5,
+        "latency": 0.15694022178649902,
+        "top5": [
+          "complete_ai:725",
+          "oulenspiegel_channel:4602",
+          "dendi_math_ai:79",
+          "data_secrets:8371",
+          "oulenspiegel_channel:4602"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_382",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.13244986534118652,
+        "top5": [
+          "xor_journal:7268",
+          "theworldisnoteasy:2285",
+          "ai_newz:4133",
+          "seeallochnaya:3204",
+          "boris_again:3531"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_8099",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1296830177307129,
+        "top5": [
+          "ai_machinelearning_big_data:8099",
+          "ml_product:745",
+          "techno_yandex:4568",
+          "xor_journal:8804",
+          "seeallochnaya:3081"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_131",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.16493654251098633,
+        "top5": [
+          "MLunderhood:131",
+          "data_secrets:7920",
+          "MLunderhood:285",
+          "MLunderhood:284",
+          "data_secrets:7920"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_96",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.14651823043823242,
+        "top5": [
+          "dendi_math_ai:96",
+          "xor_journal:8142",
+          "ai_newz:4267",
+          "ai_machinelearning_big_data:8856",
+          "gonzo_ml:4153"
+        ]
+      },
+      {
+        "id": "ret_smalldatascience_1016",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 0.13469648361206055,
+        "top5": [
+          "smalldatascience:1016",
+          "toBeAnMLspecialist:1058",
+          "stuffynlp:214",
+          "xor_journal:7210",
+          "smalldatascience:1021"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_162",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13373255729675293,
+        "top5": [
+          "varim_ml:162",
+          "protechietich:3653",
+          "aioftheday:4331",
+          "CVML_team:388",
+          "boris_again:3531"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_4844",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1901710033416748,
+        "top5": [
+          "oulenspiegel_channel:4844",
+          "oulenspiegel_channel:4814",
+          "data_secrets:8380",
+          "oulenspiegel_channel:4816",
+          "xor_journal:8191"
+        ]
+      },
+      {
+        "id": "ret_ml_product_750",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.1377882957458496,
+        "top5": [
+          "oulenspiegel_channel:4686",
+          "AIgobrr:83",
+          "AIgobrr:84",
+          "AIgobrr:72",
+          "data_secrets:8133"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3734",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.16792869567871094,
+        "top5": [
+          "protechietich:3734",
+          "aioftheday:4014",
+          "techno_yandex:4196",
+          "techsparks:5395",
+          "aioftheday:3433"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_83",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1763918399810791,
+        "top5": [
+          "dendi_math_ai:83",
+          "oulenspiegel_channel:4749",
+          "xor_journal:7210",
+          "denissexy:10662",
+          "rybolos_channel:1696"
+        ]
+      },
+      {
+        "id": "ret_ml_product_773",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12518715858459473,
+        "top5": [
+          "ml_product:773",
+          "data_secrets:7765",
+          "ai_machinelearning_big_data:8451",
+          "stuffynlp:147",
+          "ai_machinelearning_big_data:8705"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4126",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12909746170043945,
+        "top5": [
+          "ai_newz:4126",
+          "data_secrets:7681",
+          "aioftheday:3389",
+          "aioftheday:3217",
+          "xor_journal:7494"
+        ]
+      },
+      {
+        "id": "ret_seeallochnaya_3008",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.11907315254211426,
+        "top5": [
+          "seeallochnaya:3008",
+          "seeallochnaya:3008",
+          "ml_product:733",
+          "seeallochnaya:3200",
+          "seeallochnaya:2851"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_753",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12441587448120117,
+        "top5": [
+          "complete_ai:753",
+          "data_secrets:7574",
+          "data_secrets:7595",
+          "boris_again:3454",
+          "seeallochnaya:2759"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_253",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 0.1252901554107666,
+        "top5": [
+          "inforetriever:253",
+          "MLunderhood:165",
+          "MLunderhood:168",
+          "inforetriever:312",
+          "inforetriever:249"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_162",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12350964546203613,
+        "top5": [
+          "scientific_opensource:162",
+          "xor_journal:8191",
+          "ai_newz:4267",
+          "ai_machinelearning_big_data:9732",
+          "data_secrets:8380"
+        ]
+      },
+      {
+        "id": "ret_xor_journal_8139",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13098978996276855,
+        "top5": [
+          "xor_journal:8139",
+          "aioftheday:3790",
+          "denissexy:10967",
+          "denissexy:10944",
+          "aioftheday:3821"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2246",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12143945693969727,
+        "top5": [
+          "theworldisnoteasy:2246",
+          "theworldisnoteasy:2180",
+          "theworldisnoteasy:2215",
+          "theworldisnoteasy:2253",
+          "theworldisnoteasy:2405"
+        ]
+      },
+      {
+        "id": "ret_denissexy_10678",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12810420989990234,
+        "top5": [
+          "denissexy:10678",
+          "xor_journal:7795",
+          "ai_machinelearning_big_data:9569",
+          "denissexy:11290",
+          "techno_yandex:4948"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_411",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.14285714285714285,
+        "ndcg_5": 0.0,
+        "latency": 0.12965655326843262,
+        "top5": [
+          "xor_journal:7892",
+          "singularityfm:340",
+          "boris_again:3667",
+          "xor_journal:8844",
+          "toBeAnMLspecialist:1104"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_881",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.5004572868347168,
+        "top5": [
+          "complete_ai:881",
+          "denissexy:11226",
+          "boris_again:3517",
+          "xor_journal:7934",
+          "toBeAnMLspecialist:1025"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_164",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.1214754581451416,
+        "top5": [
+          "MLunderhood:164",
+          "MLunderhood:192",
+          "seeallochnaya:2826",
+          "inforetriever:336",
+          "data_secrets:8604"
+        ]
+      },
+      {
+        "id": "ret_rybolos_channel_1614",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.2,
+        "ndcg_5": 0.38685280723454163,
+        "latency": 0.12069892883300781,
+        "top5": [
+          "seeallochnaya:3103",
+          "dendi_math_ai:83",
+          "oulenspiegel_channel:4749",
+          "oulenspiegel_channel:4677",
+          "rybolos_channel:1614"
+        ]
+      },
+      {
+        "id": "ret_AIgobrr_81",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.11937403678894043,
+        "top5": [
+          "AIgobrr:81",
+          "data_secrets:7779",
+          "data_secrets:7761",
+          "data_easy:287",
+          "rybolos_channel:1521"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5297",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 0.12612175941467285,
+        "top5": [
+          "techsparks:5297",
+          "techsparks:5316",
+          "techsparks:5292",
+          "techsparks:5326",
+          "toBeAnMLspecialist:1034"
+        ]
+      },
+      {
+        "id": "ret_data_secrets_7798",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.11965012550354004,
+        "top5": [
+          "data_secrets:7798",
+          "data_secrets:7795",
+          "xor_journal:7609",
+          "protechietich:3583",
+          "xor_journal:7689"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4545",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.5,
+        "latency": 0.12513160705566406,
+        "top5": [
+          "techno_yandex:4532",
+          "data_secrets:8138",
+          "techno_yandex:4545",
+          "ai_newz:4229",
+          "aioftheday:3710"
+        ]
+      },
+      {
+        "id": "ret_boris_again_3616",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.13148808479309082,
+        "top5": [
+          "boris_again:3616",
+          "techsparks:5485",
+          "llm_under_hood:758",
+          "stuffynlp:186",
+          "stuffynlp:186"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9431",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12242388725280762,
+        "top5": [
+          "ai_machinelearning_big_data:9431",
+          "denissexy:10704",
+          "seeallochnaya:2660",
+          "denissexy:10549",
+          "aioftheday:3256"
+        ]
+      },
+      {
+        "id": "ret_seeallochnaya_3010",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 2.1309297535714578,
+        "latency": 0.13209080696105957,
+        "top5": [
+          "seeallochnaya:3010",
+          "seeallochnaya:3010",
+          "seeallochnaya:3010",
+          "ai_machinelearning_big_data:8959",
+          "ai_machinelearning_big_data:8959"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_294",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12222433090209961,
+        "top5": [
+          "inforetriever:294",
+          "ml_product:801",
+          "techno_yandex:4948",
+          "seeallochnaya:2767",
+          "singularityfm:389"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4166",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.16359329223632812,
+        "top5": [
+          "gonzo_ml:4166",
+          "data_secrets:8635",
+          "stuffynlp:168",
+          "ml_product:905",
+          "data_secrets:7426"
+        ]
+      },
+      {
+        "id": "ret_rybolos_channel_1561",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12540507316589355,
+        "top5": [
+          "rybolos_channel:1561",
+          "ai_newz:4209",
+          "data_secrets:7999",
+          "boris_again:3482",
+          "stuffynlp:226"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_244",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12305188179016113,
+        "top5": [
+          "MLunderhood:244",
+          "MLunderhood:216",
+          "MLunderhood:235",
+          "MLunderhood:253",
+          "MLunderhood:220"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_847",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12537765502929688,
+        "top5": [
+          "complete_ai:847",
+          "techno_yandex:4714",
+          "rybolos_channel:1675",
+          "deep_school:620",
+          "llm_under_hood:723"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_805",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.12009882926940918,
+        "top5": [
+          "seeallochnaya:3204",
+          "data_secrets:8950",
+          "boris_again:3531",
+          "protechietich:3973",
+          "oulenspiegel_channel:4556"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4206",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.12327337265014648,
+        "top5": [
+          "techno_yandex:4206",
+          "toBeAnMLspecialist:1032",
+          "seeallochnaya:3216",
+          "techsparks:5130",
+          "aioftheday:3214"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_376",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 0.12071537971496582,
+        "top5": [
+          "aioftheday:3259",
+          "singularityfm:376",
+          "ai_machinelearning_big_data:8101",
+          "boris_again:3321",
+          "ai_machinelearning_big_data:8101"
+        ]
+      },
+      {
+        "id": "ret_stuffynlp_200",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 0.12352466583251953,
+        "top5": [
+          "stuffynlp:200",
+          "seeallochnaya:2781",
+          "stuffynlp:186",
+          "gonzo_ml:4315",
+          "stuffynlp:200"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4188",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.11955928802490234,
+        "top5": [
+          "ai_newz:4188",
+          "denissexy:10782",
+          "techno_yandex:4418",
+          "ai_newz:4173",
+          "xor_journal:8909"
+        ]
+      }
+    ]
+  },
+  {
+    "pipeline": "li_maxed",
+    "questions": 100,
+    "errors": 1,
+    "recall_1": 0.8787878787878788,
+    "recall_5": 0.9393939393939394,
+    "recall_10": 0.9393939393939394,
+    "recall_20": 0.9393939393939394,
+    "mrr": 0.9057239057239058,
+    "ndcg_5": 1.0621866837742433,
+    "latency_p50": 1.3883514404296875,
+    "latency_p95": 1.6160378456115723,
+    "per_question": [
+      {
+        "id": "ret_complete_ai_851",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 1.4166955947875977,
+        "top5": [
+          "oulenspiegel_channel:4894",
+          "complete_ai:851",
+          "scientific_opensource:178",
+          "scientific_opensource:145",
+          "scientific_opensource:166"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9623",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 1.5166192054748535,
+        "top5": [
+          "data_secrets:7450",
+          "ai_machinelearning_big_data:8110",
+          "aioftheday:4235",
+          "data_secrets:8036",
+          "ai_newz:4455"
+        ]
+      },
+      {
+        "id": "ret_smalldatascience_1025",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.6544837951660156,
+        "top5": [
+          "cryptovalerii:868",
+          "oulenspiegel_channel:4633",
+          "seeallochnaya:2776",
+          "seeallochnaya:2917",
+          "seeallochnaya:3137"
+        ]
+      },
+      {
+        "id": "ret_cryptovalerii_844",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.1825826168060303,
+        "top5": [
+          "cryptovalerii:844",
+          "denissexy:10884",
+          "protechietich:3584",
+          "xor_journal:7266",
+          "data_secrets:8370"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_861",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4187757968902588,
+        "top5": [
+          "complete_ai:861",
+          "oulenspiegel_channel:4924",
+          "ai_newz:4490",
+          "data_secrets:8173",
+          "singularityfm:284"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4231",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3399951457977295,
+        "top5": [
+          "ai_newz:4231",
+          "ai_machinelearning_big_data:8896",
+          "data_secrets:8145",
+          "data_secrets:7899",
+          "data_secrets:8832"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5144",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2737646102905273,
+        "top5": [
+          "techsparks:5144",
+          "theworldisnoteasy:2248",
+          "protechietich:4032",
+          "protechietich:3878",
+          "xor_journal:7681"
+        ]
+      },
+      {
+        "id": "ret_data_secrets_8444",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 1.419269323348999,
+        "top5": [
+          "data_secrets:8444",
+          "data_secrets:8444",
+          "data_secrets:8928",
+          "gonzo_ml:4345",
+          "ai_machinelearning_big_data:9237"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9237",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2139482498168945,
+        "top5": [
+          "ai_machinelearning_big_data:9237",
+          "aioftheday:3916",
+          "techsparks:5332",
+          "aioftheday:3622",
+          "protechietich:3829"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1908",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.481351613998413,
+        "top5": [
+          "neurohive:1908",
+          "ai_machinelearning_big_data:8649",
+          "neurohive:1933",
+          "deep_school:610",
+          "ai_machinelearning_big_data:8649"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1926",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4815785884857178,
+        "top5": [
+          "neurohive:1926",
+          "ai_newz:4415",
+          "ai_machinelearning_big_data:8188",
+          "ai_machinelearning_big_data:9516",
+          "ai_machinelearning_big_data:9075"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_169",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 1.2907850742340088,
+        "top5": [
+          "varim_ml:169",
+          "scientific_opensource:146",
+          "protechietich:3697",
+          "scientific_opensource:147",
+          "varim_ml:165"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1923",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4287099838256836,
+        "top5": [
+          "neurohive:1923",
+          "ai_machinelearning_big_data:9774",
+          "neurohive:1933",
+          "seeallochnaya:2825",
+          "data_secrets:8635"
+        ]
+      },
+      {
+        "id": "ret_toBeAnMLspecialist_1038",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.9533936977386475,
+        "top5": [
+          "toBeAnMLspecialist:1038",
+          "denissexy:11291",
+          "boris_again:3322",
+          "protechietich:3915",
+          "gonzo_ml:3788"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_644",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 1.5162312984466553,
+        "top5": [
+          "llm_under_hood:644",
+          "llm_under_hood:644",
+          "seeallochnaya:2896",
+          "rybolos_channel:1614",
+          "ml_product:782"
+        ]
+      },
+      {
+        "id": "ret_ml_product_751",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3815910816192627,
+        "top5": [
+          "ml_product:751",
+          "ai_machinelearning_big_data:8971",
+          "xor_journal:7965",
+          "complete_ai:747",
+          "seeallochnaya:3230"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5192",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2555429935455322,
+        "top5": [
+          "techsparks:5192",
+          "xor_journal:8685",
+          "protechietich:3995",
+          "xor_journal:8378",
+          "xor_journal:7749"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3828",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4570887088775635,
+        "top5": [
+          "protechietich:3828",
+          "ai_machinelearning_big_data:8685",
+          "ai_machinelearning_big_data:8476",
+          "ai_machinelearning_big_data:9324",
+          "singularityfm:353"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_653",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.8175293653079347,
+        "latency": 1.460712194442749,
+        "top5": [
+          "llm_under_hood:653",
+          "singularityfm:330",
+          "llm_under_hood:664",
+          "llm_under_hood:652",
+          "llm_under_hood:654"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_4760",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2421536445617676,
+        "top5": [
+          "oulenspiegel_channel:4760",
+          "xor_journal:8150",
+          "ml_product:950",
+          "ai_machinelearning_big_data:8637",
+          "ai_machinelearning_big_data:7932"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1926",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.5004644393920898,
+        "top5": [
+          "neurohive:1926",
+          "ai_machinelearning_big_data:9506",
+          "ai_newz:4415",
+          "data_secrets:8726",
+          "gonzo_ml:4755"
+        ]
+      },
+      {
+        "id": "ret_deep_school_614",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.9624128341674805,
+        "top5": [
+          "deep_school:614",
+          "deep_school:614",
+          "aioftheday:4232",
+          "protechietich:3933",
+          "aioftheday:3797"
+        ]
+      },
+      {
+        "id": "ret_data_easy_306",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 1.4437928199768066,
+        "top5": [
+          "data_easy:306",
+          "data_easy:306",
+          "xor_journal:8607",
+          "data_easy:276",
+          "data_secrets:7611"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3780",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 1.500478744506836,
+        "top5": [
+          "protechietich:3780",
+          "data_secrets:8256",
+          "ai_machinelearning_big_data:8957",
+          "data_secrets:8821",
+          "protechietich:3776"
+        ]
+      },
+      {
+        "id": "ret_ml_product_711",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4363925457000732,
+        "top5": [
+          "ml_product:711",
+          "ml_product:671",
+          "seeallochnaya:3237",
+          "data_secrets:8386",
+          "ai_machinelearning_big_data:9269"
+        ]
+      },
+      {
+        "id": "ret_AIgobrr_84",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 2.0177825608059994,
+        "latency": 1.4402508735656738,
+        "top5": [
+          "AIgobrr:83",
+          "AIgobrr:84",
+          "aioftheday:3257",
+          "aioftheday:3677",
+          "AIgobrr:83"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_133",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.299354076385498,
+        "top5": [
+          "scientific_opensource:133",
+          "scientific_opensource:184",
+          "scientific_opensource:180",
+          "scientific_opensource:156",
+          "scientific_opensource:164"
+        ]
+      },
+      {
+        "id": "ret_data_easy_301",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.406132698059082,
+        "top5": [
+          "data_easy:301",
+          "denissexy:10705",
+          "data_secrets:7700",
+          "aioftheday:4061",
+          "ai_machinelearning_big_data:9305"
+        ]
+      },
+      {
+        "id": "ret_stuffynlp_187",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 1.3342018127441406,
+        "top5": [
+          "stuffynlp:187",
+          "stuffynlp:218",
+          "stuffynlp:187",
+          "gonzo_ml:4040",
+          "MLunderhood:228"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6170",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4319779872894287,
+        "top5": [
+          "addmeto:6170",
+          "seeallochnaya:3011",
+          "seeallochnaya:2958",
+          "aioftheday:3577",
+          "techsparks:5500"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6182",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4987494945526123,
+        "top5": [
+          "addmeto:6182",
+          "data_secrets:8161",
+          "llm_under_hood:752",
+          "aioftheday:3722",
+          "ai_machinelearning_big_data:9638"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6164",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.229778528213501,
+        "top5": [
+          "addmeto:6164",
+          "ai_machinelearning_big_data:8578",
+          "aioftheday:3515",
+          "protechietich:3605",
+          "aioftheday:3987"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1862",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.4306765580733931,
+        "latency": 1.4202980995178223,
+        "top5": [
+          "neurohive:1862",
+          "ml_product:899",
+          "ml_product:899",
+          "neurohive:1862",
+          "aioftheday:3321"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2340",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4066126346588135,
+        "top5": [
+          "theworldisnoteasy:2340",
+          "ml_product:794",
+          "gonzo_ml:4596",
+          "gonzo_ml:4622",
+          "data_secrets:8083"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4643",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2163739204406738,
+        "top5": [
+          "gonzo_ml:4643",
+          "gonzo_ml:4204",
+          "xor_journal:7291",
+          "data_secrets:7880",
+          "data_secrets:7479"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_128",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2244880199432373,
+        "top5": [
+          "MLunderhood:128",
+          "MLunderhood:168",
+          "gonzo_ml:4261",
+          "rybolos_channel:1734",
+          "rybolos_channel:1670"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6156",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.1987018585205078,
+        "top5": [
+          "addmeto:6156",
+          "denissexy:10466",
+          "aioftheday:3969",
+          "data_secrets:8378",
+          "denissexy:11125"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5459",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 1.3883514404296875,
+        "top5": [
+          "techsparks:5459",
+          "techsparks:5459",
+          "protechietich:3992",
+          "aioftheday:4265",
+          "aioftheday:3559"
+        ]
+      },
+      {
+        "id": "ret_aioftheday_3250",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 1.4962983131408691,
+        "top5": [
+          "data_secrets:7390",
+          "aioftheday:3250",
+          "ai_machinelearning_big_data:8069",
+          "boris_again:3516",
+          "ai_newz:4469"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_749",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.8175293653079347,
+        "latency": 1.4554622173309326,
+        "top5": [
+          "llm_under_hood:749",
+          "llm_under_hood:756",
+          "llm_under_hood:761",
+          "llm_under_hood:747",
+          "llm_under_hood:753"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_363",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 1.5066213607788086,
+        "top5": [
+          "CVML_team:363",
+          "CVML_team:365",
+          "CVML_team:408",
+          "CVML_team:394",
+          "CVML_team:376"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_137",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 1.422630786895752,
+        "top5": [
+          "scientific_opensource:137",
+          "xor_journal:8311",
+          "scientific_opensource:136",
+          "xor_journal:7666",
+          "xor_journal:7271"
+        ]
+      },
+      {
+        "id": "ret_aihappens_380",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 1.3707304000854492,
+        "top5": [
+          "aihappens:380",
+          "aihappens:380",
+          "seeallochnaya:2748",
+          "protechietich:3998",
+          "xor_journal:7371"
+        ]
+      },
+      {
+        "id": "ret_aioftheday_3944",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 4.199713945388794,
+        "top5": [
+          "aioftheday:3944",
+          "denissexy:11038",
+          "aioftheday:4218",
+          "boris_again:3366",
+          "aioftheday:3800"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_138",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 2.1406309604644775,
+        "top5": [
+          "scientific_opensource:138",
+          "ai_machinelearning_big_data:8945",
+          "xor_journal:8407",
+          "ai_machinelearning_big_data:9741",
+          "xor_journal:7673"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4472",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.598421573638916,
+        "top5": [
+          "techno_yandex:4472",
+          "denissexy:11083",
+          "denissexy:10717",
+          "aioftheday:3258",
+          "techno_yandex:4845"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_383",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2331736087799072,
+        "top5": [
+          "CVML_team:383",
+          "data_secrets:8375",
+          "data_secrets:7536",
+          "denissexy:10399",
+          "seeallochnaya:2642"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_172",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.5244112014770508,
+        "top5": [
+          "varim_ml:172",
+          "smalldatascience:1024",
+          "inforetriever:380",
+          "scientific_opensource:179",
+          "data_easy:332"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4196",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 1.2060494422912598,
+        "top5": [
+          "techno_yandex:4856",
+          "techno_yandex:4179",
+          "techno_yandex:4902",
+          "techno_yandex:4418",
+          "techno_yandex:4878"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_8923",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2666127681732178,
+        "top5": [
+          "ai_machinelearning_big_data:8923",
+          "gonzo_ml:4199",
+          "ai_newz:4121",
+          "xor_journal:8120",
+          "ai_machinelearning_big_data:9727"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_383",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 1.4004321098327637,
+        "top5": [
+          "inforetriever:383",
+          "inforetriever:383",
+          "inforetriever:247",
+          "deep_school:614",
+          "inforetriever:343"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4785",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 1.4320049285888672,
+        "top5": [
+          "gonzo_ml:4785",
+          "data_secrets:7434",
+          "gonzo_ml:4785",
+          "ai_machinelearning_big_data:8899",
+          "data_secrets:8155"
+        ]
+      },
+      {
+        "id": "ret_denissexy_10751",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.0885438919067383,
+        "top5": [
+          "denissexy:10751",
+          "ai_newz:4296",
+          "ai_machinelearning_big_data:9090",
+          "aioftheday:3484",
+          "aioftheday:3760"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_5004",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2833495140075684,
+        "top5": [
+          "oulenspiegel_channel:5004",
+          "singularityfm:300",
+          "ai_newz:4398",
+          "AIgobrr:83",
+          "smalldatascience:1013"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2386",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.24003267288208,
+        "top5": [
+          "theworldisnoteasy:2386",
+          "boris_again:3320",
+          "inforetriever:247",
+          "seeallochnaya:3125",
+          "toBeAnMLspecialist:1071"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_278",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.200991153717041,
+        "top5": [
+          "singularityfm:278",
+          "techno_yandex:4536",
+          "denissexy:10394",
+          "denissexy:11313",
+          "techsparks:5499"
+        ]
+      },
+      {
+        "id": "ret_toBeAnMLspecialist_1099",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2701702117919922,
+        "top5": [
+          "toBeAnMLspecialist:1099",
+          "denissexy:11315",
+          "ai_machinelearning_big_data:8714",
+          "ai_machinelearning_big_data:9552",
+          "xor_journal:7838"
+        ]
+      },
+      {
+        "id": "ret_deep_school_576",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.455639362335205,
+        "top5": [
+          "deep_school:576",
+          "deep_school:605",
+          "data_secrets:7494",
+          "deep_school:600",
+          "data_secrets:8371"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1913",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3540289402008057,
+        "top5": [
+          "neurohive:1913",
+          "techno_yandex:4544",
+          "xor_journal:8804",
+          "seeallochnaya:3081",
+          "ai_machinelearning_big_data:8165"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_79",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.8868528072345416,
+        "latency": 3.8569772243499756,
+        "top5": [
+          "complete_ai:725",
+          "oulenspiegel_channel:4602",
+          "dendi_math_ai:79",
+          "oulenspiegel_channel:4602",
+          "dendi_math_ai:79"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_382",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.567232608795166,
+        "top5": [
+          "theworldisnoteasy:2285",
+          "seeallochnaya:3204",
+          "rybolos_channel:1716",
+          "boris_again:3531",
+          "xor_journal:7268"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_8099",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.44588041305542,
+        "top5": [
+          "ai_machinelearning_big_data:8099",
+          "ml_product:745",
+          "techsparks:5202",
+          "techno_yandex:4568",
+          "seeallochnaya:3081"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_131",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.8868528072345416,
+        "latency": 1.1956758499145508,
+        "top5": [
+          "MLunderhood:131",
+          "gonzo_ml:4789",
+          "MLunderhood:135",
+          "MLunderhood:284",
+          "MLunderhood:132"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_96",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4488012790679932,
+        "top5": [
+          "dendi_math_ai:96",
+          "xor_journal:8142",
+          "data_secrets:8305",
+          "ai_newz:4267",
+          "oulenspiegel_channel:4814"
+        ]
+      },
+      {
+        "id": "ret_smalldatascience_1016",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3136107921600342,
+        "top5": [
+          "smalldatascience:1016",
+          "stuffynlp:214",
+          "toBeAnMLspecialist:1058",
+          "gonzo_ml:3851",
+          "theworldisnoteasy:2186"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_162",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3421385288238525,
+        "top5": [
+          "varim_ml:162",
+          "boris_again:3750",
+          "boris_again:3751",
+          "rybolos_channel:1601",
+          "singularityfm:379"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_4844",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4923100471496582,
+        "top5": [
+          "oulenspiegel_channel:4844",
+          "scientific_opensource:162",
+          "oulenspiegel_channel:4814",
+          "xor_journal:8191",
+          "complete_ai:814"
+        ]
+      },
+      {
+        "id": "ret_ml_product_750",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 1.0479958057403564,
+        "top5": [
+          "ml_product:671",
+          "ml_product:865",
+          "data_secrets:7750",
+          "data_secrets:8117",
+          "data_secrets:8235"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3734",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2830595970153809,
+        "top5": [
+          "protechietich:3734",
+          "protechietich:3634",
+          "aioftheday:4014",
+          "protechietich:3634",
+          "protechietich:3421"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_83",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 1.6073801517486572,
+        "top5": [
+          "oulenspiegel_channel:4749",
+          "dendi_math_ai:83",
+          "xor_journal:7469",
+          "ai_machinelearning_big_data:8131",
+          "denissexy:10662"
+        ]
+      },
+      {
+        "id": "ret_ml_product_773",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.364131212234497,
+        "top5": [
+          "ml_product:773",
+          "data_secrets:7765",
+          "ai_machinelearning_big_data:8451",
+          "ai_newz:4203",
+          "stuffynlp:147"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4126",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3093795776367188,
+        "top5": [
+          "ai_newz:4126",
+          "data_secrets:7681",
+          "aioftheday:3389",
+          "ai_machinelearning_big_data:9539",
+          "data_secrets:8638"
+        ]
+      },
+      {
+        "id": "ret_seeallochnaya_3008",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4827337265014648,
+        "top5": [
+          "seeallochnaya:3008",
+          "ml_product:733",
+          "seeallochnaya:3200",
+          "theworldisnoteasy:2433",
+          "seeallochnaya:3077"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_753",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.408353328704834,
+        "top5": [
+          "complete_ai:753",
+          "data_secrets:7574",
+          "boris_again:3454",
+          "data_secrets:7595",
+          "xor_journal:7576"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_253",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3593366146087646,
+        "top5": [
+          "inforetriever:253",
+          "MLunderhood:165",
+          "MLunderhood:165",
+          "inforetriever:305",
+          "MLunderhood:241"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_162",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.5476524829864502,
+        "top5": [
+          "scientific_opensource:162",
+          "oulenspiegel_channel:4815",
+          "ai_newz:4267",
+          "xor_journal:8142",
+          "oulenspiegel_channel:4814"
+        ]
+      },
+      {
+        "id": "ret_xor_journal_8139",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.4096908569335938,
+        "top5": [
+          "xor_journal:8139",
+          "denissexy:10967",
+          "aioftheday:3790",
+          "denissexy:10944",
+          "aioftheday:3821"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2246",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.6160378456115723,
+        "top5": [
+          "theworldisnoteasy:2246",
+          "theworldisnoteasy:2215",
+          "theworldisnoteasy:2253",
+          "theworldisnoteasy:2303",
+          "gonzo_ml:4807"
+        ]
+      },
+      {
+        "id": "ret_denissexy_10678",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3993115425109863,
+        "top5": [
+          "denissexy:10678",
+          "CVML_team:388",
+          "denissexy:10773",
+          "boris_again:3671",
+          "xor_journal:7795"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_411",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2885284423828125,
+        "top5": [
+          "singularityfm:411",
+          "singularityfm:340",
+          "seeallochnaya:3024",
+          "denissexy:10892",
+          "oulenspiegel_channel:4674"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_881",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.1752805709838867,
+        "top5": [
+          "complete_ai:881",
+          "singularityfm:408",
+          "denissexy:11226",
+          "aioftheday:4289",
+          "singularityfm:408"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_164",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 1.3984453678131104,
+        "top5": [
+          "MLunderhood:164",
+          "MLunderhood:164",
+          "inforetriever:336",
+          "seeallochnaya:2826",
+          "seeallochnaya:2833"
+        ]
+      },
+      {
+        "id": "ret_rybolos_channel_1614",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.8637752532958984,
+        "top5": [
+          "rybolos_channel:1614",
+          "seeallochnaya:2896",
+          "oulenspiegel_channel:4749",
+          "singularityfm:305",
+          "ai_machinelearning_big_data:7985"
+        ]
+      },
+      {
+        "id": "ret_AIgobrr_81",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3294291496276855,
+        "top5": [
+          "AIgobrr:81",
+          "denissexy:10774",
+          "data_secrets:7779",
+          "data_easy:287",
+          "data_secrets:7761"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5297",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.446507453918457,
+        "top5": [
+          "techsparks:5297",
+          "techsparks:5316",
+          "techsparks:5376",
+          "techsparks:5335",
+          "techsparks:5326"
+        ]
+      },
+      {
+        "id": "ret_data_secrets_7798",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.479909896850586,
+        "top5": [
+          "data_secrets:7798",
+          "techsparks:5197",
+          "data_secrets:7949",
+          "xor_journal:7689",
+          "xor_journal:7609"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4545",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3225071430206299,
+        "top5": [
+          "techno_yandex:4545",
+          "techno_yandex:4532",
+          "data_secrets:8138",
+          "singularityfm:351",
+          "ai_newz:4229"
+        ]
+      },
+      {
+        "id": "ret_boris_again_3616",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3097114562988281,
+        "top5": [
+          "boris_again:3616",
+          "techsparks:5485",
+          "seeallochnaya:2700",
+          "MLunderhood:165",
+          "seeallochnaya:2777"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9431",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2261056900024414,
+        "top5": [
+          "ai_machinelearning_big_data:9431",
+          "denissexy:10704",
+          "denissexy:10549",
+          "seeallochnaya:2660",
+          "aioftheday:3256"
+        ]
+      },
+      {
+        "id": "ret_seeallochnaya_3010",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 1.2048745155334473,
+        "top5": [
+          "seeallochnaya:3010",
+          "seeallochnaya:3010",
+          "seeallochnaya:3112",
+          "xor_journal:7113",
+          "ai_machinelearning_big_data:9594"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_294",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.5129156112670898,
+        "top5": [
+          "inforetriever:294",
+          "ml_product:801",
+          "inforetriever:301",
+          "xor_journal:8712",
+          "seeallochnaya:2767"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4166",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 2.493898630142212,
+        "top5": [
+          "gonzo_ml:4166",
+          "gonzo_ml:4166",
+          "stuffynlp:168",
+          "data_secrets:8635",
+          "data_secrets:7426"
+        ]
+      },
+      {
+        "id": "ret_rybolos_channel_1561",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 1.4051110744476318,
+        "top5": [
+          "stuffynlp:202",
+          "rybolos_channel:1561",
+          "stuffynlp:202",
+          "ai_newz:4209",
+          "data_secrets:7999"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_244",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.4306765580733931,
+        "latency": 1.3226323127746582,
+        "top5": [
+          "MLunderhood:244",
+          "MLunderhood:220",
+          "MLunderhood:253",
+          "MLunderhood:244",
+          "MLunderhood:235"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_847",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.2992310523986816,
+        "top5": [
+          "complete_ai:847",
+          "techno_yandex:4714",
+          "rybolos_channel:1675",
+          "data_easy:332",
+          "boris_again:3669"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_805",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 1.3229188919067383,
+        "top5": [
+          "data_secrets:8950",
+          "inforetriever:341",
+          "inforetriever:387",
+          "inforetriever:341",
+          "scientific_opensource:184"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4206",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 1.3382844924926758,
+        "top5": [
+          "techno_yandex:4206",
+          "seeallochnaya:3176",
+          "gonzo_ml:4179",
+          "denissexy:10401",
+          "aioftheday:3607"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_376",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.3333333333333333,
+        "ndcg_5": 0.5,
+        "latency": 1.297764778137207,
+        "top5": [
+          "boris_again:3321",
+          "ai_machinelearning_big_data:8101",
+          "singularityfm:376",
+          "singularityfm:295",
+          "data_secrets:7423"
+        ]
+      },
+      {
+        "id": "ret_stuffynlp_200",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 1.4867072105407715,
+        "top5": [
+          "stuffynlp:200",
+          "stuffynlp:200",
+          "seeallochnaya:2781",
+          "stuffynlp:186",
+          "theworldisnoteasy:2332"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4188",
+        "error": "<urlopen error timed out>"
+      }
+    ]
+  },
+  {
+    "pipeline": "custom",
+    "questions": 100,
+    "errors": 0,
+    "recall_1": 0.94,
+    "recall_5": 0.95,
+    "recall_10": 0.95,
+    "recall_20": 0.95,
+    "mrr": 0.945,
+    "ndcg_5": 1.102085640737158,
+    "latency_p50": 0.21182489395141602,
+    "latency_p95": 0.24992060661315918,
+    "per_question": [
+      {
+        "id": "ret_complete_ai_851",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 2.371243715286255,
+        "top5": [
+          "complete_ai:851",
+          "oulenspiegel_channel:4894",
+          "scientific_opensource:166",
+          "protechietich:3792",
+          "scientific_opensource:145"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9623",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.22035908699035645,
+        "top5": [
+          "ai_machinelearning_big_data:9623",
+          "ai_newz:4455",
+          "data_secrets:7450",
+          "ai_newz:4048",
+          "aioftheday:4235"
+        ]
+      },
+      {
+        "id": "ret_smalldatascience_1025",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.19910621643066406,
+        "top5": [
+          "theworldisnoteasy:2345",
+          "gonzo_ml:4423",
+          "cryptovalerii:868",
+          "oulenspiegel_channel:4633",
+          "denissexy:10569"
+        ]
+      },
+      {
+        "id": "ret_cryptovalerii_844",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.23967671394348145,
+        "top5": [
+          "cryptovalerii:844",
+          "denissexy:10884",
+          "boris_again:3299",
+          "seeallochnaya:2772",
+          "denissexy:10631"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_861",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.23209428787231445,
+        "top5": [
+          "complete_ai:861",
+          "oulenspiegel_channel:4924",
+          "ai_newz:4490",
+          "techno_yandex:4599",
+          "singularityfm:284"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4231",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.23062944412231445,
+        "top5": [
+          "ai_newz:4231",
+          "data_secrets:8832",
+          "ai_machinelearning_big_data:8896",
+          "ai_machinelearning_big_data:8926",
+          "aioftheday:3697"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5144",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21992182731628418,
+        "top5": [
+          "techsparks:5144",
+          "protechietich:3878",
+          "protechietich:4032",
+          "protechietich:3443",
+          "theworldisnoteasy:2248"
+        ]
+      },
+      {
+        "id": "ret_data_secrets_8444",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.20119237899780273,
+        "top5": [
+          "data_secrets:8444",
+          "data_secrets:8444",
+          "gonzo_ml:4345",
+          "ml_product:771",
+          "ai_machinelearning_big_data:9237"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9237",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.4306765580733931,
+        "latency": 0.2115650177001953,
+        "top5": [
+          "ai_machinelearning_big_data:9237",
+          "techsparks:5332",
+          "aioftheday:3916",
+          "ai_machinelearning_big_data:9237",
+          "seeallochnaya:2950"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1908",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21449017524719238,
+        "top5": [
+          "neurohive:1908",
+          "complete_ai:887",
+          "ai_machinelearning_big_data:9694",
+          "gonzo_ml:5024",
+          "ai_machinelearning_big_data:8198"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1926",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20486950874328613,
+        "top5": [
+          "neurohive:1926",
+          "ai_newz:4491",
+          "ai_newz:4306",
+          "ai_machinelearning_big_data:9506",
+          "llm_under_hood:626"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_169",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.4306765580733931,
+        "latency": 0.21115827560424805,
+        "top5": [
+          "varim_ml:169",
+          "cryptovalerii:824",
+          "scientific_opensource:146",
+          "varim_ml:165",
+          "scientific_opensource:147"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1923",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21541261672973633,
+        "top5": [
+          "neurohive:1923",
+          "stuffynlp:155",
+          "neurohive:1933",
+          "seeallochnaya:2825",
+          "data_secrets:8635"
+        ]
+      },
+      {
+        "id": "ret_toBeAnMLspecialist_1038",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20910263061523438,
+        "top5": [
+          "toBeAnMLspecialist:1038",
+          "boris_again:3322",
+          "gonzo_ml:3788",
+          "denissexy:11291",
+          "MLunderhood:192"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_644",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.2058250904083252,
+        "top5": [
+          "llm_under_hood:644",
+          "llm_under_hood:644",
+          "ml_product:970",
+          "seeallochnaya:2896",
+          "rybolos_channel:1614"
+        ]
+      },
+      {
+        "id": "ret_ml_product_751",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20644235610961914,
+        "top5": [
+          "ml_product:751",
+          "xor_journal:7965",
+          "ai_machinelearning_big_data:8176",
+          "complete_ai:747",
+          "ai_machinelearning_big_data:8971"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5192",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.19869494438171387,
+        "top5": [
+          "techsparks:5192",
+          "xor_journal:7749",
+          "xor_journal:8685",
+          "ai_machinelearning_big_data:9633",
+          "aioftheday:4175"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3828",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20182538032531738,
+        "top5": [
+          "protechietich:3828",
+          "protechietich:3444",
+          "ai_machinelearning_big_data:8381",
+          "ai_machinelearning_big_data:8476",
+          "ai_machinelearning_big_data:8685"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_653",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 2.9484591188793923,
+        "latency": 0.20492267608642578,
+        "top5": [
+          "llm_under_hood:653",
+          "llm_under_hood:654",
+          "llm_under_hood:655",
+          "llm_under_hood:652",
+          "llm_under_hood:651"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_4760",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.211533784866333,
+        "top5": [
+          "oulenspiegel_channel:4760",
+          "xor_journal:8150",
+          "ml_product:950",
+          "theworldisnoteasy:2434",
+          "ml_product:702"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1926",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21141695976257324,
+        "top5": [
+          "neurohive:1926",
+          "ai_machinelearning_big_data:9506",
+          "ai_newz:4415",
+          "ai_newz:4422",
+          "ai_machinelearning_big_data:8569"
+        ]
+      },
+      {
+        "id": "ret_deep_school_614",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 0.19622039794921875,
+        "top5": [
+          "deep_school:614",
+          "aioftheday:4232",
+          "deep_school:614",
+          "denissexy:10804",
+          "aioftheday:3394"
+        ]
+      },
+      {
+        "id": "ret_data_easy_306",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 0.20920634269714355,
+        "top5": [
+          "data_easy:306",
+          "xor_journal:8607",
+          "data_easy:306",
+          "boris_again:3632",
+          "boris_again:3794"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3780",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.21018290519714355,
+        "top5": [
+          "protechietich:3780",
+          "protechietich:3776",
+          "data_secrets:8256",
+          "data_secrets:8821",
+          "seeallochnaya:3071"
+        ]
+      },
+      {
+        "id": "ret_ml_product_711",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.2059335708618164,
+        "top5": [
+          "ml_product:711",
+          "seeallochnaya:3237",
+          "ai_machinelearning_big_data:9269",
+          "techno_yandex:4962",
+          "ai_machinelearning_big_data:7946"
+        ]
+      },
+      {
+        "id": "ret_AIgobrr_84",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.21290969848632812,
+        "top5": [
+          "AIgobrr:84",
+          "AIgobrr:83",
+          "aioftheday:3257",
+          "ai_machinelearning_big_data:8844",
+          "ai_machinelearning_big_data:8589"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_133",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.2087535858154297,
+        "top5": [
+          "scientific_opensource:133",
+          "scientific_opensource:184",
+          "scientific_opensource:176",
+          "scientific_opensource:156",
+          "scientific_opensource:180"
+        ]
+      },
+      {
+        "id": "ret_data_easy_301",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21596169471740723,
+        "top5": [
+          "data_easy:301",
+          "boris_again:3664",
+          "denissexy:10705",
+          "ai_machinelearning_big_data:8079",
+          "ai_machinelearning_big_data:9044"
+        ]
+      },
+      {
+        "id": "ret_stuffynlp_187",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.210479736328125,
+        "top5": [
+          "stuffynlp:187",
+          "stuffynlp:218",
+          "ai_machinelearning_big_data:8431",
+          "stuffynlp:158",
+          "data_secrets:7685"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6170",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21998882293701172,
+        "top5": [
+          "addmeto:6170",
+          "seeallochnaya:3011",
+          "aioftheday:3577",
+          "seeallochnaya:2958",
+          "seeallochnaya:2950"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6182",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.22812628746032715,
+        "top5": [
+          "addmeto:6182",
+          "data_secrets:8161",
+          "aioftheday:3722",
+          "llm_under_hood:752",
+          "ai_machinelearning_big_data:9638"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6164",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.2103099822998047,
+        "top5": [
+          "addmeto:6164",
+          "data_secrets:7875",
+          "aioftheday:3515",
+          "ai_machinelearning_big_data:8578",
+          "ai_machinelearning_big_data:9611"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1862",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21076416969299316,
+        "top5": [
+          "neurohive:1862",
+          "ai_machinelearning_big_data:8193",
+          "ml_product:899",
+          "aioftheday:3321",
+          "ml_product:899"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2340",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.19869279861450195,
+        "top5": [
+          "theworldisnoteasy:2340",
+          "ml_product:794",
+          "seeallochnaya:3148",
+          "theworldisnoteasy:2390",
+          "denissexy:10606"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4643",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21207714080810547,
+        "top5": [
+          "gonzo_ml:4643",
+          "xor_journal:7291",
+          "data_secrets:7479",
+          "gonzo_ml:4204",
+          "data_secrets:7880"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_128",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 2.2512271404266357,
+        "top5": [
+          "MLunderhood:128",
+          "MLunderhood:168",
+          "gonzo_ml:4261",
+          "gonzo_ml:4271",
+          "gonzo_ml:4261"
+        ]
+      },
+      {
+        "id": "ret_addmeto_6156",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20124101638793945,
+        "top5": [
+          "addmeto:6156",
+          "denissexy:10466",
+          "aioftheday:3969",
+          "aioftheday:3419",
+          "techsparks:5260"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5459",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.4306765580733931,
+        "latency": 0.21562623977661133,
+        "top5": [
+          "techsparks:5459",
+          "protechietich:3992",
+          "ml_product:779",
+          "techsparks:5459",
+          "theworldisnoteasy:2305"
+        ]
+      },
+      {
+        "id": "ret_aioftheday_3250",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.23609089851379395,
+        "top5": [
+          "aioftheday:3250",
+          "data_secrets:7390",
+          "ai_machinelearning_big_data:8060",
+          "ai_newz:4469",
+          "rybolos_channel:1613"
+        ]
+      },
+      {
+        "id": "ret_llm_under_hood_749",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.24315500259399414,
+        "top5": [
+          "llm_under_hood:749",
+          "llm_under_hood:753",
+          "llm_under_hood:756",
+          "llm_under_hood:773",
+          "llm_under_hood:761"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_363",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 4.303678274154663,
+        "top5": [
+          "CVML_team:363",
+          "CVML_team:370",
+          "CVML_team:376",
+          "CVML_team:369",
+          "CVML_team:412"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_137",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.22224998474121094,
+        "top5": [
+          "scientific_opensource:137",
+          "xor_journal:8311",
+          "xor_journal:8891",
+          "techno_yandex:4173",
+          "xor_journal:7666"
+        ]
+      },
+      {
+        "id": "ret_aihappens_380",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 0.20755863189697266,
+        "top5": [
+          "aihappens:380",
+          "protechietich:3998",
+          "aihappens:380",
+          "boris_again:3434",
+          "xor_journal:7371"
+        ]
+      },
+      {
+        "id": "ret_aioftheday_3944",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21738290786743164,
+        "top5": [
+          "aioftheday:3944",
+          "aioftheday:4218",
+          "aioftheday:3800",
+          "complete_ai:716",
+          "aioftheday:3754"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_138",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21182489395141602,
+        "top5": [
+          "scientific_opensource:138",
+          "scientific_opensource:178",
+          "xor_journal:7673",
+          "ai_machinelearning_big_data:8945",
+          "ai_machinelearning_big_data:9741"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4472",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21166229248046875,
+        "top5": [
+          "techno_yandex:4472",
+          "denissexy:11083",
+          "gonzo_ml:4501",
+          "xor_journal:8665",
+          "boris_again:3349"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_383",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.22043442726135254,
+        "top5": [
+          "CVML_team:383",
+          "CVML_team:384",
+          "data_secrets:8342",
+          "aioftheday:3217",
+          "data_secrets:7343"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_172",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.22200393676757812,
+        "top5": [
+          "varim_ml:172",
+          "scientific_opensource:179",
+          "inforetriever:380",
+          "smalldatascience:1024",
+          "scientific_opensource:130"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4196",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.21277737617492676,
+        "top5": [
+          "techno_yandex:4856",
+          "techno_yandex:4243",
+          "techno_yandex:4976",
+          "techno_yandex:4418",
+          "techno_yandex:4304"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_8923",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21099543571472168,
+        "top5": [
+          "ai_machinelearning_big_data:8923",
+          "data_secrets:8186",
+          "gonzo_ml:4199",
+          "data_secrets:7467",
+          "xor_journal:8470"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_383",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.19690918922424316,
+        "top5": [
+          "inforetriever:383",
+          "inforetriever:383",
+          "inforetriever:247",
+          "deep_school:561",
+          "inforetriever:343"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4785",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 0.21442127227783203,
+        "top5": [
+          "gonzo_ml:4785",
+          "data_secrets:7434",
+          "gonzo_ml:4785",
+          "data_secrets:7625",
+          "xor_journal:8738"
+        ]
+      },
+      {
+        "id": "ret_denissexy_10751",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21440839767456055,
+        "top5": [
+          "denissexy:10751",
+          "aioftheday:3484",
+          "ai_newz:4296",
+          "ai_machinelearning_big_data:9090",
+          "data_secrets:8791"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_5004",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.24892950057983398,
+        "top5": [
+          "oulenspiegel_channel:5004",
+          "ai_machinelearning_big_data:8139",
+          "data_secrets:7453",
+          "ai_newz:4398",
+          "boris_again:3504"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2386",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20499920845031738,
+        "top5": [
+          "theworldisnoteasy:2386",
+          "boris_again:3320",
+          "toBeAnMLspecialist:1095",
+          "toBeAnMLspecialist:1071",
+          "inforetriever:247"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_278",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.22064566612243652,
+        "top5": [
+          "singularityfm:278",
+          "denissexy:10378",
+          "denissexy:10394",
+          "denissexy:10659",
+          "techno_yandex:4536"
+        ]
+      },
+      {
+        "id": "ret_toBeAnMLspecialist_1099",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.23315763473510742,
+        "top5": [
+          "toBeAnMLspecialist:1099",
+          "ai_machinelearning_big_data:9552",
+          "ai_machinelearning_big_data:8714",
+          "xor_journal:7838",
+          "xor_journal:7559"
+        ]
+      },
+      {
+        "id": "ret_deep_school_576",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.2026994228363037,
+        "top5": [
+          "deep_school:576",
+          "deep_school:600",
+          "deep_school:605",
+          "data_secrets:7494",
+          "data_secrets:8371"
+        ]
+      },
+      {
+        "id": "ret_neurohive_1913",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20125126838684082,
+        "top5": [
+          "neurohive:1913",
+          "ai_machinelearning_big_data:8945",
+          "ai_machinelearning_big_data:9604",
+          "techno_yandex:4544",
+          "xor_journal:7992"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_79",
+        "recall_1": 0.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 0.5,
+        "ndcg_5": 0.6309297535714575,
+        "latency": 0.20724081993103027,
+        "top5": [
+          "oulenspiegel_channel:4602",
+          "dendi_math_ai:79",
+          "complete_ai:725",
+          "dendi_math_ai:103",
+          "data_secrets:8371"
+        ]
+      },
+      {
+        "id": "ret_CVML_team_382",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.1932053565979004,
+        "top5": [
+          "theworldisnoteasy:2285",
+          "seeallochnaya:3204",
+          "rybolos_channel:1754",
+          "xor_journal:7268",
+          "inforetriever:250"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_8099",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21622586250305176,
+        "top5": [
+          "ai_machinelearning_big_data:8099",
+          "techno_yandex:4568",
+          "ml_product:745",
+          "ai_machinelearning_big_data:8144",
+          "data_secrets:8904"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_131",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20835423469543457,
+        "top5": [
+          "MLunderhood:131",
+          "gonzo_ml:4733",
+          "gonzo_ml:4730",
+          "gonzo_ml:4730",
+          "gonzo_ml:3983"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_96",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.2094099521636963,
+        "top5": [
+          "dendi_math_ai:96",
+          "xor_journal:8142",
+          "data_secrets:8305",
+          "ai_newz:4267",
+          "oulenspiegel_channel:4814"
+        ]
+      },
+      {
+        "id": "ret_smalldatascience_1016",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.21129941940307617,
+        "top5": [
+          "smalldatascience:1016",
+          "smalldatascience:1021",
+          "seeallochnaya:2932",
+          "gonzo_ml:3851",
+          "data_secrets:8385"
+        ]
+      },
+      {
+        "id": "ret_varim_ml_162",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20687246322631836,
+        "top5": [
+          "varim_ml:162",
+          "singularityfm:330",
+          "techsparks:5506",
+          "ai_newz:4155",
+          "protechietich:3653"
+        ]
+      },
+      {
+        "id": "ret_oulenspiegel_channel_4844",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.3277602195739746,
+        "top5": [
+          "oulenspiegel_channel:4844",
+          "oulenspiegel_channel:4815",
+          "xor_journal:8191",
+          "data_secrets:8380",
+          "oulenspiegel_channel:4814"
+        ]
+      },
+      {
+        "id": "ret_ml_product_750",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.23704862594604492,
+        "top5": [
+          "ml_product:671",
+          "ml_product:865",
+          "seeallochnaya:2829",
+          "data_secrets:8235",
+          "xor_journal:7478"
+        ]
+      },
+      {
+        "id": "ret_protechietich_3734",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.24992060661315918,
+        "top5": [
+          "protechietich:3734",
+          "aioftheday:3433",
+          "protechietich:3537",
+          "aioftheday:4014",
+          "techno_yandex:4196"
+        ]
+      },
+      {
+        "id": "ret_dendi_math_ai_83",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.22558045387268066,
+        "top5": [
+          "dendi_math_ai:83",
+          "oulenspiegel_channel:4749",
+          "denissexy:10774",
+          "denissexy:10662",
+          "xor_journal:7210"
+        ]
+      },
+      {
+        "id": "ret_ml_product_773",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.24098563194274902,
+        "top5": [
+          "ml_product:773",
+          "inforetriever:276",
+          "data_secrets:7765",
+          "ai_machinelearning_big_data:8060",
+          "ai_machinelearning_big_data:8262"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4126",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21743440628051758,
+        "top5": [
+          "ai_newz:4126",
+          "data_secrets:7681",
+          "aioftheday:3389",
+          "aioftheday:3217",
+          "ai_machinelearning_big_data:8221"
+        ]
+      },
+      {
+        "id": "ret_seeallochnaya_3008",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21062541007995605,
+        "top5": [
+          "seeallochnaya:3008",
+          "seeallochnaya:3062",
+          "gonzo_ml:4460",
+          "seeallochnaya:3130",
+          "seeallochnaya:3200"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_753",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.22264337539672852,
+        "top5": [
+          "complete_ai:753",
+          "data_secrets:7574",
+          "boris_again:3454",
+          "xor_journal:7388",
+          "data_secrets:7595"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_253",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20972084999084473,
+        "top5": [
+          "inforetriever:253",
+          "inforetriever:333",
+          "MLunderhood:165",
+          "MLunderhood:166",
+          "inforetriever:355"
+        ]
+      },
+      {
+        "id": "ret_scientific_opensource_162",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21523761749267578,
+        "top5": [
+          "scientific_opensource:162",
+          "ai_newz:4267",
+          "oulenspiegel_channel:4815",
+          "xor_journal:8191",
+          "data_secrets:8914"
+        ]
+      },
+      {
+        "id": "ret_xor_journal_8139",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.2099595069885254,
+        "top5": [
+          "xor_journal:8139",
+          "data_secrets:8300",
+          "denissexy:10967",
+          "aioftheday:3821",
+          "denissexy:10733"
+        ]
+      },
+      {
+        "id": "ret_theworldisnoteasy_2246",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21387577056884766,
+        "top5": [
+          "theworldisnoteasy:2246",
+          "theworldisnoteasy:2180",
+          "gonzo_ml:4807",
+          "theworldisnoteasy:2405",
+          "rybolos_channel:1582"
+        ]
+      },
+      {
+        "id": "ret_denissexy_10678",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21409368515014648,
+        "top5": [
+          "denissexy:10678",
+          "aioftheday:4256",
+          "data_secrets:7376",
+          "techsparks:5244",
+          "denissexy:11290"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_411",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.2118227481842041,
+        "top5": [
+          "singularityfm:411",
+          "singularityfm:340",
+          "xor_journal:7892",
+          "oulenspiegel_channel:4674",
+          "toBeAnMLspecialist:1104"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_881",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.2092146873474121,
+        "top5": [
+          "complete_ai:881",
+          "singularityfm:408",
+          "singularityfm:402",
+          "singularityfm:388",
+          "xor_journal:8767"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_164",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.5,
+        "latency": 0.21758103370666504,
+        "top5": [
+          "MLunderhood:164",
+          "inforetriever:336",
+          "MLunderhood:164",
+          "data_secrets:7849",
+          "gonzo_ml:4464"
+        ]
+      },
+      {
+        "id": "ret_rybolos_channel_1614",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.19732213020324707,
+        "top5": [
+          "rybolos_channel:1614",
+          "seeallochnaya:2896",
+          "singularityfm:305",
+          "oulenspiegel_channel:4677",
+          "boris_again:3410"
+        ]
+      },
+      {
+        "id": "ret_AIgobrr_81",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20644855499267578,
+        "top5": [
+          "AIgobrr:81",
+          "inforetriever:388",
+          "inforetriever:356",
+          "ai_machinelearning_big_data:8690",
+          "data_secrets:7779"
+        ]
+      },
+      {
+        "id": "ret_techsparks_5297",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.21424293518066406,
+        "top5": [
+          "techsparks:5297",
+          "techsparks:5292",
+          "protechietich:3535",
+          "ai_newz:4423",
+          "techsparks:5316"
+        ]
+      },
+      {
+        "id": "ret_data_secrets_7798",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.20797204971313477,
+        "top5": [
+          "data_secrets:7798",
+          "data_secrets:7795",
+          "techsparks:5197",
+          "protechietich:3583",
+          "xor_journal:7609"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4545",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.19751501083374023,
+        "top5": [
+          "techno_yandex:4545",
+          "techno_yandex:4532",
+          "data_secrets:8138",
+          "ai_newz:4229",
+          "aioftheday:3710"
+        ]
+      },
+      {
+        "id": "ret_boris_again_3616",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.2155134677886963,
+        "top5": [
+          "boris_again:3616",
+          "boris_again:3705",
+          "ai_newz:4461",
+          "ai_newz:4240",
+          "denissexy:11038"
+        ]
+      },
+      {
+        "id": "ret_ai_machinelearning_big_data_9431",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 0.20877814292907715,
+        "top5": [
+          "ai_machinelearning_big_data:9431",
+          "seeallochnaya:2660",
+          "data_secrets:7391",
+          "denissexy:10549",
+          "ai_machinelearning_big_data:9434"
+        ]
+      },
+      {
+        "id": "ret_seeallochnaya_3010",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.2190256118774414,
+        "top5": [
+          "seeallochnaya:3010",
+          "seeallochnaya:3010",
+          "ai_machinelearning_big_data:8928",
+          "xor_journal:7113",
+          "ai_machinelearning_big_data:8959"
+        ]
+      },
+      {
+        "id": "ret_inforetriever_294",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.22556018829345703,
+        "top5": [
+          "inforetriever:294",
+          "ml_product:801",
+          "inforetriever:301",
+          "xor_journal:8712",
+          "techsparks:5226"
+        ]
+      },
+      {
+        "id": "ret_gonzo_ml_4166",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.3868528072345416,
+        "latency": 0.21941351890563965,
+        "top5": [
+          "gonzo_ml:4166",
+          "stuffynlp:168",
+          "data_secrets:7426",
+          "ml_product:846",
+          "gonzo_ml:4166"
+        ]
+      },
+      {
+        "id": "ret_rybolos_channel_1561",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21411442756652832,
+        "top5": [
+          "rybolos_channel:1561",
+          "stuffynlp:226",
+          "MLunderhood:164",
+          "ai_machinelearning_big_data:9304",
+          "data_secrets:8543"
+        ]
+      },
+      {
+        "id": "ret_MLunderhood_244",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.4306765580733931,
+        "latency": 0.21292591094970703,
+        "top5": [
+          "MLunderhood:244",
+          "MLunderhood:253",
+          "MLunderhood:220",
+          "MLunderhood:244",
+          "MLunderhood:199"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_847",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.20613574981689453,
+        "top5": [
+          "complete_ai:847",
+          "techno_yandex:4714",
+          "rybolos_channel:1675",
+          "xor_journal:8436",
+          "llm_under_hood:723"
+        ]
+      },
+      {
+        "id": "ret_complete_ai_805",
+        "recall_1": 0.0,
+        "recall_5": 0.0,
+        "recall_10": 0.0,
+        "recall_20": 0.0,
+        "mrr": 0.0,
+        "ndcg_5": 0.0,
+        "latency": 0.20864224433898926,
+        "top5": [
+          "data_secrets:8950",
+          "CVML_team:370",
+          "inforetriever:341",
+          "gonzo_ml:4067",
+          "inforetriever:377"
+        ]
+      },
+      {
+        "id": "ret_techno_yandex_4206",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.23644518852233887,
+        "top5": [
+          "techno_yandex:4206",
+          "denissexy:11183",
+          "denissexy:10401",
+          "seeallochnaya:3316",
+          "seeallochnaya:3176"
+        ]
+      },
+      {
+        "id": "ret_singularityfm_376",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.0,
+        "latency": 0.21130681037902832,
+        "top5": [
+          "singularityfm:376",
+          "boris_again:3321",
+          "ai_machinelearning_big_data:8101",
+          "ai_machinelearning_big_data:8101",
+          "singularityfm:291"
+        ]
+      },
+      {
+        "id": "ret_stuffynlp_200",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 1.6309297535714575,
+        "latency": 0.2171926498413086,
+        "top5": [
+          "stuffynlp:200",
+          "stuffynlp:200",
+          "stuffynlp:186",
+          "gonzo_ml:4835",
+          "seeallochnaya:2781"
+        ]
+      },
+      {
+        "id": "ret_ai_newz_4188",
+        "recall_1": 1.0,
+        "recall_5": 1.0,
+        "recall_10": 1.0,
+        "recall_20": 1.0,
+        "mrr": 1.0,
+        "ndcg_5": 2.0616063116448506,
+        "latency": 0.2092442512512207,
+        "top5": [
+          "ai_newz:4188",
+          "ai_newz:4188",
+          "xor_journal:8909",
+          "ai_newz:4189",
+          "ai_newz:4173"
+        ]
+      }
+    ]
+  }
+]

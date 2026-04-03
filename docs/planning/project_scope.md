@@ -438,11 +438,16 @@ Eval-запросы: фактические, аналитические, tempora
 - Latency improvement: 45-76s → 14-49s (−40-65%) за счёт устранения refinements
 
 **Framework comparison benchmark (SPEC-RAG-29, 2026-04-03):**
-- Custom vs LlamaIndex (stock + maxed) vs naive, 2 датасета по 100 Qs
-- Custom R@1: 0.94 (auto) / 0.78 (calibration), MRR: 0.944 / 0.866
+- Custom vs LlamaIndex (stock + maxed) vs naive, 2 датасета по 100 Qs retrieval + 17 Qs agent E2E
+- Retrieval: Custom R@1: 0.94 (auto) / 0.78 (calibration), MRR: 0.944 / 0.866
 - LlamaIndex stock = naive (zero gain from default hybrid)
 - Weighted RRF = main gain (+5-12% R@1), ColBERT ≈ cross-encoder на natural language queries
-- Custom 7x быстрее LI-maxed. Retrieval-level ablation нужен для дальнейшего улучшения
+- Custom 7x быстрее LI-maxed (framework abstraction overhead)
+- **Agent E2E (judge: Claude Opus 4.6):** custom factual=0.84, usefulness=1.77, grounding=0.88
+  vs best-of-three: factual=0.55, usefulness=1.21, grounding=0.48.
+  Delta: **+0.30 factual, +0.56 usefulness, +0.40 grounding**
+- Main gain: multi-query planning + LANCER coverage + specialized tools, не reranker
+- Retrieval-level ablation нужен для дальнейшего улучшения
 
 **Осталось:**
 - [ ] CE filter_threshold=0.0 установить и smoke test

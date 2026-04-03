@@ -205,12 +205,27 @@ Robustness experiments (NDR/RSR/ROR): [robustness_experiments.md](robustness_exp
 | LI-maxed | 0.780 | 0.980 | 0.980 | 0.865 | 1.4s |
 | custom | 0.780 | 0.970 | 0.980 | 0.866 | 0.2s |
 
-**Findings:**
+**Retrieval findings:**
 - LlamaIndex default hybrid = zero gain over dense-only
 - Weighted RRF 3:1 = main differentiator (+5% R@1, +4% MRR)
 - ColBERT ≈ cross-encoder на natural language queries
 - Custom 7x быстрее LI-maxed (framework overhead)
-- Retrieval-only benchmark не покрывает query planning, LANCER, multi-query
+
+**Agent E2E results (17 Qs, judge: Claude Opus 4.6):**
+
+| Pipeline | Factual | Usefulness | Grounding | Latency |
+|----------|:---:|:---:|:---:|:---:|
+| naive | 0.55 | 1.04 | 0.28 | ~4s |
+| LI-stock | 0.51 | 1.13 | 0.46 | ~9s |
+| LI-maxed | 0.54 | 1.21 | 0.48 | ~11s |
+| **custom** | **0.84** | **1.77** | **0.88** | **~30s** |
+
+**Agent findings:**
+- Custom: +0.30 factual, +0.56 usefulness, +0.40 grounding vs best-of-three
+- Main gain source: multi-query planning + LANCER coverage + specialized tools (не reranker)
+- li_maxed ≈ li_stock (+0.03 factual) — reranker marginal на agent level
+- Killer: channel-specific queries (q11, q15, q16) — только custom ответил
+- Grounding 0.88 vs 0.48 — inline [1][2][3] через compose_context = main differentiator
 
 ### Retrieval ablation backlog (после SPEC-RAG-29)
 

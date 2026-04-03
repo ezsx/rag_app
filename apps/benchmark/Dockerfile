@@ -14,3 +14,4 @@ COPY benchmarks/ /workspace/benchmarks/
 COPY datasets/ /workspace/datasets/
 COPY scripts/run_benchmark_retrieval.py /workspace/scripts/
 COPY scripts/run_benchmark_agent.py /workspace/scripts/
+COPY scripts/export_traces.py /workspace/scripts/

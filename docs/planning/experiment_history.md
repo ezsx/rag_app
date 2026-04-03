@@ -94,6 +94,27 @@ Dataset: `datasets/eval_retrieval_calibration.json`. Script: `scripts/calibrate_
 - Custom pipeline 7x быстрее LI-maxed (0.2s vs 1.4s) — framework abstraction overhead
 - Retrieval-only benchmark не покрывает query planning, LANCER, multi-query — agent E2E нужен
 
+### Agent E2E benchmark (SPEC-RAG-29 Phase 2, 2026-04-03)
+
+4 pipeline × 17 retrieval questions (golden v2). Judge: Claude Opus 4.6.
+
+| Pipeline | Factual (avg) | Usefulness (avg) | Grounding (avg) | Avg Latency | Avg Tools |
+|----------|:---:|:---:|:---:|:---:|:---:|
+| naive | 0.55 | 1.04 | 0.28 | ~4s | 0 |
+| LI-stock | 0.51 | 1.13 | 0.46 | ~9s | 1 |
+| LI-maxed | 0.54 | 1.21 | 0.48 | ~11s | 1 |
+| **custom** | **0.84** | **1.77** | **0.88** | **~30s** | **4.6** |
+
+**Delta custom vs best-of-three: factual +0.30, usefulness +0.56, grounding +0.40.**
+
+**Ключевые результаты:**
+- Custom доминирует: 1.5x factual, 1.5x usefulness, 3x grounding vs naive
+- li_maxed ≈ li_stock: weighted RRF + CE reranker дали +0.03 factual (marginal)
+- Killer questions: q11 (channel-specific entity search), q15/q16 (channel digests) — custom единственный кто ответил
+- Retrieval failure: li_stock/li_maxed на q03 (hallucinated refusal "Meta не покупала Manus AI")
+- Grounding = главный дифференциатор custom (0.88 vs 0.48) — inline [1][2][3] через compose_context
+- Multi-query planning + LANCER coverage + specialized tools = основной source of gain (не reranker)
+
 **TODO — ablation experiments:**
 - [ ] DBSF fusion vs RRF
 - [ ] BM25 weight sweep (2:1, 3:1, 4:1, 5:1)
