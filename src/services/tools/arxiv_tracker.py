@@ -45,7 +45,7 @@ def arxiv_tracker(
             return _mode_lookup(store, hybrid_retriever, arxiv_id, limit)
         else:
             return {"error": f"Unknown mode: {mode}. Use: top, lookup"}
-    except Exception as exc:
+    except Exception as exc:  # broad: tool execution safety
         logger.exception("arxiv_tracker error: mode=%s", mode)
         return {"error": str(exc), "mode": mode}
     finally:

@@ -124,7 +124,7 @@ def _do_llm_call(
                 presence_penalty=settings.agent_tool_presence_penalty,
                 seed=42,
             )
-        except Exception as llm_exc:
+        except Exception as llm_exc:  # broad: adapter boundary
             logger.warning(
                 "LLM call failed at step %d: %s — retrying with trimmed history",
                 step, llm_exc,
@@ -138,7 +138,7 @@ def _do_llm_call(
                     temperature=settings.agent_tool_temp,
                     seed=42,
                 )
-            except Exception:
+            except Exception:  # broad: adapter boundary
                 raise llm_exc from None
 
         if span:

@@ -148,7 +148,7 @@ class NLIVerifier:
         except httpx.TimeoutException:
             logger.error("NLI request timeout (%.1fs)", self.timeout)
             raise
-        except Exception as exc:
+        except Exception as exc:  # broad: adapter boundary
             logger.error("NLI request failed: %s", exc)
             raise
 

@@ -61,7 +61,7 @@ class RerankerService:
             if top_n and top_n > 0:
                 order = order[: min(top_n, len(order))]
             return order
-        except Exception as e:
+        except Exception as e:  # broad: adapter boundary
             logger.error("Ошибка ререйкера: %s", e)
             return list(range(min(len(docs), top_n)))
 
@@ -78,7 +78,7 @@ class RerankerService:
                 order = order[: min(top_n, len(order))]
             norm_scores = [self._sigmoid(raw_scores[i]) for i in order]
             return order, norm_scores
-        except Exception as exc:
+        except Exception as exc:  # broad: adapter boundary
             logger.error("Ошибка ререйкера (with_scores): %s", exc)
             return list(range(min(len(docs), top_n or len(docs)))), []
 
@@ -86,7 +86,7 @@ class RerankerService:
         """Проксирует healthcheck TEI reranker через sync API."""
         try:
             return self._run_async(self._client.healthcheck())
-        except Exception as exc:
+        except Exception as exc:  # broad: adapter boundary
             logger.warning("TEI reranker healthcheck failed: %s", exc)
             return False
 

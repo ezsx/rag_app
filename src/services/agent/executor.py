@@ -71,7 +71,7 @@ async def execute_action(
 
         tool_request = ToolRequest(tool=actual_tool, input=normalized)
         return tool_runner.run(request_id, step, tool_request, deadline=ctx.deadline)
-    except Exception as exc:
+    except Exception as exc:  # broad: tool execution safety
         logger.error("Ошибка выполнения инструмента %s: %s", tool_name, exc)
         return tool_error_action(
             tool_name=tool_name, params=params, step=step, error=str(exc),
@@ -249,7 +249,7 @@ def normalize_tool_params(
                             fetched = fetched_docs[doc["id"]]
                             doc["text"] = fetched.get("text", "")
                             doc["metadata"] = fetched.get("metadata", doc.get("metadata", {}))
-            except Exception as exc:
+            except Exception as exc:  # broad: tool execution safety
                 logger.warning("fetch_docs during compose_context failed: %s", exc)
 
         normalized["docs"] = normalized_docs

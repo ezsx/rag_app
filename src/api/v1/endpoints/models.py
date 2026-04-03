@@ -69,7 +69,7 @@ async def list_available_models(
             current_embedding=settings.current_embedding_key,
         )
 
-    except Exception as e:
+    except Exception as e:  # broad: endpoint safety net
         logger.error("Ошибка при получении списка моделей: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -144,7 +144,7 @@ async def select_model(
 
     except HTTPException:
         raise  # Пробрасываем HTTP ошибки как есть
-    except Exception as e:
+    except Exception as e:  # broad: endpoint safety net
         logger.error("Ошибка при выборе модели: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -209,7 +209,7 @@ async def get_current_model(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # broad: endpoint safety net
         logger.error("Ошибка при получении информации о модели: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

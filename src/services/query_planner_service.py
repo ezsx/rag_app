@@ -199,7 +199,7 @@ class QueryPlannerService:
         try:
             datetime.strptime(s, "%Y-%m-%d")
             return s
-        except Exception:
+        except (ValueError, TypeError):
             return None
 
     @classmethod
@@ -273,7 +273,7 @@ class QueryPlannerService:
                         xi = int(x)
                         if xi >= 0:
                             chan_ids.append(xi)
-                    except Exception:
+                    except (ValueError, TypeError):
                         continue
                 if chan_ids:
                     meta_obj["channel_ids"] = chan_ids
@@ -294,7 +294,7 @@ class QueryPlannerService:
                     mvi = int(mv)
                     if mvi >= 0:
                         meta_obj["min_views"] = mvi
-            except Exception:
+            except (ValueError, TypeError):
                 pass
 
             try:
@@ -303,7 +303,7 @@ class QueryPlannerService:
                     rti = int(rt)
                     if rti >= 0:
                         meta_obj["reply_to"] = rti
-            except Exception:
+            except (ValueError, TypeError):
                 pass
 
             if not meta_obj:
@@ -314,7 +314,7 @@ class QueryPlannerService:
             k_per_query = int(
                 raw.get("k_per_query", settings.search_k_per_query_default)
             )
-        except Exception:
+        except (ValueError, TypeError):
             k_per_query = settings.search_k_per_query_default
         k_per_query = max(1, min(50, k_per_query))
 
@@ -458,7 +458,7 @@ class QueryPlannerService:
                 timeout_exc,
             )
             return self._fallback_plan(query)
-        except Exception as e:
+        except Exception as e:  # broad: LLM + JSON parsing fallback
             logger.error("_generate_plan failed for query='%s': %s", query[:80], e)
             return self._fallback_plan(query)
 
@@ -494,7 +494,7 @@ class QueryPlannerService:
             start_ts = time.perf_counter()
             try:
                 plan = self._generate_plan(query)
-            except Exception as exc:
+            except Exception as exc:  # broad: LLM + JSON parsing fallback
                 logger.error("QueryPlannerService.make_plan failed: %s", exc, exc_info=True)
                 raise
             took_ms = int((time.perf_counter() - start_ts) * 1000)

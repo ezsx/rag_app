@@ -44,7 +44,7 @@ def fetch_docs(
         logger.debug("fetch_docs: %d документов для %d ids", len(docs), len(final_ids))
         return {"docs": docs}
 
-    except Exception as exc:
+    except Exception as exc:  # broad: tool execution safety
         logger.error("fetch_docs ошибка для ids=%s: %s", final_ids, exc)
         return {
             "docs": [{"id": _id, "text": "", "metadata": {}} for _id in final_ids]

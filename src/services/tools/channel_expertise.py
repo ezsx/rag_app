@@ -73,7 +73,7 @@ def channel_expertise(
         else:
             return _get_ranking(client, metric)
 
-    except Exception as e:
+    except Exception as e:  # broad: tool execution safety
         logger.error("channel_expertise error: %s", e, exc_info=True)
         return {"error": f"Ошибка: {e!s}"}
 

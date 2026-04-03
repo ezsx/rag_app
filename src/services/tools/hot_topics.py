@@ -94,7 +94,7 @@ def hot_topics(
         else:
             return _get_week_digest(client, resolved, top_n)
 
-    except Exception as e:
+    except Exception as e:  # broad: tool execution safety
         logger.error("hot_topics error: %s", e, exc_info=True)
         return {"error": f"Ошибка при получении hot topics: {e!s}"}
 

@@ -92,7 +92,7 @@ class QAService:
 
             return answer
 
-        except Exception as e:
+        except Exception as e:  # broad: endpoint safety net
             logger.error("Ошибка при генерации ответа: %s", e)
             return f"Извините, произошла ошибка при обработке вашего запроса: {e!s}"
 
@@ -130,7 +130,7 @@ class QAService:
                 "context_count": len(context_items),
             }
 
-        except Exception as e:
+        except Exception as e:  # broad: endpoint safety net
             logger.error("Ошибка при генерации ответа с контекстом: %s", e)
             return {
                 "answer": f"Извините, произошла ошибка при обработке вашего запроса: {e!s}",
@@ -191,7 +191,7 @@ class QAService:
 
             logger.info("Стриминг завершен. Отправлено токенов: %s", token_count)
 
-        except Exception as e:
+        except Exception as e:  # broad: endpoint safety net
             logger.error("Ошибка при стриминге ответа: %s", e)
             # Отправляем сообщение об ошибке как финальный токен
             yield f"Извините, произошла ошибка при обработке вашего запроса: {e!s}"

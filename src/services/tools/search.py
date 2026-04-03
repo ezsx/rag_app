@@ -204,7 +204,7 @@ def search(
                 try:
                     sub_candidates = hybrid_retriever.search_with_plan(q, search_plan)
                     per_query_results.append(sub_candidates)
-                except Exception as err:
+                except Exception as err:  # broad: adapter boundary
                     logger.error("Hybrid retriever failed for query '%s': %s", q[:60], err)
             candidates = _round_robin_merge(per_query_results)
             hybrid_duration_ms = int((time.perf_counter() - start_ts) * 1000)
@@ -234,7 +234,7 @@ def search(
                 try:
                     sub = hybrid_retriever.search_with_plan(q, fallback_plan)
                     fallback_results.append(sub)
-                except Exception as err:
+                except Exception as err:  # broad: adapter boundary
                     logger.error("Fallback search failed for '%s': %s", q[:60], err)
             # Merge fallback с existing (existing first — они более targeted)
             existing_ids = {c.id for c in candidates}
@@ -341,6 +341,6 @@ def search(
             "routing_source": routing_source,
         }
 
-    except Exception as e:
+    except Exception as e:  # broad: tool execution safety
         logger.error("Error in search tool: %s", e)
         return {"hits": [], "error": str(e)}

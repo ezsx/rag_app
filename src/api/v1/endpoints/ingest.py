@@ -89,7 +89,7 @@ async def start_telegram_ingestion(request: TelegramIngestRequest) -> IngestJobR
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # broad: endpoint safety net
         logger.error("Ошибка при создании задачи ingestion: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -124,7 +124,7 @@ async def get_ingestion_status(job_id: str) -> IngestJobStatusResponse:
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # broad: endpoint safety net
         logger.error("Ошибка при получении статуса задачи: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -178,7 +178,7 @@ async def cancel_ingestion(job_id: str) -> dict:
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # broad: endpoint safety net
         logger.error("Ошибка при отмене задачи: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -205,7 +205,7 @@ async def list_ingestion_jobs() -> list[IngestJobStatusResponse]:
         logger.info("Возвращаем информацию о %s задачах", len(jobs))
         return jobs
 
-    except Exception as e:
+    except Exception as e:  # broad: endpoint safety net
         logger.error("Ошибка при получении списка задач: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

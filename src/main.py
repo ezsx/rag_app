@@ -53,11 +53,11 @@ async def lifespan(app: FastAPI):
                 from core.deps import get_llm
 
                 _ = get_llm()
-            except Exception as e:
+            except Exception as e:  # broad: lazy init safety
                 logger.error("LLM warmup failed: %s", e)
                 # не падаем: пусть API поднимется, но лог останется
         logger.info("✅ Инициализация завершена успешно")
-    except Exception as e:
+    except Exception as e:  # broad: startup safety net
         logger.error("❌ Ошибка инициализации: %s", e)
         raise
 

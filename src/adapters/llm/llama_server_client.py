@@ -233,7 +233,7 @@ class LlamaServerClient:
                 if _ctx:
                     _ctx.total_prompt_tokens += usage.get("prompt_tokens", 0)
                     _ctx.total_completion_tokens += usage.get("completion_tokens", 0)
-            except Exception:
+            except Exception:  # broad: observability graceful degradation
                 pass
             return data
 

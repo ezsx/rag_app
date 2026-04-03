@@ -43,7 +43,7 @@ def related_posts(
 
     try:
         results = hybrid_retriever.run_sync(_recommend())
-    except Exception as exc:
+    except Exception as exc:  # broad: tool execution safety
         logger.error("related_posts failed for %s: %s", post_id, exc)
         return {"hits": [], "error": str(exc), "source_id": post_id}
 

@@ -89,7 +89,7 @@ def verify(
             "used_docs": min(len(retrieved_docs), top_k),
         }
 
-    except Exception as exc:
+    except Exception as exc:  # broad: tool execution safety
         logger.error("Ошибка при проверке утверждения: %s", exc)
         return {
             "verified": False,

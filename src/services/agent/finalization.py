@@ -76,7 +76,7 @@ async def verify_answer(
             "confidence": 0.0,
             "error": result.output.meta.error or "Tool execution failed",
         }
-    except Exception as exc:
+    except Exception as exc:  # broad: agent loop safety
         logger.error("Error in verify_answer: %s", exc, exc_info=True)
         return {"verified": False, "confidence": 0.0, "error": str(exc)}
 

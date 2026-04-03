@@ -371,7 +371,7 @@ class HybridRetriever:
             result = json.loads(resp.read())
             if result and result[0]:
                 return result[0]  # list of 128-dim token vectors
-        except Exception as e:
+        except Exception as e:  # broad: adapter boundary
             logger.warning("ColBERT query encoding failed: %s", e)
         return None
 

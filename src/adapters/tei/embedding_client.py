@@ -71,7 +71,7 @@ class TEIEmbeddingClient:
                     "PCA whitening загружен: %s (1024→%d dim)",
                     whitening_params_path, out_dim,
                 )
-            except Exception as exc:
+            except Exception as exc:  # broad: adapter boundary
                 logger.warning("Не удалось загрузить whitening: %s", exc)
 
         logger.info("TEIEmbeddingClient инициализирован: %s", self.base_url)

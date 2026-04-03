@@ -100,7 +100,7 @@ class QdrantStore:
         """
         try:
             exists = await self._client.collection_exists(self._collection)
-        except Exception as exc:
+        except Exception as exc:  # broad: qdrant adapter boundary
             logger.error(
                 "Qdrant: ошибка проверки коллекции '%s': %s", self._collection, exc
             )
@@ -162,7 +162,7 @@ class QdrantStore:
                     field_schema=field_schema,  # type: ignore[arg-type]
                 )
                 logger.debug("Payload index '%s' создан", field_name)
-            except Exception as exc:
+            except Exception as exc:  # broad: qdrant adapter boundary
                 logger.error("Payload index '%s' FAILED: %s", field_name, exc)
                 failed.append(field_name)
         if failed:
@@ -226,7 +226,7 @@ class QdrantStore:
                     len(documents),
                     self._collection,
                 )
-            except Exception as exc:
+            except Exception as exc:  # broad: qdrant adapter boundary
                 logger.error(
                     "Qdrant upsert ошибка (batch start=%d, size=%d): %s",
                     start,
@@ -253,7 +253,7 @@ class QdrantStore:
                 len(point_ids),
                 self._collection,
             )
-        except Exception as exc:
+        except Exception as exc:  # broad: qdrant adapter boundary
             logger.error("Qdrant delete ошибка: %s", exc)
             raise
 
@@ -270,7 +270,7 @@ class QdrantStore:
                 with_vectors=False,
             )
             return points
-        except Exception as exc:
+        except Exception as exc:  # broad: qdrant adapter boundary
             logger.error("Qdrant retrieve ошибка: %s", exc)
             raise
 
@@ -284,6 +284,6 @@ class QdrantStore:
                 "indexed_vectors_count": info.indexed_vectors_count,
                 "status": str(info.status),
             }
-        except Exception as exc:
+        except Exception as exc:  # broad: qdrant adapter boundary
             logger.error("Qdrant collection_info ошибка: %s", exc)
             raise

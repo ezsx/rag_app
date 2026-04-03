@@ -67,7 +67,7 @@ def summarize_channel(
 
     try:
         latest_date_str = hybrid_retriever.run_sync(_get_latest_date())
-    except Exception:
+    except Exception:  # broad: tool execution safety
         latest_date_str = None
 
     if latest_date_str:
@@ -102,7 +102,7 @@ def summarize_channel(
 
     try:
         results = hybrid_retriever.run_sync(_scroll())
-    except Exception as exc:
+    except Exception as exc:  # broad: tool execution safety
         logger.error("summarize_channel failed for %s: %s", channel, exc)
         return {"hits": [], "error": str(exc), "channel": channel}
 

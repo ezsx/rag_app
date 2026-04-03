@@ -94,7 +94,7 @@ def cross_channel_compare(
 
     try:
         results = hybrid_retriever.run_sync(_grouped_search())
-    except Exception as exc:
+    except Exception as exc:  # broad: tool execution safety
         logger.error("cross_channel_compare failed: %s", exc)
         return {"hits": [], "error": str(exc), "topic": topic}
 

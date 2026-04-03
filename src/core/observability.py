@@ -37,7 +37,7 @@ def _try_init():
     except ImportError:
         _enabled = False
         logger.info("langfuse package not installed — observability disabled")
-    except Exception as e:
+    except Exception as e:  # broad: observability graceful degradation
         _enabled = False
         logger.warning("Langfuse init failed — observability disabled: %s", e)
     return _enabled
@@ -65,14 +65,14 @@ class _SafeSpan:
     def update(self, **kwargs):
         try:
             self._inner.update(**kwargs)
-        except Exception as e:
+        except Exception as e:  # broad: observability graceful degradation
             logger.debug("Langfuse span.update() failed (ignored): %s", e)
 
     def set_attribute(self, key, value):
         """Устанавливает OTel атрибут на underlying span."""
         try:
             self._inner.set_attribute(key, value)
-        except Exception as e:
+        except Exception as e:  # broad: observability graceful degradation
             logger.debug("Langfuse span.set_attribute(%s) failed (ignored): %s", key, e)
 
     def __getattr__(self, name):
@@ -82,7 +82,7 @@ class _SafeSpan:
             def _safe_call(*args, **kw):
                 try:
                     return attr(*args, **kw)
-                except Exception as e:
+                except Exception as e:  # broad: observability graceful degradation
                     logger.debug("Langfuse span.%s() failed (ignored): %s", name, e)
                     return None
             return _safe_call
@@ -96,7 +96,7 @@ def _safe_exit(cm, exc_info=None):
             cm.__exit__(*exc_info)
         else:
             cm.__exit__(None, None, None)
-    except Exception as e:
+    except Exception as e:  # broad: observability graceful degradation
         logger.debug("Langfuse cm.__exit__() failed (ignored): %s", e)
 
 
@@ -138,7 +138,7 @@ def _set_trace_attributes(span, *, name=None, session_id=None, tags=None,
             span.set_attribute(Attr.TRACE_OUTPUT, json.dumps(_out, ensure_ascii=False, default=str))
         if metadata:
             span.set_attribute(Attr.TRACE_METADATA, json.dumps(metadata, ensure_ascii=False, default=str))
-    except Exception as e:
+    except Exception as e:  # broad: observability graceful degradation
         logger.debug("Failed to set trace attributes: %s", e)
 
 
@@ -169,14 +169,14 @@ def observe_trace(
         try:
             from langfuse import LangfuseOtelSpanAttributes as Attr
             raw_span.set_attribute(Attr.AS_ROOT, True)
-        except Exception:
+        except Exception:  # broad: observability graceful degradation
             pass
         # Trace-level атрибуты
         _set_trace_attributes(
             raw_span, name=name, session_id=session_id,
             tags=tags, input_data=input_data, metadata=metadata,
         )
-    except Exception as e:
+    except Exception as e:  # broad: observability graceful degradation
         logger.warning("Langfuse observe_trace(%s) init failed: %s", name, e)
         yield None
         return
@@ -201,7 +201,7 @@ def observe_span(name, as_type="span", **kwargs):
             as_type=as_type, name=name, **kwargs
         )
         raw_span = cm.__enter__()
-    except Exception as e:
+    except Exception as e:  # broad: observability graceful degradation
         logger.warning("Langfuse observe_span(%s) init failed: %s", name, e)
         yield None
         return
@@ -230,7 +230,7 @@ def observe_llm_call(name="llm_call", model="", **kwargs):
             as_type="generation", name=name, model=model, **kwargs
         )
         raw_gen = cm.__enter__()
-    except Exception as e:
+    except Exception as e:  # broad: observability graceful degradation
         logger.warning("Langfuse observe_llm_call(%s) init failed: %s", name, e)
         yield None
         return

@@ -111,7 +111,7 @@ class AgentService:
                 _root_span = _root_trace_cm.__enter__()
                 if _root_span:
                     _root_span.update(input={"query": request.query, "max_steps": max_steps})
-            except Exception as e:
+            except Exception as e:  # broad: observability graceful degradation
                 logger.warning("Langfuse root trace init failed: %s", e)
                 _root_trace_cm = _root_span = None
 
@@ -501,7 +501,7 @@ class AgentService:
                 },
             )
 
-        except Exception as exc:
+        except Exception as exc:  # broad: agent loop safety
             logger.error("Ошибка в function-calling agent loop: %s", exc, exc_info=True)
             yield AgentStepEvent(
                 type="final",
@@ -530,17 +530,17 @@ class AgentService:
                         "total_tokens": ctx.total_prompt_tokens + ctx.total_completion_tokens,
                         "answer": (ctx.final_answer_text or "")[:500],
                     })
-                except Exception:
+                except Exception:  # broad: observability graceful degradation
                     pass
             if _root_trace_cm is not None:
                 try:
                     _root_trace_cm.__exit__(None, None, None)
-                except Exception:
+                except Exception:  # broad: observability graceful degradation
                     pass
             if _langfuse:
                 try:
                     _langfuse.flush()
-                except Exception:
+                except Exception:  # broad: observability graceful degradation
                     pass
 
             try:

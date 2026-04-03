@@ -177,7 +177,7 @@ class SummaCVerifier:
                     else:
                         normalized.append(item)
                 all_results.extend(normalized)
-            except Exception as exc:
+            except Exception as exc:  # broad: adapter boundary
                 logger.error("SummaC NLI batch %d failed: %s", i // self.batch_size, exc)
                 # Pad с neutral результатами
                 all_results.extend([{"entailment": 0.0, "contradiction": 0.0, "neutral": 1.0}] * len(batch))

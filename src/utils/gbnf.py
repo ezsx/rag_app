@@ -9,7 +9,7 @@ import logging
 
 try:
     from llama_cpp import LlamaGrammar  # type: ignore
-except Exception:  # pragma: no cover
+except (ImportError, OSError):  # pragma: no cover
     LlamaGrammar = None  # type: ignore
 
 logger = logging.getLogger(__name__)

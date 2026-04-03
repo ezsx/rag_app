@@ -61,7 +61,7 @@ def get_query_planner() -> QueryPlannerService:
     settings = get_settings()
     try:
         planner_llm = get_planner_llm()
-    except Exception:
+    except Exception:  # broad: lazy init safety
         planner_llm = get_llm()
     return QueryPlannerService(planner_llm, settings)
 
@@ -114,7 +114,7 @@ def get_hybrid_retriever() -> HybridRetriever | None:
             sparse_encoder=get_sparse_encoder(),
             settings=settings,
         )
-    except Exception as exc:
+    except Exception as exc:  # broad: lazy init safety
         logger.error("HybridRetriever init failed: %s", exc)
         return None
 
@@ -175,7 +175,7 @@ def get_redis_client() -> Any | None:
         client.ping()
         logger.info("Redis подключён: %s:%s", settings.redis_host, settings.redis_port)
         return client
-    except Exception as exc:
+    except Exception as exc:  # broad: lazy init safety
         logger.warning("Redis недоступен: %s", exc)
         return None
 

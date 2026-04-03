@@ -71,6 +71,6 @@ def rerank(
             "filtered_out": filtered_out,
         }
 
-    except Exception as e:
+    except Exception as e:  # broad: tool execution safety
         logger.error("Error in rerank tool: %s", e)
         return {"indices": [], "scores": [], "error": str(e)}

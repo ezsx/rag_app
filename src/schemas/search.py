@@ -33,7 +33,7 @@ class MetadataFilters(BaseModel):
             else:
                 # Попытаемся распарсить ISO-8601 форматы
                 datetime.fromisoformat(v)
-        except Exception as exc:
+        except (ValueError, TypeError) as exc:
             raise ValueError(f"Некорректный ISO формат даты: {v}") from exc
         return v
 

@@ -141,7 +141,7 @@ async def answer_question(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="LLM модель недоступна. Проверьте конфигурацию.",
         )
-    except Exception as e:
+    except Exception as e:  # broad: endpoint safety net
         logger.error("Неожиданная ошибка: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -195,7 +195,7 @@ async def qa_stream(
 
             logger.info("SSE стрим завершен. Отправлено токенов: %s", token_count)
 
-        except Exception as e:
+        except Exception as e:  # broad: endpoint safety net
             logger.error("Ошибка в SSE стриме: %s", e)
             # Отправляем сообщение об ошибке
             yield {"event": "error", "data": f"Ошибка: {e!s}", "retry": 3000}

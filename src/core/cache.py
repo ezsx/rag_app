@@ -16,7 +16,7 @@ def cache_get(redis_client, key: str) -> dict[str, Any] | None:
         if raw:
             logger.info("Cache hit: %s", key[:50])
             return json.loads(raw)
-    except Exception:
+    except Exception:  # broad: redis adapter boundary
         logger.warning("Cache read failed: %s", key[:50])
     return None
 
@@ -27,5 +27,5 @@ def cache_set(redis_client, key: str, data: dict[str, Any], ttl: int) -> None:
         return
     try:
         redis_client.setex(key, ttl, json.dumps(data, ensure_ascii=False, default=str))
-    except Exception:
+    except Exception:  # broad: redis adapter boundary
         logger.warning("Cache write failed: %s", key[:50])

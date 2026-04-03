@@ -255,7 +255,7 @@ class IngestJobManager:
             job.add_log("Задача была отменена")
             job.status = IngestJobStatus.CANCELLED
             job.completed_at = datetime.now(UTC)
-        except Exception as e:
+        except Exception as e:  # broad: ingest job safety
             error_msg = f"Ошибка выполнения: {e!s}"
             job.add_log(error_msg)
             job.add_log(f"Детали ошибки:\n{traceback.format_exc()}")
@@ -313,7 +313,7 @@ class IngestJobManager:
                         f"Обработано {processed}/{total_messages} сообщений ({job.progress:.1%})"
                     )
 
-            except Exception as e:
+            except Exception as e:  # broad: ingest batch safety
                 job.add_log(f"Ошибка обработки batch {i//batch_size + 1}: {e}")
                 # Продолжаем обработку следующих батчей
 

@@ -89,6 +89,6 @@ def query_plan(
             "cache_hit": False,  # Для простоты не отслеживаем кеш
         }
 
-    except Exception as e:
+    except Exception as e:  # broad: tool execution safety
         logger.error("Error in query_plan tool: %s", e)
         return {"plan": None, "error": str(e)}

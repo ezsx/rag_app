@@ -40,7 +40,7 @@ def list_channels(
 
     try:
         result = hybrid_retriever.run_sync(_facet())
-    except Exception as exc:
+    except Exception as exc:  # broad: tool execution safety
         logger.error("list_channels facet failed: %s", exc)
         return {"channels": [], "error": str(exc)}
 

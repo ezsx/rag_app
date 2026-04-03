@@ -38,7 +38,7 @@ def _load_routing_data() -> dict[str, Any]:
     try:
         with open(path, encoding="utf-8") as f:
             _ROUTING_DATA = json.load(f)
-    except Exception:
+    except (OSError, json.JSONDecodeError, ValueError):
         logger.warning("tool_keywords.json not found, routing/policies disabled")
         _ROUTING_DATA = {}
     return _ROUTING_DATA

@@ -39,7 +39,7 @@ def _run_with_timeout(
         except _fut.TimeoutError:
             ok = False
             error_msg = f"timeout>{int(timeout_sec*1000)}ms"
-        except Exception as e:
+        except Exception as e:  # broad: tool execution safety
             ok = False
             error_msg = str(e)
 

@@ -170,7 +170,7 @@ def format_observation(tool_response: ToolResponse, tool_name: str = "") -> str:
     try:
         formatter = _FORMATTERS.get(tool_name, _fmt_default)
         return formatter(tool_response.data)
-    except Exception as exc:
+    except Exception as exc:  # broad: formatting graceful degradation
         logger.warning("Failed to format observation for %s: %s", tool_name, exc)
         return str(tool_response.data)[:500]
 
@@ -302,7 +302,7 @@ def serialize_tool_payload(
         if len(serialized) > effective_limit:
             serialized = serialized[:effective_limit] + "… [ОБРЕЗАНО]}"
         return serialized
-    except Exception:
+    except Exception:  # broad: serialization safety net
         return json.dumps({"error": "serialization_failed"}, ensure_ascii=False)
 
 

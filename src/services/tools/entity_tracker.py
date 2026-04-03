@@ -44,7 +44,7 @@ def _load_alias_map() -> dict[str, str]:
             _alias_map[canonical.lower()] = canonical
             for alias in info.get("aliases", []):
                 _alias_map[alias.lower()] = canonical
-    except Exception:
+    except (OSError, json.JSONDecodeError, ValueError):
         logger.warning("entity_dictionary.json not found, normalization disabled")
         _alias_map = {}
     return _alias_map
@@ -109,7 +109,7 @@ def entity_tracker(
             return _mode_co_occurrence(store, hybrid_retriever, entity, limit)
         else:
             return {"error": f"Unknown mode: {mode}. Use: top, timeline, compare, co_occurrence"}
-    except Exception as exc:
+    except Exception as exc:  # broad: tool execution safety
         logger.exception("entity_tracker error: mode=%s", mode)
         return {"error": str(exc), "mode": mode}
     finally:
