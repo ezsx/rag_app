@@ -1,9 +1,9 @@
 # rag_app — Production RAG with Agentic ReAct Pipeline
 
-> Self-hosted RAG system over ~50 Russian-language AI/ML Telegram channels.
+> Self-hosted RAG system over 36 Russian-language AI/ML Telegram channels.
 > No managed APIs. No frameworks. Custom retrieval pipeline on local hardware.
 
-**Factual: 0.84** | **Faithfulness: 0.91** | **Robustness: 0.954** | **Recall@3: 0.97** | **15 tools** | **~50 channels, 200K+ docs**
+**Factual: 0.84** | **Faithfulness: 0.91** | **Robustness: 0.954** | **Recall@3: 0.97** | **15 tools** | **36 channels, 200K+ docs**
 
 ---
 
@@ -134,7 +134,7 @@ Full per-question breakdown in [judge_scores.md](benchmarks/results/judge_scores
 | **NLI** | rubert-base-cased-nli-threeway | fp16, 0.36 GB | RTX 5060 Ti |
 | **Vector store** | Qdrant (dense + sparse BM25 + ColBERT) | — | Docker |
 | **Observability** | Langfuse v3 (self-hosted) | — | Docker |
-| **Data** | ~50 Telegram channels, 200K+ docs | Jul 2025 - Mar 2026 | Qdrant |
+| **Data** | 36 Telegram channels, 200K+ docs | Jul 2025 - Mar 2026 | Qdrant |
 
 ## Retrieval Pipeline
 
