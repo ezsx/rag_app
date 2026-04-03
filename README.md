@@ -1,15 +1,15 @@
 # rag_app — Production RAG with Agentic ReAct Pipeline
 
-> Self-hosted RAG system over 36 Russian-language AI/ML Telegram channels.
+> Self-hosted RAG system over ~50 Russian-language AI/ML Telegram channels.
 > No managed APIs. No frameworks. Custom retrieval pipeline on local hardware.
 
-**Factual: 0.842** | **Faithfulness: 0.91** | **Robustness: 0.954** | **Recall@3: 0.97** | **15 tools** | **36 channels, 13K docs**
+**Factual: 0.84** | **Faithfulness: 0.91** | **Robustness: 0.954** | **Recall@3: 0.97** | **15 tools** | **~50 channels, 200K+ docs**
 
 ---
 
 ## What it does
 
-User asks a question about AI/ML news. ReAct agent plans sub-queries, runs hybrid retrieval (BM25 + dense + ColBERT) over 13K+ documents, filters with cross-encoder, produces a grounded answer with citations via SSE streaming.
+User asks a question about AI/ML news. ReAct agent plans sub-queries, runs hybrid retrieval (BM25 + dense + ColBERT) over 200K+ documents, filters with cross-encoder, produces a grounded answer with citations via SSE streaming.
 
 ```
 Query → query_plan → search (BM25+Dense → RRF → ColBERT) → CE filter → compose_context → answer
@@ -74,6 +74,41 @@ Retrieval adds +0.53 absolute factual improvement (k=0: 0.10, k=20: 0.63). Full 
 
 57 eval runs across development. Full [experiment history](docs/planning/experiment_history.md) with per-question analysis. [NLI faithfulness analysis](results/reports/nli_faithfulness_analysis_20260401.md). [Retrieval playbook](docs/planning/retrieval_improvement_playbook.md).
 
+### Custom vs LlamaIndex Benchmark
+
+Built the same pipeline in LlamaIndex (best-effort) and measured against our custom implementation.
+4 pipelines, same LLM, same data, same questions. [Full spec](docs/specifications/active/SPEC-RAG-29-framework-comparison-benchmark.md).
+
+**Agent E2E** (17 questions, judge: Claude Opus 4.6):
+
+| Pipeline | Factual | Usefulness | Grounding | Latency |
+|----------|:---:|:---:|:---:|:---:|
+| Naive (dense + LLM) | 0.55 | 1.04 | 0.28 | ~4s |
+| LlamaIndex stock | 0.51 | 1.13 | 0.46 | ~9s |
+| LlamaIndex maxed (weighted RRF + CE) | 0.54 | 1.21 | 0.48 | ~11s |
+| **Custom pipeline** | **0.84** | **1.77** | **0.88** | **~30s** |
+
+Custom wins by **+0.30 factual**, **+0.56 usefulness**, **+0.40 grounding** vs best framework config.
+
+**Retrieval-only** (100 hand-crafted queries):
+
+| Pipeline | Recall@1 | Recall@5 | MRR | Latency |
+|----------|:---:|:---:|:---:|:---:|
+| Naive (dense only) | 0.730 | 0.940 | 0.825 | 0.1s |
+| LlamaIndex stock | 0.730 | 0.940 | 0.825 | 0.1s |
+| LlamaIndex maxed | 0.780 | 0.980 | 0.865 | 1.4s |
+| **Custom (RRF + ColBERT)** | **0.780** | **0.970** | **0.866** | **0.2s** |
+
+Key findings:
+- **LlamaIndex stock = naive**: default hybrid fusion adds zero gain
+- **Reranker is not the differentiator**: li_maxed ≈ li_stock on agent E2E (+0.03 factual)
+- **Multi-query planning + LANCER + specialized tools = main gain source** (not retrieval tuning)
+- **Grounding 0.88 vs 0.48**: inline `[1][2][3]` citations via `compose_context` → `final_answer`
+- **Custom 7x faster** than LlamaIndex maxed on retrieval (direct HTTP vs framework abstraction)
+- LlamaIndex adds ~70 transitive dependencies vs our ~12
+
+Full per-question breakdown in [judge_scores.md](benchmarks/results/judge_scores.md).
+
 ### What didn't work (with evidence)
 
 | Technique | Result | Why rejected |
@@ -99,7 +134,7 @@ Retrieval adds +0.53 absolute factual improvement (k=0: 0.10, k=20: 0.63). Full 
 | **NLI** | rubert-base-cased-nli-threeway | fp16, 0.36 GB | RTX 5060 Ti |
 | **Vector store** | Qdrant (dense + sparse BM25 + ColBERT) | — | Docker |
 | **Observability** | Langfuse v3 (self-hosted) | — | Docker |
-| **Data** | 36 Telegram channels, 13K+ docs | Jul 2025 - Mar 2026 | Qdrant |
+| **Data** | ~50 Telegram channels, 200K+ docs | Jul 2025 - Mar 2026 | Qdrant |
 
 ## Retrieval Pipeline
 
@@ -201,8 +236,9 @@ docs/
   research/             34 prompts + 28 reports
   specifications/       21 specs (active + completed)
   planning/             Roadmap, playbook, experiment history
+benchmarks/             Framework comparison (LlamaIndex vs custom, 4 pipelines)
 datasets/               Golden dataset (36 Qs), calibration (100 Qs), prompts, entity dictionary
-deploy/                 Docker compose (dev, langfuse, test)
+deploy/                 Docker compose (dev, langfuse, test, benchmark)
 ```
 
 ## License
