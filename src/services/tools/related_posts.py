@@ -35,7 +35,7 @@ def related_posts(
         from qdrant_client.models import RecommendQuery
         return await store.client.query_points(
             collection_name=store.collection,
-            query=RecommendQuery(positive=[post_id]),
+            query=RecommendQuery(positive=[post_id]),  # type: ignore[call-arg]
             using="dense_vector",
             limit=limit,
             with_payload=True,

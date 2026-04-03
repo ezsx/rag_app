@@ -12,6 +12,7 @@ def _load_ingest_module():
         "ingest_telegram_module",
         Path(__file__).parent.parent.parent / "scripts" / "ingest_telegram.py",
     )
+    assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
