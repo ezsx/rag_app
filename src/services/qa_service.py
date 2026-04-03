@@ -4,12 +4,10 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
-import numpy as np
-
 from core.settings import Settings, get_settings
+from schemas.search import SearchPlan
 from services.query_planner_service import QueryPlannerService
 from utils.prompt import build_prompt
-from utils.ranking import _get_item_id, mmr_select, rrf_merge
 
 if TYPE_CHECKING:
     from adapters.search.hybrid_retriever import HybridRetriever
@@ -201,171 +199,55 @@ class QAService:
     def _fetch_context(
         self, query: str, return_metadata: bool = False
     ) -> tuple[list[str], list[dict[str, Any]]]:
+        """Получает контекст через hybrid retriever.
+
+        1. Если planner доступен — make_plan(query) → search_with_plan
+        2. Иначе — простой SearchPlan с [query] → search_with_plan
+        3. Опционально rerank
+        """
+        # Построить план поиска
         if self.settings.enable_query_planner and self.planner is not None:
             plan = self.planner.make_plan(query)
-            # Проверяем кеш фьюжна
-            fusion_key = f"fusion:{hash(query + plan.json())}"
-            cached = self.planner.get_cached_fusion(fusion_key)
-            merged_items: list[dict[str, Any]] = []
-            if cached is not None:
-                merged = cached  # type: ignore
-            else:
-                # Если включен гибрид — используем его единый список кандидатов
-                if self.settings.hybrid_enabled and self.hybrid is not None:
-                    try:
-                        candidates = self.hybrid.search_with_plan(query, plan)
-                        merged_items = [
-                            {
-                                "id": c.id,
-                                "text": c.text,
-                                "metadata": c.metadata,
-                                "distance": 0.0,
-                            }
-                            for c in candidates
-                        ]
-                    except Exception as e:
-                        logger.warning(
-                            "Hybrid retriever failed, fallback to dense-only: %s", e
-                        )
-                        merged_items = []
-
-                if not merged_items:
-                    # Сбор результатов поиска для каждого подзапроса (dense‑ветка)
-                    results_for_fusion: list[
-                        list[tuple[str, float, dict[str, Any]]]
-                    ] = []
-                    items_by_id: dict[str, dict[str, Any]] = {}
-                    for q in plan.normalized_queries:
-                        items = self.retriever.search(
-                            q,
-                            k=plan.k_per_query,
-                            filters=(
-                                plan.metadata_filters.dict(exclude_none=True)
-                                if plan.metadata_filters
-                                else None
-                            ),
-                        )
-                        triples: list[tuple[str, float, dict[str, Any]]] = []
-                        for it in items:
-                            doc = it.get("text", "")
-                            dist = float(it.get("distance", 0.0))
-                            meta = it.get("metadata", {})
-                            triples.append((doc, dist, meta))
-                            item_id = _get_item_id(doc, meta)
-                            if item_id not in items_by_id:
-                                items_by_id[item_id] = it
-                        results_for_fusion.append(triples)
-
-                    merged = rrf_merge(results_for_fusion, k=self.settings.k_fusion)
-                    # Кешируем слитый список (как tuples) на 5 минут
-                    self.planner.set_cached_fusion(fusion_key, merged, ttl=300)
-
-                    # Преобразуем merged к полным Item через items_by_id
-                    merged_items = []
-                    for doc, dist, meta in merged:
-                        iid = _get_item_id(doc, meta)
-                        item = items_by_id.get(iid) or {
-                            "id": iid,
-                            "text": doc,
-                            "metadata": meta,
-                            "distance": float(dist),
-                        }
-                        merged_items.append(item)
-
-            # Если есть кешированный merged без items_by_id, нам нужны эмбеддинги top-N для MMR/ререйка
-            # Соберем embeddings для первых N если отсутствуют
-            def ensure_embeddings(items: list[dict[str, Any]], top_n: int) -> None:
-                need_indices = [
-                    i
-                    for i in range(min(len(items), top_n))
-                    if "embedding" not in items[i]
-                ]
-                if need_indices:
-                    try:
-                        embs = self.retriever.embed_texts(
-                            [items[i]["text"] for i in need_indices]
-                        )
-                        for j, i in enumerate(need_indices):
-                            items[i]["embedding"] = np.asarray(embs[j], dtype=float)
-                    except Exception:
-                        # продолжим без эмбеддингов — далее MMR выбросит понятную ошибку
-                        pass
-
-            final_items: list[dict[str, Any]] = []
-
-            # MMR (опционально)
-            if self.settings.enable_mmr and merged_items:
-                top_n = min(len(merged_items), self.settings.mmr_top_n)
-                ensure_embeddings(merged_items, top_n)
-                # Эмбеддинг запроса (E5 query: префикс)
-                try:
-                    query_emb = self.retriever.embed_texts([f"query: {query}"])[0]
-                except Exception:
-                    query_emb = None
-                if query_emb is None:
-                    raise ValueError("Не удалось получить эмбеддинг запроса для MMR")
-                docs_embs: list[np.ndarray] = []
-                for it in merged_items[:top_n]:
-                    emb = it.get("embedding")
-                    if emb is None:
-                        raise ValueError("Отсутствуют эмбеддинги документов для MMR")
-                    docs_embs.append(np.asarray(emb, dtype=float))
-                mmr_candidates: list[dict[str, Any]] = [
-                    {
-                        "id": it.get("id"),
-                        "text": it.get("text"),
-                        "score": float(it.get("distance", 0.0)),
-                        "metadata": it.get("metadata", {}),
-                    }
-                    for it in merged_items[:top_n]
-                ]
-                selected = mmr_select(
-                    candidates=mmr_candidates,
-                    query_embedding=np.asarray(query_emb, dtype=float),
-                    doc_embeddings=np.vstack(docs_embs),
-                    lambda_=self.settings.mmr_lambda,
-                    out_k=min(self.settings.mmr_output_k, len(mmr_candidates)),
-                )
-                # Восстанавливаем полные items по id, сохраняя порядок MMR
-                id_to_item = {it.get("id"): it for it in merged_items}
-                selected_ids_in_order = [c.get("id") for c in selected]
-                final_items = [
-                    id_to_item[i] for i in selected_ids_in_order if i in id_to_item
-                ]
-            else:
-                final_items = merged_items
-
-            # Ререйкер (опционально)
-            if self.settings.enable_reranker and self.reranker and final_items:
-                top_n = min(len(final_items), self.settings.reranker_top_n)
-                texts = [it["text"] for it in final_items[:top_n]]
-                order = self.reranker.rerank(
-                    query=query,
-                    docs=texts,
-                    top_n=top_n,
-                    batch_size=self.settings.reranker_batch_size,
-                )
-                # Переупорядочиваем первые top_n, остальные добавляем в конце
-                reordered = [final_items[i] for i in order]
-                if len(final_items) > top_n:
-                    reordered.extend(final_items[top_n:])
-                final_items = reordered
-
-            # Ограничиваем итоговый контекст
-            limit = max(1, min(self.top_k, 10))
-            final_items = final_items[:limit]
-
-            documents = [it["text"] for it in final_items]
-            metadatas = [it.get("metadata", {}) for it in final_items]
-            return (documents, metadatas) if return_metadata else (documents, [])
-
-        # Старый путь
-        if return_metadata:
-            items = self.retriever.get_context_with_metadata(query, k=self.top_k)
-            documents = [item["document"] for item in items]
-            metadatas = [item["metadata"] for item in items]
-            return documents, metadatas
         else:
-            documents = self.retriever.get_context(query, k=self.top_k)
-            return documents, []
+            plan = SearchPlan(
+                normalized_queries=[query],
+                k_per_query=self.top_k,
+                fusion="rrf",
+            )
+
+        # search_with_plan делает BM25+Dense → RRF → ColBERT rerank внутри
+        retriever = self.hybrid or self.retriever
+        candidates = retriever.search_with_plan(query, plan)
+        final_items: list[dict[str, Any]] = [
+            {
+                "id": c.id,
+                "text": c.text,
+                "metadata": c.metadata,
+                "distance": 0.0,
+            }
+            for c in candidates
+        ]
+
+        # Reranker (опционально)
+        if self.settings.enable_reranker and self.reranker and final_items:
+            top_n = min(len(final_items), self.settings.reranker_top_n)
+            texts = [it["text"] for it in final_items[:top_n]]
+            order = self.reranker.rerank(
+                query=query,
+                docs=texts,
+                top_n=top_n,
+                batch_size=self.settings.reranker_batch_size,
+            )
+            reordered = [final_items[i] for i in order]
+            if len(final_items) > top_n:
+                reordered.extend(final_items[top_n:])
+            final_items = reordered
+
+        # Ограничиваем итоговый контекст
+        limit = max(1, min(self.top_k, 10))
+        final_items = final_items[:limit]
+
+        documents = [it["text"] for it in final_items]
+        metadatas = [it.get("metadata", {}) for it in final_items]
+        return (documents, metadatas) if return_metadata else (documents, [])
 

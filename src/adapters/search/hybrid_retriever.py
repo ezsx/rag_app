@@ -235,25 +235,6 @@ class HybridRetriever:
             )
         return items
 
-    def get_context(self, query: str, k: int = 5) -> list[str]:
-        """Compatibility shim для QAService без planner."""
-        return [item["text"] for item in self.search(query, k=k)]
-
-    def get_context_with_metadata(self, query: str, k: int = 5) -> list[dict[str, Any]]:
-        """Compatibility shim для QAService без planner."""
-        return [
-            {
-                "document": item["text"],
-                "metadata": item.get("metadata", {}),
-                "distance": float(item.get("distance", 0.0)),
-            }
-            for item in self.search(query, k=k)
-        ]
-
-    def embed_texts(self, texts: list[str]) -> list[list[float]]:
-        """Compatibility shim для legacy MMR-кода."""
-        return self._run_sync(self._async_embed_texts(texts))
-
     async def _async_search(
         self, query_text: str, plan: SearchPlan
     ) -> list[Candidate]:
@@ -394,7 +375,4 @@ class HybridRetriever:
             logger.warning("ColBERT query encoding failed: %s", e)
         return None
 
-    async def _async_embed_texts(self, texts: list[str]) -> list[list[float]]:
-        """Возвращает эмбеддинги без добавления префиксов."""
-        return await self._embedding_client._embed_batch(texts, normalize=True)
 
