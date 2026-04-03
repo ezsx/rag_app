@@ -6,11 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class ToolRequest(BaseModel):
-    """Единый контракт запроса к инструменту.
-
-    - tool: имя инструмента из реестра
-    - input: произвольные параметры (JSON-совместимые)
-    """
+    """Tool invocation request: tool name + arbitrary JSON parameters."""
 
     tool: str = Field(..., description="Имя инструмента")
     input: dict[str, Any] = Field(
@@ -19,7 +15,7 @@ class ToolRequest(BaseModel):
 
 
 class ToolMeta(BaseModel):
-    """Метаданные выполнения инструмента."""
+    """Tool execution metadata."""
 
     took_ms: int = Field(..., ge=0, description="Время выполнения в миллисекундах")
     error: str | None = Field(
@@ -28,7 +24,7 @@ class ToolMeta(BaseModel):
 
 
 class ToolResponse(BaseModel):
-    """Структура ответа инструмента."""
+    """Tool execution result."""
 
     ok: bool = Field(..., description="Успешно ли выполнился инструмент")
     data: dict[str, Any] = Field(
@@ -38,7 +34,7 @@ class ToolResponse(BaseModel):
 
 
 class AgentAction(BaseModel):
-    """Описывает одно действие агента для трейс-лога."""
+    """Single agent action for trace log."""
 
     step: int = Field(..., ge=1, description="Порядковый номер шага")
     tool: str = Field(..., description="Имя инструмента")
@@ -50,7 +46,7 @@ class AgentAction(BaseModel):
 
 
 class AgentRequest(BaseModel):
-    """Запрос для ReAct агента"""
+    """ReAct agent request."""
 
     query: str = Field(
         ..., description="Вопрос пользователя", min_length=1, max_length=1000
@@ -73,7 +69,7 @@ class AgentRequest(BaseModel):
 
 
 class AgentResponse(BaseModel):
-    """Ответ ReAct агента"""
+    """ReAct agent response."""
 
     answer: str = Field(..., description="Итоговый ответ агента")
     steps: list[AgentAction] = Field(..., description="Выполненные шаги")
@@ -81,7 +77,7 @@ class AgentResponse(BaseModel):
 
 
 class AgentStepEvent(BaseModel):
-    """Событие SSE для пошагового выполнения агента"""
+    """SSE event for step-by-step agent execution."""
 
     type: str = Field(
         ...,

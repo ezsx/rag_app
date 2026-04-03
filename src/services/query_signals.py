@@ -1,8 +1,8 @@
 """
-Rule-based pre-validator для adaptive retrieval.
+Rule-based pre-validator for adaptive retrieval.
 
-Deterministic extraction сигналов из текста запроса (<1ms).
-Вызывается ДО LLM query_plan — результаты инжектируются как hints.
+Deterministic signal extraction from query text (<1ms).
+Called before LLM query_plan -- results are injected as hints.
 """
 
 from __future__ import annotations
@@ -69,7 +69,7 @@ _EN_MONTHS = {
 
 @dataclass
 class QuerySignals:
-    """Результат rule-based анализа запроса."""
+    """Result of rule-based query analysis."""
     strategy_hint: str | None = None  # "temporal" | "channel" | "entity" | None
     confidence: float = 0.0
     date_from: str | None = None      # ISO YYYY-MM-DD
@@ -79,7 +79,7 @@ class QuerySignals:
 
 
 def extract_query_signals(query: str) -> QuerySignals:
-    """Извлекает сигналы из текста запроса через regex. <1ms."""
+    """Extract signals from query text via regex. <1ms."""
     signals = QuerySignals()
     q_lower = query.lower().strip()
 
@@ -111,7 +111,7 @@ def extract_query_signals(query: str) -> QuerySignals:
 
 
 def _detect_channels(q_lower: str, signals: QuerySignals) -> None:
-    """Детекция упоминаний каналов и авторов."""
+    """Detect channel @mentions and author references."""
     # @mentions
     at_mentions = re.findall(r"@(\w+)", q_lower)
     for mention in at_mentions:
@@ -137,7 +137,7 @@ def _detect_channels(q_lower: str, signals: QuerySignals) -> None:
 
 
 def _detect_temporal(q_lower: str, signals: QuerySignals) -> None:
-    """Детекция временных маркеров и extraction дат."""
+    """Detect temporal markers and extract date ranges."""
     now = datetime.now()
 
     # Русские месяцы + год: "в январе 2026", "декабрь 2025"
@@ -194,7 +194,7 @@ def _detect_temporal(q_lower: str, signals: QuerySignals) -> None:
 
 
 def _detect_entities(q_lower: str, q_original: str, signals: QuerySignals) -> None:
-    """Детекция entity mentions (компании, продукты, технологии)."""
+    """Detect entity mentions (companies, products, technologies)."""
     for pattern in ENTITY_PATTERNS:
         if re.search(rf"\b{re.escape(pattern)}\b", q_lower):
             # Используем оригинальный регистр из запроса если найдём
@@ -205,7 +205,7 @@ def _detect_entities(q_lower: str, q_original: str, signals: QuerySignals) -> No
 
 
 def _set_month_range(signals: QuerySignals, year: int, month: int) -> None:
-    """Устанавливает date_from/date_to на весь месяц."""
+    """Set date_from/date_to to span the full month."""
     signals.date_from = f"{year}-{month:02d}-01"
     # Последний день месяца
     if month == 12:

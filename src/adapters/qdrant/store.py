@@ -41,11 +41,9 @@ PAYLOAD_INDEXES = [
 
 @dataclass
 class PointDocument:
-    """Transfer object для загрузки одного документа в Qdrant.
+    """Transfer object for upserting a single document into Qdrant.
 
-    Поля векторов передаются уже сгенерированными снаружи:
-      - dense_vector: список float из TEIEmbeddingClient.embed_documents()
-      - sparse_indices / sparse_values: из fastembed SparseTextEmbedding.embed()
+    Vector fields are pre-computed externally (TEIEmbeddingClient, fastembed).
     """
 
     point_id: str
@@ -57,16 +55,9 @@ class PointDocument:
 
 
 class QdrantStore:
-    """Тонкий адаптер над AsyncQdrantClient.
+    """Thin adapter over AsyncQdrantClient for collection CRUD.
 
-    Инкапсулирует создание коллекции и CRUD-операции.
-    Поисковые запросы (query_points) выполняются через self.client в HybridRetriever.
-
-    Использование:
-        store = QdrantStore(url="http://qdrant:6333", collection="news")
-        await store.ensure_collection()
-        await store.upsert(documents)
-        await store.aclose()
+    Search queries (query_points) are executed via self.client in HybridRetriever.
     """
 
     DENSE_VECTOR: str = "dense_vector"
@@ -83,20 +74,18 @@ class QdrantStore:
 
     @property
     def client(self) -> AsyncQdrantClient:
-        """Прямой доступ к AsyncQdrantClient для HybridRetriever."""
+        """Direct access to AsyncQdrantClient for HybridRetriever."""
         return self._client
 
     @property
     def collection(self) -> str:
-        """Имя коллекции Qdrant."""
+        """Qdrant collection name."""
         return self._collection
 
     async def ensure_collection(self) -> None:
-        """Создаёт коллекцию с named vectors и payload-индексами, если не существует.
+        """Create collection with named vectors + payload indexes if it doesn't exist.
 
-        Идемпотентен — безопасно вызывать при каждом старте приложения.
-        Обрабатывает race condition: если параллельный процесс уже создал коллекцию,
-        молча продолжает работу.
+        Idempotent -- safe to call on every app startup. Handles race conditions.
         """
         try:
             exists = await self._client.collection_exists(self._collection)
@@ -148,10 +137,9 @@ class QdrantStore:
         )
 
     async def _create_payload_indices(self) -> None:
-        """Создаёт все 16 payload indexes из PAYLOAD_INDEXES (SPEC-RAG-20a).
+        """Create all 16 payload indexes from PAYLOAD_INDEXES.
 
-        Вызывается при создании коллекции. Без indexes analytics tools
-        (entity_tracker, arxiv_tracker) получают Qdrant 400 на Facet API.
+        Called on collection creation. Without indexes, analytics tools get Qdrant 400 on Facet API.
         """
         failed = []
         for field_name, field_schema in PAYLOAD_INDEXES:
@@ -173,18 +161,14 @@ class QdrantStore:
             logger.info("Все %d payload indexes созданы", len(PAYLOAD_INDEXES))
 
     async def aclose(self) -> None:
-        """Закрывает HTTP-соединение. Вызывать в lifespan shutdown."""
+        """Close HTTP connection. Call during lifespan shutdown."""
         await self._client.close()
         logger.info("QdrantStore: соединение закрыто")
 
     async def upsert(
         self, documents: list[PointDocument], batch_size: int = 8
     ) -> int:
-        """Загружает документы в Qdrant батчами.
-
-        Каждый документ содержит оба вектора (dense + sparse) и payload.
-        wait=True гарантирует видимость данных сразу после возврата.
-        """
+        """Upsert documents into Qdrant in batches. wait=True ensures immediate visibility."""
         if not documents:
             return 0
 
@@ -238,7 +222,7 @@ class QdrantStore:
         return total
 
     async def delete(self, point_ids: list[str]) -> None:
-        """Удаляет точки по списку string ID."""
+        """Delete points by string IDs."""
         if not point_ids:
             return
 
@@ -258,7 +242,7 @@ class QdrantStore:
             raise
 
     async def get_by_ids(self, point_ids: list[str]) -> list[Any]:
-        """Извлекает точки по ID (только payload, без векторов)."""
+        """Retrieve points by ID (payload only, no vectors)."""
         if not point_ids:
             return []
 
@@ -275,7 +259,7 @@ class QdrantStore:
             raise
 
     async def collection_info(self) -> dict[str, Any]:
-        """Возвращает базовую статистику коллекции для диагностики."""
+        """Return basic collection stats for diagnostics."""
         try:
             info = await self._client.get_collection(self._collection)
             return {

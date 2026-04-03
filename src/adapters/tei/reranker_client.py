@@ -1,11 +1,8 @@
 """
-HTTP-клиент для TEI reranker service (BAAI/bge-reranker-v2-m3).
+HTTP client for cross-encoder reranker service (Qwen3-Reranker-0.6B-seq-cls via gpu_server.py).
 
-Обёртка над TEI REST API:
-  POST /rerank → list[{index: int, score: float}]  (отсортировано по score desc)
-
-bge-reranker-v2-m3 НЕ требует instruction prefix.
-Возвращаем scores в исходном порядке passages (по index), не по score.
+POST /rerank -> list[{index, score}] sorted by score desc.
+Returns scores in original passage order (by index).
 """
 
 from __future__ import annotations
@@ -20,20 +17,16 @@ logger = logging.getLogger(__name__)
 
 
 class TEIRerankerClient:
-    """
-    Async HTTP-клиент для TEI reranker service.
+    """Async HTTP client for reranker service. Singleton via deps.get_tei_reranker_client().
 
-    Принимает query + список passages, возвращает relevance scores
-    в том же порядке, что и входные passages.
-
-    Создаётся через deps.get_tei_reranker_client().
+    Accepts query + passages, returns relevance scores in original passage order.
     """
 
     def __init__(self, base_url: str, timeout: float = 30.0) -> None:
         """
         Args:
-            base_url: URL TEI service, например "http://host.docker.internal:8083"
-            timeout: таймаут HTTP запроса в секундах
+            base_url: reranker service URL, e.g. "http://host.docker.internal:8082"
+            timeout: HTTP request timeout in seconds
         """
         self.base_url = base_url.rstrip("/")
         self._client = httpx.AsyncClient(
@@ -44,25 +37,10 @@ class TEIRerankerClient:
         logger.info("TEIRerankerClient инициализирован: %s", self.base_url)
 
     async def rerank(self, query: str, passages: list[str]) -> list[float]:
-        """
-        Переранжирует passages по релевантности к query.
+        """Rerank passages by relevance to query.
 
-        TEI /rerank возвращает результаты отсортированными по убыванию score.
-        Этот метод восстанавливает исходный порядок passages: scores[i]
-        соответствует passages[i].
-
-        Args:
-            query: поисковый запрос
-            passages: список текстов для ранжирования (обычно 20–80 штук)
-
-        Returns:
-            list[float] длиной len(passages): score[i] для passages[i].
-            Score в диапазоне (обычно) -10..10, не нормализован.
-            Для нормализации в [0,1] вызывающий код использует sigmoid или min-max.
-
-        Raises:
-            httpx.ConnectError: TEI service недоступен
-            httpx.HTTPStatusError: TEI вернул ошибку
+        Returns raw scores in original passage order: scores[i] corresponds to passages[i].
+        Scores are unnormalized (typically -10..10); callers apply sigmoid or min-max.
         """
         if not passages:
             return []
@@ -118,7 +96,7 @@ class TEIRerankerClient:
             raise
 
     async def healthcheck(self) -> bool:
-        """Проверяет доступность TEI reranker service."""
+        """Check if reranker service is reachable."""
         try:
             response = await self._client.get("/health", timeout=5.0)
             return response.status_code == 200
@@ -127,5 +105,5 @@ class TEIRerankerClient:
             return False
 
     async def aclose(self) -> None:
-        """Закрывает HTTP connection pool."""
+        """Close HTTP connection pool."""
         await self._client.aclose()

@@ -1,10 +1,9 @@
 """
-Синхронная обёртка над async TEI reranker client.
+Sync wrapper over async TEIRerankerClient.
 
-Phase 1 использует общий `TEIRerankerClient` из DI, а этот сервис даёт
-совместимый sync API для `qa_service.py`, инструментов и legacy-кода.
-Чтобы не падать с `RuntimeError: This event loop is already running`,
-async вызовы исполняются в выделенном event loop внутри фонового потока.
+Provides backward-compatible sync API for QAService and tools.
+Async calls execute in a dedicated background event loop to avoid
+RuntimeError in nested event loops.
 """
 
 from __future__ import annotations
@@ -23,15 +22,9 @@ T = TypeVar("T")
 
 
 class RerankerService:
-    """
-    Sync-обёртка над `TEIRerankerClient` с backward-compatible API.
-    """
+    """Sync wrapper over TEIRerankerClient with backward-compatible API."""
 
     def __init__(self, reranker_client: TEIRerankerClient) -> None:
-        """
-        Args:
-            reranker_client: общий async-клиент TEI reranker из `deps.py`
-        """
         self._client = reranker_client
         self._loop = asyncio.new_event_loop()
         self._ready = threading.Event()
@@ -50,9 +43,7 @@ class RerankerService:
     def rerank(
         self, query: str, docs: list[str], top_n: int, batch_size: int = 16
     ) -> list[int]:
-        """
-        Возвращает индексы документов, отсортированные по убыванию релевантности к запросу.
-        """
+        """Return document indices sorted by descending relevance to query."""
         if not docs:
             return []
         try:
@@ -68,7 +59,7 @@ class RerankerService:
     def rerank_with_scores(
         self, query: str, docs: list[str], top_n: int, batch_size: int = 16
     ) -> tuple[list[int], list[float]]:
-        """Переранжирует документы и возвращает нормализованные scores."""
+        """Rerank documents and return (indices, normalized_scores)."""
         if not docs:
             return [], []
         try:
@@ -83,7 +74,7 @@ class RerankerService:
             return list(range(min(len(docs), top_n or len(docs)))), []
 
     def healthcheck(self) -> bool:
-        """Проксирует healthcheck TEI reranker через sync API."""
+        """Proxy TEI reranker healthcheck via sync API."""
         try:
             return self._run_async(self._client.healthcheck())
         except Exception as exc:  # broad: adapter boundary
@@ -91,12 +82,7 @@ class RerankerService:
             return False
 
     def close(self) -> None:
-        """
-        Останавливает фоновой event loop.
-
-        Сам `TEIRerankerClient` не закрывается здесь: его lifecycle управляется
-        отдельно через `get_tei_reranker_client().aclose()` в `main.py`.
-        """
+        """Stop the background event loop. TEIRerankerClient lifecycle is managed separately."""
         if self._loop.is_closed():
             return
         self._loop.call_soon_threadsafe(self._loop.stop)
@@ -104,28 +90,23 @@ class RerankerService:
         self._loop.close()
 
     def _get_raw_scores(self, query: str, passages: list[str]) -> list[float]:
-        """
-        Возвращает raw relevance scores в порядке входных passages.
-
-        TEI-клиент уже восстанавливает исходный порядок по `index`, поэтому
-        здесь остаётся только синхронно дождаться async результата.
-        """
+        """Return raw relevance scores in input passage order."""
         return self._run_async(self._client.rerank(query, passages))
 
     def _run_event_loop(self) -> None:
-        """Фоновый поток с выделенным asyncio loop для sync→async bridge."""
+        """Background thread running dedicated asyncio loop for sync->async bridge."""
         asyncio.set_event_loop(self._loop)
         self._ready.set()
         self._loop.run_forever()
 
     def _run_async(self, coro: Coroutine[object, object, T]) -> T:
-        """Выполняет coroutine в фоновом loop и синхронно возвращает результат."""
+        """Run coroutine in background loop, return result synchronously."""
         future = asyncio.run_coroutine_threadsafe(coro, self._loop)
         return future.result()
 
     @staticmethod
     def _sigmoid(x: float) -> float:
-        """Сигмоида для нормализации raw logit score в [0, 1]."""
+        """Sigmoid for normalizing raw logit score to [0, 1]."""
         if x >= 0:
             z = math.exp(-x)
             return 1.0 / (1.0 + z)

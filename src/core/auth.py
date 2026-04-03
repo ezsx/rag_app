@@ -1,6 +1,4 @@
-"""
-Модуль аутентификации и авторизации для API
-"""
+"""Authentication and authorization: JWT tokens and API key validation."""
 
 import logging
 import os
@@ -38,7 +36,7 @@ security = HTTPBearer(auto_error=False)
 
 
 class TokenData(BaseModel):
-    """JWT токен данные"""
+    """JWT token payload."""
 
     sub: str  # Subject (user_id или api_key_id)
     exp: datetime
@@ -50,7 +48,7 @@ class TokenData(BaseModel):
 def create_access_token(
     subject: str, scopes: list[str] | None = None, metadata: dict[str, Any] | None = None
 ) -> str:
-    """Создает JWT токен"""
+    """Create a JWT access token."""
     now = datetime.utcnow()
     expire = now + timedelta(hours=JWT_EXPIRATION_HOURS)
 
@@ -67,7 +65,7 @@ def create_access_token(
 
 
 def verify_token(token: str) -> TokenData:
-    """Проверяет и декодирует JWT токен"""
+    """Verify and decode a JWT token."""
     try:
         assert JWT_SECRET is not None, "JWT_SECRET must be set"
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
@@ -82,7 +80,7 @@ async def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Security(security),
 ) -> TokenData:
-    """Dependency для проверки аутентификации"""
+    """FastAPI dependency for authentication (API key or JWT)."""
 
     # Проверка API Key в заголовке
     api_key = request.headers.get(API_KEY_HEADER)
@@ -108,7 +106,7 @@ async def get_current_user(
 
 
 def require_scopes(*required_scopes: str):
-    """Dependency factory для проверки scopes"""
+    """Dependency factory for scope-based authorization."""
 
     async def check_scopes(user: TokenData = Depends(get_current_user)) -> TokenData:
         if not required_scopes:

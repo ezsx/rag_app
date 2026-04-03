@@ -56,15 +56,7 @@ class QAService:
         return self._llm_instance
 
     def answer(self, query: str) -> str:
-        """
-        Отвечает на вопрос пользователя используя RAG подход
-
-        Args:
-            query: Вопрос пользователя
-
-        Returns:
-            Ответ от LLM
-        """
+        """Answer a user question using RAG: plan -> search -> rerank -> LLM."""
         try:
             # Получаем контекст (с планировщиком если включен)
             logger.info("Поиск контекста для запроса: %s...", query[:100])
@@ -97,12 +89,7 @@ class QAService:
             return f"Извините, произошла ошибка при обработке вашего запроса: {e!s}"
 
     def answer_with_context(self, query: str) -> dict[str, Any]:
-        """
-        Расширенная версия, возвращающая ответ вместе с использованным контекстом
-
-        Returns:
-            Словарь с ключами: answer, context, query
-        """
+        """Answer with context: returns {answer, context, query, context_count}."""
         try:
             context, metadatas = self._fetch_context(query, return_metadata=True)
             context_items = [
@@ -142,16 +129,7 @@ class QAService:
     async def stream_answer(
         self, query: str, include_context: bool = False
     ) -> AsyncIterator[str]:
-        """
-        Генерирует стримящий ответ на вопрос пользователя используя RAG подход
-
-        Args:
-            query: Вопрос пользователя
-            include_context: Использовать ли контекст из retriever
-
-        Yields:
-            str: Токены ответа от LLM
-        """
+        """Stream RAG answer token-by-token."""
         try:
             logger.info("Начинаем стриминг для запроса: %s...", query[:100])
 
@@ -199,12 +177,7 @@ class QAService:
     def _fetch_context(
         self, query: str, return_metadata: bool = False
     ) -> tuple[list[str], list[dict[str, Any]]]:
-        """Получает контекст через hybrid retriever.
-
-        1. Если planner доступен — make_plan(query) → search_with_plan
-        2. Иначе — простой SearchPlan с [query] → search_with_plan
-        3. Опционально rerank
-        """
+        """Fetch context via hybrid retriever: plan -> search -> optional rerank."""
         # Построить план поиска
         if self.settings.enable_query_planner and self.planner is not None:
             plan = self.planner.make_plan(query)

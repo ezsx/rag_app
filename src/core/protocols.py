@@ -1,8 +1,8 @@
 """
-Protocol interfaces — explicit contracts между слоями.
+Protocol interfaces -- explicit contracts between layers.
 
-Для документации архитектуры в коде. runtime_checkable для isinstance проверок,
-но mypy enforcement — необязателен (duck typing + @lru_cache singletons).
+runtime_checkable for isinstance checks; mypy enforcement is optional
+(duck typing + @lru_cache singletons).
 """
 
 from __future__ import annotations
@@ -14,25 +14,25 @@ from schemas.search import Candidate, SearchPlan
 
 @runtime_checkable
 class Retriever(Protocol):
-    """Контракт retriever-слоя (HybridRetriever)."""
+    """Retriever layer contract (HybridRetriever)."""
 
     def search_with_plan(self, query_text: str, plan: SearchPlan) -> list[Candidate]: ...
 
 
 class EmbeddingClient(Protocol):
-    """Контракт embedding service (TEIEmbeddingClient)."""
+    """Embedding service contract (TEIEmbeddingClient)."""
 
     async def embed_query(self, text: str) -> list[float]: ...
 
 
 class RerankerClient(Protocol):
-    """Контракт reranker service (TEIRerankerClient)."""
+    """Reranker service contract (TEIRerankerClient)."""
 
     async def rerank(self, query: str, passages: list[str]) -> list[float]: ...
 
 
 class LLMClient(Protocol):
-    """Контракт LLM (LlamaServerClient)."""
+    """LLM client contract (LlamaServerClient)."""
 
     def chat_completion(
         self,

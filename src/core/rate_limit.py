@@ -1,6 +1,4 @@
-"""
-Rate limiting middleware для защиты от спама и DDoS
-"""
+"""Rate limiting middleware with sliding window, per-IP/endpoint limits, and exponential backoff."""
 
 import hashlib
 import logging
@@ -15,13 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """
-    Rate limiting middleware с поддержкой:
-    - Per-IP limiting
-    - Per-endpoint limiting
-    - Sliding window algorithm
-    - Exponential backoff для повторных нарушений
-    """
+    """Sliding-window rate limiter with per-IP, per-endpoint limits and exponential backoff."""
 
     def __init__(
         self,
@@ -55,7 +47,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.cleanup_interval = 300  # 5 минут
 
     def _get_client_id(self, request: Request) -> str:
-        """Получает уникальный идентификатор клиента"""
+        """Derive unique client ID from API key, JWT, or IP."""
         # Приоритет: API key -> Auth token -> IP
         api_key = request.headers.get("X-API-Key")
         if api_key:
@@ -76,7 +68,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return f"ip:{client_ip}"
 
     def _cleanup_old_requests(self):
-        """Удаляет устаревшие записи"""
+        """Evict stale entries older than 1 hour."""
         now = time.time()
         if now - self.last_cleanup < self.cleanup_interval:
             return
@@ -101,10 +93,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.last_cleanup = now
 
     def _check_rate_limit(self, client_id: str, endpoint: str) -> int | None:
-        """
-        Проверяет rate limit для клиента.
-        Возвращает None если OK, или количество секунд до разблокировки.
-        """
+        """Check rate limit. Returns None if OK, or seconds until unblocked."""
         now = time.time()
 
         with self.lock:
@@ -158,7 +147,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return None
 
     def _record_violation(self, client_id: str):
-        """Записывает нарушение rate limit"""
+        """Record a rate limit violation for exponential backoff."""
         now = time.time()
 
         with self.lock:
@@ -169,7 +158,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 self.violations[client_id] = (1, now)
 
     async def dispatch(self, request: Request, call_next):
-        """Обрабатывает запрос с проверкой rate limit"""
+        """Process request with rate limit check."""
         # Периодическая очистка
         self._cleanup_old_requests()
 

@@ -1,6 +1,4 @@
-"""
-Модуль безопасности для защиты от различных атак
-"""
+"""Security module: input sanitization, injection detection, and safe logging."""
 
 import hashlib
 import logging
@@ -11,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class SecurityManager:
-    """Менеджер безопасности для защиты от различных типов атак"""
+    """Input validation and sanitization against SQL injection, XSS, prompt injection, and path traversal."""
 
     # Паттерны для обнаружения потенциально опасного контента
     SQL_PATTERNS = [
@@ -85,15 +83,11 @@ class SecurityManager:
         self.max_input_length = max_input_length
 
     def sanitize_input(self, input_text: str, context: str = "general") -> str:
-        """
-        Санитизирует входной текст, удаляя потенциально опасные элементы
+        """Sanitize input text by removing dangerous elements.
 
         Args:
-            input_text: Входной текст для санитизации
-            context: Контекст использования (general, query, filename, etc.)
-
-        Returns:
-            Санитизированный текст
+            input_text: raw input
+            context: usage context -- "general", "query", or "filename"
         """
         if not input_text:
             return input_text
@@ -120,12 +114,7 @@ class SecurityManager:
         return input_text.strip()
 
     def check_prompt_injection(self, text: str) -> list[str]:
-        """
-        Проверяет текст на наличие попыток prompt injection
-
-        Returns:
-            Список обнаруженных подозрительных паттернов
-        """
+        """Check text for prompt injection attempts. Returns list of detected violations."""
         if not self.enable_prompt_injection_check:
             return []
 
@@ -160,7 +149,7 @@ class SecurityManager:
         return violations
 
     def check_sql_injection(self, text: str) -> list[str]:
-        """Проверяет текст на SQL injection паттерны"""
+        """Check text for SQL injection patterns."""
         if not self.enable_sql_check:
             return []
 
@@ -180,7 +169,7 @@ class SecurityManager:
         return violations
 
     def check_xss(self, text: str) -> list[str]:
-        """Проверяет текст на XSS паттерны"""
+        """Check text for XSS patterns."""
         if not self.enable_xss_check:
             return []
 
@@ -197,7 +186,7 @@ class SecurityManager:
         return violations
 
     def check_path_traversal(self, text: str) -> list[str]:
-        """Проверяет текст на path traversal паттерны"""
+        """Check text for path traversal patterns."""
         if not self.enable_path_traversal_check:
             return []
 
@@ -212,12 +201,7 @@ class SecurityManager:
     def validate_input(
         self, text: str, context: str = "general"
     ) -> tuple[bool, list[str]]:
-        """
-        Полная валидация входного текста
-
-        Returns:
-            (is_valid, list_of_violations)
-        """
+        """Full input validation. Returns (is_valid, list_of_violations)."""
         violations = []
 
         # Базовые проверки
@@ -243,12 +227,12 @@ class SecurityManager:
         return is_valid, violations
 
     def _remove_control_characters(self, text: str) -> str:
-        """Удаляет управляющие символы кроме пробельных"""
+        """Remove control characters except whitespace."""
         # Удаляем все символы с кодами 0-31 кроме \t, \n, \r
         return "".join(char for char in text if ord(char) >= 32 or char in "\t\n\r")
 
     def _sanitize_filename(self, filename: str) -> str:
-        """Санитизирует имя файла"""
+        """Sanitize filename by removing dangerous characters."""
         # Удаляем опасные символы
         filename = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", filename)
         # Удаляем точки в начале
@@ -260,7 +244,7 @@ class SecurityManager:
         return filename or "unnamed"
 
     def _sanitize_query(self, query: str) -> str:
-        """Санитизирует поисковый запрос"""
+        """Sanitize search query by stripping SQL-like constructs."""
         # Удаляем SQL-like конструкции
         query = re.sub(
             r"\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|EXEC)\b",
@@ -273,7 +257,7 @@ class SecurityManager:
         return query
 
     def _escape_html(self, text: str) -> str:
-        """Экранирует HTML entities"""
+        """Escape HTML entities."""
         replacements = {
             "&": "&amp;",
             "<": "&lt;",
@@ -287,11 +271,11 @@ class SecurityManager:
         return text
 
     def hash_sensitive_data(self, data: str, salt: str = "") -> str:
-        """Хеширует чувствительные данные для логирования"""
+        """Hash sensitive data for safe logging."""
         return hashlib.sha256(f"{data}{salt}".encode()).hexdigest()[:16]
 
     def redact_sensitive_info(self, text: str) -> str:
-        """Редактирует потенциально чувствительную информацию"""
+        """Redact emails, phones, card numbers, and IPs."""
         # Email addresses
         text = re.sub(
             r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "[EMAIL]", text
@@ -310,7 +294,7 @@ security_manager = SecurityManager()
 
 
 def sanitize_for_logging(data: Any, max_length: int = 100) -> str:
-    """Санитизирует данные для безопасного логирования"""
+    """Sanitize data for safe logging (redact secrets, truncate)."""
     if isinstance(data, dict):
         # Рекурсивно обрабатываем словарь
         sanitized = {}

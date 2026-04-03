@@ -1,4 +1,4 @@
-"""Обёртка Redis кеша для API endpoints."""
+"""Redis cache wrapper for API endpoints."""
 
 import json
 import logging
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def cache_get(redis_client, key: str) -> dict[str, Any] | None:
-    """Читает JSON из Redis. None если кеш недоступен или промах."""
+    """Read JSON from Redis. Returns None on miss or if cache is unavailable."""
     if not redis_client:
         return None
     try:
@@ -22,7 +22,7 @@ def cache_get(redis_client, key: str) -> dict[str, Any] | None:
 
 
 def cache_set(redis_client, key: str, data: dict[str, Any], ttl: int) -> None:
-    """Пишет JSON в Redis с TTL. Молча пропускает при ошибке."""
+    """Write JSON to Redis with TTL. Silently ignores errors."""
     if not redis_client:
         return
     try:

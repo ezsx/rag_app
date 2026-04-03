@@ -1,17 +1,9 @@
 """
-HTTP-обёртка над llama-server с интерфейсом совместимым с llama_cpp.Llama.
+HTTP wrapper over llama-server with a llama_cpp.Llama-compatible interface.
 
-Позволяет запускать LLM inference на хосте Windows (V100 TCC-режим, недоступен в WSL2/Docker)
-через OpenAI-compatible completions API, пока RAG pipeline работает внутри Docker.
-
-llama-server запускается на хосте:
-    llama-server.exe -hf unsloth/Qwen3-30B-A3B-GGUF:Q4_K_M \\
-        -c 16384 --parallel 2 --flash-attn on \\
-        --cache-type-k q8_0 --cache-type-v q8_0 \\
-        -ngl 99 --main-gpu 0 --host 0.0.0.0 --port 8080 \\
-        --jinja --reasoning-budget 0
-
-Docker-контейнер обращается по: http://host.docker.internal:8080/v1/completions
+Runs LLM inference on Windows host (V100 TCC mode, inaccessible from WSL2/Docker)
+via OpenAI-compatible completions API. Docker container connects via
+http://host.docker.internal:8080/v1/completions.
 """
 
 import logging
@@ -25,18 +17,18 @@ logger = logging.getLogger(__name__)
 
 
 class LlamaServerClient:
-    """Тонкая обёртка над /v1/completions с сигнатурой, совместимой с llama_cpp.Llama.
+    """Thin wrapper over llama-server /v1/completions and /v1/chat/completions.
 
-    Поддерживает все параметры, которые использует agent_service.py и query_planner_service.py:
-    temperature, top_p, top_k, repeat_penalty, stop, seed, logit_bias, grammar (GBNF).
+    Supports both legacy completions API (QAService, QueryPlannerService)
+    and native function-calling chat API (AgentService).
     """
 
     def __init__(self, base_url: str, model: str = "local", timeout: int = 120):
         """
         Args:
-            base_url: URL llama-server, например "http://host.docker.internal:8080"
-            model:    имя модели для поля model в запросе (для логов, не влияет на inference)
-            timeout:  таймаут HTTP-запроса в секундах
+            base_url: llama-server URL, e.g. "http://host.docker.internal:8080"
+            model:    model name for request payload (logging only, no effect on inference)
+            timeout:  HTTP request timeout in seconds
         """
         self.base_url = base_url.rstrip("/")
         self.model = model
@@ -58,7 +50,7 @@ class LlamaServerClient:
         grammar: str | None = None,
         **kwargs,
     ) -> dict[str, Any]:
-        """Вызывает /v1/completions и возвращает ответ в формате llama_cpp.
+        """Call /v1/completions and return response in llama_cpp format.
 
         Returns:
             {"choices": [{"text": "...", "finish_reason": "stop"}], ...}
@@ -120,12 +112,10 @@ class LlamaServerClient:
         seed: int | None = None,
         response_format: dict[str, str] | None = None,
     ) -> dict[str, Any]:
-        """
-        Вызывает `/v1/chat/completions` с поддержкой native function calling.
+        """Call /v1/chat/completions with native function calling support.
 
-        `__call__()` сохраняется для legacy `/v1/completions` сценариев
-        (`qa_service`, `query_planner_service`). Этот метод используется
-        агентом с `messages` и `tools` schema.
+        __call__() is kept for legacy /v1/completions (QAService, QueryPlannerService).
+        This method is used by AgentService with messages + tools schema.
         """
         payload: dict[str, Any] = {
             "messages": messages,
@@ -238,11 +228,7 @@ class LlamaServerClient:
             return data
 
     def tokenize(self, text: bytes, add_bos: bool = True) -> list[int]:
-        """Токенизирует текст через /tokenize endpoint.
-
-        Метод оставлен для совместимости со старыми вызовами и отладкой токенизации.
-        При ошибке возвращает пустой список.
-        """
+        """Tokenize text via /tokenize endpoint. Returns empty list on error."""
         try:
             resp = self._session.post(
                 f"{self.base_url}/tokenize",

@@ -1,8 +1,8 @@
 """
-Конфигурация приложения — Pydantic BaseSettings.
+Application configuration via Pydantic BaseSettings.
 
-Все параметры читаются из переменных окружения с поддержкой .env файлов.
-Singleton через get_settings().
+All parameters read from environment variables with .env file support.
+Singleton via get_settings().
 """
 
 import logging
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
-    """Настройки приложения. Singleton через get_settings()."""
+    """Application settings. Singleton via get_settings()."""
 
     model_config = {
         "env_file": ".env",
@@ -95,7 +95,7 @@ class Settings(BaseSettings):
     enforce_router_route: bool = Field(False, alias="ENFORCE_ROUTER_ROUTE")
 
     # ── Planner декодинг ─────────────────────────────────────
-    use_gbnf_planner: bool = Field(True, alias="USE_GBNF_PLANNER")
+    use_gbnf_planner: bool = Field(True, alias="USE_GBNF_PLANNER", description="Legacy, unused — planner uses chat_completion JSON mode")
     planner_timeout: float = Field(30.0, alias="PLANNER_TIMEOUT")
     planner_token_budget: int = Field(4096, alias="PLANNER_TOKEN_BUDGET")
     planner_temp: float = Field(0.2, alias="PLANNER_TEMP")

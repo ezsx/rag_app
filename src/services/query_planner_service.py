@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 # ── Stopword dictionaries (loaded once) ──────────────────────────
 def _load_stopwords() -> dict[str, list[str]]:
-    """Загружает словари из datasets/planner_stopwords.json."""
+    """Load stopword dictionaries from datasets/planner_stopwords.json."""
     candidates = [
         Path(__file__).resolve().parent.parent.parent / "datasets" / "planner_stopwords.json",
         Path("datasets/planner_stopwords.json"),
@@ -155,19 +155,13 @@ class QueryPlannerService:
 
     @staticmethod
     def _is_sql_like_or_imperative(text: str) -> bool:
-        """Фильтруем SQL/DSL и императивные команды, бесполезные для dense/BM25.
-
-        Словари загружаются из datasets/planner_stopwords.json.
-        """
+        """Filter SQL/DSL and imperative commands useless for dense/BM25."""
         t = (text or "").lower()
         return any(p.search(t) for p in _SQL_PATTERNS + _IMPERATIVE_PATTERNS)
 
     @staticmethod
     def _process_phrase(text: str) -> str:
-        """Санитизация фразы: убираем императивы/SQL/filler-слова, сжимаем до 12 слов.
-
-        Словари загружаются из datasets/planner_stopwords.json.
-        """
+        """Sanitize phrase: strip imperatives/SQL/filler words, cap at 12 words."""
         s = QueryPlannerService._normalize_phrase(text)
         if _STRIP_RE:
             s = _STRIP_RE.sub("", s)
@@ -360,7 +354,7 @@ class QueryPlannerService:
         )
 
     def _call_planner_llm(self, prompt: str) -> dict[str, Any]:
-        """Вызов планировочной LLM с таймаутом на уровне приложения."""
+        """Call planner LLM with application-level timeout."""
 
         kwargs: dict[str, Any] = {
             "max_tokens": self.settings.planner_token_budget,
@@ -413,7 +407,7 @@ class QueryPlannerService:
                 )
 
     def _generate_plan(self, query: str) -> SearchPlan:
-        """Генерирует план поиска через LLM (chat_completion + json_object)."""
+        """Generate search plan via LLM (chat_completion + json_object mode)."""
         prompt = self._build_prompt(query)
 
         try:
@@ -515,7 +509,7 @@ class QueryPlannerService:
 
     @staticmethod
     def _split_prompt_to_messages(prompt: str):
-        """Разбивает raw completions prompt (<s>system...<s>user...<s>bot) на system + user."""
+        """Split raw completions prompt into system + user messages."""
         # Извлекаем system content между <s>system и <s>user
         import re
         system_match = re.search(r"<s>system\s*\n(.*?)<s>user", prompt, re.DOTALL)
@@ -525,7 +519,7 @@ class QueryPlannerService:
         return system, user
 
     def _build_prompt(self, query: str) -> str:
-        """Собирает prompt из шаблонов в planner_prompts.py."""
+        """Build prompt from templates in planner_prompts.py."""
         system = PLANNER_SYSTEM_PROMPT.format(
             k_default=self.settings.search_k_per_query_default,
             fusion_default=self.settings.fusion_strategy,

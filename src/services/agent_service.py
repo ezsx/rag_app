@@ -1,6 +1,4 @@
-"""
-ReAct Agent Service на native function calling через /v1/chat/completions.
-"""
+"""ReAct Agent Service using native function calling via /v1/chat/completions."""
 
 from __future__ import annotations
 

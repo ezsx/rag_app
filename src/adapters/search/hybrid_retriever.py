@@ -1,17 +1,9 @@
 """
-HybridRetriever — текущий runtime retrieval pipeline.
+HybridRetriever -- runtime retrieval pipeline.
 
-Основной путь:
-  1. dense (cosine) + sparse (BM25) prefetch
-  2. weighted RRF fusion (BM25 weight=3, dense weight=1)
-  3. ColBERT MaxSim rerank через named vector `colbert_vector` (если доступен)
-  4. channel dedup: max 2 документа на канал
-
-Fallback путь при недоступном ColBERT:
-  dense + sparse → weighted RRF → channel dedup.
-
-dense_score каждого кандидата — cosine similarity с query vector,
-а не RRF score (RRF scores неинтерпретируемы для coverage metric).
+Main path: dense + sparse prefetch -> weighted RRF (BM25 3:1) -> ColBERT MaxSim rerank -> channel dedup.
+Fallback (no ColBERT): dense + sparse -> weighted RRF -> channel dedup.
+dense_score per candidate is cosine similarity (not RRF score) for coverage metric.
 """
 
 from __future__ import annotations
@@ -51,7 +43,7 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
 
 
 def _build_filter(filters: MetadataFilters | None) -> models.Filter | None:
-    """Преобразует MetadataFilters в qdrant_client.models.Filter."""
+    """Convert MetadataFilters to qdrant_client.models.Filter."""
     if not filters:
         return None
 
@@ -84,12 +76,7 @@ def _to_candidates(
     points: list[Any],
     query_vector: list[float] | None = None,
 ) -> list[Candidate]:
-    """Конвертирует ScoredPoint из Qdrant в Candidate.
-
-    dense_score вычисляется как cosine similarity между query_vector и
-    document dense_vector. Если query_vector не передан или у документа
-    нет dense vector — fallback на point.score.
-    """
+    """Convert Qdrant ScoredPoints to Candidates with cosine dense_score."""
     candidates: list[Candidate] = []
     for point in points:
         payload: dict[str, Any] = point.payload or {}
@@ -125,14 +112,10 @@ def _to_candidates(
 
 
 class HybridRetriever:
-    """Qdrant-based hybrid retriever: dense (TEI) + sparse (BM25 fastembed) → native RRF.
+    """Qdrant hybrid retriever: dense (TEI) + sparse (BM25 fastembed) -> native RRF.
 
-    Синхронный публичный интерфейс совместим как с ToolRunner/ThreadPoolExecutor,
-    так и с прямыми sync-вызовами из FastAPI-эндпоинтов и QAService.
-
-    Внутренне использует выделенный event loop в фоновом потоке для безопасного
-    sync→async bridge (тот же паттерн что RerankerService). asyncio.run() не подходит —
-    он создаёт и закрывает loop каждый раз, что убивает httpx connection pool.
+    Sync public API with dedicated background event loop for sync->async bridge
+    (same pattern as RerankerService). Compatible with ToolRunner and FastAPI endpoints.
     """
 
     def __init__(
@@ -160,38 +143,38 @@ class HybridRetriever:
         logger.info("HybridRetriever инициализирован: collection=%s", store.collection)
 
     def _run_event_loop(self) -> None:
-        """Фоновый поток с выделенным asyncio loop."""
+        """Background thread running dedicated asyncio loop."""
         asyncio.set_event_loop(self._loop)
         self._ready.set()
         self._loop.run_forever()
 
     def _run_sync(self, coro: Coroutine[Any, Any, _T]) -> _T:
-        """Выполняет coroutine в фоновом loop и синхронно возвращает результат."""
+        """Run coroutine in background loop, return result synchronously."""
         future = asyncio.run_coroutine_threadsafe(coro, self._loop)
         return future.result()
 
     # ── Public API для tools ──────────────────────────────
     def run_sync(self, coro: Coroutine[Any, Any, _T]) -> _T:
-        """Публичный sync→async bridge для tools."""
+        """Public sync->async bridge for tools."""
         return self._run_sync(coro)
 
     @property
     def store(self) -> QdrantStore:
-        """Публичный доступ к Qdrant store."""
+        """Public access to Qdrant store."""
         return self._store
 
     @property
     def embedding_client(self) -> TEIEmbeddingClient:
-        """Публичный доступ к embedding client."""
+        """Public access to embedding client."""
         return self._embedding_client
 
     @property
     def sparse_encoder(self) -> SparseTextEmbedding:
-        """Публичный доступ к sparse encoder."""
+        """Public access to sparse encoder."""
         return self._sparse_encoder
 
     def search_with_plan(self, query_text: str, plan: SearchPlan) -> list[Candidate]:
-        """Выполняет hybrid search и возвращает список Candidate."""
+        """Execute hybrid search and return Candidates."""
         with observe_span(
             "hybrid_retrieval",
             input={"query": query_text[:200], "strategy": getattr(plan, "strategy", None)},
@@ -238,13 +221,7 @@ class HybridRetriever:
     async def _async_search(
         self, query_text: str, plan: SearchPlan
     ) -> list[Candidate]:
-        """Hybrid search: BM25 + Dense → RRF → ColBERT rerank.
-
-        Трёхэтапный pipeline:
-        1. prefetch: dense + sparse → каждый по prefetch_limit
-        2. RRF fusion → расширенный набор кандидатов
-        3. ColBERT MaxSim rerank → финальные top-k (если коллекция поддерживает)
-        """
+        """BM25 + Dense -> RRF -> ColBERT MaxSim rerank -> channel dedup."""
         dense_vector: list[float] = await self._embedding_client.embed_query(query_text)
 
         sparse_result = next(iter(self._sparse_encoder.query_embed(query_text)))
@@ -341,9 +318,7 @@ class HybridRetriever:
     def _channel_dedup(
         candidates: list[Candidate], max_per_channel: int = 2
     ) -> list[Candidate]:
-        """Ограничить количество документов из одного канала.
-        Сохраняет порядок (по score), но пропускает лишние из того же канала.
-        """
+        """Limit docs per channel for diversity. Preserves score order."""
         channel_counts: dict[str, int] = {}
         result = []
         for c in candidates:

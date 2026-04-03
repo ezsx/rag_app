@@ -1,9 +1,8 @@
 """
-Dependency Injection — Phase 1.
+Dependency injection: singleton factories for all services and clients.
 
-Фабрики всех сервисов и клиентов.
-Все фабрики используют @lru_cache — синглтоны на процесс.
-Смена настроек требует явного cache_clear() через settings.update_*().
+All factories use @lru_cache. Settings changes require explicit cache_clear()
+via settings.update_*().
 """
 
 import logging
@@ -29,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 @lru_cache
 def get_llm() -> LlamaServerClient:
-    """HTTP-клиент к llama-server."""
+    """HTTP client to llama-server."""
     settings = get_settings()
     logger.info(
         "LLM: llama-server → %s (model=%s)",
@@ -45,7 +44,7 @@ def get_llm() -> LlamaServerClient:
 
 @lru_cache
 def get_planner_llm() -> LlamaServerClient:
-    """HTTP-клиент для QueryPlanner."""
+    """HTTP client for QueryPlanner (separate endpoint if configured)."""
     settings = get_settings()
     base_url = settings.planner_llm_base_url or settings.llm_base_url
     logger.info("Planner LLM: llama-server → %s", base_url)
@@ -121,13 +120,13 @@ def get_hybrid_retriever() -> HybridRetriever | None:
 
 @lru_cache
 def get_retriever() -> HybridRetriever | None:
-    """Backward-compatible алиас для кода, ожидающего get_retriever()."""
+    """Backward-compatible alias for get_hybrid_retriever()."""
     return get_hybrid_retriever()
 
 
 @lru_cache
 def get_reranker() -> RerankerService | None:
-    """Singleton sync-обёртки над async TEI reranker client."""
+    """Singleton sync wrapper over async TEI reranker client."""
     settings = get_settings()
     if not settings.enable_reranker:
         return None
@@ -159,7 +158,7 @@ def get_qa_service() -> QAService:
 
 @lru_cache
 def get_redis_client() -> Any | None:
-    """Redis-клиент если кеширование включено."""
+    """Redis client if caching is enabled, None otherwise."""
     settings = get_settings()
     if not settings.redis_enabled:
         return None
@@ -182,7 +181,7 @@ def get_redis_client() -> Any | None:
 
 @lru_cache
 def get_agent_service() -> AgentService:
-    """Singleton AgentService с полным набором инструментов."""
+    """Singleton AgentService with full tool set."""
     from services.tools.registry import build_tool_runner
 
     settings = get_settings()

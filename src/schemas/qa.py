@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class QARequest(BaseModel):
-    """Запрос для QA API"""
+    """QA API request."""
 
     query: str = Field(
         ..., description="Вопрос пользователя", min_length=1, max_length=1000
@@ -18,7 +18,7 @@ class QARequest(BaseModel):
 
 
 class ContextItem(BaseModel):
-    """Элемент контекста с метаданными"""
+    """Context item with metadata."""
 
     document: str = Field(..., description="Текст документа")
     metadata: dict[str, Any] = Field({}, description="Метаданные документа")
@@ -26,14 +26,14 @@ class ContextItem(BaseModel):
 
 
 class QAResponse(BaseModel):
-    """Ответ QA API"""
+    """QA API response."""
 
     answer: str = Field(..., description="Ответ на вопрос")
     query: str = Field(..., description="Исходный вопрос")
 
 
 class QAResponseWithContext(QAResponse):
-    """Расширенный ответ QA API с контекстом"""
+    """QA API response with retrieved context."""
 
     context: list[ContextItem] = Field([], description="Использованный контекст")
     context_count: int = Field(0, description="Количество найденных документов")
@@ -43,7 +43,7 @@ class QAResponseWithContext(QAResponse):
 
 
 class SearchRequest(BaseModel):
-    """Запрос для семантического поиска"""
+    """Semantic search request."""
 
     query: str = Field(
         ..., description="Поисковый запрос", min_length=1, max_length=1000
@@ -55,7 +55,7 @@ class SearchRequest(BaseModel):
 
 
 class SearchResponse(BaseModel):
-    """Ответ семантического поиска"""
+    """Semantic search response."""
 
     documents: list[str] = Field(..., description="Найденные документы")
     distances: list[float] = Field(
@@ -71,14 +71,14 @@ class SearchResponse(BaseModel):
 
 
 class ModelType(str, Enum):
-    """Типы моделей"""
+    """Model types."""
 
     LLM = "llm"
     EMBEDDING = "embedding"
 
 
 class ModelInfo(BaseModel):
-    """Информация о модели"""
+    """Model metadata."""
 
     key: str = Field(..., description="Ключ модели")
     name: str = Field(..., description="Полное название модели")
@@ -87,7 +87,7 @@ class ModelInfo(BaseModel):
 
 
 class AvailableModelsResponse(BaseModel):
-    """Список доступных моделей"""
+    """Available models listing."""
 
     llm_models: list[ModelInfo] = Field(..., description="Доступные LLM модели")
     embedding_models: list[ModelInfo] = Field(
@@ -98,14 +98,14 @@ class AvailableModelsResponse(BaseModel):
 
 
 class SelectModelRequest(BaseModel):
-    """Запрос для выбора модели"""
+    """Model selection request."""
 
     model_key: str = Field(..., description="Ключ модели", min_length=1)
     model_type: ModelType = Field(..., description="Тип модели (llm или embedding)")
 
 
 class SelectModelResponse(BaseModel):
-    """Ответ на выбор модели"""
+    """Model selection response."""
 
     model_key: str = Field(..., description="Выбранная модель")
     model_type: ModelType = Field(..., description="Тип модели")
@@ -116,7 +116,7 @@ class SelectModelResponse(BaseModel):
 
 
 class IngestJobStatus(str, Enum):
-    """Статусы задач ingestion"""
+    """Ingestion job statuses."""
 
     QUEUED = "queued"
     RUNNING = "running"
@@ -126,7 +126,7 @@ class IngestJobStatus(str, Enum):
 
 
 class TelegramIngestRequest(BaseModel):
-    """Запрос для запуска Telegram ingestion"""
+    """Telegram ingestion job request."""
 
     # Совместимость: один канал или список каналов
     channel: str | None = Field(
@@ -138,7 +138,7 @@ class TelegramIngestRequest(BaseModel):
     since: str = Field(..., description="Дата начала в формате ISO (YYYY-MM-DD)")
     until: str = Field(..., description="Дата окончания в формате ISO (YYYY-MM-DD)")
     collection: str = Field(
-        ..., description="Название коллекции ChromaDB", min_length=1
+        ..., description="Название коллекции Qdrant", min_length=1
     )
     device: Literal["auto", "cpu", "cuda", "mps"] = Field(
         "auto", description="Устройство для обработки"
@@ -152,7 +152,7 @@ class TelegramIngestRequest(BaseModel):
 
 
 class IngestJobResponse(BaseModel):
-    """Ответ на запуск ingestion job"""
+    """Ingestion job creation response."""
 
     job_id: str = Field(..., description="Уникальный идентификатор задачи")
     status: IngestJobStatus = Field(..., description="Статус задачи")
@@ -163,7 +163,7 @@ class IngestJobResponse(BaseModel):
 
 
 class IngestJobStatusResponse(BaseModel):
-    """Статус и прогресс ingestion job"""
+    """Ingestion job status and progress."""
 
     job_id: str = Field(..., description="ID задачи")
     status: IngestJobStatus = Field(..., description="Текущий статус")

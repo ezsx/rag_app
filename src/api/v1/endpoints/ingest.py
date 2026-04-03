@@ -1,6 +1,4 @@
-"""
-Ingest endpoints для управления задачами Telegram ingestion
-"""
+"""Ingest endpoints for managing Telegram ingestion jobs."""
 
 import logging
 from datetime import datetime
@@ -21,17 +19,16 @@ router = APIRouter()
 
 @router.post("/ingest/telegram", response_model=IngestJobResponse, tags=["ingest"])
 async def start_telegram_ingestion(request: TelegramIngestRequest) -> IngestJobResponse:
-    """
-    Запускает задачу ingestion сообщений из Telegram канала
+    """Start a Telegram channel ingestion job.
 
-    - **channel**: Telegram канал (@username или ID)
-    - **since**: Дата начала в формате ISO (YYYY-MM-DD)
-    - **until**: Дата окончания в формате ISO (YYYY-MM-DD)
-    - **collection**: Название коллекции ChromaDB для сохранения
-    - **device**: Устройство для обработки (auto, cpu, cuda, mps)
-    - **max_messages**: Максимум сообщений для обработки (опционально)
+    - **channel**: Telegram channel (@username or ID)
+    - **since**: start date (ISO, YYYY-MM-DD)
+    - **until**: end date (ISO, YYYY-MM-DD)
+    - **collection**: Qdrant collection name
+    - **device**: processing device (auto, cpu, cuda, mps)
+    - **max_messages**: max messages to process (optional)
 
-    Возвращает job_id для отслеживания прогресса выполнения.
+    Returns job_id for progress tracking.
     """
     try:
         # Собираем итоговый список каналов для логов
