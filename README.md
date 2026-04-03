@@ -214,9 +214,9 @@ Research (28 reports) -> Specification (21 specs) -> Implementation -> Evaluatio
 
 ---
 
-## Quick Start
+## How We Run It
 
-Requires: V100 (or compatible GPU for LLM), RTX 5060 Ti (or 8GB+ GPU for embedding/reranker), Docker Desktop.
+Our hardware: V100 SXM2 32GB (LLM inference), RTX 5060 Ti 16GB (embedding + reranker + ColBERT), Docker Desktop (CPU services).
 
 ```bash
 # 1. LLM on V100 (PowerShell)
