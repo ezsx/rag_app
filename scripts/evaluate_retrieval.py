@@ -22,13 +22,14 @@ from collections import defaultdict
 sys.stdout.reconfigure(encoding="utf-8")
 
 
-def embed_query(text: str, embedding_url: str) -> list[float]:
+def embed_query(text: str, embedding_url: str, use_prefix: bool = True) -> list[float]:
     """Dense embedding через gpu_server."""
     prefix = (
         "Instruct: Given a user question about ML, AI, LLM or tech news, "
         "retrieve relevant Telegram channel posts\nQuery: "
     )
-    body = json.dumps({"inputs": [prefix + text], "normalize": True}).encode()
+    input_text = prefix + text if use_prefix else text
+    body = json.dumps({"inputs": [input_text], "normalize": True}).encode()
     req = urllib.request.Request(
         f"{embedding_url}/embed",
         data=body,
@@ -61,9 +62,13 @@ def search_qdrant(
     use_colbert: bool = False,
     top_k: int = 20,
     fusion: str = "rrf",
+    dense_limit: int = 20,
+    bm25_limit: int = 100,
+    rrf_weights: list[float] | None = None,
+    use_prefix: bool = True,
 ) -> list[dict]:
     """Поиск в Qdrant: BM25+Dense → RRF (→ ColBERT rerank если доступен)."""
-    dense_vec = embed_query(query_text, embedding_url)
+    dense_vec = embed_query(query_text, embedding_url, use_prefix=use_prefix)
     sparse_result = next(iter(sparse_model.query_embed(query_text)))
 
     sparse_q = {
@@ -75,16 +80,23 @@ def search_qdrant(
     if use_colbert:
         colbert_vecs = colbert_encode(query_text, embedding_url)
 
+    # Fusion query — подставляем weights если заданы
+    # Qdrant REST API: {"fusion": "rrf"} (unweighted) vs {"rrf": {"weights": [...]}} (weighted)
+    if fusion == "rrf" and rrf_weights:
+        fusion_query = {"rrf": {"weights": rrf_weights}}
+    else:
+        fusion_query = {"fusion": fusion}
+
     if colbert_vecs:
         # 3-stage: BM25+Dense → RRF → ColBERT MaxSim
         body = {
             "prefetch": [
                 {
                     "prefetch": [
-                        {"query": dense_vec, "using": "dense_vector", "limit": 20},
-                        {"query": sparse_q, "using": "sparse_vector", "limit": 100},
+                        {"query": dense_vec, "using": "dense_vector", "limit": dense_limit},
+                        {"query": sparse_q, "using": "sparse_vector", "limit": bm25_limit},
                     ],
-                    "query": {"fusion": fusion},
+                    "query": fusion_query,
                     "limit": max(top_k * 3, 30),
                 }
             ],
@@ -94,13 +106,13 @@ def search_qdrant(
             "with_payload": ["channel", "message_id"],
         }
     else:
-        # 2-stage: BM25+Dense → weighted RRF
+        # 2-stage: BM25+Dense → fusion
         body = {
             "prefetch": [
-                {"query": dense_vec, "using": "dense_vector", "limit": 20},
-                {"query": sparse_q, "using": "sparse_vector", "limit": 100},
+                {"query": dense_vec, "using": "dense_vector", "limit": dense_limit},
+                {"query": sparse_q, "using": "sparse_vector", "limit": bm25_limit},
             ],
-            "query": {"fusion": "rrf"},
+            "query": fusion_query,
             "limit": top_k,
             "with_payload": ["channel", "message_id"],
         }
@@ -135,6 +147,36 @@ def check_recall(points: list[dict], expected_docs: list[str], k: int, fuzzy: in
     return matched / len(expected_docs)
 
 
+def compute_mrr(results: list[dict], k: int = 20) -> float:
+    """Mean Reciprocal Rank@k."""
+    rr_sum = 0.0
+    count = 0
+    for r in results:
+        if "error" in r:
+            continue
+        rr = r.get("reciprocal_rank", 0.0)
+        rr_sum += rr
+        count += 1
+    return rr_sum / count if count > 0 else 0.0
+
+
+def find_reciprocal_rank(
+    points: list[dict], expected_docs: list[str], k: int = 20, fuzzy: int = 5,
+) -> float:
+    """Reciprocal rank: 1/позиция первого найденного expected doc (0 если не найден)."""
+    top_k_points = points[:k]
+    for exp in expected_docs:
+        parts = exp.split(":", 1)
+        if len(parts) != 2:
+            continue
+        exp_ch, exp_msg = parts[0].lower(), int(parts[1])
+        for rank, p in enumerate(top_k_points, 1):
+            pay = p.get("payload", {})
+            if pay.get("channel", "").lower() == exp_ch and abs(pay.get("message_id", 0) - exp_msg) <= fuzzy:
+                return 1.0 / rank
+    return 0.0
+
+
 def main():
     parser = argparse.ArgumentParser(description="Retrieval-only evaluation")
     parser.add_argument("--dataset", required=True, help="Path to retrieval dataset JSON")
@@ -145,13 +187,27 @@ def main():
     parser.add_argument("--no-colbert", action="store_true", help="Disable ColBERT rerank")
     parser.add_argument("--fuzzy", type=int, default=5, help="msg_id fuzzy tolerance")
     parser.add_argument("--fusion", default="rrf", choices=["rrf", "dbsf"], help="Fusion method")
+    # Ablation параметры
+    parser.add_argument("--rrf-weights", default=None, help='RRF weights, e.g. "1.0,3.0"')
+    parser.add_argument("--bm25-limit", type=int, default=100, help="BM25 prefetch limit")
+    parser.add_argument("--dense-limit", type=int, default=20, help="Dense prefetch limit")
+    parser.add_argument("--no-prefix", action="store_true", help="Disable instruction prefix")
+    parser.add_argument("--output", default=None, help="Output JSON path (default: results/raw/)")
     args = parser.parse_args()
+
+    # Парсим RRF weights
+    rrf_weights = None
+    if args.rrf_weights:
+        rrf_weights = [float(x) for x in args.rrf_weights.split(",")]
 
     with open(args.dataset, encoding="utf-8") as f:
         items = json.load(f)
 
     print(f"Dataset: {len(items)} queries, collection: {args.collection}")
     print(f"ColBERT: {'OFF' if args.no_colbert else 'ON'}, Fusion: {args.fusion}, fuzzy: ±{args.fuzzy}")
+    print(f"Dense limit: {args.dense_limit}, BM25 limit: {args.bm25_limit}, "
+          f"Prefix: {'OFF' if args.no_prefix else 'ON'}, "
+          f"RRF weights: {rrf_weights or 'default'}")
 
     # Загружаем BM25 sparse model
     from fastembed import SparseTextEmbedding
@@ -172,17 +228,21 @@ def main():
                 query, args.embedding_url, args.qdrant_url,
                 args.collection, sparse_model,
                 use_colbert=use_colbert, top_k=args.top_k, fusion=args.fusion,
+                dense_limit=args.dense_limit, bm25_limit=args.bm25_limit,
+                rrf_weights=rrf_weights, use_prefix=not args.no_prefix,
             )
         except Exception as e:
             print(f"  [{i+1}] ERROR: {e}")
-            results.append({"id": item["id"], "recall_1": 0, "recall_5": 0, "recall_10": 0, "recall_20": 0, "latency": 0, "error": str(e)})
+            results.append({"id": item["id"], "recall_1": 0, "recall_5": 0, "recall_10": 0, "recall_20": 0, "reciprocal_rank": 0, "latency": 0, "error": str(e)})
             continue
         latency = time.time() - t0
 
         r1 = check_recall(points, expected, 1, args.fuzzy)
+        r3 = check_recall(points, expected, 3, args.fuzzy)
         r5 = check_recall(points, expected, 5, args.fuzzy)
         r10 = check_recall(points, expected, 10, args.fuzzy)
         r20 = check_recall(points, expected, 20, args.fuzzy)
+        rr = find_reciprocal_rank(points, expected, args.top_k, args.fuzzy)
 
         hit_docs = [f"{p['payload']['channel']}:{p['payload']['message_id']}" for p in points[:5]]
 
@@ -190,7 +250,9 @@ def main():
             "id": item["id"],
             "query": query[:80],
             "expected": expected,
-            "recall_1": r1, "recall_5": r5, "recall_10": r10, "recall_20": r20,
+            "category": item.get("category", ""),
+            "recall_1": r1, "recall_3": r3, "recall_5": r5, "recall_10": r10, "recall_20": r20,
+            "reciprocal_rank": rr,
             "latency": latency,
             "top5_hits": hit_docs,
         })
@@ -202,29 +264,54 @@ def main():
     elapsed = time.time() - t_total
 
     # Агрегация
-    r1_list = [r["recall_1"] for r in results if "error" not in r]
-    r5_list = [r["recall_5"] for r in results if "error" not in r]
-    r10_list = [r["recall_10"] for r in results if "error" not in r]
-    r20_list = [r["recall_20"] for r in results if "error" not in r]
+    valid = [r for r in results if "error" not in r]
+    r1_list = [r["recall_1"] for r in valid]
+    r3_list = [r["recall_3"] for r in valid]
+    r5_list = [r["recall_5"] for r in valid]
+    r10_list = [r["recall_10"] for r in valid]
+    r20_list = [r["recall_20"] for r in valid]
+    mrr = compute_mrr(results)
+
+    def avg(lst):
+        return sum(lst) / len(lst) if lst else 0
 
     print(f"\n{'='*60}")
     print(f"Retrieval Evaluation Results ({args.collection})")
     print(f"{'='*60}")
     print(f"Queries: {len(items)}, Errors: {sum(1 for r in results if 'error' in r)}")
-    print(f"ColBERT: {'ON' if use_colbert else 'OFF'}, Fuzzy: ±{args.fuzzy}")
+    print(f"ColBERT: {'ON' if use_colbert else 'OFF'}, Fusion: {args.fusion}, Fuzzy: ±{args.fuzzy}")
+    print(f"Dense limit: {args.dense_limit}, BM25 limit: {args.bm25_limit}, "
+          f"Prefix: {'OFF' if args.no_prefix else 'ON'}, "
+          f"RRF weights: {rrf_weights or 'default'}")
     print(f"Total time: {elapsed:.1f}s ({elapsed/len(items):.2f}s/query)")
     print()
-    print(f"Recall@1:  {sum(r1_list)/len(r1_list):.3f}  (full: {sum(1 for r in r1_list if r==1.0)}/{len(r1_list)})")
-    print(f"Recall@5:  {sum(r5_list)/len(r5_list):.3f}  (full: {sum(1 for r in r5_list if r==1.0)}/{len(r5_list)})")
-    print(f"Recall@10: {sum(r10_list)/len(r10_list):.3f}  (full: {sum(1 for r in r10_list if r==1.0)}/{len(r10_list)})")
-    print(f"Recall@20: {sum(r20_list)/len(r20_list):.3f}  (full: {sum(1 for r in r20_list if r==1.0)}/{len(r20_list)})")
+    print(f"Recall@1:  {avg(r1_list):.3f}  ({sum(1 for r in r1_list if r==1.0)}/{len(r1_list)})")
+    print(f"Recall@3:  {avg(r3_list):.3f}  ({sum(1 for r in r3_list if r==1.0)}/{len(r3_list)})")
+    print(f"Recall@5:  {avg(r5_list):.3f}  ({sum(1 for r in r5_list if r==1.0)}/{len(r5_list)})")
+    print(f"Recall@10: {avg(r10_list):.3f}  ({sum(1 for r in r10_list if r==1.0)}/{len(r10_list)})")
+    print(f"Recall@20: {avg(r20_list):.3f}  ({sum(1 for r in r20_list if r==1.0)}/{len(r20_list)})")
+    print(f"MRR@20:    {mrr:.3f}")
+
+    # По категориям
+    by_category = defaultdict(list)
+    for r in valid:
+        cat = r.get("category", "unknown")
+        by_category[cat].append(r)
+
+    if len(by_category) > 1:
+        print("\nПо категориям:")
+        for cat, cat_results in sorted(by_category.items()):
+            cat_r1 = avg([r["recall_1"] for r in cat_results])
+            cat_r5 = avg([r["recall_5"] for r in cat_results])
+            cat_r20 = avg([r["recall_20"] for r in cat_results])
+            cat_mrr = avg([r["reciprocal_rank"] for r in cat_results])
+            print(f"  {cat:20s} n={len(cat_results):3d}  R@1={cat_r1:.2f}  R@5={cat_r5:.2f}  R@20={cat_r20:.2f}  MRR={cat_mrr:.3f}")
 
     # По каналам
     by_channel = defaultdict(list)
-    for r in results:
-        if "error" not in r:
-            ch = r["expected"][0].split(":")[0] if r.get("expected") else "?"
-            by_channel[ch].append(r["recall_5"])
+    for r in valid:
+        ch = r["expected"][0].split(":")[0] if r.get("expected") else "?"
+        by_channel[ch].append(r["recall_5"])
     print("\nRecall@5 по каналам:")
     for ch, vals in sorted(by_channel.items(), key=lambda x: sum(x[1])/len(x[1])):
         mean = sum(vals) / len(vals)
@@ -236,16 +323,25 @@ def main():
         "timestamp": ts,
         "collection": args.collection,
         "colbert": use_colbert,
+        "fusion": args.fusion,
         "fuzzy": args.fuzzy,
+        "dense_limit": args.dense_limit,
+        "bm25_limit": args.bm25_limit,
+        "prefix": not args.no_prefix,
+        "rrf_weights": rrf_weights,
         "total_queries": len(items),
-        "recall_at_1": sum(r1_list) / len(r1_list),
-        "recall_at_5": sum(r5_list) / len(r5_list),
-        "recall_at_10": sum(r10_list) / len(r10_list),
-        "recall_at_20": sum(r20_list) / len(r20_list),
+        "recall_at_1": avg(r1_list),
+        "recall_at_3": avg(r3_list),
+        "recall_at_5": avg(r5_list),
+        "recall_at_10": avg(r10_list),
+        "recall_at_20": avg(r20_list),
+        "mrr_at_20": mrr,
         "avg_latency": elapsed / len(items),
         "results": results,
     }
-    out_path = f"results/raw/retrieval_eval_{ts}.json"
+    out_path = args.output or f"results/raw/retrieval_eval_{ts}.json"
+    import os
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
     print(f"\nSaved to {out_path}")
