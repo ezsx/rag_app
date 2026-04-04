@@ -1,7 +1,7 @@
 # Experiment History
 
 > Полная история экспериментов с per-question таблицами и подробными описаниями техник.
-> Вынесена из playbook для читаемости. Playbook содержит summary + ссылки сюда.
+> Полная хронология. Сводка метрик — в [project_scope.md](project_scope.md).
 > Последнее обновление: 2026-04-02
 > 57+ eval прогонов, 8 milestone phases, ~30 экспериментов с evidence + NDR/RSR/ROR robustness
 
@@ -97,6 +97,7 @@ Dataset: `datasets/eval_retrieval_calibration.json`. Script: `scripts/calibrate_
 ### Agent E2E benchmark (SPEC-RAG-29 Phase 2, 2026-04-03)
 
 4 pipeline × 17 retrieval questions (golden v2). Judge: Claude Opus 4.6.
+Только retrieval-evidence вопросы (17 из 36): оставшиеся 19 (analytics, navigation, refusal) исключены — LlamaIndex pipeline не имеет аналогов `entity_tracker`, `hot_topics`, `channel_expertise`, `list_channels`, и интеграция этих tools в LI потребовала бы полной переписки агентского слоя.
 
 | Pipeline | Factual (avg) | Usefulness (avg) | Grounding (avg) | Avg Latency | Avg Tools |
 |----------|:---:|:---:|:---:|:---:|:---:|
@@ -355,7 +356,43 @@ Bypass pipeline (прямые Qdrant + llama-server, без agent). BERTScore F1
 
 Raw: `results/robustness/ndr_rsr_ror_raw_20260402-082135.json`
 Report: `results/robustness/ndr_rsr_ror_report_20260402-082135.md`
-Spec: SPEC-RAG-23. Comparison with Cao et al.: [robustness_experiments.md](robustness_experiments.md)
+
+#### Методология: наша vs Cao et al. (2025, arXiv:2505.21870)
+
+Три метрики рекомендованы Яндексом (R15, Андрей Соколов):
+
+| Параметр | Cao et al. (full) | Наш (simplified) | Ratio |
+|----------|-------------------|-------------------|-------|
+| Questions | 1500 | 36 (17 for RSR/ROR) | 42× меньше |
+| k values | 6: {5,10,25,50,75,100} | 4: {3,5,10,20} | 1.5× меньше |
+| Orderings per k | 3 | 1 (NDR/RSR), 3 (ROR) | 1-3× меньше |
+| Total LLM calls | ~55,000 | **~160** | 340× меньше |
+| Scoring | Llama-3.3-70B judge | BERTScore proxy + Claude subset | Different |
+
+Simplified подход: NDR = k=20 vs k=0 (одно сравнение per query), RSR = chain monotonicity k=3→5→10→20, ROR = 3 orderings при k=20. Теряем k×ordering взаимодействие, но за 67 мин вместо сотен часов.
+
+#### Per-question NDR анализ (Claude judge, 27 scored)
+
+| Question | RAG score | noRAG score | Δ | Причина |
+|----------|----------|------------|---|---------|
+| **q26** | 0.5 | **0.8** | **-0.30** | Единственный failure: parametric > retrieval (AI-стартапы инвестиции) |
+| q01 | **1.0** | 0.0 | **+1.00** | RAG critical: FT человек года — Qwen не знает |
+| q09 | **1.0** | 0.0 | **+1.00** | RAG critical: llm_under_hood про GPT-5 reasoning |
+
+Средний factual: k=0 = **0.10**, k=20 = **0.63**. Retrieval даёт **+0.53** absolute improvement.
+
+#### RSR: 1 violation (17 retrieval Qs)
+
+| k | Avg factual | Δ vs prev |
+|---|------------|-----------|
+| k=3 | 0.518 | — |
+| k=5 | 0.588 | +0.070 |
+| k=10 | 0.600 | +0.012 |
+| k=20 | **0.629** | +0.029 |
+
+Единственный violation: **q11** (boris_again confusion) — k=10: 1.0, k=20: 0.1. При k=20 docs про другого Бориса путают модель.
+
+#### ROR: 12/17 = σ=0, max σ=0.115 (q04). Qwen3.5 полностью устойчив к порядку docs.
 
 ---
 
@@ -429,256 +466,28 @@ Spec: SPEC-RAG-23. Comparison with Cao et al.: [robustness_experiments.md](robus
 
 | Техника | Expected impact | Blocker |
 |---------|----------------|---------|
-| BM25-based diversity (MMR альтернатива) | +2-4% recall | Low priority — channel dedup достаточно |
-| Genericity score (штраф attractors) | +3-5% recall | Attractor problem solved by RRF+ColBERT |
-| ColBERT как independent retrieval path | Bypass BM25+Dense failures | Latency: 13K docs × per-token MaxSim |
 | Fine-tune CE reranker на domain data | -3% degradation | 500 query-doc pairs needed |
-- **Статус**: [ ] не начато
-
-### 2.5 Reranker-as-Fusion (без RRF)
-- **Суть**: вместо RRF → rerank, сделать: BM25 top-50 + dense top-50 → deduplicate → cross-encoder reranks весь пул.
-- **Почему поможет**: cross-encoder делает content-aware решения, не слепое rank fusion. Решает проблему "RRF весов" фундаментально.
-- **Как**: два отдельных Qdrant search, merge, rerank 70-100 кандидатов. Latency ~150-300ms на RTX 5060 Ti.
-- **Ожидание**: потенциально лучше RRF+rerank, нужен A/B тест
-- **Статус**: [ ] не начато
+| Contextual Retrieval (Anthropic) | +10-20% recall | 8-15 часов one-time LLM compute |
+| Reranker-as-Fusion (CE вместо RRF) | Потенциально лучше RRF | Pipeline v2 A/B показал +0.02 — marginal |
 
 ---
 
-## Tier 3: Глубокие улучшения (3-7 дней каждое)
+## Archived: Technique Details
 
-### 3.1 ColBERT Reranking (jina-colbert-v2)
-- **Суть**: per-token matching вместо single-vector cosine. Для каждого query token — MaxSim с document tokens.
-- **Почему поможет**: **фундаментально** решает attractor problem. "Meta купила Manus" и "курс по трансформерам" — совершенно разные token profiles, даже если single-vector cosine одинаковый.
-- **Как**: jina-colbert-v2 (560M, 89 языков, русский включён). Qdrant multi-vector config (MaxSim). Трёхэтапный: BM25+Dense → RRF → ColBERT rerank.
-- **Storage**: ~500MB для 13K docs (100 tokens × 128 dim × float16). Реально: `_colbert_vectors.json` = 5.3 GB (нужно исключить из MCP индексации!).
-- **Ожидание**: +6-10% nDCG → **подтверждено: +33% recall@5 (0.55→0.73) на 100 запросах**
-- **Результат (2026-03-20)**: Recall@1 удвоился (0.36→0.71). ColBERT полностью устраняет attractor documents из top-10. На 10 agent eval вопросах разница не видна (0.76 vs 0.76) — нужен большой датасет.
-- **Реализация**: gpu_server.py загружает jina-colbert-v2 + manual linear projection 1024→128. Endpoint `/colbert-encode`. Коллекция `news_colbert` с 3 named vectors: dense(1024) + sparse + colbert(128, MaxSim). HybridRetriever: 3-stage Qdrant query с fallback на RRF-only.
-- **Зависимости WSL2**: einops, xlm-roberta-flash-implementation (скопировано оффлайн), config.json auto_map исправлен на локальные пути.
-- **Latency**: +2.5с/запрос (5.0с vs 2.5с без ColBERT). Encoding всех 13K docs: ~67 мин на RTX 5060 Ti.
-- **Статус**: [x] **Выполнено**. Коммит: 6961cab, 0919c3b.
-
-### 3.2 Contextual Retrieval (Anthropic's technique)
-- **Суть**: перед embedding'ом каждого чанка — LLM генерирует 2-3 предложения контекста ("Этот пост из канала X про тему Y"). Этот prefix disambiguates embedding.
-- **Почему поможет**: посты "новая модель вышла" vs "бенчмарк модели" получают разные prefix'ы → разные embeddings. Anthropic измерили 35-67% reduction в retrieval failures.
-- **Как**: прогнать Qwen3-30B по всем 13K постам (8-15 часов one-time на V100). Переиндексировать с prefix'ами.
-- **Ожидание**: +10-20% recall (один из самых impactful, но трудоёмкий)
-- **Статус**: [ ] не начато
-
-### 3.3 Fine-tune Qwen3-Embedding-0.6B
-- **Суть**: contrastive fine-tuning с hard negatives, добытыми из нашей же "сломанной" embedding space.
-- **Почему поможет**: attractor documents = идеальные hard negatives. Модель учится различать именно те пары, которые сейчас путает.
-- **Как**: 1) Qwen3-30B генерирует 3 query на пост → 39K положительных пар. 2) Для каждой пары top-50 "ложно похожих" = hard negatives. 3) sentence-transformers MultipleNegativesRankingLoss.
-- **Ожидание**: +5-15% recall
-- **Статус**: [ ] не начато
-- **Ссылки**: Aurelio AI benchmarks, NV-Retriever (hard negative mining +2-5 nDCG)
-
-### 3.4 CRAG (Corrective RAG)
-- **Суть**: после search агент оценивает качество результатов. Если плохо — переформулирует запрос и ищет заново. Не просто "ещё один search", а анализ GAP'ов.
-- **Почему поможет**: accuracy 58% → 83% в литературе. У нас уже есть refinement, но он только добавляет search, не переформулирует.
-- **Как**: после compose_context, если coverage < threshold → анализ "чего не хватает" → новый query_plan с другими sub-queries → search.
-- **Ожидание**: +10-15% на сложных запросах
-- **Статус**: [ ] отложен (дорогой по latency, брать когда упрёмся)
+> Ранние эксперименты Tier 3 (ColBERT, Contextual Retrieval, Fine-tune, CRAG) и Tier 4 (HyDE, Multi-Collection, Link Expansion и др.) — описания перенесены в research reports. ColBERT реализован (R@1 +97%). CRAG частично покрыт DEC-0044 (LANCER) + DEC-0045 (CE filter). Contextual Retrieval и Fine-tune отложены.
+>
+> Adaptive Retrieval + Tool Router (R13/R14) — **полностью реализован** в SPEC-RAG-11/13/15/16/17. 15 tools, dynamic visibility, data-driven routing.
 
 ---
 
-## Tier 4: На будущее (держим в уме)
+## Research Track: Тематическая кластеризация (R12)
 
-### 4.1 HyDE (Hypothetical Document Embedding)
-- Генерировать "гипотетический ответ", embed его, искать похожие документы.
-- +1-3с latency, не решает collapse в document space. **Complementary technique**.
+> **Статус**: исследование завершено. **Вердикт: отложено** — effort > impact при 13K docs.
+> Кластеризация оправдана при 50K+ документов. Подробности: [R12](../research/reports/R12-cluster-based-retrieval.md).
 
-### 4.2 Qwen3-Embedding-4B
-- 8 GB VRAM, помещается рядом с реранкером на 16 GB. +5-10% vs 0.6B на benchmarks.
-- Но "scaling alone won't fully solve domain-specific collapse" — не серебряная пуля.
+Кластеризация (20-40ч) даёт **меньше recall** чем ColBERT reranking (4-8ч). Cross-encoder "bypasses the cosine floor entirely".
 
-### 4.3 Multi-Collection Architecture
-- Разделить на коллекции по длине/типу/тематике. Разные embedding стратегии для каждой.
-- Router выбирает в какие коллекции искать.
-
-### 4.4 Link Expansion
-- Многие посты = "ссылка + комментарий". Индексировать контент ссылок → +5-15% recall на запросах, ответ на которые в ссылке.
-
-### 4.5 DPP Diversity (Determinantal Point Processes)
-- Математически принципиальный diversity selection. YouTube recommendations использует.
-- +5-15% diversity metrics vs MMR. Библиотека `dppy`.
-
-### 4.6 Temporal Decay
-- `fused_score = 0.7 × semantic + 0.3 × 0.5^(age_days/14)` — boost свежих документов.
-- Тривиально через Qdrant payload.
-
-### 4.7 Channel Authority Scoring
-- Вручную расставить веса каналам (gonzo_ml=0.9, ml_product=0.5). Boost авторитетных.
-- ReliabilityRAG (2025) — explicit source reliability signals.
-
-### 4.8 Forward/Reply Chain Awareness
-- Хранить `reply_to_id`, `forwarded_from` как payload. При нахождении поста — подтянуть всю цепочку.
-
----
-
-## NEXT PHASE: Adaptive Retrieval + Tool Router
-
-> **Приоритет #1.** Все 4 исследования (R13-quick, R13-deep, R14-quick, R14-deep) единогласно рекомендуют.
-> Подробный план: `adaptive_retrieval_plan.md`
-
-### Почему это следующий шаг
-
-Pipeline оптимизации (Tier 1-3) дали recall 0.15→0.76, но уперлись в потолок: pipeline **линейный**. Все запросы идут одним путём. Temporal query "что было в январе 2026" и factual "Meta купила Manus" обрабатываются идентично. Это то, что фреймворки тоже не умеют — и ключевое отличие нашей системы.
-
-### Что конкретно решает
-
-| Открытая проблема | Как решает adaptive retrieval |
-|---|---|
-| #6: LLM не знает "Vera Rubin" | Rule-based: "2026" + "NVIDIA" → `temporal_search` + `entity_search`, даже без знания entity |
-| #8: Partial recall на multi-doc | `entity_search` с BM25 keyword boost по entity name → расширяет candidate pool |
-| Все temporal queries | `temporal_search` с Qdrant DatetimeRange filter → precision вместо broad search |
-| Channel-specific queries | `channel_search` с Qdrant MatchValue filter → только релевантный канал |
-
-### Архитектура (консенсус)
-
-```
-User Query
-    │
-    ├─ Rule-based pre-validator (<1ms)
-    │   └─ regex: dates, @channels, entity patterns → hints
-    │
-    ├─ query_plan (LLM, ~12s) — enriched JSON:
-    │   └─ {subqueries, strategy: "temporal", filters: {date_from, date_to, channels, entities}}
-    │
-    ├─ Strategy → Tool dispatch:
-    │   ├─ broad    → base_search(queries, k)
-    │   ├─ temporal → base_search(queries, k, date_filter)
-    │   ├─ channel  → base_search(queries, k, channel_filter)
-    │   └─ entity   → base_search([entity]+queries, k, optional_filters)
-    │
-    ├─ Quality gate (ColBERT scores):
-    │   ├─ >0.6  → Correct, use results
-    │   ├─ 0.3-0.6 → Ambiguous, expand search
-    │   └─ <0.3  → Incorrect, fallback to broad_search
-    │
-    └─ Fallback chain: specialized → broadened → broad
-```
-
-### Ожидаемый эффект
-
-- +8-15% recall на temporal/channel/entity запросах
-- Papers: Adaptive-RAG +5-31pp, CRAG +7-37%, RouteRAG 97.6-100% EM
-- Latency: ±0-3с (routing встроен в query_plan, не отдельный LLM call)
-
-### Ссылки на ресерчи
-
-- **R13-quick**: `reports/R13-quick-tool-router-architecture.md` — 4 tools, query_plan enrichment, Qdrant filters
-- **R13-deep**: `reports/R13-deep-tool-router-architecture.md` — grammar enforcement, 3-tier fallback, parallel Qdrant
-- **R14-quick**: `reports/R14-quick-beyond-frameworks-techniques.md` — A-RAG, CRAG, interview strategy
-- **R14-deep**: `reports/R14-deep-beyond-frameworks-techniques.md` — Speculative RAG, NLI, temporal reasoning, 5-day plan
-
----
-
-## Research Track: Тематическая кластеризация коллекции
-
-> **Статус**: исследование завершено (R12). **Вердикт: Phase 4, не Phase 1.** Есть более простые и impactful решения. Кластеризация становится оправданной при 50K+ документов или когда простые фиксы plateau'ят.
-> **Источник**: [R12-cluster-based-retrieval.md](../research/reports/R12-cluster-based-retrieval.md)
-
-### Исходная идея
-
-Одна плоская коллекция на весь AI-корпус — наивно. Все документы "про AI" сливаются в embedding space (cosine 0.78-0.83). Если кластеризовать по темам (M&A, релизы моделей, образование, research papers...) — внутри каждого кластера cosine станет осмысленным.
-
-### Результаты исследования (R12)
-
-**Comparison table (ключевой результат)**:
-
-| Подход | Effort | Recall@5 Δ | Cumulative | Ops burden |
-|--------|--------|------------|------------|------------|
-| Weighted RRF tuning | 1-2 ч | +3-10% | 0.62-0.65 | None |
-| **Global PCA whitening** (1024→512) | 2-4 ч | **+5-15%** | 0.67-0.73 | Near-zero |
-| **bge-reranker-v2-m3** | 4-8 ч | **+15-30%** | 0.75-0.82 | ~200ms latency |
-| BGE-M3 model swap (dense+sparse+ColBERT) | 8-12 ч | +25-40% | 0.80-0.88 | Medium |
-| **Topic clustering + routing** | **20-40 ч** | +10-20% | 0.69-0.77 | **High (ongoing)** |
-
-**Вывод**: кластеризация даёт **меньше recall** при **большем effort** чем whitening + reranker. Cross-encoder reranker "bypasses the cosine floor entirely" — обходит проблему embedding collapse фундаментально, без кластеров.
-
-### Что мы узнали (ценные находки)
-
-**Per-cluster whitening математически некорректен** при наших размерах:
-- 200-600 docs/cluster, 1024 dims → ковариационная матрица rank-deficient (625 eigenvalues = 0)
-- Деление на 0 при whitening = amplification шума
-- **Безопасная операция**: только mean-centering per-cluster (без PCA)
-- **Global whitening** корректен (N=13000, d=1024, ratio ~12.7)
-
-**BERTopic — правильный инструмент** (не raw TF-IDF):
-- TF-IDF плох для коротких мультиязычных текстов (40-120 tokens → шумные вектора)
-- Ключевая идея: **отдельная embedding модель** для кластеризации (paraphrase-multilingual-mpnet-base-v2), не наша Qwen3-Embedding (которая сама "сломана")
-- UMAP проецирует в 5 dims → re-scales compressed distance space → HDBSCAN работает
-- 25-40 кластеров оптимально (min_cluster_size=100-200)
-- Soft assignment через `approximate_distribution()` (top-3 clusters per doc, хранить как array payload в Qdrant)
-
-**Routing: ensemble (centroid + BM25 frequency)**, не LLM:
-- Embed query → nearest centroids (top-3) + BM25 full-corpus top-50 → count cluster frequency (top-3) → union
-- Суммарная latency ~100-150ms на CPU
-- LLM-classification **не рекомендуют**: "slow inference, high costs, poor accuracy on domain-specific topics"
-- Fine-tuned BERT classifier (94% accuracy, ms latency) — если нужен ML-based router, но требует labeled data
-
-**Incremental updates**: daily nearest-centroid assignment + weekly BERTopic `merge_models()`. Trigger re-clustering при drift > threshold или >500 orphan docs.
-
-**"Embedding collapse on topically narrow corpus — expected behavior, не баг"**:
-- Ethayarajh 2019: average BERT pairwise cosine = 0.99 (!)
-- Zhou et al. ACL 2025 (Length-Induced Collapse): self-attention = low-pass filter, фундаментальное свойство архитектуры
-- Domain homogeneity (все про AI) amplifies сужение
-
-### Когда кластеризация НУЖНА
-
-1. **50K+ документов** — reranker не справляется с шумным candidate pool, cluster filtering сужает HNSW search space на 90-95%
-2. **Расширение за AI/ML** — crypto, biotech, finance → cross-domain filtering через кластеры
-3. **Per-cluster whitening at scale** — при 500+ docs/cluster ковариация стабильна
-
-### Архитектура (финальная, из R12)
-
-```
-Query → [Embed] + [BM25 full corpus]
-           ↓              ↓
-    [Global Whitening]  [Top-50 BM25]
-    [PCA 1024→512]      [Cluster frequency]
-           ↓              ↓
-    [Centroid routing]  [top-3 clusters]
-           ↓              ↓
-         [Union: 3-5 clusters]
-                  ↓
-    [Qdrant Filtered Hybrid Search]
-    filter: cluster_ids ∈ selected
-    prefetch: dense(20) + BM25(20)
-    fusion: weighted RRF
-                  ↓
-    [bge-reranker-v2-m3 top-20 → top-5]
-                  ↓
-         [Final Results]
-Latency: ~240ms total
-```
-
-### Код для будущей реализации
-
-```python
-# BERTopic clustering
-from bertopic import BERTopic
-from sentence_transformers import SentenceTransformer
-
-cluster_model = SentenceTransformer("paraphrase-multilingual-mpnet-base-v2")
-embeddings = cluster_model.encode(all_texts, batch_size=64)
-
-topic_model = BERTopic(
-    embedding_model=cluster_model,
-    umap_model=UMAP(n_neighbors=15, n_components=5, min_dist=0.0, metric='cosine'),
-    hdbscan_model=HDBSCAN(min_cluster_size=150, min_samples=10, prediction_data=True),
-    calculate_probabilities=True
-)
-topics, probs = topic_model.fit_transform(all_texts, embeddings)
-
-# Soft assignment → Qdrant payload
-topic_distr, _ = topic_model.approximate_distribution(all_texts, window=4, stride=1)
-for i, point_id in enumerate(point_ids):
-    top_ids = np.argsort(topic_distr[i])[::-1][:3]
-    assigned = [int(t) for t in top_ids if topic_distr[i][t] > 0.05] or [int(top_ids[0])]
-    client.set_payload("news", {"cluster_ids": assigned}, points=[point_id])
-```
+Ключевые findings: per-cluster whitening математически некорректен при <600 docs/cluster (rank-deficient covariance). Embedding collapse на topically narrow corpus — expected behavior (Ethayarajh 2019, Zhou et al. ACL 2025). BERTopic с отдельной embedding моделью — правильный инструмент (не TF-IDF).
 
 ---
 
@@ -700,61 +509,10 @@ for i, point_id in enumerate(point_ids):
 
 ---
 
-## Что НЕ работает / НЕ стоит пробовать
+## Что НЕ стоит пробовать (дополнительно к "Протестировано и отклонено")
 
-| Техника | Почему не работает |
-|---------|-------------------|
-| Cosine-based MMR | Переиспользует сломанный cosine signal → re-promotes attractors. Tested lambda 0.7 и 0.9, оба хуже baseline. |
-| Dense re-score после RRF | Стирает BM25 вклад. Recall 0.33→0.15. |
-| SPLADE для русского | Нет production-ready мультиязычных моделей. WSDM Cup 2026: "struggled to remain competitive". |
-| HyDE как primary fix | +1-3с latency, не решает collapse в document space. Only complementary. |
-| Scaling embedding alone | "Length-Induced Embedding Collapse" + domain-specific collapse = фундаментальные ограничения single-vector. 4B/8B помогут, но не решат. |
-
----
-
-## Таблица реранкеров (для выбора)
-
-| Модель | Params | VRAM | MIRACL Avg | Примечание |
-|--------|--------|------|------------|------------|
-| **bge-reranker-v2-m3** | 568M | ~1.2 GB | 69.32 | Best multilingual, наш target |
-| jina-reranker-v2-base-multilingual | 278M | ~0.6 GB | Competitive | 15× throughput, `use_flash_attn=False` для sm_120 |
-| jina-reranker-v3 | 0.6B | ~1.2 GB | 66.50 | BEIR SOTA (61.94) |
-| bge-reranker-v2-gemma | 2.5B | ~5 GB | Higher | Best quality на 16GB |
-
----
-
-## Бенчмарки для ориентации
-
-- **Production RAG (structured docs)**: 0.70-0.85 recall@5
-- **Short social media, non-English**: **0.55-0.70** recall@5
-- **С whitening + cross-encoder reranker**: **0.75-0.82** (R12 estimate)
-- **С BGE-M3 swap**: **0.80-0.88** (R12 estimate)
-- **Текущий**: **0.70** (10 questions, quick dataset) — уже в production range!
-- **Минимум для regression testing**: 50 вопросов
-- **Минимум для значимости**: 200+ вопросов
-
-## Рекомендуемый путь к 0.80+ (из R11 + R12)
-
-```
-Текущее состояние: recall@5 = 0.70
-  ↓
-✅ Phase 0 (Done): Weighted RRF 3:1 + forced search + bge-reranker-v2-m3
-  → Achieved: agent recall 0.15 → 0.70
-  ↓
-✅ Phase 0.5 (Done): Whitening 1024-dim — паритет, dense не bottleneck
-  ↓
-✅ Phase 1 (Done): ColBERT reranking (jina-colbert-v2)
-  → Achieved: retrieval recall@5 0.55 → 0.73 (+33%), recall@1 0.36 → 0.71 (+97%)
-  ↓
-✅ Phase 1.5 (Done): Per-category eval matching + retrieval-only eval (100 Qs)
-  → Achieved: agent recall 0.70 → 0.76, retrieval eval infrastructure ready
-  ↓
-Phase 2 (Next): Расширить dataset (20-30 agent + 100 retrieval) + DBSF fusion + channel dedup
-  → Expected: retrieval 0.78-0.82
-  ↓
-Phase 3: Query classifier + entity extraction + contextual retrieval
-  → Expected: 0.82-0.88
-  ↓
-Phase 4 (если нужно): Fine-tune embedding / кластеризация / BGE-M3 swap
-  → Expected: 0.88+
-```
+| Техника | Почему |
+|---------|--------|
+| SPLADE для русского | Нет production-ready мультиязычных моделей. WSDM Cup 2026: "struggled to remain competitive" |
+| HyDE как primary fix | +1-3с latency, не решает collapse в document space. Only complementary |
+| Scaling embedding alone | Length-Induced Collapse + domain-specific collapse = фундаментальные ограничения single-vector |

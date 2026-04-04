@@ -454,7 +454,7 @@ def build_report(ndr: dict, rsr: dict, ror: dict, metadata: dict) -> str:
         f"| **ROR** | **{ror.get('rate', 'N/A')}** | Mean order robustness |",
         f"| **Composite** | **{composite}** | Geometric mean |",
         "",
-        "> Note: simplified protocol (see docs/planning/robustness_experiments.md for comparison with Cao et al.)",
+        "> Note: simplified protocol (see docs/progress/experiment_log.md for comparison with Cao et al.)",
         "",
     ]
 

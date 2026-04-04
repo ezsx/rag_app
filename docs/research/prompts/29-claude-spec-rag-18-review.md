@@ -24,8 +24,8 @@
 - `docs/specifications/completed/SPEC-RAG-14-evaluation-pipeline.md`
 - `docs/specifications/active/SPEC-RAG-16-hot-topics-channel-expertise.md`
 - `docs/specifications/active/SPEC-RAG-17-production-hardening.md`
-- `docs/planning/retrieval_improvement_playbook.md`
-- `docs/planning/project_scope.md`
+- `docs/progress/experiment_log.md`
+- `docs/progress/project_scope.md`
 
 Проверь:
 
@@ -41,7 +41,7 @@
 - `docs/research/reports/R18-deep-evaluation-methodology-dataset.md`
 - `docs/research/reports/R19-deep-nli-citation-faithfulness.md`
 - `docs/research/reports/R20-deep-retrieval-robustness-ndr-rsr-ror.md`
-- `docs/research/reports/R25-deep-production-gap-analysis.md`
+- `docs/research/reports/R22-deep-production-gap-analysis.md`
 
 Проверь:
 

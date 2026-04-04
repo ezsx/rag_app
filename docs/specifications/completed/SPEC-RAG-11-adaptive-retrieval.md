@@ -3,7 +3,7 @@
 > **Статус**: Active
 > **Создан**: 2026-03-21
 > **Research basis**: R13-quick, R13-deep, R14-quick, R14-deep
-> **Plan**: `docs/planning/adaptive_retrieval_plan.md`
+> **Plan**: реализовано в SPEC-RAG-11/13/15/16/17
 
 ---
 

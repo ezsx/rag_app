@@ -27,7 +27,7 @@ citation_coverage = len(citations) / len(docs) if docs else 1.0
 DEC-0018 (2026-03-16): заменить наивный ratio пятисигнальной взвешенной формулой на базе cosine similarity.
 DEC-0019 (2026-03-16): понизить порог до `0.65`, увеличить `max_refinements` до `2`.
 
-**Источники:** `docs/research/rag-stack/reports/R04-coverage-metrics.md`, `SYNTHESIS.md` (ADR-003).
+**Источники:** `docs/research/reports/R04-coverage-metrics.md`, `R00-synthesis.md` (ADR-003).
 
 ---
 

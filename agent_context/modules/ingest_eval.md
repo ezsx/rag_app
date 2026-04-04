@@ -54,9 +54,9 @@ Point:
 ### Ключевые файлы
 
 - `scripts/evaluate_agent.py` — eval runner: tool tracking, failure attribution, LLM judge, reports
-- `datasets/eval_golden_v1.json` — golden dataset (25 Qs, 6 categories)
-- `datasets/eval_dataset_quick.json` (v1, 10 Qs), `eval_dataset_quick_v2.json` (v2, 10 Qs), `eval_dataset_v3.json` (v3, 30 Qs)
-- `docs/specifications/active/SPEC-RAG-14-evaluation-pipeline.md` — спецификация
+- `datasets/eval_golden_v2.json` — golden dataset (36 Qs, 4 eval modes: retrieval/analytics/navigation/refusal)
+- `datasets/eval_golden_v2.json` — legacy (25 Qs)
+- `docs/specifications/completed/SPEC-RAG-14-evaluation-pipeline.md` — спецификация
 - `docs/research/reports/R18-deep-evaluation-methodology-dataset.md` — целевой eval blueprint
 - `results/raw/` — per-question JSON результаты (unified format)
 - `results/reports/` — агрегированные JSON + Markdown отчёты
@@ -84,13 +84,13 @@ Point:
 ```bash
 # Без judge (быстрый — ~15 мин)
 python scripts/evaluate_agent.py \
-  --dataset datasets/eval_golden_v1.json \
+  --dataset datasets/eval_golden_v2.json \
   --skip-judge \
   --api-key $TOKEN
 
 # С Claude judge
 EVAL_JUDGE_API_KEY=sk-ant-... python scripts/evaluate_agent.py \
-  --dataset datasets/eval_golden_v1.json \
+  --dataset datasets/eval_golden_v2.json \
   --judge claude \
   --api-key $TOKEN
 

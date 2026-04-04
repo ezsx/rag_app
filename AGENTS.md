@@ -79,7 +79,7 @@
 - Research → `docs/research/` (prompts/ и reports/)
 - Specification → `docs/specifications/` (active/ и completed/)
 - Текущее состояние системы → `docs/architecture/`
-- Операционные планы → `docs/planning/`
+- Операционные планы → `docs/progress/`
 - **Не создавать файлы в других местах без согласования.**
 
 ## Tool Policy
@@ -145,8 +145,8 @@ datasets/
 sessions/             — Telethon session (для Telegram ingest)
 docs/
   architecture/       — Источник правды: текущее состояние системы
-  research/           — Промпты и отчёты исследований (R01-R18, prompts 01-21)
-  specifications/     — Спецификации (active/ и completed/)
-  planning/           — Операционные документы (scope, playbook, планы)
+  research/           — Промпты и отчёты исследований (R00-R27, prompts 01-41)
+  specifications/     — Спецификации (35 completed)
+  progress/           — Project scope + experiment log (57 runs)
 agent_context/        — Контекст для AI-агентов (Claude/Codex)
 ```

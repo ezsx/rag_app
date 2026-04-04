@@ -2,7 +2,7 @@
 
 > **Статус**: Draft
 > **Создан**: 2026-03-30
-> **Research basis**: R28-deep-observability-langfuse-phoenix-structlog, R25-deep-production-gap-analysis
+> **Research basis**: R25-deep-observability-langfuse-phoenix-structlog, R22-deep-production-gap-analysis
 > **Depends on**: SPEC-RAG-17 (production hardening), SPEC-RAG-18 (eval pipeline v2)
 > **Scope**: self-hosted Langfuse v3, per-component tracing, LLM token tracking, Docker Compose setup
 
@@ -356,6 +356,6 @@ def search_with_plan(self, query, plan):
 - [ ] Запустить eval на 3 вопросах, проверить что traces создаются
 
 ### Docs
-- [ ] Обновить `docs/planning/project_scope.md` (observability = done)
+- [ ] Обновить `docs/progress/project_scope.md` (observability = done)
 - [ ] Обновить команды запуска в infra memo
 - [ ] Добавить запись в decision log

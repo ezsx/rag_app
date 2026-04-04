@@ -16,7 +16,7 @@
 2. **Тесты**: что покрыто, что нет? Запусти pytest если возможно — сколько pass/fail?
 3. **Eval**: прочитай **последний актуальный eval report** в `results/reports/` и при необходимости сравни с `results/reports/eval_judge_20260325_spec15.md` как reference baseline. Метрики реальные или натянутые?
 4. **Данные**: `datasets/eval_golden_v1.json` — качество вопросов. `datasets/tool_keywords.json` — routing config. Адекватно?
-5. **Docs**: `docs/planning/project_scope.md` — что заявлено vs что реально. Рассинхрон?
+5. **Docs**: `docs/progress/project_scope.md` — что заявлено vs что реально. Рассинхрон?
 6. **Research**: `docs/research/reports/` — сколько отчётов? Какие реально повлияли на код, а какие "написаны и забыты"?
 7. **Scripts**: `scripts/` — что запускается, что мёртвый код?
 8. **agent_service.py** — главный файл (~2200 строк). Качество кода, архитектурные решения, потенциальные проблемы.

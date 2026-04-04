@@ -118,4 +118,4 @@ reranker_top_n        = 80     # fallback max (не primary limit)
 - Сменить коллекцию: `settings.update_collection("new_name")`
 - Проверить healthcheck: `GET http://localhost:8082/health`
 - Прогнать eval: `python scripts/evaluate_agent.py --dataset datasets/eval_dataset_quick.json --agent-url http://localhost:8001/v1/agent/stream --api-key TOKEN`
-- Roadmap улучшений: `docs/ai/planning/retrieval_improvement_playbook.md`
+- Experiment log: `docs/progress/experiment_log.md`

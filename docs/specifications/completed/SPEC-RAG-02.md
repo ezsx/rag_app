@@ -8,7 +8,7 @@
 > **Зависит от:** SPEC-RAG-01 (settings: `embedding_tei_url`, `reranker_tei_url`)
 > **Источники:** `docs/specifications/arch-brief.md` (DEC-0016, DEC-0017),
 >                `docs/architecture/04-system/overview.md` §Stack,
->                `docs/research/rag-stack/reports/R06-async-architecture.md` §httpx patterns
+>                `docs/research/reports/R06-async-architecture.md` §httpx patterns
 
 ---
 

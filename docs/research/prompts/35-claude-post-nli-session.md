@@ -55,8 +55,8 @@
 - `scripts/evaluate_agent.py` — eval с --questions фильтром
 - `datasets/eval_golden_v2.json` — текущий dataset (36 Qs)
 - `datasets/prompts/decomposition_v1.md` + `judge_v1.md` — промпты для judge
-- `docs/planning/experiment_history.md` — полная история
-- `docs/planning/retrieval_improvement_playbook.md` — overview + metrics
+- `docs/progress/experiment_log.md` — полная история
+- `docs/progress/experiment_log.md` — overview + metrics
 - `results/reports/nli_faithfulness_analysis_20260401.md` — NLI analysis
 
 ## Hardware (всё поднято)

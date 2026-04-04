@@ -102,8 +102,8 @@
 ### Документация
 - `docs/specifications/active/SPEC-RAG-20d-pipeline-cleanup.md` — полный статус
 - `docs/architecture/11-decisions/decision-log.md` — DEC-0044, DEC-0045
-- `docs/planning/retrieval_improvement_playbook.md` — эксперименты + метрики
-- `docs/planning/project_scope.md` — Phase 3.5
+- `docs/progress/experiment_log.md` — эксперименты + метрики
+- `docs/progress/project_scope.md` — Phase 3.5
 
 ### Артефакты eval
 - `results/raw/eval_results_20260401-014638.json` — raw + judge scores

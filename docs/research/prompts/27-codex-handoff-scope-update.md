@@ -1,14 +1,13 @@
-# Codex Handoff: R25 findings + scope update
+# Codex Handoff: R22 findings + scope update
 
-> Контекст: Claude (Opus 4.6) провёл сессию исследования репозитория через MCP, подготовил и запустил Deep Research (R25), проанализировал результаты совместно с пользователем. Ниже — итоги. Твоя задача: обновить `docs/planning/project_scope.md` как source of truth и наметить конкретный план работы.
+> Контекст: Claude (Opus 4.6) провёл сессию исследования репозитория через MCP, подготовил и запустил Deep Research (R25), проанализировал результаты совместно с пользователем. Ниже — итоги. Твоя задача: обновить `docs/progress/project_scope.md` как source of truth и наметить конкретный план работы.
 
 ## Что сделали в этой сессии
 
 1. **Полное MCP-исследование репозитория** — подтвердили текущее состояние: 15 tools, eval 1.79/2 factual на 30 Qs, все 5 tools из R17 реализованы, SPEC-RAG-16/17 done.
 
 2. **Подготовили и запустили R25 (Deep Research)** — production gap analysis. Сравнение с Perplexity, Glean, Danswer, Cohere, Langdock.
-   - Отчёт: `docs/research/reports/compass_artifact_wf-782b6854-dd39-452a-9455-3e22c98a1610_text_markdown.md`
-   - Нужно переименовать в `R25-deep-production-gap-analysis.md`
+   - Отчёт: `docs/research/reports/R22-deep-production-gap-analysis.md`
 
 3. **Критический разбор R25** — не все рекомендации релевантны. Ниже что приняли, что отклонили, что скорректировали.
 
@@ -44,7 +43,7 @@
 
 ## Что нужно обновить в scope
 
-`docs/planning/project_scope.md` — source of truth проекта. Сейчас рассинхронизирован:
+`docs/progress/project_scope.md` — source of truth проекта. Сейчас рассинхронизирован:
 
 ### Исправить статусы
 - Phase 3.4: "В РАБОТЕ" → **DONE** (все tools реализованы, SPEC-RAG-15/16/17 done)
@@ -83,7 +82,7 @@
 
 ### Обновить playbook
 
-`docs/planning/retrieval_improvement_playbook.md` — пишет "13 tools", hot_topics в backlog. Нужно обновить до 15 tools, hot_topics/channel_expertise = done, добавить SPEC-RAG-16/17 в "Что реализовано".
+`docs/progress/experiment_log.md` — пишет "13 tools", hot_topics в backlog. Нужно обновить до 15 tools, hot_topics/channel_expertise = done, добавить SPEC-RAG-16/17 в "Что реализовано".
 
 ## Зависимости
 

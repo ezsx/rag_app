@@ -54,7 +54,7 @@ Spec: `docs/specifications/active/SPEC-RAG-19-observability-langfuse.md`
 ## Файлы для чтения перед началом
 
 1. `docs/specifications/active/SPEC-RAG-19-observability-langfuse.md` — полная spec
-2. `docs/research/reports/R28-deep-observability-langfuse-phoenix-structlog.md` — docker-compose template, SDK examples
+2. `docs/research/reports/R25-deep-observability-langfuse-phoenix-structlog.md` — docker-compose template, SDK examples
 3. `src/adapters/llm/llama_server_client.py` — текущий LLM client (requests-based)
 4. `src/services/agent_service.py` — agent loop, stream_agent_response, ContextVar pattern
 5. `src/services/tools/tool_runner.py` — tool execution

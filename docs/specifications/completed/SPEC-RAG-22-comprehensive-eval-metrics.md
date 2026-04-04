@@ -423,7 +423,7 @@ PPI (`ppi-python`) и LettuceDetect — deferred, не в initial dependencies.
 - [ ] PPI: deferred, prerequisites documented
 
 ### Docs
-- [ ] experiment_history.md: baseline all new metrics
+- [ ] experiment_log.md: baseline all new metrics
 - [ ] playbook: updated with new metric stack
 
 ---
@@ -442,7 +442,7 @@ PPI (`ppi-python`) и LettuceDetect — deferred, не в initial dependencies.
 
 ## Ссылки
 
-- R29: `docs/research/reports/R29-deep-comprehensive-rag-eval-metrics.md`
+- R26: `docs/research/reports/R26-deep-comprehensive-rag-eval-metrics.md`
 - R20: `docs/research/reports/R20-deep-retrieval-robustness-ndr-rsr-ror.md`
 - R18: `docs/research/reports/R18-deep-evaluation-methodology-dataset.md`
 - R15: `docs/research/reports/R15-yandex-rag-conference-2026.md`

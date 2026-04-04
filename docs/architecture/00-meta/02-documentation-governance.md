@@ -11,7 +11,7 @@
 2. **architecture/ = зеркало кода** — всегда отражает текущее состояние. Устаревший docs/architecture хуже чем его отсутствие.
 3. **research/ = неизменяемый архив** — отчёты НЕ редактируются post-factum. Новые findings = новый отчёт.
 4. **specifications/ = мост между research и code** — spec описывает ЧТО делать, КАК, и ЗАЧЕМ.
-5. **planning/ = операционные живые документы** — scope, playbook, планы внедрения. Обновляются при каждом значимом изменении.
+5. **progress/ = история и предстоящие изменения** — scope проекта и хронология экспериментов. Обновляются при каждом значимом изменении.
 
 ---
 
@@ -41,10 +41,9 @@ docs/
 │   ├── active/             (текущие и следующие specs)
 │   └── completed/          (имплементированные — архив для reference)
 │
-└── planning/               ← ОПЕРАЦИОННЫЕ ДОКИ: "как идём к цели"
+└── progress/               ← ПРОГРЕСС: история и предстоящие изменения
     ├── project_scope.md    (roadmap, фазы, метрики)
-    ├── retrieval_improvement_playbook.md  (история экспериментов)
-    └── [plan].md           (планы внедрения конкретных фич)
+    └── experiment_log.md   (полная история экспериментов)
 ```
 
 ---
@@ -59,7 +58,7 @@ docs/
 - Создать промпт: `docs/research/prompts/NN-topic-name.md` (следующий номер)
 - Получить отчёт: `docs/research/reports/RNN-topic-name.md`
 - Quick и Deep варианты: `RNN-quick-topic.md`, `RNN-deep-topic.md`
-- Зафиксировать findings в `docs/planning/` (playbook или scope)
+- Зафиксировать findings в `docs/progress/` (scope или experiment_log)
 
 **Правила**:
 - Номера промптов и отчётов последовательные, не пропускать
@@ -86,7 +85,7 @@ docs/
 
 **Действия**:
 - Коммиты со ссылками на spec (в commit message или PR)
-- Обновить `docs/planning/` с результатами (playbook, scope)
+- Обновить `docs/progress/` с результатами (scope, experiment_log)
 
 ### 4. Documentation — обновляем architecture/
 
@@ -115,7 +114,7 @@ docs/
 | Research report | `RNN-kebab-case.md` | `R13-deep-tool-router-architecture.md` |
 | Specification | `SPEC-RAG-NN-kebab-case.md` | `SPEC-RAG-11-adaptive-retrieval.md` |
 | Architecture doc | `kebab-case.md` в соотв. папке | `05-flows/FLOW-02-agent.md` |
-| Planning doc | `kebab-case.md` | `adaptive_retrieval_plan.md` |
+| Planning doc | `kebab-case.md` | `experiment_log.md` |
 
 ---
 
@@ -123,7 +122,7 @@ docs/
 
 1. **Автогенерированные описания файлов** — код читается через MCP, не через markdown зеркало
 2. **Дубликаты** — одна тема = один документ. Если есть в architecture, не повторять в planning
-3. **Временные файлы** (plan.md, temp.md, notes.md) — либо в planning/ с нормальным именем, либо не создавать
+3. **Временные файлы** (plan.md, temp.md, notes.md) — либо в progress/ с нормальным именем, либо не создавать
 4. **Pricing/cost analysis** — не часть технической документации
 5. **Module-per-file docs** — docs/ai/modules/ был ошибкой, не повторять
 
@@ -134,16 +133,16 @@ docs/
 ### При КАЖДОМ коммите — проверить:
 - Не создаю ли файл в неправильном месте?
 - Нужно ли обновить architecture/?
-- Нужно ли обновить planning/ (scope, playbook)?
+- Нужно ли обновить progress/ (scope, experiment_log)?
 
 ### При создании нового файла — спросить себя:
 - Это research? → `docs/research/`
 - Это план что делать? → `docs/specifications/active/`
 - Это описание текущего состояния? → `docs/architecture/`
-- Это живой операционный документ? → `docs/planning/`
+- Это живой операционный документ? → `docs/progress/`
 - Не подходит ни к чему? → **Не создавать. Обсудить с пользователем.**
 
 ### При рефакторинге/крупном изменении:
 - Обновить `docs/architecture/04-system/overview.md`
 - Добавить запись в `docs/architecture/11-decisions/decision-log.md`
-- Обновить `docs/planning/project_scope.md` если затронуты фазы/метрики
+- Обновить `docs/progress/project_scope.md` если затронуты фазы/метрики

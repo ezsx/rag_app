@@ -2,7 +2,7 @@
 
 > **Статус**: Draft → Review
 > **Создан**: 2026-03-30
-> **Research basis**: R18-deep-evaluation-methodology-dataset, R19-deep-nli-citation-faithfulness, R20-deep-retrieval-robustness-ndr-rsr-ror, R25-deep-production-gap-analysis
+> **Research basis**: R18-deep-evaluation-methodology-dataset, R19-deep-nli-citation-faithfulness, R20-deep-retrieval-robustness-ndr-rsr-ror, R22-deep-production-gap-analysis
 > **Depends on**: SPEC-RAG-14 (eval pipeline v2), SPEC-RAG-16 (hot_topics + channel_expertise), SPEC-RAG-17 (production hardening)
 > **Scope**: новый golden dataset, redesign retrieval metric, offline judge packet, batch review workflow
 
@@ -530,8 +530,8 @@ Target after next expansion step:
 - [ ] Batch size = 30
 
 ### Docs
-- [ ] Обновить `docs/planning/retrieval_improvement_playbook.md`
-- [ ] Обновить `docs/planning/project_scope.md`
+- [ ] Обновить `docs/progress/experiment_log.md`
+- [ ] Обновить `docs/progress/project_scope.md`
 - [ ] Добавить запись в decision log после имплементации
 
 ---

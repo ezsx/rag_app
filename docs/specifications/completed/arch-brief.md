@@ -3,7 +3,7 @@
 > **Дата:** 2026-03-17
 > **Статус:** Актуально
 > **Вход:** `docs/architecture/11-decisions/decision-log.md` (DEC-0015 – DEC-0026),
->            `docs/research/rag-stack/reports/SYNTHESIS.md`, R01–R06
+>            `docs/research/reports/R00-synthesis.md`, R01–R06
 > **Назначение:** reference-документ для написания SPEC-RAG-01..07.
 >             Каждая спецификация начинает чтение с этого файла.
 
@@ -58,7 +58,7 @@
 - `src/adapters/qdrant/__init__.py`
 - `src/adapters/qdrant/store.py` — `QdrantStore`
 
-**Источник:** `docs/research/rag-stack/reports/R01-qdrant-hybrid-rag.md`
+**Источник:** `docs/research/reports/R01-qdrant-hybrid-rag.md`
 
 ---
 
@@ -112,7 +112,7 @@ TEI reranker на том же RTX 5060 Ti, отдельный порт.
 
 **Файлы к изменению:** `src/services/agent_service.py` (или новый `src/services/coverage.py`)
 
-**Источник:** `docs/research/rag-stack/reports/R04-coverage-metrics.md`
+**Источник:** `docs/research/reports/R04-coverage-metrics.md`
 
 ---
 
@@ -201,13 +201,13 @@ GPU в Docker недоступны (DEC-0024) — все модели вывед
 
 | Домен | Первичный источник | Вторичный |
 |-------|--------------------|-----------|
-| Qdrant schema, hybrid search, RRF | `docs/research/rag-stack/reports/R01-qdrant-hybrid-rag.md` | `docs/architecture/07-data-model/data-model.md` |
+| Qdrant schema, hybrid search, RRF | `docs/research/reports/R01-qdrant-hybrid-rag.md` | `docs/architecture/07-data-model/data-model.md` |
 | TEI embedding/reranker | `docs/architecture/04-system/overview.md` | `docs/architecture/05-flows/FLOW-01-ingest.md` |
-| Coverage metric (5 сигналов) | `docs/research/rag-stack/reports/R04-coverage-metrics.md` | `docs/architecture/11-decisions/decision-log.md` (DEC-0018/19) |
+| Coverage metric (5 сигналов) | `docs/research/reports/R04-coverage-metrics.md` | `docs/architecture/11-decisions/decision-log.md` (DEC-0018/19) |
 | ReAct agent цикл, tools | `docs/ai/agent_technical_spec.md` | `docs/architecture/05-flows/FLOW-02-agent.md` |
 | Ingest pipeline | `docs/architecture/05-flows/FLOW-01-ingest.md` | `docs/architecture/07-data-model/data-model.md` |
 | Settings Phase 1 | `docs/architecture/07-data-model/data-model.md` | `docs/architecture/11-decisions/decision-log.md` |
-| Все решения сводно | `docs/research/rag-stack/reports/SYNTHESIS.md` | `docs/architecture/11-decisions/decision-log.md` |
+| Все решения сводно | `docs/research/reports/R00-synthesis.md` | `docs/architecture/11-decisions/decision-log.md` |
 
 ---
 

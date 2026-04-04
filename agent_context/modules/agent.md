@@ -132,7 +132,7 @@ agent_final_max_tokens = 512
 
 ## Eval (SPEC-RAG-14, Phase 3.3)
 
-- Golden dataset: `datasets/eval_golden_v1.json` (25 Qs, 6 categories)
-- Eval script: `scripts/evaluate_agent.py` — tool tracking, failure attribution, LLM judge
-- Key Tool Accuracy: **0.955** | Strict Recall@5: ~0.43 | Manual judge factual: **0.52**
-- Подробности: `docs/specifications/active/SPEC-RAG-14-evaluation-pipeline.md`
+- Golden dataset: `datasets/eval_golden_v2.json` (36 Qs, 4 eval modes)
+- Eval script: `scripts/evaluate_agent.py` — tool tracking, failure attribution, LLM judge, IR metrics
+- KTA: **1.000** | Factual: **0.84** | Faithfulness: **0.91** | Robustness: **0.954**
+- Подробности: `docs/specifications/completed/SPEC-RAG-14-evaluation-pipeline.md`

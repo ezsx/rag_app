@@ -9,7 +9,7 @@
 >
 > **Источники:**
 > - `docs/specifications/arch-brief.md` (DEC-0015, схема hybrid search)
-> - `docs/research/rag-stack/reports/R01-qdrant-hybrid-rag.md` (FilterQuery, prefetch, FusionQuery)
+> - `docs/research/reports/R01-qdrant-hybrid-rag.md` (FilterQuery, prefetch, FusionQuery)
 > - `docs/architecture/07-data-model/data-model.md` (Candidate, hybrid search query)
 > - `docs/architecture/03-invariants/invariants.md` (INV-06)
 

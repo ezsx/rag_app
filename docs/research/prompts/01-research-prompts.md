@@ -1,7 +1,7 @@
 # rag_app — Research Prompts
 
 > **Как пользоваться**: каждый блок ниже — готовый промпт для deep research (Claude / ChatGPT / Perplexity).
-> Копируешь промпт → отправляешь → сохраняешь ответ в `docs/research/rag-stack/reports/RXX-*.md`.
+> Копируешь промпт → отправляешь → сохраняешь ответ в `docs/research/reports/RXX-*.md`.
 >
 > Результаты становятся source of truth для архитектурных решений.
 >

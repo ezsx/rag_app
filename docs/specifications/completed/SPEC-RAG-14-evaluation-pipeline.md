@@ -326,7 +326,7 @@ if event_name == "tool_invoked":
 
 ### Документация
 - [ ] Обновить `agent_context/modules/ingest_eval.md` — новый формат, метрики, CLI
-- [ ] Обновить `docs/planning/retrieval_improvement_playbook.md` — добавить результаты golden_v1
+- [ ] Обновить `docs/progress/experiment_log.md` — добавить результаты golden_v1
 - [ ] Запись в `docs/architecture/11-decisions/decision-log.md` — DEC-00XX: eval pipeline v2
 
 ---

@@ -15,7 +15,7 @@
 Сверь package с репозиторием:
 
 - `README.md`
-- `docs/planning/project_scope.md`
+- `docs/progress/project_scope.md`
 - `docs/specifications/active/SPEC-RAG-16-hot-topics-channel-expertise.md`
 - `docs/specifications/active/SPEC-RAG-17-production-hardening.md`
 - последний актуальный eval report в `results/reports/`

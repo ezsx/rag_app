@@ -205,7 +205,7 @@ Examples:
 
 - `README.md` still says `Work in progress`
 - `README.md` contains inconsistent experiment/research counts
-- `docs/planning/project_scope.md` still mixes old and new states
+- `docs/progress/project_scope.md` still mixes old and new states
 - some counts mention older research/tool totals even after recent expansions
 
 Interpretation:
@@ -277,7 +277,7 @@ The investigator should verify the context against the repo, not trust this file
 Priority artifacts:
 
 - `README.md`
-- `docs/planning/project_scope.md`
+- `docs/progress/project_scope.md`
 - `docs/specifications/active/SPEC-RAG-16-hot-topics-channel-expertise.md`
 - `docs/specifications/active/SPEC-RAG-17-production-hardening.md`
 - `results/reports/eval_judge_20260325_spec15.md`
