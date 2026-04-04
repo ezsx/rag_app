@@ -308,6 +308,51 @@ class AgentService:
                             )
                         )
 
+                        # ── auto compose_context после summarize_channel ──
+                        # summarize_channel возвращает hits но LLM пропускает compose_context,
+                        # что приводит к phantom citations. Детерминистический compose гарантирует grounding.
+                        if tool_name == "summarize_channel" and action.output.ok and self._ctx.search_hits:
+                            compose_action = await execute_action(
+                                "compose_context", {}, request_id, step,
+                                self._ctx, self.tool_runner, self.settings,
+                            )
+                            if compose_action and compose_action.output.ok:
+                                compose_obs = format_observation(compose_action.output, "compose_context")
+                                yield AgentStepEvent(
+                                    type="tool_invoked",
+                                    data={
+                                        "tool": "compose_context",
+                                        "input": {"system_auto": True},
+                                        "step": step,
+                                        "request_id": request_id,
+                                    },
+                                )
+                                yield AgentStepEvent(
+                                    type="observation",
+                                    data={
+                                        "content": compose_obs,
+                                        "success": True,
+                                        "step": step,
+                                        "request_id": request_id,
+                                        "took_ms": compose_action.output.meta.took_ms,
+                                    },
+                                )
+                                # Citations из auto compose → SSE + ctx
+                                auto_citations = compose_action.output.data.get("citations", [])
+                                if auto_citations:
+                                    self._ctx.compose_citations = auto_citations
+                                    yield AgentStepEvent(
+                                        type="citations",
+                                        data={
+                                            "citations": auto_citations,
+                                            "coverage": 0.0,
+                                            "step": step,
+                                            "request_id": request_id,
+                                        },
+                                    )
+                                conversation_history.append(f"Action: compose_context {{system_auto: true}}")
+                                conversation_history.append(f"Observation: {compose_obs}")
+
                         # ── compose_context → coverage + refinement ──
                         if tool_name == "compose_context" and action.output.ok:
                             plan = self._ctx.plan_summary or {}

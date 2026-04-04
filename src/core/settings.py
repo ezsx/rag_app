@@ -119,7 +119,7 @@ class Settings(BaseSettings):
     agent_tool_top_k: int = Field(20, alias="AGENT_TOOL_TOP_K")
     agent_tool_presence_penalty: float = Field(1.5, alias="AGENT_TOOL_PRESENCE_PENALTY")
     agent_tool_repeat_penalty: float = Field(1.15, alias="AGENT_TOOL_REPEAT_PENALTY")
-    agent_tool_max_tokens: int = Field(384, alias="AGENT_TOOL_MAX_TOKENS")
+    agent_tool_max_tokens: int = Field(768, alias="AGENT_TOOL_MAX_TOKENS")
 
     # Agent final-answer декодинг
     agent_final_temp: float = Field(0.3, alias="AGENT_FINAL_TEMP")

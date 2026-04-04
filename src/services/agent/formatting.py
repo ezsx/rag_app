@@ -97,9 +97,12 @@ def _fmt_cross_channel(d: dict) -> str:
 
 
 def _fmt_summarize_channel(d: dict) -> str:
+    hits = d.get("hits", [])
+    hit_ids = [h.get("id", "?") for h in hits if isinstance(h, dict)]
     return (
         f"Channel {d.get('channel', '?')} ({d.get('period', '?')}): "
-        f"{d.get('post_count', 0)} posts"
+        f"{d.get('post_count', 0)} posts. "
+        f"Use these IDs for compose_context: {hit_ids}"
     )
 
 
