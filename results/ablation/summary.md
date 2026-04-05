@@ -125,6 +125,47 @@ Prefix: OFF (уже OFF в production)
 
 Паттерн: 5/12 — edge cases (сленг/разговорный), 2 — слишком широкие temporal, 2 — channel name не в embedding, 3 — семантический gap между query и document.
 
+---
+
+## Phase 2 Results (2026-04-05)
+
+### Stage Attribution (12 permanent misses → real: 8)
+
+| Стадия потери | Count | IDs |
+|---|---|---|
+| **found** (были misses на baseline dense=20, найдены с dense=40) | 4 | ret_030, ret_098, ret_110, ret_112 |
+| **lost_in_rrf** (doc в candidates rank 70-80, RRF top-60 обрезает) | 4 | ret_034, ret_049, ret_059, ret_111 |
+| **lost_in_colbert** (в RRF, но ColBERT top-20 не видит связь) | 3 | ret_068, ret_075, ret_113 |
+| **not_in_candidates** (нет ни в dense-100, ни в BM25-100) | 1 | ret_109 |
+
+Actionable findings:
+- **rrf_limit 60→100+** решит 4 lost_in_rrf (documents на rank 70-80 в candidates)
+- **ColBERT semantic gap** — 3 cases где BM25 находит (rank 6-17), а ColBERT выкидывает
+- **ret_109** "че там по трансформерам" — единственный true not-retrievable, нужен LLM rephraser
+
+### CE Fix + Score Distribution
+
+**Bug found (Codex review)**: `rerank_with_scores()` возвращал sigmoid(raw), threshold=0.0 всегда true → CE filter = no-op в production. **Fixed**: добавлен `rerank_with_raw_scores()`, rerank tool переключён на raw logits.
+
+**CE Score Distribution** (120 Qs × top-20, n=2400):
+
+| | Relevant (n=175) | Irrelevant (n=2225) |
+|---|---|---|
+| mean | 5.9 | −0.8 |
+| median | 7.0 | −0.65 |
+
+| Threshold | Relevant lost | Irrelevant removed |
+|-----------|--------------|-------------------|
+| −1.0 | 8.6% | 48.0% |
+| **0.0** | **9.1%** | **53.8%** |
+| 1.0 | 10.9% | 59.6% |
+
+Threshold=0.0 — рабочий порог. CE filter полезен после фикса.
+
+### Prod-Parity Eval Script
+
+`scripts/evaluate_retrieval_full.py` — direct import production модулей (HybridRetriever, QueryPlannerService, RerankerService). Smoke-tested. Modular flags: `--use-query-plan`, `--inject-original-query`, `--use-metadata-filters`, `--ce-filter`, `--channel-dedup`.
+
 ## Dataset Info
 
 `datasets/eval_retrieval_v3.json`: 120 вопросов, 30 каналов, 6 категорий:

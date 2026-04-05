@@ -40,7 +40,7 @@ def rerank(
         if top_n is None:
             top_n = len(docs)
 
-        indices, scores = reranker.rerank_with_scores(
+        indices, scores = reranker.rerank_with_raw_scores(
             query=query,
             docs=docs,
             top_n=top_n,

@@ -59,7 +59,7 @@ class RerankerService:
     def rerank_with_scores(
         self, query: str, docs: list[str], top_n: int, batch_size: int = 16
     ) -> tuple[list[int], list[float]]:
-        """Rerank documents and return (indices, normalized_scores)."""
+        """Rerank documents and return (indices, normalized_scores [0..1])."""
         if not docs:
             return [], []
         try:
@@ -71,6 +71,27 @@ class RerankerService:
             return order, norm_scores
         except Exception as exc:  # broad: adapter boundary
             logger.error("Ошибка ререйкера (with_scores): %s", exc)
+            return list(range(min(len(docs), top_n or len(docs)))), []
+
+    def rerank_with_raw_scores(
+        self, query: str, docs: list[str], top_n: int, batch_size: int = 16
+    ) -> tuple[list[int], list[float]]:
+        """Rerank documents and return (indices, raw_logit_scores).
+
+        Raw logits: positive = relevant, negative = not relevant.
+        Threshold=0.0 = decision boundary (sigmoid(0)=0.5).
+        """
+        if not docs:
+            return [], []
+        try:
+            raw_scores = self._get_raw_scores(query, docs)
+            order = sorted(range(len(docs)), key=lambda i: raw_scores[i], reverse=True)
+            if top_n and top_n > 0:
+                order = order[: min(top_n, len(order))]
+            scores = [raw_scores[i] for i in order]
+            return order, scores
+        except Exception as exc:  # broad: adapter boundary
+            logger.error("Ошибка ререйкера (with_raw_scores): %s", exc)
             return list(range(min(len(docs), top_n or len(docs)))), []
 
     def healthcheck(self) -> bool:
