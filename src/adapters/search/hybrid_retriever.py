@@ -14,6 +14,7 @@ import logging
 import math
 import threading
 from collections.abc import Coroutine
+from pathlib import Path
 from typing import Any, TypeVar
 
 from fastembed import SparseTextEmbedding
@@ -129,6 +130,7 @@ class HybridRetriever:
         self._embedding_client = embedding_client
         self._sparse_encoder = sparse_encoder
         self._settings = settings
+        self._sparse_lexicon = self._load_lexicon()
 
         # Выделенный event loop для sync→async bridge
         self._loop = asyncio.new_event_loop()
@@ -140,7 +142,44 @@ class HybridRetriever:
         )
         self._thread.start()
         self._ready.wait(timeout=5.0)
-        logger.info("HybridRetriever инициализирован: collection=%s", store.collection)
+        logger.info(
+            "HybridRetriever инициализирован: collection=%s, lexicon=%d entries",
+            store.collection,
+            sum(len(v) for v in self._sparse_lexicon.values() if isinstance(v, dict)),
+        )
+
+    @staticmethod
+    def _load_lexicon() -> dict:
+        """Загрузить lexicon для BM25 нормализации (R2 ablation: sparse-only normalization)."""
+        candidates = [
+            Path(__file__).resolve().parent.parent.parent / "datasets" / "query_normalization_lexicon.json",
+            Path("datasets/query_normalization_lexicon.json"),
+        ]
+        for p in candidates:
+            if p.is_file():
+                with open(p, encoding="utf-8") as f:
+                    return json.load(f)
+        return {}
+
+    def _normalize_for_sparse(self, query: str) -> str:
+        """Нормализация query для BM25: добавляет синонимы из lexicon, не заменяет оригинал.
+
+        Ablation R2: sparse-only normalization даёт +0.009 R@1, +0.005 MRR.
+        Dense query остаётся raw — нормализация dense ВРЕДИТ (R1: −4.2% R@5).
+        """
+        if not self._sparse_lexicon:
+            return query
+        additions = []
+        query_lower = query.lower()
+        for category in self._sparse_lexicon.values():
+            if not isinstance(category, dict):
+                continue
+            for key, replacements in category.items():
+                if key.lower() in query_lower:
+                    additions.extend(replacements)
+        if additions:
+            return query + " " + " ".join(additions)
+        return query
 
     def _run_event_loop(self) -> None:
         """Background thread running dedicated asyncio loop."""
@@ -224,7 +263,9 @@ class HybridRetriever:
         """BM25 + Dense -> RRF -> ColBERT MaxSim rerank -> channel dedup."""
         dense_vector: list[float] = await self._embedding_client.embed_query(query_text)
 
-        sparse_result = next(iter(self._sparse_encoder.query_embed(query_text)))
+        # R2 sparse-only normalization: BM25 получает нормализованный query, dense — raw.
+        sparse_query = self._normalize_for_sparse(query_text)
+        sparse_result = next(iter(self._sparse_encoder.query_embed(sparse_query)))
         sparse_vector = models.SparseVector(
             indices=sparse_result.indices.tolist(),
             values=sparse_result.values.tolist(),
@@ -233,9 +274,10 @@ class HybridRetriever:
         query_filter = _build_filter(plan.metadata_filters)
         rrf_limit = max(plan.k_per_query * 5, 50)
 
-        # Асимметричный prefetch: BM25 берёт больше кандидатов (100 vs 20).
+        # Асимметричный prefetch: BM25 берёт больше кандидатов (100 vs 40).
+        # Dense limit 20→40: ablation study показал +3.4% R@5 (больше кандидатов для ColBERT).
         bm25_prefetch_limit = max(plan.k_per_query * 10, 100)
-        dense_prefetch_limit = max(plan.k_per_query * 2, 20)
+        dense_prefetch_limit = max(plan.k_per_query * 4, 40)
 
         # ColBERT rerank: encode query через gpu_server /colbert-encode
         colbert_query_vectors = await self._get_colbert_query_vectors(query_text)
