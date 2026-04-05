@@ -9,9 +9,10 @@ from __future__ import annotations
 import json
 import urllib.request
 
-from benchmarks.config import EMBEDDING_URL, RERANK_TOP_N
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import NodeWithScore, QueryBundle
+
+from benchmarks.config import EMBEDDING_URL, RERANK_TOP_N
 
 
 class QwenReranker(BaseNodePostprocessor):

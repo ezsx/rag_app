@@ -127,7 +127,6 @@ def main():
         # Classify: relevant vs irrelevant
         for idx, p in enumerate(points):
             pay = p.get("payload", {})
-            doc_id = f"{pay.get('channel', '')}:{pay.get('message_id', 0)}"
             is_relevant = False
             for exp in expected:
                 exp_parts = exp.split(":", 1)
@@ -158,7 +157,9 @@ def main():
     elapsed = time.time() - t0
 
     # Percentiles
-    def percentiles(scores, ps=[5, 10, 25, 50, 75, 90, 95]):
+    def percentiles(scores, ps=None):
+        if ps is None:
+            ps = [5, 10, 25, 50, 75, 90, 95]
         if not scores:
             return {}
         s = sorted(scores)
@@ -182,7 +183,7 @@ def main():
         print(f"  percentiles: {irr_pct}")
 
     # Threshold analysis
-    print(f"\nThreshold analysis (what gets filtered at each threshold):")
+    print("\nThreshold analysis (what gets filtered at each threshold):")
     for t in [-1.0, -0.5, 0.0, 0.5, 1.0, 2.0]:
         rel_lost = sum(1 for s in all_relevant_scores if s < t)
         irr_removed = sum(1 for s in all_irrelevant_scores if s < t)

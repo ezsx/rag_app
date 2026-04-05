@@ -28,6 +28,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 # Загружаем .env до импорта settings
 from dotenv import load_dotenv
+
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 # Override для standalone запуска (без Docker networking)
@@ -56,7 +57,7 @@ def bootstrap():
         print("ERROR: HybridRetriever не инициализирован. Проверьте HYBRID_ENABLED и сервисы.")
         sys.exit(1)
 
-    print(f"Bootstrap OK:")
+    print("Bootstrap OK:")
     print(f"  Qdrant: {settings.qdrant_url} / {settings.qdrant_collection}")
     print(f"  Embedding: {settings.embedding_tei_url}")
     print(f"  Reranker: {'ON' if reranker else 'OFF'}")
@@ -182,7 +183,7 @@ def run_single_query(
     args,
 ) -> tuple[list, dict]:
     """Прогнать один query через configurable pipeline. Вернуть (candidates, trace)."""
-    from schemas.search import SearchPlan, MetadataFilters
+    from schemas.search import MetadataFilters, SearchPlan
 
     trace: dict[str, Any] = {"original_query": query}
 
@@ -243,7 +244,7 @@ def run_single_query(
 
     # Step 2: Original query injection
     if args.inject_original_query and query not in subqueries:
-        subqueries = [query] + subqueries
+        subqueries = [query, *subqueries]
         trace["injected_original"] = True
 
     # Step 3: Per-subquery search + round-robin merge
@@ -448,7 +449,7 @@ def main():
     mrr = avg([r["reciprocal_rank"] for r in valid])
 
     print(f"\n{'='*60}")
-    print(f"Full Pipeline Evaluation Results")
+    print("Full Pipeline Evaluation Results")
     print(f"{'='*60}")
     print(f"Queries: {len(items)}, Errors: {sum(1 for r in results if 'error' in r)}")
     print(f"Pipeline: {' → '.join(config_str) or 'raw retriever only'}")

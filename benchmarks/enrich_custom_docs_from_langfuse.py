@@ -17,8 +17,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(_root))
     sys.path.insert(0, str(_root / "src"))
 
-from benchmarks.config import RESULTS_DIR  # noqa: E402
-
+from benchmarks.config import RESULTS_DIR
 
 DEFAULT_HOST = os.environ.get("LANGFUSE_EXPORT_HOST", "http://localhost:3100")
 DEFAULT_PUBLIC_KEY = os.environ.get("LANGFUSE_PUBLIC_KEY", "pk-lf-rag-app-dev")

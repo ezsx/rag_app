@@ -5,7 +5,6 @@ Output: JSON + table с hit/miss на каждой стадии.
 """
 import json
 import sys
-import time
 import urllib.request
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -195,7 +194,8 @@ def main():
             colbert_hit, colbert_rank = check_hit(colbert_points, expected)
             ce_score = None
 
-        status = lambda h, r: f"✅ rank={r}" if h else "❌"
+        def status(h, r):
+            return f"✅ rank={r}" if h else "❌"
         print(f"  dense-100: {status(dense_hit, dense_rank)}")
         print(f"  bm25-100:  {status(bm25_hit, bm25_rank)}")
         print(f"  rrf-60:    {status(rrf_hit, rrf_rank)}")
@@ -246,14 +246,14 @@ def main():
     loss_counts = {}
     for r in results:
         loss_counts[r["lost_at"]] = loss_counts.get(r["lost_at"], 0) + 1
-    print(f"\nLoss distribution:")
+    print("\nLoss distribution:")
     for stage, cnt in sorted(loss_counts.items(), key=lambda x: -x[1]):
         print(f"  {stage}: {cnt}/{len(results)}")
 
     # Save
     with open("results/ablation/stage_attribution.json", "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
-    print(f"\nSaved to results/ablation/stage_attribution.json")
+    print("\nSaved to results/ablation/stage_attribution.json")
 
 
 if __name__ == "__main__":

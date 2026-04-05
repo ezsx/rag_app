@@ -350,7 +350,7 @@ class AgentService:
                                             "request_id": request_id,
                                         },
                                     )
-                                conversation_history.append(f"Action: compose_context {{system_auto: true}}")
+                                conversation_history.append("Action: compose_context {system_auto: true}")
                                 conversation_history.append(f"Observation: {compose_obs}")
 
                         # ── compose_context → coverage + refinement ──

@@ -14,7 +14,6 @@ from benchmarks.config import LLM_MAX_TOKENS, LLM_TEMPERATURE, LLM_URL
 from benchmarks.naive.retriever import NaiveRetriever
 from benchmarks.protocols import AgentResult
 
-
 SYSTEM_PROMPT = (
     "Ты помощник по новостям AI/ML из русскоязычных Telegram-каналов. "
     "Отвечай на русском языке. Используй информацию из предоставленных документов. "

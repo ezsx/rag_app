@@ -19,36 +19,29 @@ EXPERIMENTS = [
     # Блок A: Confirmed levers (evaluate_retrieval.py)
     ("A3", "combo_d40_rrf100_cb40",
      "scripts/evaluate_retrieval.py",
-     BASE + ["--dense-limit", "40", "--rrf-weights", "1.0,3.0",
-             "--rrf-limit", "100", "--colbert-pool", "40"],
+     [*BASE, "--dense-limit", "40", "--rrf-weights", "1.0,3.0", "--rrf-limit", "100", "--colbert-pool", "40"],
      None),
 
     ("A2", "colbert_pool_40",
      "scripts/evaluate_retrieval.py",
-     BASE + ["--dense-limit", "40", "--rrf-weights", "1.0,3.0",
-             "--colbert-pool", "40"],
+     [*BASE, "--dense-limit", "40", "--rrf-weights", "1.0,3.0", "--colbert-pool", "40"],
      None),
 
     ("A1", "rrf_limit_100",
      "scripts/evaluate_retrieval.py",
-     BASE + ["--dense-limit", "40", "--rrf-weights", "1.0,3.0",
-             "--rrf-limit", "100"],
+     [*BASE, "--dense-limit", "40", "--rrf-weights", "1.0,3.0", "--rrf-limit", "100"],
      None),
 
     # Блок R2: Sparse-only normalization
     ("R2", "normalize_sparse_only",
      "scripts/evaluate_retrieval.py",
-     BASE + ["--dense-limit", "40", "--rrf-weights", "1.0,3.0",
-             "--rrf-limit", "100", "--colbert-pool", "40",
-             "--normalize-sparse-only", "--lexicon", LEXICON],
+     [*BASE, "--dense-limit", "40", "--rrf-weights", "1.0,3.0", "--rrf-limit", "100", "--colbert-pool", "40", "--normalize-sparse-only", "--lexicon", LEXICON],
      None),
 
     # Блок R1: Full normalization (both branches)
     ("R1", "normalize_all",
      "scripts/evaluate_retrieval.py",
-     BASE + ["--dense-limit", "40", "--rrf-weights", "1.0,3.0",
-             "--rrf-limit", "100", "--colbert-pool", "40",
-             "--normalize-query", "--lexicon", LEXICON],
+     [*BASE, "--dense-limit", "40", "--rrf-weights", "1.0,3.0", "--rrf-limit", "100", "--colbert-pool", "40", "--normalize-query", "--lexicon", LEXICON],
      None),
 
     # Блок R3: LLM single rewrite + raw (48 hard Qs)
@@ -70,16 +63,13 @@ EXPERIMENTS = [
     # Блок R5: BM25 PRF-lite
     ("R5", "prf_expand",
      "scripts/evaluate_retrieval.py",
-     BASE + ["--dense-limit", "40", "--rrf-weights", "1.0,3.0",
-             "--rrf-limit", "100", "--colbert-pool", "40",
-             "--prf-expand", "--prf-top-k", "5"],
+     [*BASE, "--dense-limit", "40", "--rrf-weights", "1.0,3.0", "--rrf-limit", "100", "--colbert-pool", "40", "--prf-expand", "--prf-top-k", "5"],
      None),
 
     # Блок E1: Dense-only + ColBERT (BM25 off)
     ("E1", "dense_only_colbert",
      "scripts/evaluate_retrieval.py",
-     BASE + ["--dense-limit", "40", "--rrf-limit", "100",
-             "--colbert-pool", "40", "--dense-only"],
+     [*BASE, "--dense-limit", "40", "--rrf-limit", "100", "--colbert-pool", "40", "--dense-only"],
      None),
 
     # Блок D2: HyDE + original (48 hard Qs)
@@ -102,7 +92,7 @@ def run_experiment(exp_id, name, script, extra_args, dataset_override):
         with open(output_path, encoding="utf-8") as f:
             return json.load(f)
 
-    cmd = [PYTHON, script, "--dataset", dataset_override or DATASET, "--output", output_path] + extra_args
+    cmd = [PYTHON, script, "--dataset", dataset_override or DATASET, "--output", output_path, *extra_args]
 
     print(f"\n{'='*70}")
     print(f"[{exp_id}] {name}")

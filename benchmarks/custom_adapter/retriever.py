@@ -10,9 +10,11 @@ from __future__ import annotations
 import json
 import urllib.request
 
+from fastembed import SparseTextEmbedding
+
 from benchmarks.config import (
-    COLLECTION,
     COLBERT_VECTOR_NAME,
+    COLLECTION,
     DENSE_VECTOR_NAME,
     EMBEDDING_URL,
     FINAL_TOP_K,
@@ -21,7 +23,6 @@ from benchmarks.config import (
     SPARSE_VECTOR_NAME,
 )
 from benchmarks.protocols import RetrievalResult
-from fastembed import SparseTextEmbedding
 
 # Lazy singleton
 _sparse_model: SparseTextEmbedding | None = None

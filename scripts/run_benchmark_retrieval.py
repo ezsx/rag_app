@@ -20,8 +20,7 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-from benchmarks.config import FINAL_TOP_K, RESULTS_DIR, RETRIEVAL_DATASET  # noqa: E402
-
+from benchmarks.config import FINAL_TOP_K, RESULTS_DIR, RETRIEVAL_DATASET
 
 # ─── Metrics ────────────────────────────────────────────────────
 

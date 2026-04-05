@@ -12,6 +12,10 @@ from __future__ import annotations
 import asyncio
 import time
 
+from llama_index.core.agent.workflow import FunctionAgent
+from llama_index.core.tools import FunctionTool
+from llama_index.llms.openai_like import OpenAILike
+
 from benchmarks.config import (
     LLM_CONTEXT_WINDOW,
     LLM_MAX_TOKENS,
@@ -23,10 +27,6 @@ from benchmarks.llamaindex_pipeline.retriever import (
     LlamaIndexRetrieverStock,
 )
 from benchmarks.protocols import AgentResult
-from llama_index.core.agent.workflow import FunctionAgent
-from llama_index.core.tools import FunctionTool
-from llama_index.llms.openai_like import OpenAILike
-
 
 SYSTEM_PROMPT = (
     "Ты помощник по новостям AI/ML из русскоязычных Telegram-каналов. "
