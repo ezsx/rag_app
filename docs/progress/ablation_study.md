@@ -216,7 +216,7 @@ R@1=0.758  R@5=0.900  R@20=0.933  MRR=0.823
 | **E1** | Dense-only + ColBERT | **signal isolation** | BM25 off, только dense → ColBERT | Вклад BM25 по категориям: нужен ли вообще? | R@5 per category | 120 Qs |
 | **D2** | HyDE + original dense (dual branch) | **hypothetical doc** | LLM генерит pseudo-post → embed → extra dense branch, fuse с raw | Для broad/edge queries pseudo-doc ближе к реальным постам | edge R@5 | 48 Qs |
 
-### Results (9/10 complete)
+### Results (10/10 complete)
 
 Baseline: Phase 1 winner = R@5 **0.900**, MRR **0.823** (no-prefix + dense=40 + RRF [1:3], 120 Qs).
 
@@ -231,7 +231,7 @@ Baseline: Phase 1 winner = R@5 **0.900**, MRR **0.823** (no-prefix + dense=40 + 
 | R6 | Rule-based filters | filter isolation | 0.604 | 0.771 | 0.792 | 0.686 | 48* | — |
 | R5 | BM25 PRF-lite | corpus expansion | 0.633 | 0.858 | 0.917 | 0.733 | 120 | **−0.042** |
 | E1 | Dense-only + ColBERT | signal isolation | 0.742 | 0.892 | 0.925 | 0.809 | 120 | −0.008 |
-| D2 | HyDE + original dense | hypothetical doc | — | — | — | — | 48* | computing |
+| D2 | HyDE + original dense | hypothetical doc | 0.625 | 0.792 | 0.792 | 0.691 | 48* | — |
 
 *R3, R6 на 48 hard Qs subset (edge+temporal+channel), не сравнимы напрямую с 120 Qs baseline.
 
@@ -276,4 +276,4 @@ Baseline: Phase 1 winner = R@5 **0.900**, MRR **0.823** (no-prefix + dense=40 + 
 | 2026-04-04 | Phase 1: parameter sweep | 24 | R@5 0.833→0.900 (no-prefix + dense=40) |
 | 2026-04-05 | Phase 2a: diagnosis | — | CE bug fixed, stage attribution (4 rrf, 3 colbert, 1 not_found) |
 | 2026-04-05 | Phase 2b: query-plan ablation | 5 | qplan + inject = +2% R@5, filters/CE/dedup не помогают |
-| 2026-04-05 | Phase 2c: new retrieval tracks | 9/10 | Funnel ≠ bottleneck, R2 sparse norm лучший новый, PRF/normalize-all вредят |
+| 2026-04-05 | Phase 2c: new retrieval tracks | 10 | Funnel ≠ bottleneck, R2 sparse norm лучший, PRF/normalize-all/HyDE не помогают |
