@@ -53,6 +53,57 @@ def colbert_encode(text: str, embedding_url: str) -> list[list[float]] | None:
         return None
 
 
+def normalize_query(text: str, lexicon: dict) -> str:
+    """Нормализация query через JSON lexicon: добавляет синонимы, не заменяет оригинал."""
+    additions = []
+    text_lower = text.lower()
+    for category in lexicon.values():
+        if not isinstance(category, dict):
+            continue
+        for key, replacements in category.items():
+            if key.lower() in text_lower:
+                additions.extend(replacements)
+    if additions:
+        return text + " " + " ".join(additions)
+    return text
+
+
+def prf_expand(
+    query: str, sparse_model, qdrant_url: str, collection: str, top_k: int = 5,
+) -> str:
+    """Pseudo-Relevance Feedback: BM25 top-K → top terms → expanded query."""
+    from collections import Counter
+
+    sparse_result = next(iter(sparse_model.query_embed(query)))
+    sparse_q = {
+        "indices": sparse_result.indices.tolist(),
+        "values": sparse_result.values.tolist(),
+    }
+    body = {
+        "query": sparse_q,
+        "using": "sparse_vector",
+        "limit": top_k,
+        "with_payload": ["text"],
+    }
+    req = urllib.request.Request(
+        f"{qdrant_url}/collections/{collection}/points/query",
+        data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"},
+    )
+    resp = json.loads(urllib.request.urlopen(req, timeout=15).read())
+    points = resp["result"]["points"]
+
+    all_words: Counter = Counter()
+    for p in points:
+        text = p.get("payload", {}).get("text", "")
+        words = [w.lower().strip(".,!?;:()\"'") for w in text.split() if len(w) > 3]
+        all_words.update(words)
+
+    query_words = {w.lower().strip(".,!?;:()\"'") for w in query.split()}
+    new_terms = [w for w, _ in all_words.most_common(30) if w not in query_words][:5]
+    return query + " " + " ".join(new_terms) if new_terms else query
+
+
 def search_qdrant(
     query_text: str,
     embedding_url: str,
@@ -66,11 +117,19 @@ def search_qdrant(
     bm25_limit: int = 100,
     rrf_weights: list[float] | None = None,
     use_prefix: bool = True,
+    rrf_limit: int | None = None,
+    colbert_pool: int | None = None,
+    dense_only: bool = False,
+    sparse_query_text: str | None = None,
 ) -> list[dict]:
-    """Поиск в Qdrant: BM25+Dense → RRF (→ ColBERT rerank если доступен)."""
-    dense_vec = embed_query(query_text, embedding_url, use_prefix=use_prefix)
-    sparse_result = next(iter(sparse_model.query_embed(query_text)))
+    """Поиск в Qdrant: BM25+Dense → RRF (→ ColBERT rerank если доступен).
 
+    sparse_query_text: если задан, BM25 использует его вместо query_text (для R2 normalize-sparse-only).
+    """
+    dense_vec = embed_query(query_text, embedding_url, use_prefix=use_prefix)
+
+    bm25_text = sparse_query_text or query_text
+    sparse_result = next(iter(sparse_model.query_embed(bm25_text)))
     sparse_q = {
         "indices": sparse_result.indices.tolist(),
         "values": sparse_result.values.tolist(),
@@ -81,37 +140,54 @@ def search_qdrant(
         colbert_vecs = colbert_encode(query_text, embedding_url)
 
     # Fusion query — подставляем weights если заданы
-    # Qdrant REST API: {"fusion": "rrf"} (unweighted) vs {"rrf": {"weights": [...]}} (weighted)
     if fusion == "rrf" and rrf_weights:
         fusion_query = {"rrf": {"weights": rrf_weights}}
     else:
         fusion_query = {"fusion": fusion}
 
+    # Лимиты
+    effective_rrf_limit = rrf_limit or max(top_k * 3, 30)
+    effective_colbert_pool = colbert_pool or top_k
+
     if colbert_vecs:
-        # 3-stage: BM25+Dense → RRF → ColBERT MaxSim
+        # Prefetch ветки
+        if dense_only:
+            prefetch_inner = [
+                {"query": dense_vec, "using": "dense_vector", "limit": dense_limit},
+            ]
+        else:
+            prefetch_inner = [
+                {"query": dense_vec, "using": "dense_vector", "limit": dense_limit},
+                {"query": sparse_q, "using": "sparse_vector", "limit": bm25_limit},
+            ]
+
+        # 3-stage: prefetch → RRF → ColBERT MaxSim
         body = {
             "prefetch": [
                 {
-                    "prefetch": [
-                        {"query": dense_vec, "using": "dense_vector", "limit": dense_limit},
-                        {"query": sparse_q, "using": "sparse_vector", "limit": bm25_limit},
-                    ],
+                    "prefetch": prefetch_inner,
                     "query": fusion_query,
-                    "limit": max(top_k * 3, 30),
+                    "limit": effective_rrf_limit,
                 }
             ],
             "query": colbert_vecs,
             "using": "colbert_vector",
-            "limit": top_k,
+            "limit": effective_colbert_pool,
             "with_payload": ["channel", "message_id"],
         }
     else:
-        # 2-stage: BM25+Dense → fusion
-        body = {
-            "prefetch": [
+        # 2-stage: prefetch → fusion
+        if dense_only:
+            prefetch = [
+                {"query": dense_vec, "using": "dense_vector", "limit": dense_limit},
+            ]
+        else:
+            prefetch = [
                 {"query": dense_vec, "using": "dense_vector", "limit": dense_limit},
                 {"query": sparse_q, "using": "sparse_vector", "limit": bm25_limit},
-            ],
+            ]
+        body = {
+            "prefetch": prefetch,
             "query": fusion_query,
             "limit": top_k,
             "with_payload": ["channel", "message_id"],
@@ -187,12 +263,21 @@ def main():
     parser.add_argument("--no-colbert", action="store_true", help="Disable ColBERT rerank")
     parser.add_argument("--fuzzy", type=int, default=5, help="msg_id fuzzy tolerance")
     parser.add_argument("--fusion", default="rrf", choices=["rrf", "dbsf"], help="Fusion method")
-    # Ablation параметры
+    # Ablation параметры (phase 1)
     parser.add_argument("--rrf-weights", default=None, help='RRF weights, e.g. "1.0,3.0"')
     parser.add_argument("--bm25-limit", type=int, default=100, help="BM25 prefetch limit")
     parser.add_argument("--dense-limit", type=int, default=20, help="Dense prefetch limit")
     parser.add_argument("--no-prefix", action="store_true", help="Disable instruction prefix")
     parser.add_argument("--output", default=None, help="Output JSON path (default: results/raw/)")
+    # Phase 2 параметры
+    parser.add_argument("--rrf-limit", type=int, default=None, help="RRF output limit (default: top_k*3)")
+    parser.add_argument("--colbert-pool", type=int, default=None, help="ColBERT rerank pool (default: top_k)")
+    parser.add_argument("--dense-only", action="store_true", help="Skip BM25, dense+ColBERT only")
+    parser.add_argument("--normalize-query", action="store_true", help="Apply lexicon normalization to both branches")
+    parser.add_argument("--normalize-sparse-only", action="store_true", help="Lexicon normalization for BM25 only")
+    parser.add_argument("--lexicon", default=None, help="JSON lexicon file for normalization")
+    parser.add_argument("--prf-expand", action="store_true", help="BM25 PRF: initial search → top terms → expanded query")
+    parser.add_argument("--prf-top-k", type=int, default=5, help="PRF: top-K initial hits for term extraction")
     args = parser.parse_args()
 
     # Парсим RRF weights
@@ -200,14 +285,37 @@ def main():
     if args.rrf_weights:
         rrf_weights = [float(x) for x in args.rrf_weights.split(",")]
 
+    # Загружаем lexicon если нужен
+    lexicon = None
+    if args.lexicon and (args.normalize_query or args.normalize_sparse_only):
+        with open(args.lexicon, encoding="utf-8") as f:
+            lexicon = json.load(f)
+        print(f"Lexicon loaded: {sum(len(v) for v in lexicon.values() if isinstance(v, dict))} entries")
+
     with open(args.dataset, encoding="utf-8") as f:
         items = json.load(f)
+
+    extra_flags = []
+    if args.dense_only:
+        extra_flags.append("dense-only")
+    if args.normalize_query:
+        extra_flags.append("normalize-all")
+    if args.normalize_sparse_only:
+        extra_flags.append("normalize-sparse")
+    if args.prf_expand:
+        extra_flags.append(f"PRF(k={args.prf_top_k})")
+    if args.rrf_limit:
+        extra_flags.append(f"rrf_limit={args.rrf_limit}")
+    if args.colbert_pool:
+        extra_flags.append(f"colbert_pool={args.colbert_pool}")
 
     print(f"Dataset: {len(items)} queries, collection: {args.collection}")
     print(f"ColBERT: {'OFF' if args.no_colbert else 'ON'}, Fusion: {args.fusion}, fuzzy: ±{args.fuzzy}")
     print(f"Dense limit: {args.dense_limit}, BM25 limit: {args.bm25_limit}, "
           f"Prefix: {'OFF' if args.no_prefix else 'ON'}, "
           f"RRF weights: {rrf_weights or 'default'}")
+    if extra_flags:
+        print(f"Phase 2: {', '.join(extra_flags)}")
 
     # Загружаем BM25 sparse model
     from fastembed import SparseTextEmbedding
@@ -222,14 +330,30 @@ def main():
         query = item["query"]
         expected = item.get("expected_documents", [])
 
+        # Query preprocessing
+        search_query = query
+        sparse_query = None  # None = same as search_query
+
+        if args.prf_expand:
+            search_query = prf_expand(
+                query, sparse_model, args.qdrant_url, args.collection, args.prf_top_k,
+            )
+
+        if lexicon and args.normalize_sparse_only:
+            sparse_query = normalize_query(query, lexicon)
+        elif lexicon and args.normalize_query:
+            search_query = normalize_query(query, lexicon)
+
         t0 = time.time()
         try:
             points = search_qdrant(
-                query, args.embedding_url, args.qdrant_url,
+                search_query, args.embedding_url, args.qdrant_url,
                 args.collection, sparse_model,
                 use_colbert=use_colbert, top_k=args.top_k, fusion=args.fusion,
                 dense_limit=args.dense_limit, bm25_limit=args.bm25_limit,
                 rrf_weights=rrf_weights, use_prefix=not args.no_prefix,
+                rrf_limit=args.rrf_limit, colbert_pool=args.colbert_pool,
+                dense_only=args.dense_only, sparse_query_text=sparse_query,
             )
         except Exception as e:
             print(f"  [{i+1}] ERROR: {e}")
@@ -329,6 +453,11 @@ def main():
         "bm25_limit": args.bm25_limit,
         "prefix": not args.no_prefix,
         "rrf_weights": rrf_weights,
+        "rrf_limit": args.rrf_limit,
+        "colbert_pool": args.colbert_pool,
+        "dense_only": args.dense_only,
+        "normalize": "sparse" if args.normalize_sparse_only else ("all" if args.normalize_query else None),
+        "prf_expand": args.prf_expand,
         "total_queries": len(items),
         "recall_at_1": avg(r1_list),
         "recall_at_3": avg(r3_list),

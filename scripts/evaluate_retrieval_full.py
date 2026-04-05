@@ -131,6 +131,48 @@ def find_reciprocal_rank(candidates: list, expected_docs: list[str], k: int = 20
     return 0.0
 
 
+def llm_call(prompt: str, system: str = "", max_tokens: int = 256) -> str:
+    """Один LLM вызов через llama-server /v1/chat/completions."""
+    import urllib.request as req_lib
+    llm_url = os.environ.get("LLM_BASE_URL", "http://localhost:8080")
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+
+    body = json.dumps({
+        "model": "default",
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": 0.3,
+    }).encode()
+    request = req_lib.Request(
+        f"{llm_url}/v1/chat/completions",
+        data=body,
+        headers={"Content-Type": "application/json"},
+    )
+    resp = json.loads(req_lib.urlopen(request, timeout=120).read())
+    return resp["choices"][0]["message"]["content"].strip()
+
+
+def llm_rewrite_query(query: str) -> str:
+    """R3: LLM single rewrite — перефразировать запрос для поиска."""
+    return llm_call(
+        prompt=f"Перефразируй запрос для поиска по базе новостей. Ответ строго на языке запроса. Только перефразированный запрос, без пояснений.\n\nЗапрос: {query}",
+        system="You are a search query optimizer. Rewrite the query to improve retrieval. Keep the same language as the input. Output only the rewritten query.",
+        max_tokens=128,
+    )
+
+
+def llm_hyde(query: str) -> str:
+    """D2: HyDE — сгенерировать гипотетический документ-ответ."""
+    return llm_call(
+        prompt=f"Напиши короткий пост (3-5 предложений) для Telegram-канала о технологиях, который мог бы быть ответом на вопрос: {query}\n\nПиши как реальный пост — с фактами, названиями, датами. Строго на языке запроса.",
+        system="You are a tech news writer for a Russian Telegram channel. Generate a realistic short post that answers the user's question. Use the same language as the query. 3-5 sentences max.",
+        max_tokens=200,
+    )
+
+
 def run_single_query(
     query: str,
     hybrid,
@@ -144,10 +186,45 @@ def run_single_query(
 
     trace: dict[str, Any] = {"original_query": query}
 
+    # Step 0: Single rewrite (R3)
+    rewritten_query = None
+    if args.single_rewrite:
+        try:
+            rewritten_query = llm_rewrite_query(query)
+            trace["rewritten_query"] = rewritten_query
+        except Exception as e:
+            trace["rewrite_error"] = str(e)
+
+    # Step 0b: HyDE (D2)
+    hyde_text = None
+    if args.hyde:
+        try:
+            hyde_text = llm_hyde(query)
+            trace["hyde_text"] = hyde_text
+        except Exception as e:
+            trace["hyde_error"] = str(e)
+
     # Step 1: Query plan (LLM)
     subqueries = [query]
     metadata_filters = None
     strategy = "broad"
+
+    # R6: Rule-based filters without LLM planner
+    if args.rule_based_filters:
+        try:
+            from services.query_signals import extract_query_signals
+            signals = extract_query_signals(query)
+            if signals.channels:
+                metadata_filters = MetadataFilters(channel_usernames=signals.channels)
+                trace["rule_based_channels"] = signals.channels
+            if signals.date_from:
+                if metadata_filters:
+                    metadata_filters.date_from = signals.date_from
+                else:
+                    metadata_filters = MetadataFilters(date_from=signals.date_from)
+                trace["rule_based_date_from"] = signals.date_from
+        except Exception as e:
+            trace["rule_filter_error"] = str(e)
 
     if args.use_query_plan and planner:
         try:
@@ -186,6 +263,36 @@ def run_single_query(
             per_query_results.append(sub_candidates)
         except Exception as e:
             trace.setdefault("search_errors", []).append(str(e))
+
+    # R3: дополнительный поиск по rewritten query
+    if rewritten_query and rewritten_query != query:
+        try:
+            rewrite_plan = SearchPlan(
+                normalized_queries=[rewritten_query],
+                k_per_query=k_per_query,
+                fusion="rrf",
+                strategy="broad",
+            )
+            rewrite_candidates = hybrid.search_with_plan(rewritten_query, rewrite_plan)
+            per_query_results.append(rewrite_candidates)
+            trace["rewrite_search_count"] = len(rewrite_candidates)
+        except Exception as e:
+            trace.setdefault("search_errors", []).append(f"rewrite: {e}")
+
+    # D2: дополнительный поиск по HyDE pseudo-document
+    if hyde_text:
+        try:
+            hyde_plan = SearchPlan(
+                normalized_queries=[hyde_text],
+                k_per_query=k_per_query,
+                fusion="rrf",
+                strategy="broad",
+            )
+            hyde_candidates = hybrid.search_with_plan(hyde_text, hyde_plan)
+            per_query_results.append(hyde_candidates)
+            trace["hyde_search_count"] = len(hyde_candidates)
+        except Exception as e:
+            trace.setdefault("search_errors", []).append(f"hyde: {e}")
 
     if len(per_query_results) > 1:
         candidates = round_robin_merge(per_query_results)
@@ -242,6 +349,10 @@ def main():
     parser.add_argument("--ce-filter", action="store_true")
     parser.add_argument("--ce-threshold", type=float, default=0.0)
     parser.add_argument("--channel-dedup", type=int, default=0, help="0=off, 2=default, 3=wide")
+    # Phase 2 new tracks
+    parser.add_argument("--single-rewrite", action="store_true", help="R3: LLM single rewrite + raw fusion")
+    parser.add_argument("--hyde", action="store_true", help="D2: HyDE auxiliary dense branch + raw")
+    parser.add_argument("--rule-based-filters", action="store_true", help="R6: query_signals filters without LLM")
     # Output
     parser.add_argument("--output", default=None)
     parser.add_argument("--save-traces", action="store_true")

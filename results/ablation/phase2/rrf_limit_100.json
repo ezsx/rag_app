@@ -1,0 +1,2669 @@
+{
+  "timestamp": "20260405-181814",
+  "collection": "news_colbert_v2",
+  "colbert": true,
+  "fusion": "rrf",
+  "fuzzy": 5,
+  "dense_limit": 40,
+  "bm25_limit": 100,
+  "prefix": false,
+  "rrf_weights": [
+    1.0,
+    3.0
+  ],
+  "rrf_limit": 100,
+  "colbert_pool": null,
+  "dense_only": false,
+  "normalize": null,
+  "prf_expand": false,
+  "total_queries": 120,
+  "recall_at_1": 0.7333333333333333,
+  "recall_at_3": 0.8833333333333333,
+  "recall_at_5": 0.9,
+  "recall_at_10": 0.9166666666666666,
+  "recall_at_20": 0.9333333333333333,
+  "mrr_at_20": 0.8090625,
+  "avg_latency": 4.326060646772385,
+  "results": [
+    {
+      "id": "ret_001",
+      "query": "Какая модель от Стэнфорда умеет ставить диагнозы по данным сна?",
+      "expected": [
+        "ai_machinelearning_big_data:9367"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.365041255950928,
+      "top5_hits": [
+        "ai_machinelearning_big_data:9367",
+        "xor_journal:8462",
+        "ai_machinelearning_big_data:9367",
+        "ai_machinelearning_big_data:8280",
+        "data_secrets:7870"
+      ]
+    },
+    {
+      "id": "ret_002",
+      "query": "Почему языковые модели начинают говорить «я всего лишь языковая модель»?",
+      "expected": [
+        "ai_machinelearning_big_data:9421"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.26846170425415,
+      "top5_hits": [
+        "ai_machinelearning_big_data:9421",
+        "ml_product:753",
+        "data_secrets:7797",
+        "ai_machinelearning_big_data:8465",
+        "ai_machinelearning_big_data:8748"
+      ]
+    },
+    {
+      "id": "ret_003",
+      "query": "Что за платформа NemoClaw от NVIDIA для корпоративных агентов?",
+      "expected": [
+        "ai_machinelearning_big_data:9678"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.275410175323486,
+      "top5_hits": [
+        "ai_machinelearning_big_data:9678",
+        "ai_machinelearning_big_data:9654",
+        "aioftheday:4292",
+        "data_secrets:8871",
+        "ai_machinelearning_big_data:9477"
+      ]
+    },
+    {
+      "id": "ret_004",
+      "query": "Isomorphic Labs начинает испытания лекарств созданных нейросетью?",
+      "expected": [
+        "techsparks:5118"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.314929246902466,
+      "top5_hits": [
+        "techsparks:5118",
+        "data_secrets:7319",
+        "ml_product:690",
+        "xor_journal:7098",
+        "techsparks:5118"
+      ]
+    },
+    {
+      "id": "ret_005",
+      "query": "MIT исследовали процент провальных ИИ-пилотов в индустрии, какие результаты?",
+      "expected": [
+        "data_secrets:7646"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.304311513900757,
+      "top5_hits": [
+        "data_secrets:7646",
+        "techsparks:5171",
+        "seeallochnaya:2795",
+        "ai_machinelearning_big_data:8928",
+        "techsparks:5171"
+      ]
+    },
+    {
+      "id": "ret_006",
+      "query": "Nvidia перестанет поставлять память вместе с чипами?",
+      "expected": [
+        "data_secrets:8376"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.282122373580933,
+      "top5_hits": [
+        "data_secrets:8376",
+        "ai_machinelearning_big_data:9235",
+        "ai_machinelearning_big_data:8541",
+        "techno_yandex:4598",
+        "data_secrets:8516"
+      ]
+    },
+    {
+      "id": "ret_007",
+      "query": "Что такое эффект Volkswagen в контексте LLM?",
+      "expected": [
+        "denissexy:10392"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.381274223327637,
+      "top5_hits": [
+        "denissexy:10392",
+        "stuffynlp:219",
+        "boris_again:3325",
+        "stuffynlp:163",
+        "ai_machinelearning_big_data:9497"
+      ]
+    },
+    {
+      "id": "ret_008",
+      "query": "Создали роборуку кисть которой может отсоединяться и ползать отдельно?",
+      "expected": [
+        "techsparks:5413"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.343491077423096,
+      "top5_hits": [
+        "techsparks:5413",
+        "xor_journal:7274",
+        "aioftheday:3601",
+        "techsparks:5403",
+        "seeallochnaya:3264"
+      ]
+    },
+    {
+      "id": "ret_009",
+      "query": "Как работает ShadowKV для оптимизации KV-кэша?",
+      "expected": [
+        "stuffynlp:221"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.307518482208252,
+      "top5_hits": [
+        "stuffynlp:221",
+        "stuffynlp:220",
+        "stuffynlp:221",
+        "stuffynlp:220",
+        "data_secrets:8625"
+      ]
+    },
+    {
+      "id": "ret_010",
+      "query": "Яндекс Переводчик теперь распознаёт текст на картинках?",
+      "expected": [
+        "MLunderhood:277"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.335087299346924,
+      "top5_hits": [
+        "MLunderhood:277",
+        "xor_journal:8369",
+        "data_secrets:8098",
+        "techno_yandex:4246",
+        "techno_yandex:4246"
+      ]
+    },
+    {
+      "id": "ret_011",
+      "query": "Можно ли выжечь веса LLM прямо в чип аппаратно?",
+      "expected": [
+        "toBeAnMLspecialist:1080"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.343661069869995,
+      "top5_hits": [
+        "toBeAnMLspecialist:1080",
+        "CVML_team:405",
+        "data_secrets:8168",
+        "denissexy:11235",
+        "ai_newz:4168"
+      ]
+    },
+    {
+      "id": "ret_012",
+      "query": "Есть ли RAG-чат который работает прямо в браузере через эмбеддинги?",
+      "expected": [
+        "varim_ml:170"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.299944877624512,
+      "top5_hits": [
+        "varim_ml:170",
+        "data_secrets:7765",
+        "cryptovalerii:832",
+        "data_secrets:7842",
+        "data_secrets:7730"
+      ]
+    },
+    {
+      "id": "ret_013",
+      "query": "Как обучают модели через reinforcement learning типа GRPO?",
+      "expected": [
+        "seeallochnaya:2908"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.296603679656982,
+      "top5_hits": [
+        "seeallochnaya:2908",
+        "gonzo_ml:4551",
+        "stuffynlp:219",
+        "ai_machinelearning_big_data:8744",
+        "gonzo_ml:4681"
+      ]
+    },
+    {
+      "id": "ret_014",
+      "query": "Raspberry Pi выпустили плату для запуска нейросетей?",
+      "expected": [
+        "xor_journal:8484"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.302874565124512,
+      "top5_hits": [
+        "xor_journal:8484",
+        "techno_yandex:4196",
+        "ai_machinelearning_big_data:9408",
+        "aioftheday:3216",
+        "ai_machinelearning_big_data:9382"
+      ]
+    },
+    {
+      "id": "ret_015",
+      "query": "Что за молекулярная метафора для понимания Chain-of-Thought?",
+      "expected": [
+        "gonzo_ml:4831"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.301069974899292,
+      "top5_hits": [
+        "gonzo_ml:4831",
+        "data_secrets:7409",
+        "gonzo_ml:4622",
+        "gonzo_ml:4168",
+        "data_secrets:7960"
+      ]
+    },
+    {
+      "id": "ret_016",
+      "query": "Почему изменение промпта в одном месте ломает систему в другом?",
+      "expected": [
+        "llm_under_hood:613"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.4709084033966064,
+      "top5_hits": [
+        "llm_under_hood:613",
+        "data_secrets:7558",
+        "data_secrets:7459",
+        "deep_school:610",
+        "theworldisnoteasy:2202"
+      ]
+    },
+    {
+      "id": "ret_017",
+      "query": "Какой uv менеджер зависимостей для Python на Rust написан?",
+      "expected": [
+        "data_easy:337"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.371509313583374,
+      "top5_hits": [
+        "data_easy:337",
+        "data_easy:337",
+        "data_easy:337",
+        "ai_machinelearning_big_data:8327",
+        "llm_under_hood:731"
+      ]
+    },
+    {
+      "id": "ret_018",
+      "query": "Как агент автономно делал игры — сам писал код, тестировал и исправлял баги?",
+      "expected": [
+        "techno_yandex:4939"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.346775531768799,
+      "top5_hits": [
+        "techno_yandex:4939",
+        "data_secrets:8161",
+        "xor_journal:8688",
+        "xor_journal:7633",
+        "data_secrets:8572"
+      ]
+    },
+    {
+      "id": "ret_019",
+      "query": "Программисты теряют навыки из-за ИИ-агентов?",
+      "expected": [
+        "techno_yandex:4978"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.33017635345459,
+      "top5_hits": [
+        "techno_yandex:4978",
+        "techno_yandex:4950",
+        "data_secrets:8899",
+        "xor_journal:8821",
+        "techno_yandex:4834"
+      ]
+    },
+    {
+      "id": "ret_020",
+      "query": "Google оштрафовали за слежку через Android?",
+      "expected": [
+        "aioftheday:3179"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.34476900100708,
+      "top5_hits": [
+        "aioftheday:3179",
+        "aioftheday:3429",
+        "aioftheday:3443",
+        "aioftheday:3401",
+        "addmeto:6163"
+      ]
+    },
+    {
+      "id": "ret_021",
+      "query": "Испания запрещает детям сидеть в соцсетях?",
+      "expected": [
+        "aioftheday:4137"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.324735403060913,
+      "top5_hits": [
+        "aioftheday:4137",
+        "protechietich:3925",
+        "protechietich:3791",
+        "aioftheday:3905",
+        "protechietich:3878"
+      ]
+    },
+    {
+      "id": "ret_022",
+      "query": "Что значит когда говорят ИИ это не инструмент?",
+      "expected": [
+        "techsparks:5391"
+      ],
+      "category": "factual",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.3129987716674805,
+      "top5_hits": [
+        "theworldisnoteasy:2376",
+        "techsparks:5391",
+        "theworldisnoteasy:2219",
+        "techsparks:5217",
+        "ai_machinelearning_big_data:9114"
+      ]
+    },
+    {
+      "id": "ret_023",
+      "query": "Какие роадмапы и матрицы компетенций есть для Data Science?",
+      "expected": [
+        "data_easy:304"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.273752927780151,
+      "top5_hits": [
+        "data_easy:304",
+        "data_easy:304",
+        "data_easy:276",
+        "data_secrets:8892",
+        "ai_machinelearning_big_data:9695"
+      ]
+    },
+    {
+      "id": "ret_024",
+      "query": "Waabi привлёк деньги на беспилотные грузовики?",
+      "expected": [
+        "aioftheday:4080"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.3339691162109375,
+      "top5_hits": [
+        "aioftheday:4080",
+        "aioftheday:4198",
+        "aioftheday:3249",
+        "aioftheday:3681",
+        "aioftheday:4279"
+      ]
+    },
+    {
+      "id": "ret_025",
+      "query": "Что за шардирование баз данных объяснили с интерактивными диаграммами?",
+      "expected": [
+        "xor_journal:7955"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.35126519203186,
+      "top5_hits": [
+        "xor_journal:7955",
+        "xor_journal:8814",
+        "xor_journal:8093",
+        "xor_journal:7793",
+        "ai_machinelearning_big_data:8855"
+      ]
+    },
+    {
+      "id": "ret_026",
+      "query": "Sora будет доступна прямо в чате ChatGPT?",
+      "expected": [
+        "aioftheday:4268"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.357080459594727,
+      "top5_hits": [
+        "aioftheday:4268",
+        "ai_machinelearning_big_data:8700",
+        "ai_machinelearning_big_data:9121",
+        "seeallochnaya:3472",
+        "denissexy:11316"
+      ]
+    },
+    {
+      "id": "ret_027",
+      "query": "Нобелевку по физике дали за квантовые эксперименты на сверхпроводниках?",
+      "expected": [
+        "aioftheday:3599"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.318645477294922,
+      "top5_hits": [
+        "aioftheday:3599",
+        "data_secrets:7977",
+        "ai_machinelearning_big_data:8714",
+        "techsparks:5242",
+        "gonzo_ml:3946"
+      ]
+    },
+    {
+      "id": "ret_028",
+      "query": "Чем LoRA отличается от prompt и prefix методов?",
+      "expected": [
+        "deep_school:610"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.318901062011719,
+      "top5_hits": [
+        "deep_school:610",
+        "ai_machinelearning_big_data:9596",
+        "complete_ai:798",
+        "ai_machinelearning_big_data:9596",
+        "ai_machinelearning_big_data:8649"
+      ]
+    },
+    {
+      "id": "ret_029",
+      "query": "ИИ-компании выиграли суды по использованию данных из интернета?",
+      "expected": [
+        "oulenspiegel_channel:4555"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.299217700958252,
+      "top5_hits": [
+        "oulenspiegel_channel:4555",
+        "rybolos_channel:1531",
+        "aioftheday:3771",
+        "data_secrets:8639",
+        "ai_machinelearning_big_data:9410"
+      ]
+    },
+    {
+      "id": "ret_030",
+      "query": "Какую конституцию опубликовала Anthropic для своих моделей?",
+      "expected": [
+        "theworldisnoteasy:2378"
+      ],
+      "category": "factual",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.125,
+      "latency": 4.331735372543335,
+      "top5_hits": [
+        "ai_machinelearning_big_data:9418",
+        "data_secrets:8645",
+        "ai_machinelearning_big_data:9418",
+        "gonzo_ml:4609",
+        "techsparks:5416"
+      ]
+    },
+    {
+      "id": "ret_031",
+      "query": "Как Netflix организует стриминг видео и мониторинг?",
+      "expected": [
+        "ml_product:766"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.3052239418029785,
+      "top5_hits": [
+        "ml_product:766",
+        "ml_product:696",
+        "techno_yandex:4179",
+        "protechietich:3860",
+        "ml_product:682"
+      ]
+    },
+    {
+      "id": "ret_032",
+      "query": "Steam удаляет игры для взрослых из-за Mastercard?",
+      "expected": [
+        "addmeto:6159"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.298768520355225,
+      "top5_hits": [
+        "addmeto:6159",
+        "aioftheday:3206",
+        "llm_under_hood:770",
+        "aioftheday:3647",
+        "denissexy:10867"
+      ]
+    },
+    {
+      "id": "ret_033",
+      "query": "Как делать RAG систему правильно, от первой версии до продакшена?",
+      "expected": [
+        "deep_school:558"
+      ],
+      "category": "factual",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.305729866027832,
+      "top5_hits": [
+        "boris_again:3700",
+        "deep_school:558",
+        "deep_school:657",
+        "deep_school:609",
+        "boris_again:3786"
+      ]
+    },
+    {
+      "id": "ret_034",
+      "query": "ИИ-модели умеют играть в стратегические игры лучше людей?",
+      "expected": [
+        "seeallochnaya:3054"
+      ],
+      "category": "factual",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 0.0,
+      "recall_20": 0.0,
+      "reciprocal_rank": 0.0,
+      "latency": 4.318787097930908,
+      "top5_hits": [
+        "ai_machinelearning_big_data:7974",
+        "ai_machinelearning_big_data:8209",
+        "MLunderhood:135",
+        "xor_journal:7972",
+        "data_secrets:7531"
+      ]
+    },
+    {
+      "id": "ret_035",
+      "query": "Как обучают универсального агента через синтетические данные от другого агента?",
+      "expected": [
+        "seeallochnaya:3160"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.317010164260864,
+      "top5_hits": [
+        "seeallochnaya:3160",
+        "seeallochnaya:3162",
+        "data_secrets:8105",
+        "data_secrets:8572",
+        "seeallochnaya:3081"
+      ]
+    },
+    {
+      "id": "ret_036",
+      "query": "Яндекс работает над Physical AI для роботов?",
+      "expected": [
+        "techno_yandex:4493"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.297651529312134,
+      "top5_hits": [
+        "techno_yandex:4493",
+        "data_secrets:8525",
+        "ai_machinelearning_big_data:9284",
+        "protechietich:3717",
+        "techno_yandex:4940"
+      ]
+    },
+    {
+      "id": "ret_037",
+      "query": "РКН блокирует VPN и RDP подключения для удалёнщиков?",
+      "expected": [
+        "xor_journal:8695"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.415056228637695,
+      "top5_hits": [
+        "xor_journal:8695",
+        "xor_journal:8811",
+        "xor_journal:8534",
+        "xor_journal:7294",
+        "xor_journal:8678"
+      ]
+    },
+    {
+      "id": "ret_038",
+      "query": "Девушка год встречается с ИИ-парнем и довольна?",
+      "expected": [
+        "xor_journal:8815"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.2964911460876465,
+      "top5_hits": [
+        "xor_journal:8815",
+        "theworldisnoteasy:2227",
+        "xor_journal:8051",
+        "aioftheday:3534",
+        "techsparks:5140"
+      ]
+    },
+    {
+      "id": "ret_039",
+      "query": "RAND Corp оценивает риски удара США по Китаю из-за гонки за AGI?",
+      "expected": [
+        "theworldisnoteasy:2229"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.338768005371094,
+      "top5_hits": [
+        "theworldisnoteasy:2229",
+        "theworldisnoteasy:2229",
+        "theworldisnoteasy:2229",
+        "theworldisnoteasy:2286",
+        "theworldisnoteasy:2254"
+      ]
+    },
+    {
+      "id": "ret_040",
+      "query": "Продажи JetBrains IDE будут падать из-за ИИ-агентов?",
+      "expected": [
+        "llm_under_hood:741"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.30710506439209,
+      "top5_hits": [
+        "llm_under_hood:741",
+        "xor_journal:7784",
+        "seeallochnaya:3026",
+        "xor_journal:8116",
+        "xor_journal:8145"
+      ]
+    },
+    {
+      "id": "ret_041",
+      "query": "Как Anthropic исследовали ролевых персонажей внутри LLM?",
+      "expected": [
+        "theworldisnoteasy:2407"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.302564382553101,
+      "top5_hits": [
+        "theworldisnoteasy:2407",
+        "data_secrets:8647",
+        "techsparks:5465",
+        "data_secrets:7513",
+        "ai_machinelearning_big_data:9584"
+      ]
+    },
+    {
+      "id": "ret_042",
+      "query": "Что известно про модель LFM2 на 2.6 миллиарда параметров?",
+      "expected": [
+        "ai_machinelearning_big_data:8615"
+      ],
+      "category": "factual",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.2998528480529785,
+      "top5_hits": [
+        "ai_machinelearning_big_data:9333",
+        "ai_machinelearning_big_data:8615",
+        "ai_machinelearning_big_data:8714",
+        "ai_machinelearning_big_data:8627",
+        "ai_machinelearning_big_data:8857"
+      ]
+    },
+    {
+      "id": "ret_043",
+      "query": "Как считают значения Шепли на примере игры?",
+      "expected": [
+        "smalldatascience:1019"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.332697629928589,
+      "top5_hits": [
+        "smalldatascience:1019",
+        "data_easy:281",
+        "data_secrets:8236",
+        "seeallochnaya:3055",
+        "seeallochnaya:3209"
+      ]
+    },
+    {
+      "id": "ret_044",
+      "query": "Нейросети в робототехнике — когда ждать роботов управляемых нейросетями?",
+      "expected": [
+        "techno_yandex:4198"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.302253723144531,
+      "top5_hits": [
+        "techno_yandex:4198",
+        "ml_product:850",
+        "techno_yandex:4545",
+        "aioftheday:4005",
+        "ai_machinelearning_big_data:8580"
+      ]
+    },
+    {
+      "id": "ret_045",
+      "query": "Нефтегазовый сектор России инвестирует в IT?",
+      "expected": [
+        "protechietich:3900"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.3091840744018555,
+      "top5_hits": [
+        "protechietich:3900",
+        "protechietich:3859",
+        "protechietich:3607",
+        "protechietich:3569",
+        "protechietich:3602"
+      ]
+    },
+    {
+      "id": "ret_046",
+      "query": "Т-Банк играет с модераторами Apple и маскирует приложение?",
+      "expected": [
+        "protechietich:3648"
+      ],
+      "category": "factual",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.304041862487793,
+      "top5_hits": [
+        "protechietich:3648",
+        "protechietich:3588",
+        "protechietich:3412",
+        "protechietich:3955",
+        "xor_journal:7468"
+      ]
+    },
+    {
+      "id": "ret_047",
+      "query": "Расходы на ИИ сопоставимы с Манхэттенским проектом или лунной программой?",
+      "expected": [
+        "theworldisnoteasy:2393"
+      ],
+      "category": "factual",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.330603361129761,
+      "top5_hits": [
+        "ai_machinelearning_big_data:7965",
+        "theworldisnoteasy:2393",
+        "data_secrets:8344",
+        "ml_product:877",
+        "theworldisnoteasy:2393"
+      ]
+    },
+    {
+      "id": "ret_048",
+      "query": "Что за hr-breaker оптимизирует резюме под вакансию?",
+      "expected": [
+        "boris_again:3804"
+      ],
+      "category": "factual",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.348167657852173,
+      "top5_hits": [
+        "xor_journal:8556",
+        "boris_again:3804",
+        "boris_again:3744",
+        "denissexy:11179",
+        "boris_again:3720"
+      ]
+    },
+    {
+      "id": "ret_049",
+      "query": "Что нового в генеративных моделях произошло в феврале 2026?",
+      "expected": [
+        "ai_newz:4433"
+      ],
+      "category": "temporal",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 0.0,
+      "recall_20": 0.0,
+      "reciprocal_rank": 0.0,
+      "latency": 4.438566207885742,
+      "top5_hits": [
+        "boris_again:3749",
+        "aioftheday:3959",
+        "boris_again:3731",
+        "ai_machinelearning_big_data:9373",
+        "theworldisnoteasy:2339"
+      ]
+    },
+    {
+      "id": "ret_050",
+      "query": "Когда появился термин вайб-кодинг?",
+      "expected": [
+        "data_secrets:8686"
+      ],
+      "category": "temporal",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.3333333333333333,
+      "latency": 4.30042839050293,
+      "top5_hits": [
+        "techno_yandex:4858",
+        "techno_yandex:4559",
+        "data_secrets:8686",
+        "data_secrets:7464",
+        "seeallochnaya:3344"
+      ]
+    },
+    {
+      "id": "ret_051",
+      "query": "Сколько лет исполнилось Claude и как растёт выручка Anthropic?",
+      "expected": [
+        "data_secrets:8867"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.318183660507202,
+      "top5_hits": [
+        "data_secrets:8867",
+        "ai_newz:4041",
+        "seeallochnaya:3049",
+        "ai_machinelearning_big_data:8210",
+        "data_secrets:7746"
+      ]
+    },
+    {
+      "id": "ret_052",
+      "query": "Когда GPT-4.5 убирают из API OpenAI?",
+      "expected": [
+        "seeallochnaya:2641"
+      ],
+      "category": "temporal",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.284724950790405,
+      "top5_hits": [
+        "aioftheday:3833",
+        "seeallochnaya:2641",
+        "aioftheday:4088",
+        "ai_machinelearning_big_data:9458",
+        "xor_journal:7366"
+      ]
+    },
+    {
+      "id": "ret_053",
+      "query": "Сколько лет Яндексу исполнилось в сентябре 2025?",
+      "expected": [
+        "techsparks:5219"
+      ],
+      "category": "temporal",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.3333333333333333,
+      "latency": 4.337021112442017,
+      "top5_hits": [
+        "ai_machinelearning_big_data:8629",
+        "ai_machinelearning_big_data:9284",
+        "techsparks:5219",
+        "data_secrets:8853",
+        "data_secrets:8525"
+      ]
+    },
+    {
+      "id": "ret_054",
+      "query": "Какой российский open source был лучшим по итогам 2025 года?",
+      "expected": [
+        "oulenspiegel_channel:4894"
+      ],
+      "category": "temporal",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.368915796279907,
+      "top5_hits": [
+        "complete_ai:851",
+        "oulenspiegel_channel:4894",
+        "scientific_opensource:166",
+        "scientific_opensource:145",
+        "protechietich:3792"
+      ]
+    },
+    {
+      "id": "ret_055",
+      "query": "Какие работы Яндекса приняли на ICML 2025?",
+      "expected": [
+        "MLunderhood:128"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.301228284835815,
+      "top5_hits": [
+        "MLunderhood:128",
+        "MLunderhood:131",
+        "MLunderhood:135",
+        "MLunderhood:192",
+        "stuffynlp:135"
+      ]
+    },
+    {
+      "id": "ret_056",
+      "query": "Где проходила 63-я конференция ACL 2025?",
+      "expected": [
+        "stuffynlp:175"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.348505020141602,
+      "top5_hits": [
+        "stuffynlp:175",
+        "stuffynlp:163",
+        "MLunderhood:146",
+        "rybolos_channel:1561",
+        "stuffynlp:171"
+      ]
+    },
+    {
+      "id": "ret_057",
+      "query": "Что интересного было за первую четверть 21 века по версии National Geographic?",
+      "expected": [
+        "techsparks:5340"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.3784239292144775,
+      "top5_hits": [
+        "techsparks:5340",
+        "techsparks:5340",
+        "data_secrets:7419",
+        "theworldisnoteasy:2197",
+        "theworldisnoteasy:2182"
+      ]
+    },
+    {
+      "id": "ret_058",
+      "query": "Когда KlingAI планировал запустить новую омни-модель?",
+      "expected": [
+        "ai_machinelearning_big_data:9139"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.418840646743774,
+      "top5_hits": [
+        "ai_machinelearning_big_data:9139",
+        "data_secrets:8403",
+        "ai_newz:4301",
+        "ai_machinelearning_big_data:9147",
+        "boris_again:3600"
+      ]
+    },
+    {
+      "id": "ret_059",
+      "query": "Какие инвестиции привлекались в ИИ-компании в начале 2026?",
+      "expected": [
+        "seeallochnaya:3270"
+      ],
+      "category": "temporal",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 0.0,
+      "recall_20": 0.0,
+      "reciprocal_rank": 0.0,
+      "latency": 4.395691633224487,
+      "top5_hits": [
+        "theworldisnoteasy:2393",
+        "seeallochnaya:2903",
+        "techsparks:5486",
+        "aioftheday:3959",
+        "xor_journal:8407"
+      ]
+    },
+    {
+      "id": "ret_060",
+      "query": "Когда Alphabet разместила облигации на 20 миллиардов?",
+      "expected": [
+        "techsparks:5438"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.336416959762573,
+      "top5_hits": [
+        "techsparks:5438",
+        "protechietich:4029",
+        "ai_machinelearning_big_data:8729",
+        "aioftheday:3469",
+        "aioftheday:3357"
+      ]
+    },
+    {
+      "id": "ret_061",
+      "query": "Suno v5 когда вышла?",
+      "expected": [
+        "denissexy:10782"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.313969850540161,
+      "top5_hits": [
+        "denissexy:10782",
+        "aioftheday:3535",
+        "denissexy:11322",
+        "ai_newz:4188",
+        "ai_newz:4189"
+      ]
+    },
+    {
+      "id": "ret_062",
+      "query": "Когда OpenAI Codex выходил как нативное приложение?",
+      "expected": [
+        "seeallochnaya:3345"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.4398581981658936,
+      "top5_hits": [
+        "seeallochnaya:3345",
+        "ai_machinelearning_big_data:9463",
+        "ai_machinelearning_big_data:9283",
+        "aioftheday:4236",
+        "aioftheday:3492"
+      ]
+    },
+    {
+      "id": "ret_063",
+      "query": "Что происходило с Polymarket на фоне ударов по Ирану в марте?",
+      "expected": [
+        "addmeto:6196"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.288509130477905,
+      "top5_hits": [
+        "addmeto:6196",
+        "data_secrets:8806",
+        "aioftheday:4219",
+        "theworldisnoteasy:2412",
+        "seeallochnaya:2747"
+      ]
+    },
+    {
+      "id": "ret_064",
+      "query": "Time выпускал список 100 влиятельных людей в ИИ?",
+      "expected": [
+        "techno_yandex:4327"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.342899560928345,
+      "top5_hits": [
+        "techno_yandex:4327",
+        "data_secrets:7723",
+        "techsparks:5187",
+        "ai_machinelearning_big_data:7941",
+        "techsparks:5235"
+      ]
+    },
+    {
+      "id": "ret_065",
+      "query": "Когда в России представили антропоморфного робота Aidol?",
+      "expected": [
+        "protechietich:3756"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.290730714797974,
+      "top5_hits": [
+        "protechietich:3756",
+        "ai_machinelearning_big_data:9019",
+        "xor_journal:8242",
+        "oulenspiegel_channel:4811",
+        "techsparks:5439"
+      ]
+    },
+    {
+      "id": "ret_066",
+      "query": "Что за хакатон с призовым фондом 40 миллионов рублей был в Москве?",
+      "expected": [
+        "xor_journal:7506"
+      ],
+      "category": "temporal",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.310407638549805,
+      "top5_hits": [
+        "xor_journal:7506",
+        "xor_journal:7437",
+        "protechietich:3688",
+        "xor_journal:7522",
+        "data_secrets:8033"
+      ]
+    },
+    {
+      "id": "ret_067",
+      "query": "Что gonzo_ml писал про кросс-модальные репрезентации в VLM?",
+      "expected": [
+        "gonzo_ml:3797"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.313388824462891,
+      "top5_hits": [
+        "gonzo_ml:3797",
+        "gonzo_ml:4157",
+        "gonzo_ml:4009",
+        "gonzo_ml:3876",
+        "gonzo_ml:4964"
+      ]
+    },
+    {
+      "id": "ret_068",
+      "query": "Что в канале llm_under_hood рекомендовали обязательно посмотреть?",
+      "expected": [
+        "llm_under_hood:752"
+      ],
+      "category": "channel_specific",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 0.0,
+      "recall_20": 0.0,
+      "reciprocal_rank": 0.0,
+      "latency": 4.31758975982666,
+      "top5_hits": [
+        "llm_under_hood:727",
+        "llm_under_hood:743",
+        "llm_under_hood:724",
+        "llm_under_hood:683",
+        "llm_under_hood:736"
+      ]
+    },
+    {
+      "id": "ret_069",
+      "query": "В каком канале обсуждали как Калеб сделал игры с помощью агента?",
+      "expected": [
+        "techno_yandex:4939"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.335780382156372,
+      "top5_hits": [
+        "techno_yandex:4939",
+        "boris_again:3801",
+        "techno_yandex:4939",
+        "llm_under_hood:742",
+        "techno_yandex:4667"
+      ]
+    },
+    {
+      "id": "ret_070",
+      "query": "Что рыболов писал про то как вкатиться в FAANG?",
+      "expected": [
+        "rybolos_channel:1545"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.310626983642578,
+      "top5_hits": [
+        "rybolos_channel:1545",
+        "boris_again:3313",
+        "ai_machinelearning_big_data:9250",
+        "xor_journal:8432",
+        "ai_machinelearning_big_data:9250"
+      ]
+    },
+    {
+      "id": "ret_071",
+      "query": "О чём писал boris_again про Ben Goertzel и AGI?",
+      "expected": [
+        "boris_again:3709"
+      ],
+      "category": "channel_specific",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.297017574310303,
+      "top5_hits": [
+        "rybolos_channel:1717",
+        "boris_again:3709",
+        "gonzo_ml:4893",
+        "seeallochnaya:2695",
+        "gonzo_ml:3908"
+      ]
+    },
+    {
+      "id": "ret_072",
+      "query": "Что seeallochnaya написала про инженеров производительности в Anthropic?",
+      "expected": [
+        "seeallochnaya:3310"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.292358160018921,
+      "top5_hits": [
+        "seeallochnaya:3310",
+        "ai_machinelearning_big_data:9552",
+        "xor_journal:8255",
+        "data_secrets:8442",
+        "ai_machinelearning_big_data:9552"
+      ]
+    },
+    {
+      "id": "ret_073",
+      "query": "В каком канале обсуждали опасность rentahuman.ai?",
+      "expected": [
+        "boris_again:3733"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.3585333824157715,
+      "top5_hits": [
+        "boris_again:3733",
+        "ai_newz:4405",
+        "data_secrets:8325",
+        "aioftheday:4108",
+        "ai_newz:4407"
+      ]
+    },
+    {
+      "id": "ret_074",
+      "query": "Что в theworldisnoteasy писали про правильный субстрат для интеллекта?",
+      "expected": [
+        "theworldisnoteasy:2300"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.323104619979858,
+      "top5_hits": [
+        "theworldisnoteasy:2300",
+        "data_secrets:8231",
+        "theworldisnoteasy:2440",
+        "techsparks:5302",
+        "gonzo_ml:4369"
+      ]
+    },
+    {
+      "id": "ret_075",
+      "query": "Что Постнаука обсуждала с gonzo_ml?",
+      "expected": [
+        "gonzo_ml:4666"
+      ],
+      "category": "channel_specific",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 0.0,
+      "recall_20": 0.0,
+      "reciprocal_rank": 0.0,
+      "latency": 4.30677056312561,
+      "top5_hits": [
+        "gonzo_ml:4748",
+        "gonzo_ml:3812",
+        "gonzo_ml:3880",
+        "gonzo_ml:3875",
+        "gonzo_ml:3801"
+      ]
+    },
+    {
+      "id": "ret_076",
+      "query": "Что techsparks писал про документ Anthropic про AI Fluency?",
+      "expected": [
+        "techsparks:5463"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.302106857299805,
+      "top5_hits": [
+        "techsparks:5463",
+        "ai_machinelearning_big_data:9578",
+        "seeallochnaya:2685",
+        "gonzo_ml:4609",
+        "boris_again:3578"
+      ]
+    },
+    {
+      "id": "ret_077",
+      "query": "В каком канале рассказывали про DINOv3 и бенчмарки на NPU?",
+      "expected": [
+        "CVML_team:367"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.3454909324646,
+      "top5_hits": [
+        "CVML_team:367",
+        "ai_machinelearning_big_data:8280",
+        "CVML_team:410",
+        "data_secrets:7620",
+        "deep_school:579"
+      ]
+    },
+    {
+      "id": "ret_078",
+      "query": "Где писали про историю рингтона Nokia?",
+      "expected": [
+        "techno_yandex:4771"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.30793023109436,
+      "top5_hits": [
+        "techno_yandex:4771",
+        "techno_yandex:4560",
+        "techno_yandex:4360",
+        "data_secrets:7720",
+        "techsparks:5499"
+      ]
+    },
+    {
+      "id": "ret_079",
+      "query": "Что data_secrets написал про скандал Anthropic и Пентагон?",
+      "expected": [
+        "data_secrets:8783"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.298367500305176,
+      "top5_hits": [
+        "data_secrets:8785",
+        "theworldisnoteasy:2413",
+        "ai_machinelearning_big_data:9601",
+        "seeallochnaya:3430",
+        "theworldisnoteasy:2437"
+      ]
+    },
+    {
+      "id": "ret_080",
+      "query": "Что в канале protechietich было про покупку Московской школы программистов?",
+      "expected": [
+        "protechietich:3941"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.306844711303711,
+      "top5_hits": [
+        "protechietich:3941",
+        "protechietich:3941",
+        "protechietich:3933",
+        "techsparks:5344",
+        "protechietich:3941"
+      ]
+    },
+    {
+      "id": "ret_081",
+      "query": "Что singularityfm писал про бенчмарк METR для оценки AI-систем?",
+      "expected": [
+        "singularityfm:382"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.316825866699219,
+      "top5_hits": [
+        "singularityfm:382",
+        "data_secrets:7921",
+        "seeallochnaya:3134",
+        "seeallochnaya:2777",
+        "ai_machinelearning_big_data:7950"
+      ]
+    },
+    {
+      "id": "ret_082",
+      "query": "О чём писал varim_ml когда переехал на свою платформу?",
+      "expected": [
+        "varim_ml:170"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.283782482147217,
+      "top5_hits": [
+        "varim_ml:170",
+        "llm_under_hood:760",
+        "inforetriever:294",
+        "boris_again:3656",
+        "techsparks:5387"
+      ]
+    },
+    {
+      "id": "ret_083",
+      "query": "Что в канале denissexy было про Claude Code и NFS Underground?",
+      "expected": [
+        "denissexy:11238"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.275694847106934,
+      "top5_hits": [
+        "denissexy:11238",
+        "denissexy:11226",
+        "aioftheday:4305",
+        "ai_machinelearning_big_data:9709",
+        "llm_under_hood:777"
+      ]
+    },
+    {
+      "id": "ret_084",
+      "query": "Что xor_journal писал про российские модели на Хабре?",
+      "expected": [
+        "xor_journal:8569"
+      ],
+      "category": "channel_specific",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.3629724979400635,
+      "top5_hits": [
+        "xor_journal:8569",
+        "xor_journal:8874",
+        "xor_journal:8863",
+        "xor_journal:7718",
+        "xor_journal:8679"
+      ]
+    },
+    {
+      "id": "ret_085",
+      "query": "Чем LingBot-World лучше Genie 3 от Google?",
+      "expected": [
+        "ai_newz:4393"
+      ],
+      "category": "comparative",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.312704801559448,
+      "top5_hits": [
+        "ai_newz:4393",
+        "ai_newz:4395",
+        "ai_newz:4082",
+        "data_secrets:7534",
+        "xor_journal:7334"
+      ]
+    },
+    {
+      "id": "ret_086",
+      "query": "Wan2.2 vs Sora 2 — кто лучше в задачах рассуждения?",
+      "expected": [
+        "neurohive:1929"
+      ],
+      "category": "comparative",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.31417441368103,
+      "top5_hits": [
+        "neurohive:1929",
+        "neurohive:1929",
+        "neurohive:1919",
+        "oulenspiegel_channel:4761",
+        "ai_newz:4205"
+      ]
+    },
+    {
+      "id": "ret_087",
+      "query": "В чём разница между Stargate и Genesis как проектами в ИИ?",
+      "expected": [
+        "denissexy:10978"
+      ],
+      "category": "comparative",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.30135703086853,
+      "top5_hits": [
+        "techsparks:5312",
+        "denissexy:10978",
+        "denissexy:10978",
+        "techsparks:5353",
+        "data_secrets:8344"
+      ]
+    },
+    {
+      "id": "ret_088",
+      "query": "Чем конституция Anthropic отличается от обычных правил для ИИ?",
+      "expected": [
+        "theworldisnoteasy:2378"
+      ],
+      "category": "comparative",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.333556652069092,
+      "top5_hits": [
+        "theworldisnoteasy:2378",
+        "gonzo_ml:4609",
+        "ai_machinelearning_big_data:9418",
+        "theworldisnoteasy:2378",
+        "data_secrets:8645"
+      ]
+    },
+    {
+      "id": "ret_089",
+      "query": "GigaChat 3 от Сбера по сравнению с другими русскоязычными моделями?",
+      "expected": [
+        "rybolos_channel:1669"
+      ],
+      "category": "comparative",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.2,
+      "latency": 4.443839073181152,
+      "top5_hits": [
+        "data_secrets:8380",
+        "xor_journal:8191",
+        "scientific_opensource:162",
+        "complete_ai:814",
+        "rybolos_channel:1669"
+      ]
+    },
+    {
+      "id": "ret_090",
+      "query": "Как Midjourney V8 отличается от предыдущих версий?",
+      "expected": [
+        "ai_newz:4480"
+      ],
+      "category": "comparative",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.292698860168457,
+      "top5_hits": [
+        "ai_newz:4480",
+        "ai_newz:4443",
+        "boris_again:3819",
+        "ai_newz:4488",
+        "techsparks:5132"
+      ]
+    },
+    {
+      "id": "ret_091",
+      "query": "Oracle догнал AWS и Azure в облачном бизнесе?",
+      "expected": [
+        "ai_newz:4000"
+      ],
+      "category": "comparative",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.346530199050903,
+      "top5_hits": [
+        "ai_newz:4000",
+        "ai_newz:4000",
+        "ai_newz:4000",
+        "ai_machinelearning_big_data:8189",
+        "data_secrets:8911"
+      ]
+    },
+    {
+      "id": "ret_092",
+      "query": "Как результаты Gemini 2.5 Pro на математической олимпиаде сравниваются с людьми?",
+      "expected": [
+        "neurohive:1858"
+      ],
+      "category": "comparative",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.288898944854736,
+      "top5_hits": [
+        "data_secrets:8008",
+        "neurohive:1858",
+        "data_secrets:7508",
+        "seeallochnaya:2794",
+        "ai_machinelearning_big_data:8572"
+      ]
+    },
+    {
+      "id": "ret_093",
+      "query": "Kandinsky 5.0 Video vs Sora — кто круче?",
+      "expected": [
+        "dendi_math_ai:104"
+      ],
+      "category": "comparative",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.350537538528442,
+      "top5_hits": [
+        "ai_newz:4339",
+        "dendi_math_ai:104",
+        "oulenspiegel_channel:4877",
+        "ai_newz:4203",
+        "xor_journal:8142"
+      ]
+    },
+    {
+      "id": "ret_094",
+      "query": "RuadaptQwen3 стал лучше или хуже предыдущей версии?",
+      "expected": [
+        "ruadaptnaya:38"
+      ],
+      "category": "comparative",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.290262937545776,
+      "top5_hits": [
+        "ruadaptnaya:38",
+        "rybolos_channel:1669",
+        "ruadaptnaya:41",
+        "aioftheday:3474",
+        "ruadaptnaya:40"
+      ]
+    },
+    {
+      "id": "ret_095",
+      "query": "Сравни расходы на ИИ-инфраструктуру с историческими мегапроектами",
+      "expected": [
+        "theworldisnoteasy:2393"
+      ],
+      "category": "comparative",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.302491903305054,
+      "top5_hits": [
+        "theworldisnoteasy:2393",
+        "theworldisnoteasy:2393",
+        "theworldisnoteasy:2393",
+        "theworldisnoteasy:2393",
+        "seeallochnaya:2982"
+      ]
+    },
+    {
+      "id": "ret_096",
+      "query": "Приложение LingGuang для вайб-кодинга — это как Cursor или что-то другое?",
+      "expected": [
+        "aioftheday:3832"
+      ],
+      "category": "comparative",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.2868053913116455,
+      "top5_hits": [
+        "aioftheday:3832",
+        "ai_machinelearning_big_data:9288",
+        "xor_journal:8307",
+        "gonzo_ml:4332",
+        "gonzo_ml:4290"
+      ]
+    },
+    {
+      "id": "ret_097",
+      "query": "Что известно про скандал Anthropic с Пентагоном?",
+      "expected": [
+        "ai_machinelearning_big_data:9601"
+      ],
+      "category": "entity",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.326927900314331,
+      "top5_hits": [
+        "ai_machinelearning_big_data:9601",
+        "theworldisnoteasy:2411",
+        "data_secrets:8783",
+        "aioftheday:4257",
+        "data_secrets:8785"
+      ]
+    },
+    {
+      "id": "ret_098",
+      "query": "Сколько OpenAI привлекла в последнем раунде инвестиций?",
+      "expected": [
+        "seeallochnaya:3427"
+      ],
+      "category": "entity",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.1111111111111111,
+      "latency": 4.355841636657715,
+      "top5_hits": [
+        "aioftheday:4330",
+        "aioftheday:4210",
+        "data_secrets:8796",
+        "seeallochnaya:2710",
+        "seeallochnaya:3338"
+      ]
+    },
+    {
+      "id": "ret_099",
+      "query": "Что Карпаты написал про конец ручного программирования?",
+      "expected": [
+        "aioftheday:4199"
+      ],
+      "category": "entity",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.321495056152344,
+      "top5_hits": [
+        "aioftheday:4199",
+        "xor_journal:7909",
+        "data_secrets:8569",
+        "data_secrets:8666",
+        "data_secrets:8899"
+      ]
+    },
+    {
+      "id": "ret_100",
+      "query": "Microsoft открыли код Copilot Chat для VSCode?",
+      "expected": [
+        "data_secrets:7289"
+      ],
+      "category": "entity",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.298245429992676,
+      "top5_hits": [
+        "xor_journal:7068",
+        "data_secrets:7289",
+        "ai_machinelearning_big_data:8618",
+        "ml_product:931",
+        "ai_machinelearning_big_data:9429"
+      ]
+    },
+    {
+      "id": "ret_101",
+      "query": "Что DeepSeek сделали с hyper-connections?",
+      "expected": [
+        "gonzo_ml:4497"
+      ],
+      "category": "entity",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.417033433914185,
+      "top5_hits": [
+        "gonzo_ml:4497",
+        "data_secrets:8589",
+        "ai_machinelearning_big_data:9344",
+        "aioftheday:3996",
+        "ai_machinelearning_big_data:9344"
+      ]
+    },
+    {
+      "id": "ret_102",
+      "query": "Кого Forbes включил в рейтинг великих инноваторов Америки?",
+      "expected": [
+        "ai_machinelearning_big_data:9520"
+      ],
+      "category": "entity",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.319534540176392,
+      "top5_hits": [
+        "ai_machinelearning_big_data:9520",
+        "protechietich:3863",
+        "data_secrets:7997",
+        "protechietich:3587",
+        "protechietich:3574"
+      ]
+    },
+    {
+      "id": "ret_103",
+      "query": "OpenAI купила стартап Convogo?",
+      "expected": [
+        "aioftheday:4022"
+      ],
+      "category": "entity",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.3862292766571045,
+      "top5_hits": [
+        "aioftheday:4022",
+        "ai_machinelearning_big_data:9374",
+        "aioftheday:4254",
+        "ai_machinelearning_big_data:9653",
+        "data_secrets:7752"
+      ]
+    },
+    {
+      "id": "ret_104",
+      "query": "Что Anthropic узнали про то с кем мы разговариваем в чате?",
+      "expected": [
+        "theworldisnoteasy:2407"
+      ],
+      "category": "entity",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.330626010894775,
+      "top5_hits": [
+        "theworldisnoteasy:2407",
+        "techsparks:5465",
+        "denissexy:11185",
+        "data_secrets:7717",
+        "ai_machinelearning_big_data:9584"
+      ]
+    },
+    {
+      "id": "ret_105",
+      "query": "Какие модели Kandinsky открыли для генерации видео?",
+      "expected": [
+        "dendi_math_ai:94"
+      ],
+      "category": "entity",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.2,
+      "latency": 4.32166314125061,
+      "top5_hits": [
+        "ai_newz:4203",
+        "oulenspiegel_channel:4749",
+        "dendi_math_ai:83",
+        "complete_ai:815",
+        "dendi_math_ai:94"
+      ]
+    },
+    {
+      "id": "ret_106",
+      "query": "Дуров поздравлял с Рождеством и что-то говорил про инвесторов?",
+      "expected": [
+        "protechietich:3872"
+      ],
+      "category": "entity",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.312936782836914,
+      "top5_hits": [
+        "protechietich:3872",
+        "aioftheday:4316",
+        "protechietich:3495",
+        "protechietich:4029",
+        "denissexy:10825"
+      ]
+    },
+    {
+      "id": "ret_107",
+      "query": "Что Ben Goertzel думает про путь к AGI через научный метод?",
+      "expected": [
+        "boris_again:3709"
+      ],
+      "category": "entity",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.290939569473267,
+      "top5_hits": [
+        "rybolos_channel:1717",
+        "boris_again:3709",
+        "gonzo_ml:4893",
+        "gonzo_ml:4460",
+        "seeallochnaya:2695"
+      ]
+    },
+    {
+      "id": "ret_108",
+      "query": "Какие есть альтернативы RoPE для позиционных эмбеддингов?",
+      "expected": [
+        "gonzo_ml:4567"
+      ],
+      "category": "entity",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.35717511177063,
+      "top5_hits": [
+        "gonzo_ml:4567",
+        "gonzo_ml:4558",
+        "gonzo_ml:4571",
+        "gonzo_ml:4558",
+        "ai_machinelearning_big_data:9376"
+      ]
+    },
+    {
+      "id": "ret_109",
+      "query": "че там по трансформерам нового?",
+      "expected": [
+        "gonzo_ml:4567"
+      ],
+      "category": "edge",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 0.0,
+      "recall_20": 0.0,
+      "reciprocal_rank": 0.0,
+      "latency": 4.3044373989105225,
+      "top5_hits": [
+        "data_secrets:8410",
+        "data_secrets:8589",
+        "gonzo_ml:4502",
+        "data_secrets:7323",
+        "data_secrets:8050"
+      ]
+    },
+    {
+      "id": "ret_110",
+      "query": "какие нейросетки умеют видосы делать",
+      "expected": [
+        "neurohive:1929"
+      ],
+      "category": "edge",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 0.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.05555555555555555,
+      "latency": 4.347925186157227,
+      "top5_hits": [
+        "aioftheday:3954",
+        "techno_yandex:4246",
+        "techsparks:5324",
+        "protechietich:3892",
+        "techno_yandex:4206"
+      ]
+    },
+    {
+      "id": "ret_111",
+      "query": "Claude Code реально может старые игры запускать?",
+      "expected": [
+        "denissexy:11238"
+      ],
+      "category": "edge",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 0.0,
+      "recall_20": 0.0,
+      "reciprocal_rank": 0.0,
+      "latency": 4.300507068634033,
+      "top5_hits": [
+        "singularityfm:417",
+        "boris_again:3800",
+        "ai_machinelearning_big_data:9570",
+        "singularityfm:412",
+        "data_secrets:7548"
+      ]
+    },
+    {
+      "id": "ret_112",
+      "query": "нейросети заменят программистов или нет",
+      "expected": [
+        "techno_yandex:4978"
+      ],
+      "category": "edge",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 0.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.0625,
+      "latency": 4.293519973754883,
+      "top5_hits": [
+        "boris_again:3362",
+        "techno_yandex:4485",
+        "toBeAnMLspecialist:1062",
+        "xor_journal:8505",
+        "xor_journal:8034"
+      ]
+    },
+    {
+      "id": "ret_113",
+      "query": "кто-нить делал ии-музыку через suno?",
+      "expected": [
+        "denissexy:10782"
+      ],
+      "category": "edge",
+      "recall_1": 0.0,
+      "recall_3": 0.0,
+      "recall_5": 0.0,
+      "recall_10": 0.0,
+      "recall_20": 0.0,
+      "reciprocal_rank": 0.0,
+      "latency": 4.307663440704346,
+      "top5_hits": [
+        "aioftheday:3846",
+        "xor_journal:8909",
+        "ml_product:667",
+        "ml_product:668",
+        "aioftheday:3696"
+      ]
+    },
+    {
+      "id": "ret_114",
+      "query": "Блин VPN перестал работать из-за РКН что делать",
+      "expected": [
+        "xor_journal:8695"
+      ],
+      "category": "edge",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.3333333333333333,
+      "latency": 4.326704263687134,
+      "top5_hits": [
+        "xor_journal:8534",
+        "xor_journal:8627",
+        "xor_journal:8695",
+        "xor_journal:8811",
+        "xor_journal:8678"
+      ]
+    },
+    {
+      "id": "ret_115",
+      "query": "это правда что бармен прям в баре между коктейлями код пишет",
+      "expected": [
+        "boris_again:3299"
+      ],
+      "category": "edge",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.3339524269104,
+      "top5_hits": [
+        "boris_again:3299",
+        "cryptovalerii:835",
+        "seeallochnaya:2891",
+        "seeallochnaya:3194",
+        "aioftheday:4126"
+      ]
+    },
+    {
+      "id": "ret_116",
+      "query": "какая-то симуляция типа цивилизации где ии рулит странами",
+      "expected": [
+        "denissexy:11200"
+      ],
+      "category": "edge",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.5,
+      "latency": 4.2851245403289795,
+      "top5_hits": [
+        "theworldisnoteasy:2411",
+        "denissexy:11200",
+        "xor_journal:8611",
+        "xor_journal:8803",
+        "gonzo_ml:4868"
+      ]
+    },
+    {
+      "id": "ret_117",
+      "query": "Расскажи что-нибудь интересное про историю технозвуков",
+      "expected": [
+        "techno_yandex:4771"
+      ],
+      "category": "edge",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.372335433959961,
+      "top5_hits": [
+        "techno_yandex:4771",
+        "techno_yandex:4360",
+        "techno_yandex:5034",
+        "aioftheday:3958",
+        "techno_yandex:4879"
+      ]
+    },
+    {
+      "id": "ret_118",
+      "query": "а можно ли нейросетями рак диагностировать по анализу сна или типа того?",
+      "expected": [
+        "ai_machinelearning_big_data:9367"
+      ],
+      "category": "edge",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.344171524047852,
+      "top5_hits": [
+        "ai_machinelearning_big_data:9367",
+        "ai_machinelearning_big_data:9367",
+        "xor_journal:7550",
+        "xor_journal:8462",
+        "data_secrets:7693"
+      ]
+    },
+    {
+      "id": "ret_119",
+      "query": "youtube poop видео через ии это вообще реально?",
+      "expected": [
+        "denissexy:11279"
+      ],
+      "category": "edge",
+      "recall_1": 0.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 0.3333333333333333,
+      "latency": 4.292139530181885,
+      "top5_hits": [
+        "denissexy:10393",
+        "boris_again:3796",
+        "denissexy:11279",
+        "aioftheday:3683",
+        "xor_journal:8576"
+      ]
+    },
+    {
+      "id": "ret_120",
+      "query": "можно на распберри пай запустить языковую модель?",
+      "expected": [
+        "xor_journal:8484"
+      ],
+      "category": "edge",
+      "recall_1": 1.0,
+      "recall_3": 1.0,
+      "recall_5": 1.0,
+      "recall_10": 1.0,
+      "recall_20": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency": 4.30691385269165,
+      "top5_hits": [
+        "xor_journal:8484",
+        "ai_machinelearning_big_data:8754",
+        "denissexy:10909",
+        "denissexy:11031",
+        "llm_under_hood:727"
+      ]
+    }
+  ]
+}
