@@ -2,14 +2,19 @@
 Full-pipeline retrieval evaluation — prod-parity через direct import production модулей.
 
 Тестирует реальный production code path:
-  query_plan → multi-query search → round-robin merge → CE filter → channel dedup
+  query_plan → multi-query search → MMR merge → CE re-sort + adaptive filter → channel dedup
+
+Артефакт: один .jsonl файл с live flush (tail -f для мониторинга).
+  Строка 1: header (config, preflight results)
+  Строки 2..N: per-query результаты
+  Последняя строка: summary (агрегаты)
 
 Запуск:
     python scripts/evaluate_retrieval_full.py \
         --dataset datasets/eval_retrieval_v3.json \
         --use-query-plan --inject-original-query --use-metadata-filters \
         --ce-filter --ce-threshold 0.0 --channel-dedup 2 \
-        --output results/ablation/full_pipeline.json --save-traces
+        --output results/ablation/phase3/run_001.jsonl
 """
 
 from __future__ import annotations
@@ -17,8 +22,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
+import urllib.request
 from collections import defaultdict
 from typing import Any
 
@@ -31,17 +38,76 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
-# Override для standalone запуска (без Docker networking)
-os.environ.setdefault("QDRANT_URL", "http://localhost:16333")
-os.environ.setdefault("EMBEDDING_TEI_URL", "http://localhost:8082")
-os.environ.setdefault("RERANKER_TEI_URL", "http://localhost:8082")
-os.environ.setdefault("QDRANT_COLLECTION", "news_colbert_v2")
+# Force localhost для standalone запуска (не Docker networking).
+# setdefault не работает — .env загружает host.docker.internal раньше.
+os.environ["QDRANT_URL"] = "http://localhost:16333"
+os.environ["EMBEDDING_TEI_URL"] = "http://localhost:8082"
+os.environ["RERANKER_TEI_URL"] = "http://localhost:8082"
+os.environ["QDRANT_COLLECTION"] = "news_colbert_v2"
 os.environ.setdefault("HYBRID_ENABLED", "true")
 os.environ.setdefault("ENABLE_RERANKER", "true")
 os.environ.setdefault("ENABLE_QUERY_PLANNER", "true")
 # LLM для query_plan (override Docker hostname)
-os.environ.setdefault("LLM_BASE_URL", "http://localhost:8080")
+os.environ["LLM_BASE_URL"] = "http://localhost:8080"
 
+
+# ── Live JSONL writer ──────────────────────────────────────────────
+
+class LiveWriter:
+    """Пишет jsonl с flush после каждой строки. tail -f для мониторинга."""
+
+    def __init__(self, path: str):
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        self._f = open(path, "w", encoding="utf-8")
+        self._path = path
+        self._count = 0
+
+    def write(self, obj: dict) -> None:
+        self._f.write(json.dumps(obj, ensure_ascii=False) + "\n")
+        self._f.flush()
+        self._count += 1
+
+    def close(self) -> None:
+        self._f.close()
+
+    @property
+    def path(self) -> str:
+        return self._path
+
+
+# ── Preflight ──────────────────────────────────────────────────────
+
+def preflight_check() -> dict[str, dict]:
+    """Проверить доступность всех сервисов. Возвращает {service: {ok, url, error, ms}}."""
+    checks = {
+        "qdrant": os.environ["QDRANT_URL"],
+        "embedding": os.environ["EMBEDDING_TEI_URL"],
+        "reranker": os.environ["RERANKER_TEI_URL"],
+        "llm": os.environ.get("LLM_BASE_URL", "http://localhost:8080"),
+    }
+    # Qdrant → /collections, остальные → /health
+    endpoints = {
+        "qdrant": "/collections",
+        "embedding": "/health",
+        "reranker": "/health",
+        "llm": "/health",
+    }
+    results = {}
+    for svc, base_url in checks.items():
+        url = base_url.rstrip("/") + endpoints[svc]
+        t0 = time.time()
+        try:
+            req = urllib.request.Request(url, method="GET")
+            resp = urllib.request.urlopen(req, timeout=5)
+            ms = (time.time() - t0) * 1000
+            results[svc] = {"ok": True, "url": base_url, "status": resp.status, "ms": round(ms)}
+        except Exception as e:
+            ms = (time.time() - t0) * 1000
+            results[svc] = {"ok": False, "url": base_url, "error": str(e)[:120], "ms": round(ms)}
+    return results
+
+
+# ── Bootstrap ──────────────────────────────────────────────────────
 
 def bootstrap():
     """Инициализация production компонентов без FastAPI DI."""
@@ -54,17 +120,13 @@ def bootstrap():
     reranker = get_reranker()
 
     if not hybrid:
-        print("ERROR: HybridRetriever не инициализирован. Проверьте HYBRID_ENABLED и сервисы.")
+        print("ERROR: HybridRetriever не инициализирован.", file=sys.stderr)
         sys.exit(1)
-
-    print("Bootstrap OK:")
-    print(f"  Qdrant: {settings.qdrant_url} / {settings.qdrant_collection}")
-    print(f"  Embedding: {settings.embedding_tei_url}")
-    print(f"  Reranker: {'ON' if reranker else 'OFF'}")
-    print(f"  QueryPlanner: {'ON' if planner else 'OFF'}")
 
     return settings, hybrid, planner, reranker
 
+
+# ── Pipeline helpers ───────────────────────────────────────────────
 
 def mmr_merge(per_query_results: list[list]) -> list:
     """MMR merge из production search.py — один code path."""
@@ -73,7 +135,7 @@ def mmr_merge(per_query_results: list[list]) -> list:
 
 
 def channel_dedup(candidates: list, max_per_channel: int) -> list:
-    """Channel dedup из hybrid_retriever.py:317-330."""
+    """Channel dedup: max N docs per channel."""
     if max_per_channel <= 0:
         return candidates
     channel_counts: dict[str, int] = {}
@@ -123,9 +185,33 @@ def find_reciprocal_rank(candidates: list, expected_docs: list[str], k: int = 20
     return 0.0
 
 
+def get_git_sha() -> str:
+    """Текущий git commit SHA (short)."""
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"], text=True, timeout=5,
+        ).strip()
+    except Exception:
+        return "unknown"
+
+
+def find_expected_rank(candidates: list, expected_docs: list[str], fuzzy: int = 5) -> int | None:
+    """Позиция (1-based) первого expected doc в candidates. None если не найден."""
+    for exp in expected_docs:
+        parts = exp.split(":", 1)
+        if len(parts) != 2:
+            continue
+        exp_ch, exp_msg = parts[0].lower(), int(parts[1])
+        for rank, c in enumerate(candidates, 1):
+            meta = c.metadata if hasattr(c, "metadata") else {}
+            if (meta.get("channel", "").lower() == exp_ch
+                    and abs(meta.get("message_id", 0) - exp_msg) <= fuzzy):
+                return rank
+    return None
+
+
 def llm_call(prompt: str, system: str = "", max_tokens: int = 256) -> str:
     """Один LLM вызов через llama-server /v1/chat/completions."""
-    import urllib.request as req_lib
     llm_url = os.environ.get("LLM_BASE_URL", "http://localhost:8080")
     messages = []
     if system:
@@ -138,12 +224,12 @@ def llm_call(prompt: str, system: str = "", max_tokens: int = 256) -> str:
         "max_tokens": max_tokens,
         "temperature": 0.3,
     }).encode()
-    request = req_lib.Request(
+    request = urllib.request.Request(
         f"{llm_url}/v1/chat/completions",
         data=body,
         headers={"Content-Type": "application/json"},
     )
-    resp = json.loads(req_lib.urlopen(request, timeout=120).read())
+    resp = json.loads(urllib.request.urlopen(request, timeout=120).read())
     return resp["choices"][0]["message"]["content"].strip()
 
 
@@ -165,8 +251,11 @@ def llm_hyde(query: str) -> str:
     )
 
 
+# ── Single query pipeline ─────────────────────────────────────────
+
 def run_single_query(
     query: str,
+    expected_docs: list[str],
     hybrid,
     planner,
     reranker,
@@ -176,7 +265,8 @@ def run_single_query(
     """Прогнать один query через configurable pipeline. Вернуть (candidates, trace)."""
     from schemas.search import MetadataFilters, SearchPlan
 
-    trace: dict[str, Any] = {"original_query": query}
+    trace: dict[str, Any] = {}
+    fuzzy = args.fuzzy
 
     # Step 0: Single rewrite (R3)
     rewritten_query = None
@@ -185,16 +275,16 @@ def run_single_query(
             rewritten_query = llm_rewrite_query(query)
             trace["rewritten_query"] = rewritten_query
         except Exception as e:
-            trace["rewrite_error"] = str(e)
+            trace["rewrite_error"] = str(e)[:100]
 
     # Step 0b: HyDE (D2)
     hyde_text = None
     if args.hyde:
         try:
             hyde_text = llm_hyde(query)
-            trace["hyde_text"] = hyde_text
+            trace["hyde_text"] = hyde_text[:200]
         except Exception as e:
-            trace["hyde_error"] = str(e)
+            trace["hyde_error"] = str(e)[:100]
 
     # Step 1: Query plan (LLM)
     subqueries = [query]
@@ -216,8 +306,9 @@ def run_single_query(
                     metadata_filters = MetadataFilters(date_from=signals.date_from)
                 trace["rule_based_date_from"] = signals.date_from
         except Exception as e:
-            trace["rule_filter_error"] = str(e)
+            trace["rule_filter_error"] = str(e)[:100]
 
+    t_plan = time.time()
     if args.use_query_plan and planner:
         try:
             plan = planner.make_plan(query)
@@ -225,20 +316,18 @@ def run_single_query(
             if args.use_metadata_filters and plan.metadata_filters:
                 metadata_filters = plan.metadata_filters
             strategy = plan.strategy or "broad"
-            trace["subqueries"] = subqueries
+            trace["n_subqueries"] = len(subqueries)
             trace["strategy"] = strategy
-            if metadata_filters:
-                trace["applied_filters"] = metadata_filters.dict(exclude_none=True)
         except Exception as e:
-            trace["planner_error"] = str(e)
+            trace["planner_error"] = str(e)[:100]
             subqueries = [query]
+    trace["planner_ms"] = round((time.time() - t_plan) * 1000)
 
     # Step 2: Original query injection
     if args.inject_original_query and query not in subqueries:
         subqueries = [query, *subqueries]
-        trace["injected_original"] = True
 
-    # Step 3: Per-subquery search + round-robin merge
+    # Step 3: Per-subquery search + merge
     k_per_query = settings.search_k_per_query_default or 10
     search_plan = SearchPlan(
         normalized_queries=subqueries,
@@ -248,13 +337,14 @@ def run_single_query(
         strategy=strategy,
     )
 
+    t_search = time.time()
     per_query_results = []
     for q in subqueries:
         try:
             sub_candidates = hybrid.search_with_plan(q, search_plan)
             per_query_results.append(sub_candidates)
         except Exception as e:
-            trace.setdefault("search_errors", []).append(str(e))
+            trace.setdefault("search_errors", []).append(str(e)[:100])
 
     # R3: дополнительный поиск по rewritten query
     if rewritten_query and rewritten_query != query:
@@ -267,9 +357,8 @@ def run_single_query(
             )
             rewrite_candidates = hybrid.search_with_plan(rewritten_query, rewrite_plan)
             per_query_results.append(rewrite_candidates)
-            trace["rewrite_search_count"] = len(rewrite_candidates)
         except Exception as e:
-            trace.setdefault("search_errors", []).append(f"rewrite: {e}")
+            trace.setdefault("search_errors", []).append(f"rewrite: {str(e)[:80]}")
 
     # D2: дополнительный поиск по HyDE pseudo-document
     if hyde_text:
@@ -282,9 +371,8 @@ def run_single_query(
             )
             hyde_candidates = hybrid.search_with_plan(hyde_text, hyde_plan)
             per_query_results.append(hyde_candidates)
-            trace["hyde_search_count"] = len(hyde_candidates)
         except Exception as e:
-            trace.setdefault("search_errors", []).append(f"hyde: {e}")
+            trace.setdefault("search_errors", []).append(f"hyde: {str(e)[:80]}")
 
     if len(per_query_results) > 1:
         candidates = mmr_merge(per_query_results)
@@ -292,10 +380,18 @@ def run_single_query(
         candidates = per_query_results[0]
     else:
         candidates = []
+    trace["search_ms"] = round((time.time() - t_search) * 1000)
 
-    trace["merged_count"] = len(candidates)
+    trace["merged"] = len(candidates)
 
-    # Step 4: CE re-sort + adaptive filter (production parity with state.py)
+    # Stage attribution: отслеживаем expected doc через каждый этап
+    rank_after_merge = find_expected_rank(candidates, expected_docs, fuzzy)
+
+    # Step 4: CE re-sort + adaptive filter
+    t_ce = time.time()
+    ce_ok = False
+    ce_top = None
+    ce_cut = None
     if args.ce_filter and reranker and candidates:
         docs_text = [c.text for c in candidates]
         try:
@@ -304,16 +400,18 @@ def run_single_query(
                 top_n=min(len(docs_text), settings.reranker_top_n or 80),
             )
             if scores:
-                # Присвоить CE scores каждому candidate
+                ce_ok = True
                 score_map = {}
                 for idx, score in zip(indices, scores):
                     score_map[idx] = score
 
                 scored = [(i, c, score_map.get(i, 0.0)) for i, c in enumerate(candidates)]
-                # CE re-sort
                 scored.sort(key=lambda x: x[2], reverse=True)
-                # Adaptive filter (same logic as state.py _adaptive_ce_filter)
+
                 ce_vals = [s for _, _, s in scored]
+                ce_top = round(ce_vals[0], 2) if ce_vals else None
+
+                # Adaptive filter (same logic as state.py _adaptive_ce_filter)
                 gap_cut = len(ce_vals)
                 for gi in range(len(ce_vals) - 1):
                     if ce_vals[gi] - ce_vals[gi + 1] > 2.0:
@@ -328,25 +426,50 @@ def run_single_query(
                     floor_cut = sum(1 for s in ce_vals if s >= -2.0)
                     cut = max(min(5, len(ce_vals)), floor_cut)
                 scored = scored[:cut]
-
-                trace["ce_filtered_out"] = len(candidates) - len(scored)
-                trace["ce_scores_sample"] = ce_vals[:5]
+                ce_cut = len(scored)
+                trace["mean_ce"] = round(sum(s for _, _, s in scored) / len(scored), 2) if scored else 0
+                trace["ce_neg"] = sum(1 for _, _, s in scored if s < 0)
                 candidates = [c for _, c, _ in scored]
             else:
-                trace["ce_error"] = "reranker returned empty scores (fallback)"
-                trace["ce_filtered_out"] = 0
+                trace["ce_error"] = "empty_scores"
         except Exception as e:
-            trace["ce_error"] = str(e)
+            trace["ce_error"] = f"{type(e).__name__}: {str(e)[:100]}"
+    trace["ce_ms"] = round((time.time() - t_ce) * 1000)
+
+    trace["ce_ok"] = ce_ok
+    if ce_top is not None:
+        trace["ce_top"] = ce_top
+    if ce_cut is not None:
+        trace["ce_cut"] = ce_cut
+
+    rank_after_ce = find_expected_rank(candidates, expected_docs, fuzzy)
 
     # Step 5: Channel dedup
     if args.channel_dedup > 0 and candidates:
         before = len(candidates)
         candidates = channel_dedup(candidates, args.channel_dedup)
-        trace["dedup_removed"] = before - len(candidates)
+        trace["dedup_rm"] = before - len(candidates)
 
-    trace["final_count"] = len(candidates)
+    rank_final = find_expected_rank(candidates, expected_docs, fuzzy)
+
+    trace["n_cand"] = len(candidates)
+    trace["n_channels"] = len(set(c.metadata.get("channel", "") for c in candidates[:5]))
+    trace["expected_rank"] = rank_final
+
+    # Stage attribution: где потерялся expected doc
+    if rank_final:
+        trace["lost_in"] = None  # found
+    elif rank_after_ce:
+        trace["lost_in"] = "dedup"
+    elif rank_after_merge:
+        trace["lost_in"] = "ce_filter"
+    else:
+        trace["lost_in"] = "not_in_merge"
+
     return candidates, trace
 
+
+# ── Main ───────────────────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser(description="Full-pipeline retrieval evaluation")
@@ -366,21 +489,35 @@ def main():
     parser.add_argument("--rule-based-filters", action="store_true", help="R6: query_signals filters without LLM")
     # Output
     parser.add_argument("--output", default=None)
-    parser.add_argument("--save-traces", action="store_true")
     # Subset
     parser.add_argument("--categories", default=None, help='Filter categories, e.g. "edge,temporal,channel_specific"')
     args = parser.parse_args()
 
+    # ── Preflight ──
+    print("Preflight check...", file=sys.stderr)
+    health = preflight_check()
+    all_ok = True
+    for svc, info in health.items():
+        status = "OK" if info["ok"] else "FAIL"
+        detail = f"{info['ms']}ms" if info["ok"] else info.get("error", "?")[:60]
+        print(f"  {svc:12s} {info['url']:40s} {status} ({detail})", file=sys.stderr)
+        if not info["ok"]:
+            all_ok = False
+
+    if not all_ok:
+        print("\nPreflight FAILED — сервисы недоступны. Прерываю.", file=sys.stderr)
+        sys.exit(1)
+    print("Preflight OK\n", file=sys.stderr)
+
+    # ── Bootstrap ──
     settings, hybrid, planner, reranker = bootstrap()
 
     with open(args.dataset, encoding="utf-8") as f:
         items = json.load(f)
 
-    # Фильтрация по категориям
     if args.categories:
         cats = set(args.categories.split(","))
         items = [it for it in items if it.get("category", "") in cats]
-        print(f"Filtered to categories {cats}: {len(items)} queries")
 
     config_str = []
     if args.use_query_plan:
@@ -393,13 +530,44 @@ def main():
         config_str.append(f"ce_filter(t={args.ce_threshold})")
     if args.channel_dedup > 0:
         config_str.append(f"dedup={args.channel_dedup}")
-    print(f"\nDataset: {len(items)} queries")
-    print(f"Pipeline: {' → '.join(config_str) or 'raw retriever only'}")
-    print()
 
-    results = []
-    traces = []
+    # ── Output path ──
+    ts = time.strftime("%Y%m%d-%H%M%S")
+    out_path = args.output or f"results/ablation/phase3/run_{ts}.jsonl"
+    if not out_path.endswith(".jsonl"):
+        out_path = out_path.rsplit(".", 1)[0] + ".jsonl"
+
+    writer = LiveWriter(out_path)
+
+    # ── Header line ──
+    writer.write({
+        "type": "header",
+        "timestamp": ts,
+        "git_sha": get_git_sha(),
+        "pipeline": config_str,
+        "total_queries": len(items),
+        "dataset": args.dataset,
+        "preflight": {svc: info["ok"] for svc, info in health.items()},
+        "config": {
+            "ce_threshold": args.ce_threshold if args.ce_filter else None,
+            "channel_dedup": args.channel_dedup,
+            "top_k": args.top_k,
+            "fuzzy": args.fuzzy,
+        },
+    })
+
+    print(f"Dataset: {len(items)} queries", file=sys.stderr)
+    print(f"Pipeline: {' → '.join(config_str) or 'raw retriever only'}", file=sys.stderr)
+    print(f"Output: {out_path}", file=sys.stderr)
+    print(file=sys.stderr)
+
+    # ── Eval loop ──
     t_total = time.time()
+    running_r1 = []
+    running_r5 = []
+    running_mrr = []
+    ce_ok_count = 0
+    error_count = 0
 
     for i, item in enumerate(items):
         query = item["query"]
@@ -408,11 +576,20 @@ def main():
         t0 = time.time()
         try:
             candidates, trace = run_single_query(
-                query, hybrid, planner, reranker, settings, args,
+                query, expected, hybrid, planner, reranker, settings, args,
             )
         except Exception as e:
-            print(f"  [{i+1}] ERROR: {e}")
-            results.append({"id": item["id"], "recall_1": 0, "recall_5": 0, "recall_20": 0, "reciprocal_rank": 0, "error": str(e)})
+            latency = time.time() - t0
+            row = {
+                "type": "query",
+                "qid": item["id"],
+                "query": query[:80],
+                "error": f"{type(e).__name__}: {str(e)[:100]}",
+                "latency": round(latency, 2),
+            }
+            writer.write(row)
+            error_count += 1
+            print(f"  [{i+1}/{len(items)}] ERROR {item['id']} | {str(e)[:60]}", file=sys.stderr)
             continue
         latency = time.time() - t0
 
@@ -423,97 +600,99 @@ def main():
         r20 = check_recall(candidates, expected, 20, args.fuzzy)
         rr = find_reciprocal_rank(candidates, expected, args.top_k, args.fuzzy)
 
-        results.append({
-            "id": item["id"],
+        running_r1.append(r1)
+        running_r5.append(r5)
+        running_mrr.append(rr)
+        if trace.get("ce_ok"):
+            ce_ok_count += 1
+
+        # Per-query jsonl row
+        row = {
+            "type": "query",
+            "qid": item["id"],
             "query": query[:80],
-            "category": item.get("category", ""),
-            "expected": expected,
-            "recall_1": r1, "recall_3": r3, "recall_5": r5, "recall_10": r10, "recall_20": r20,
-            "reciprocal_rank": rr,
-            "latency": latency,
-            "n_candidates": len(candidates),
-        })
+            "cat": item.get("category", ""),
+            "r1": r1, "r5": r5, "r10": r10, "r20": r20,
+            "rr": round(rr, 3),
+            "latency": round(latency, 2),
+        }
+        row.update(trace)  # ce_ok, ce_top, ce_cut, ce_error, merged, n_cand, dedup_rm, ...
+        writer.write(row)
 
-        if args.save_traces:
-            trace["id"] = item["id"]
-            trace["latency"] = latency
-            traces.append(trace)
-
-        status = "✅" if r5 > 0 else "❌"
-        if (i + 1) % 10 == 0 or r5 == 0:
-            print(f"  [{i+1}/{len(items)}] {status} r@5={r5:.2f} {latency:.2f}s | {query[:60]}")
+        # Live stderr: каждые 10 queries или при R@5=0
+        done = i + 1
+        if done % 10 == 0 or r5 == 0:
+            avg_r5 = sum(running_r5) / len(running_r5)
+            avg_mrr = sum(running_mrr) / len(running_mrr)
+            ce_tag = f"CE={ce_ok_count}/{done}" if args.ce_filter else ""
+            warn = " !!!" if args.ce_filter and ce_ok_count < done * 0.5 else ""
+            status = "+" if r5 > 0 else "MISS"
+            print(
+                f"  [{done}/{len(items)}] {status:4s} r@5={r5:.0f} {latency:.1f}s | "
+                f"R@5={avg_r5:.3f} MRR={avg_mrr:.3f} {ce_tag}{warn} | {query[:45]}",
+                file=sys.stderr,
+            )
 
     elapsed = time.time() - t_total
 
-    # Агрегация
-    valid = [r for r in results if "error" not in r]
-
+    # ── Summary line ──
     def avg(lst):
         return sum(lst) / len(lst) if lst else 0
 
-    r1_list = [r["recall_1"] for r in valid]
-    r3_list = [r["recall_3"] for r in valid]
-    r5_list = [r["recall_5"] for r in valid]
-    r10_list = [r["recall_10"] for r in valid]
-    r20_list = [r["recall_20"] for r in valid]
-    mrr = avg([r["reciprocal_rank"] for r in valid])
+    summary = {
+        "type": "summary",
+        "timestamp": ts,
+        "pipeline": config_str,
+        "total_queries": len(items),
+        "errors": error_count,
+        "recall_at_1": round(avg(running_r1), 4),
+        "recall_at_5": round(avg(running_r5), 4),
+        "mrr_at_20": round(avg(running_mrr), 4),
+        "ce_ok_rate": round(ce_ok_count / len(items), 3) if items else 0,
+        "avg_latency": round(elapsed / len(items), 2),
+        "total_time": round(elapsed, 1),
+    }
+    writer.write(summary)
+    writer.close()
 
-    print(f"\n{'='*60}")
-    print("Full Pipeline Evaluation Results")
-    print(f"{'='*60}")
-    print(f"Queries: {len(items)}, Errors: {sum(1 for r in results if 'error' in r)}")
-    print(f"Pipeline: {' → '.join(config_str) or 'raw retriever only'}")
-    print(f"Total time: {elapsed:.1f}s ({elapsed/len(items):.2f}s/query)")
-    print()
-    print(f"Recall@1:  {avg(r1_list):.3f}  ({sum(1 for r in r1_list if r==1.0)}/{len(r1_list)})")
-    print(f"Recall@3:  {avg(r3_list):.3f}  ({sum(1 for r in r3_list if r==1.0)}/{len(r3_list)})")
-    print(f"Recall@5:  {avg(r5_list):.3f}  ({sum(1 for r in r5_list if r==1.0)}/{len(r5_list)})")
-    print(f"Recall@10: {avg(r10_list):.3f}  ({sum(1 for r in r10_list if r==1.0)}/{len(r10_list)})")
-    print(f"Recall@20: {avg(r20_list):.3f}  ({sum(1 for r in r20_list if r==1.0)}/{len(r20_list)})")
-    print(f"MRR@20:    {mrr:.3f}")
+    # ── Console summary ──
+    print(f"\n{'='*60}", file=sys.stderr)
+    print(f"Queries: {len(items)}, Errors: {error_count}, CE OK: {ce_ok_count}/{len(items)}", file=sys.stderr)
+    print(f"Pipeline: {' → '.join(config_str)}", file=sys.stderr)
+    print(f"Total: {elapsed:.1f}s ({elapsed/len(items):.2f}s/query)", file=sys.stderr)
+    print(f"R@1={avg(running_r1):.3f}  R@5={avg(running_r5):.3f}  MRR={avg(running_mrr):.3f}", file=sys.stderr)
+    print(f"\nSaved: {out_path}", file=sys.stderr)
 
-    # Per-category
-    by_category = defaultdict(list)
-    for r in valid:
-        by_category[r.get("category", "unknown")].append(r)
+    # ── Backward compat: summary .json ──
+    json_path = out_path.rsplit(".", 1)[0] + ".json"
+    # Reread jsonl to build full results for json
+    all_rows = []
+    with open(out_path, encoding="utf-8") as f:
+        for line in f:
+            obj = json.loads(line)
+            if obj.get("type") == "query":
+                all_rows.append(obj)
 
-    if len(by_category) > 1:
-        print("\nПо категориям:")
-        for cat, cat_results in sorted(by_category.items()):
-            cat_r5 = avg([r["recall_5"] for r in cat_results])
-            cat_mrr = avg([r["reciprocal_rank"] for r in cat_results])
-            print(f"  {cat:20s} n={len(cat_results):3d}  R@5={cat_r5:.2f}  MRR={cat_mrr:.3f}")
-
-    # Сохраняем
-    ts = time.strftime("%Y%m%d-%H%M%S")
+    valid = [r for r in all_rows if "error" not in r]
     report = {
         "timestamp": ts,
         "pipeline": config_str,
         "total_queries": len(items),
-        "recall_at_1": avg(r1_list),
-        "recall_at_3": avg(r3_list),
-        "recall_at_5": avg(r5_list),
-        "recall_at_10": avg(r10_list),
-        "recall_at_20": avg(r20_list),
-        "mrr_at_20": mrr,
+        "recall_at_1": avg([r["r1"] for r in valid]),
+        "recall_at_3": avg([r.get("r3", 0) for r in valid]),
+        "recall_at_5": avg([r["r5"] for r in valid]),
+        "recall_at_10": avg([r["r10"] for r in valid]),
+        "recall_at_20": avg([r["r20"] for r in valid]),
+        "mrr_at_20": avg([r["rr"] for r in valid]),
         "avg_latency": elapsed / len(items),
         "ce_threshold": args.ce_threshold if args.ce_filter else None,
         "channel_dedup": args.channel_dedup,
-        "results": results,
+        "ce_ok_rate": round(ce_ok_count / len(items), 3) if items else 0,
+        "results": all_rows,
     }
-
-    out_path = args.output or f"results/ablation/full_pipeline_{ts}.json"
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    with open(out_path, "w", encoding="utf-8") as f:
+    with open(json_path, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
-    print(f"\nSaved to {out_path}")
-
-    # Traces
-    if args.save_traces and traces:
-        trace_path = out_path.replace(".json", "_traces.json")
-        with open(trace_path, "w", encoding="utf-8") as f:
-            json.dump(traces, f, ensure_ascii=False, indent=2)
-        print(f"Traces saved to {trace_path}")
+    print(f"JSON: {json_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":

@@ -1,26 +1,129 @@
 """
 Retrieval-only evaluation — прямые Qdrant queries без LLM.
 
-Быстрый: ~0.5с на запрос (vs 40с через agent).
-Тестирует качество поиска изолированно от LLM generation.
+Быстрый: ~4с на запрос. Тестирует качество поиска изолированно от pipeline.
+
+Артефакт: один .jsonl файл с live flush (tail -f для мониторинга).
+  Строка 1: header (config, preflight, git_sha)
+  Строки 2..N: per-query результаты
+  Последняя строка: summary
 
 Запуск:
     python scripts/evaluate_retrieval.py \
-        --dataset datasets/eval_retrieval_100.json \
-        --collection news_colbert \
-        --qdrant-url http://localhost:16333 \
-        --embedding-url http://localhost:8082
+        --dataset datasets/eval_retrieval_v3.json \
+        --collection news_colbert_v2 \
+        --no-prefix --dense-limit 40 --rrf-weights "1.0,3.0" \
+        --output results/ablation/phase3/ro_run.jsonl
 """
 
 import argparse
 import json
+import os
+import subprocess
 import sys
 import time
 import urllib.request
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 sys.stdout.reconfigure(encoding="utf-8")
 
+
+# ── Helpers ───────────���────────────────────────────────────────────
+
+def get_git_sha() -> str:
+    """Текущий git commit SHA (short)."""
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"], text=True, timeout=5,
+        ).strip()
+    except Exception:
+        return "unknown"
+
+
+class LiveWriter:
+    """Пишет jsonl с flush после каждой строки."""
+
+    def __init__(self, path: str):
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        self._f = open(path, "w", encoding="utf-8")
+        self._path = path
+
+    def write(self, obj: dict) -> None:
+        self._f.write(json.dumps(obj, ensure_ascii=False) + "\n")
+        self._f.flush()
+
+    def close(self) -> None:
+        self._f.close()
+
+    @property
+    def path(self) -> str:
+        return self._path
+
+
+def rerank_texts(query: str, texts: list[str], reranker_url: str) -> list[float] | None:
+    """CE scoring через gpu_server /rerank. Возвращает scores в порядке input или None при ошибке."""
+    if not texts:
+        return []
+    try:
+        body = json.dumps({
+            "query": query,
+            "texts": [t[:512] for t in texts],
+            "raw_scores": True,
+            "truncate": True,
+        }).encode()
+        req = urllib.request.Request(
+            f"{reranker_url.rstrip('/')}/rerank",
+            data=body,
+            headers={"Content-Type": "application/json"},
+        )
+        results = json.loads(urllib.request.urlopen(req, timeout=30).read())
+        scores = [0.0] * len(texts)
+        for item in results:
+            scores[item["index"]] = item["score"]
+        return scores
+    except Exception as e:
+        return None
+
+
+def preflight_check(qdrant_url: str, embedding_url: str, reranker_url: str | None = None) -> dict[str, dict]:
+    """Проверить доступность сервисов."""
+    checks = {
+        "qdrant": (qdrant_url, "/collections"),
+        "embedding": (embedding_url, "/health"),
+    }
+    if reranker_url:
+        checks["reranker"] = (reranker_url, "/health")
+    results = {}
+    for svc, (base, endpoint) in checks.items():
+        url = base.rstrip("/") + endpoint
+        t0 = time.time()
+        try:
+            req = urllib.request.Request(url, method="GET")
+            resp = urllib.request.urlopen(req, timeout=5)
+            ms = (time.time() - t0) * 1000
+            results[svc] = {"ok": True, "url": base, "ms": round(ms)}
+        except Exception as e:
+            ms = (time.time() - t0) * 1000
+            results[svc] = {"ok": False, "url": base, "error": str(e)[:120], "ms": round(ms)}
+    return results
+
+
+def find_expected_rank(points: list[dict], expected_docs: list[str], fuzzy: int = 5) -> int | None:
+    """Позиция (1-based) первого expected doc. None если не найден."""
+    for exp in expected_docs:
+        parts = exp.split(":", 1)
+        if len(parts) != 2:
+            continue
+        exp_ch, exp_msg = parts[0].lower(), int(parts[1])
+        for rank, p in enumerate(points, 1):
+            pay = p.get("payload", {})
+            if (pay.get("channel", "").lower() == exp_ch
+                    and abs(pay.get("message_id", 0) - exp_msg) <= fuzzy):
+                return rank
+    return None
+
+
+# ── Search / Embedding ─────��───────────────────────────────────────
 
 def embed_query(text: str, embedding_url: str, use_prefix: bool = True) -> list[float]:
     """Dense embedding через gpu_server."""
@@ -72,8 +175,6 @@ def prf_expand(
     query: str, sparse_model, qdrant_url: str, collection: str, top_k: int = 5,
 ) -> str:
     """Pseudo-Relevance Feedback: BM25 top-K → top terms → expanded query."""
-    from collections import Counter
-
     sparse_result = next(iter(sparse_model.query_embed(query)))
     sparse_q = {
         "indices": sparse_result.indices.tolist(),
@@ -150,7 +251,6 @@ def search_qdrant(
     effective_colbert_pool = colbert_pool or top_k
 
     if colbert_vecs:
-        # Prefetch ветки
         if dense_only:
             prefetch_inner = [
                 {"query": dense_vec, "using": "dense_vector", "limit": dense_limit},
@@ -161,7 +261,6 @@ def search_qdrant(
                 {"query": sparse_q, "using": "sparse_vector", "limit": bm25_limit},
             ]
 
-        # 3-stage: prefetch → RRF → ColBERT MaxSim
         body = {
             "prefetch": [
                 {
@@ -173,10 +272,9 @@ def search_qdrant(
             "query": colbert_vecs,
             "using": "colbert_vector",
             "limit": effective_colbert_pool,
-            "with_payload": ["channel", "message_id"],
+            "with_payload": ["channel", "message_id", "text"],
         }
     else:
-        # 2-stage: prefetch → fusion
         if dense_only:
             prefetch = [
                 {"query": dense_vec, "using": "dense_vector", "limit": dense_limit},
@@ -190,7 +288,7 @@ def search_qdrant(
             "prefetch": prefetch,
             "query": fusion_query,
             "limit": top_k,
-            "with_payload": ["channel", "message_id"],
+            "with_payload": ["channel", "message_id", "text"],
         }
 
     req = urllib.request.Request(
@@ -202,8 +300,10 @@ def search_qdrant(
     return resp["result"]["points"]
 
 
+# ── Recall helpers ─────────────────────────────────────────────────
+
 def check_recall(points: list[dict], expected_docs: list[str], k: int, fuzzy: int = 5) -> float:
-    """Проверяет recall@k: сколько expected docs найдено в top-k."""
+    """Recall@k с fuzzy matching по message_id."""
     if not expected_docs:
         return 0.0
     top_k_points = points[:k]
@@ -215,31 +315,17 @@ def check_recall(points: list[dict], expected_docs: list[str], k: int, fuzzy: in
         exp_ch, exp_msg = parts[0].lower(), int(parts[1])
         for p in top_k_points:
             pay = p.get("payload", {})
-            h_ch = pay.get("channel", "").lower()
-            h_msg = pay.get("message_id", 0)
-            if h_ch == exp_ch and abs(h_msg - exp_msg) <= fuzzy:
+            if (pay.get("channel", "").lower() == exp_ch
+                    and abs(pay.get("message_id", 0) - exp_msg) <= fuzzy):
                 matched += 1
                 break
     return matched / len(expected_docs)
 
 
-def compute_mrr(results: list[dict], k: int = 20) -> float:
-    """Mean Reciprocal Rank@k."""
-    rr_sum = 0.0
-    count = 0
-    for r in results:
-        if "error" in r:
-            continue
-        rr = r.get("reciprocal_rank", 0.0)
-        rr_sum += rr
-        count += 1
-    return rr_sum / count if count > 0 else 0.0
-
-
 def find_reciprocal_rank(
     points: list[dict], expected_docs: list[str], k: int = 20, fuzzy: int = 5,
 ) -> float:
-    """Reciprocal rank: 1/позиция первого найденного expected doc (0 если не найден)."""
+    """1/rank первого найденного expected doc."""
     top_k_points = points[:k]
     for exp in expected_docs:
         parts = exp.split(":", 1)
@@ -248,15 +334,18 @@ def find_reciprocal_rank(
         exp_ch, exp_msg = parts[0].lower(), int(parts[1])
         for rank, p in enumerate(top_k_points, 1):
             pay = p.get("payload", {})
-            if pay.get("channel", "").lower() == exp_ch and abs(pay.get("message_id", 0) - exp_msg) <= fuzzy:
+            if (pay.get("channel", "").lower() == exp_ch
+                    and abs(pay.get("message_id", 0) - exp_msg) <= fuzzy):
                 return 1.0 / rank
     return 0.0
 
 
+# ── Main ───────────────────────────────────────────────────────────
+
 def main():
     parser = argparse.ArgumentParser(description="Retrieval-only evaluation")
     parser.add_argument("--dataset", required=True, help="Path to retrieval dataset JSON")
-    parser.add_argument("--collection", default="news_colbert")
+    parser.add_argument("--collection", default="news_colbert_v2")
     parser.add_argument("--qdrant-url", default="http://localhost:16333")
     parser.add_argument("--embedding-url", default="http://localhost:8082")
     parser.add_argument("--top-k", type=int, default=20)
@@ -268,7 +357,7 @@ def main():
     parser.add_argument("--bm25-limit", type=int, default=100, help="BM25 prefetch limit")
     parser.add_argument("--dense-limit", type=int, default=20, help="Dense prefetch limit")
     parser.add_argument("--no-prefix", action="store_true", help="Disable instruction prefix")
-    parser.add_argument("--output", default=None, help="Output JSON path (default: results/raw/)")
+    parser.add_argument("--output", default=None, help="Output path (.jsonl)")
     # Phase 2 параметры
     parser.add_argument("--rrf-limit", type=int, default=None, help="RRF output limit (default: top_k*3)")
     parser.add_argument("--colbert-pool", type=int, default=None, help="ColBERT rerank pool (default: top_k)")
@@ -278,7 +367,20 @@ def main():
     parser.add_argument("--lexicon", default=None, help="JSON lexicon file for normalization")
     parser.add_argument("--prf-expand", action="store_true", help="BM25 PRF: initial search → top terms → expanded query")
     parser.add_argument("--prf-top-k", type=int, default=5, help="PRF: top-K initial hits for term extraction")
+    parser.add_argument("--reranker-url", default=None, help="CE reranker URL for context quality metrics (e.g. http://localhost:8082)")
     args = parser.parse_args()
+
+    # ── Preflight ──
+    print("Preflight check...", file=sys.stderr)
+    health = preflight_check(args.qdrant_url, args.embedding_url, args.reranker_url)
+    for svc, info in health.items():
+        status = "OK" if info["ok"] else "FAIL"
+        detail = f"{info['ms']}ms" if info["ok"] else info.get("error", "?")[:60]
+        print(f"  {svc:12s} {info['url']:40s} {status} ({detail})", file=sys.stderr)
+        if not info["ok"]:
+            print(f"\nPreflight FAILED — {svc} недоступен. Прерываю.", file=sys.stderr)
+            sys.exit(1)
+    print("Preflight OK\n", file=sys.stderr)
 
     # Парсим RRF weights
     rrf_weights = None
@@ -290,32 +392,10 @@ def main():
     if args.lexicon and (args.normalize_query or args.normalize_sparse_only):
         with open(args.lexicon, encoding="utf-8") as f:
             lexicon = json.load(f)
-        print(f"Lexicon loaded: {sum(len(v) for v in lexicon.values() if isinstance(v, dict))} entries")
+        print(f"Lexicon loaded: {sum(len(v) for v in lexicon.values() if isinstance(v, dict))} entries", file=sys.stderr)
 
     with open(args.dataset, encoding="utf-8") as f:
         items = json.load(f)
-
-    extra_flags = []
-    if args.dense_only:
-        extra_flags.append("dense-only")
-    if args.normalize_query:
-        extra_flags.append("normalize-all")
-    if args.normalize_sparse_only:
-        extra_flags.append("normalize-sparse")
-    if args.prf_expand:
-        extra_flags.append(f"PRF(k={args.prf_top_k})")
-    if args.rrf_limit:
-        extra_flags.append(f"rrf_limit={args.rrf_limit}")
-    if args.colbert_pool:
-        extra_flags.append(f"colbert_pool={args.colbert_pool}")
-
-    print(f"Dataset: {len(items)} queries, collection: {args.collection}")
-    print(f"ColBERT: {'OFF' if args.no_colbert else 'ON'}, Fusion: {args.fusion}, fuzzy: ±{args.fuzzy}")
-    print(f"Dense limit: {args.dense_limit}, BM25 limit: {args.bm25_limit}, "
-          f"Prefix: {'OFF' if args.no_prefix else 'ON'}, "
-          f"RRF weights: {rrf_weights or 'default'}")
-    if extra_flags:
-        print(f"Phase 2: {', '.join(extra_flags)}")
 
     # Загружаем BM25 sparse model
     from fastembed import SparseTextEmbedding
@@ -323,8 +403,55 @@ def main():
 
     use_colbert = not args.no_colbert and "colbert" in args.collection
 
-    results = []
+    # ── Output path ──
+    ts = time.strftime("%Y%m%d-%H%M%S")
+    out_path = args.output or f"results/ablation/retrieval_{ts}.jsonl"
+    if not out_path.endswith(".jsonl"):
+        out_path = out_path.rsplit(".", 1)[0] + ".jsonl"
+
+    config = {
+        "collection": args.collection,
+        "colbert": use_colbert,
+        "fusion": args.fusion,
+        "dense_limit": args.dense_limit,
+        "bm25_limit": args.bm25_limit,
+        "prefix": not args.no_prefix,
+        "rrf_weights": rrf_weights,
+        "rrf_limit": args.rrf_limit,
+        "colbert_pool": args.colbert_pool,
+        "dense_only": args.dense_only,
+        "normalize": "sparse" if args.normalize_sparse_only else ("all" if args.normalize_query else None),
+        "prf_expand": args.prf_expand,
+        "top_k": args.top_k,
+        "fuzzy": args.fuzzy,
+        "reranker_url": args.reranker_url,
+    }
+
+    writer = LiveWriter(out_path)
+
+    # ── Header ──
+    writer.write({
+        "type": "header",
+        "timestamp": ts,
+        "git_sha": get_git_sha(),
+        "total_queries": len(items),
+        "dataset": args.dataset,
+        "preflight": {svc: info["ok"] for svc, info in health.items()},
+        "config": config,
+    })
+
+    print(f"Dataset: {len(items)} queries, collection: {args.collection}", file=sys.stderr)
+    print(f"ColBERT: {'ON' if use_colbert else 'OFF'}, Fusion: {args.fusion}", file=sys.stderr)
+    print(f"Output: {out_path}", file=sys.stderr)
+    print(file=sys.stderr)
+
+    # ── Eval loop ──
     t_total = time.time()
+    running_r1 = []
+    running_r5 = []
+    running_mrr = []
+    error_count = 0
+    ce_ok_count = 0
 
     for i, item in enumerate(items):
         query = item["query"]
@@ -332,7 +459,7 @@ def main():
 
         # Query preprocessing
         search_query = query
-        sparse_query = None  # None = same as search_query
+        sparse_query = None
 
         if args.prf_expand:
             search_query = prf_expand(
@@ -356,10 +483,19 @@ def main():
                 dense_only=args.dense_only, sparse_query_text=sparse_query,
             )
         except Exception as e:
-            print(f"  [{i+1}] ERROR: {e}")
-            results.append({"id": item["id"], "recall_1": 0, "recall_5": 0, "recall_10": 0, "recall_20": 0, "reciprocal_rank": 0, "latency": 0, "error": str(e)})
+            latency = time.time() - t0
+            row = {
+                "type": "query",
+                "qid": item["id"],
+                "query": query[:80],
+                "error": f"{type(e).__name__}: {str(e)[:100]}",
+                "latency": round(latency, 2),
+            }
+            writer.write(row)
+            error_count += 1
+            print(f"  [{i+1}/{len(items)}] ERROR {item['id']} | {str(e)[:60]}", file=sys.stderr)
             continue
-        latency = time.time() - t0
+        search_ms = round((time.time() - t0) * 1000)
 
         r1 = check_recall(points, expected, 1, args.fuzzy)
         r3 = check_recall(points, expected, 3, args.fuzzy)
@@ -368,112 +504,130 @@ def main():
         r20 = check_recall(points, expected, 20, args.fuzzy)
         rr = find_reciprocal_rank(points, expected, args.top_k, args.fuzzy)
 
-        hit_docs = [f"{p['payload']['channel']}:{p['payload']['message_id']}" for p in points[:5]]
+        # Базовые метрики
+        n_results = len(points)
+        expected_rank = find_expected_rank(points, expected, args.fuzzy)
+        top5 = points[:5]
+        n_channels = len(set(p.get("payload", {}).get("channel", "") for p in top5))
+        top5_scores = [round(p.get("score", 0), 4) for p in top5]
+        top5_hits = [f"{p['payload']['channel']}:{p['payload']['message_id']}" for p in top5]
 
-        results.append({
-            "id": item["id"],
+        # CE scoring — метрики полезности контекста для LLM
+        ce_ok = False
+        mean_ce = None
+        ce_neg = None
+        ce_top = None
+        min_ce = None
+        if args.reranker_url and top5:
+            t_ce = time.time()
+            texts = [p.get("payload", {}).get("text", "") for p in top5]
+            ce_scores = rerank_texts(query, texts, args.reranker_url)
+            ce_ms_val = round((time.time() - t_ce) * 1000)
+            if ce_scores is not None:
+                ce_ok = True
+                mean_ce = round(sum(ce_scores) / len(ce_scores), 2)
+                ce_neg = sum(1 for s in ce_scores if s < 0)
+                ce_top = round(max(ce_scores), 2)
+                min_ce = round(min(ce_scores), 2)
+
+        running_r1.append(r1)
+        running_r5.append(r5)
+        running_mrr.append(rr)
+        if ce_ok:
+            ce_ok_count += 1
+
+        row = {
+            "type": "query",
+            "qid": item["id"],
             "query": query[:80],
-            "expected": expected,
-            "category": item.get("category", ""),
-            "recall_1": r1, "recall_3": r3, "recall_5": r5, "recall_10": r10, "recall_20": r20,
-            "reciprocal_rank": rr,
-            "latency": latency,
-            "top5_hits": hit_docs,
-        })
+            "cat": item.get("category", ""),
+            "r1": r1, "r5": r5, "r10": r10, "r20": r20,
+            "rr": round(rr, 3),
+            "latency": round(search_ms / 1000, 2),
+            "search_ms": search_ms,
+            "n_results": n_results,
+            "expected_rank": expected_rank,
+            "n_channels": n_channels,
+            "top5_scores": top5_scores,
+            "top5_hits": top5_hits,
+            # CE quality metrics (None if reranker not configured)
+            "ce_ok": ce_ok,
+            "mean_ce": mean_ce,
+            "ce_neg": ce_neg,
+            "ce_top": ce_top,
+            "min_ce": min_ce,
+        }
+        if ce_ok:
+            row["ce_ms"] = ce_ms_val
+        writer.write(row)
 
-        status = "✅" if r5 > 0 else "❌"
-        if (i + 1) % 10 == 0 or r5 == 0:
-            print(f"  [{i+1}/{len(items)}] {status} r@5={r5:.2f} {latency:.2f}s | {query[:60]}")
+        # Live stderr
+        done = i + 1
+        if done % 10 == 0 or r5 == 0:
+            avg_r5 = sum(running_r5) / len(running_r5)
+            avg_mrr = sum(running_mrr) / len(running_mrr)
+            ce_tag = f"CE={ce_ok_count}/{done}" if args.reranker_url else ""
+            status = "+" if r5 > 0 else "MISS"
+            print(
+                f"  [{done}/{len(items)}] {status:4s} r@5={r5:.0f} {search_ms}ms | "
+                f"R@5={avg_r5:.3f} MRR={avg_mrr:.3f} {ce_tag} | {query[:40]}",
+                file=sys.stderr,
+            )
 
     elapsed = time.time() - t_total
 
-    # Агрегация
-    valid = [r for r in results if "error" not in r]
-    r1_list = [r["recall_1"] for r in valid]
-    r3_list = [r["recall_3"] for r in valid]
-    r5_list = [r["recall_5"] for r in valid]
-    r10_list = [r["recall_10"] for r in valid]
-    r20_list = [r["recall_20"] for r in valid]
-    mrr = compute_mrr(results)
-
+    # ── Summary line ──
     def avg(lst):
         return sum(lst) / len(lst) if lst else 0
 
-    print(f"\n{'='*60}")
-    print(f"Retrieval Evaluation Results ({args.collection})")
-    print(f"{'='*60}")
-    print(f"Queries: {len(items)}, Errors: {sum(1 for r in results if 'error' in r)}")
-    print(f"ColBERT: {'ON' if use_colbert else 'OFF'}, Fusion: {args.fusion}, Fuzzy: ±{args.fuzzy}")
-    print(f"Dense limit: {args.dense_limit}, BM25 limit: {args.bm25_limit}, "
-          f"Prefix: {'OFF' if args.no_prefix else 'ON'}, "
-          f"RRF weights: {rrf_weights or 'default'}")
-    print(f"Total time: {elapsed:.1f}s ({elapsed/len(items):.2f}s/query)")
-    print()
-    print(f"Recall@1:  {avg(r1_list):.3f}  ({sum(1 for r in r1_list if r==1.0)}/{len(r1_list)})")
-    print(f"Recall@3:  {avg(r3_list):.3f}  ({sum(1 for r in r3_list if r==1.0)}/{len(r3_list)})")
-    print(f"Recall@5:  {avg(r5_list):.3f}  ({sum(1 for r in r5_list if r==1.0)}/{len(r5_list)})")
-    print(f"Recall@10: {avg(r10_list):.3f}  ({sum(1 for r in r10_list if r==1.0)}/{len(r10_list)})")
-    print(f"Recall@20: {avg(r20_list):.3f}  ({sum(1 for r in r20_list if r==1.0)}/{len(r20_list)})")
-    print(f"MRR@20:    {mrr:.3f}")
+    summary = {
+        "type": "summary",
+        "timestamp": ts,
+        "total_queries": len(items),
+        "errors": error_count,
+        "recall_at_1": round(avg(running_r1), 4),
+        "recall_at_5": round(avg(running_r5), 4),
+        "mrr_at_20": round(avg(running_mrr), 4),
+        "ce_ok_rate": round(ce_ok_count / len(items), 3) if items else 0,
+        "avg_latency": round(elapsed / len(items), 2),
+        "total_time": round(elapsed, 1),
+    }
+    writer.write(summary)
+    writer.close()
 
-    # По категориям
-    by_category = defaultdict(list)
-    for r in valid:
-        cat = r.get("category", "unknown")
-        by_category[cat].append(r)
+    # ── Console summary ──
+    print(f"\n{'='*60}", file=sys.stderr)
+    print(f"Queries: {len(items)}, Errors: {error_count}", file=sys.stderr)
+    print(f"Total: {elapsed:.1f}s ({elapsed/len(items):.2f}s/query)", file=sys.stderr)
+    print(f"R@1={avg(running_r1):.3f}  R@5={avg(running_r5):.3f}  MRR={avg(running_mrr):.3f}", file=sys.stderr)
+    print(f"\nSaved: {out_path}", file=sys.stderr)
 
-    if len(by_category) > 1:
-        print("\nПо категориям:")
-        for cat, cat_results in sorted(by_category.items()):
-            cat_r1 = avg([r["recall_1"] for r in cat_results])
-            cat_r5 = avg([r["recall_5"] for r in cat_results])
-            cat_r20 = avg([r["recall_20"] for r in cat_results])
-            cat_mrr = avg([r["reciprocal_rank"] for r in cat_results])
-            print(f"  {cat:20s} n={len(cat_results):3d}  R@1={cat_r1:.2f}  R@5={cat_r5:.2f}  R@20={cat_r20:.2f}  MRR={cat_mrr:.3f}")
+    # ── Backward compat: summary .json ──
+    json_path = out_path.rsplit(".", 1)[0] + ".json"
+    all_rows = []
+    with open(out_path, encoding="utf-8") as f:
+        for line in f:
+            obj = json.loads(line)
+            if obj.get("type") == "query":
+                all_rows.append(obj)
 
-    # По каналам
-    by_channel = defaultdict(list)
-    for r in valid:
-        ch = r["expected"][0].split(":")[0] if r.get("expected") else "?"
-        by_channel[ch].append(r["recall_5"])
-    print("\nRecall@5 по каналам:")
-    for ch, vals in sorted(by_channel.items(), key=lambda x: sum(x[1])/len(x[1])):
-        mean = sum(vals) / len(vals)
-        print(f"  {ch:35s} {mean:.2f} ({sum(1 for v in vals if v==1.0)}/{len(vals)})")
-
-    # Сохраняем
-    ts = time.strftime("%Y%m%d-%H%M%S")
+    valid = [r for r in all_rows if "error" not in r]
     report = {
         "timestamp": ts,
-        "collection": args.collection,
-        "colbert": use_colbert,
-        "fusion": args.fusion,
-        "fuzzy": args.fuzzy,
-        "dense_limit": args.dense_limit,
-        "bm25_limit": args.bm25_limit,
-        "prefix": not args.no_prefix,
-        "rrf_weights": rrf_weights,
-        "rrf_limit": args.rrf_limit,
-        "colbert_pool": args.colbert_pool,
-        "dense_only": args.dense_only,
-        "normalize": "sparse" if args.normalize_sparse_only else ("all" if args.normalize_query else None),
-        "prf_expand": args.prf_expand,
+        **config,
         "total_queries": len(items),
-        "recall_at_1": avg(r1_list),
-        "recall_at_3": avg(r3_list),
-        "recall_at_5": avg(r5_list),
-        "recall_at_10": avg(r10_list),
-        "recall_at_20": avg(r20_list),
-        "mrr_at_20": mrr,
+        "recall_at_1": avg([r["r1"] for r in valid]),
+        "recall_at_3": avg([r.get("r3", 0) for r in valid]),
+        "recall_at_5": avg([r["r5"] for r in valid]),
+        "recall_at_10": avg([r["r10"] for r in valid]),
+        "recall_at_20": avg([r["r20"] for r in valid]),
+        "mrr_at_20": avg([r["rr"] for r in valid]),
         "avg_latency": elapsed / len(items),
-        "results": results,
+        "results": all_rows,
     }
-    out_path = args.output or f"results/raw/retrieval_eval_{ts}.json"
-    import os
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    with open(out_path, "w", encoding="utf-8") as f:
+    with open(json_path, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
-    print(f"\nSaved to {out_path}")
+    print(f"JSON: {json_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":

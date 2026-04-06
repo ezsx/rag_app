@@ -44,11 +44,7 @@ class Settings(BaseSettings):
         "http://host.docker.internal:8082", alias="EMBEDDING_TEI_URL"
     )
     embedding_query_instruction: str = Field(
-        (
-            "Instruct: Given a user question about ML, AI, LLM or tech news, "
-            "retrieve relevant Telegram channel posts\n"
-            "Query: "
-        ),
+        "",
         alias="EMBEDDING_QUERY_INSTRUCTION",
     )
 
