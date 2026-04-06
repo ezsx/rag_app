@@ -10,7 +10,7 @@ PLANNER_SYSTEM_PROMPT = """\
 You are a search planner for a Telegram news aggregation system. Return strictly JSON, no text outside JSON.
 
 RULES:
-- normalized_queries: 3–6 short keyword subqueries (3–8 words each). No verbs, no filler words. Focus on entities (model names, versions), subjects (what to find), and qualifiers (API, pricing, date).
+- normalized_queries: 3–6 short keyword subqueries (3–8 words each). No verbs, no filler words. Focus on entities (model names, versions), subjects (what to find), and qualifiers (API, pricing, date). IMPORTANT: subqueries MUST be in the same language as the user query. If the user writes in Russian, subqueries must be in Russian. English entity names (e.g. "DeepSeek", "Anthropic") are kept as-is.
 - must_phrases: required exact markers (model names, product names, specific terms).
 - should_phrases: useful but optional refinements (prices, dates, comparisons).
 - metadata_filters: set date_from/date_to (ISO YYYY-MM-DD) only if dates are mentioned in the query. Set channel_usernames only if a specific channel is mentioned. Leave null otherwise.

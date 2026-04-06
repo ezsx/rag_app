@@ -66,6 +66,54 @@ _request_ctx: ContextVar[RequestContext | None] = ContextVar(
 )
 
 
+def _adaptive_ce_filter(
+    hits: list[dict[str, Any]],
+    gap_threshold: float = 2.0,
+    min_docs: int = 5,
+    floor_score: float = -2.0,
+) -> list[dict[str, Any]]:
+    """Адаптивный CE фильтр: gap detection + top-K guarantee + floor.
+
+    Гибридная эвристика (ablation phase 3):
+    1. Gap detection: ищем резкое падение CE score (> gap_threshold).
+       Обрезаем после gap — отделяем "cluster релевантных" от "хвост шума".
+    2. Top-K guarantee: если после gap < min_docs, расширяем до min_docs.
+       LLM всегда получает достаточно контекста для ответа.
+    3. Adaptive floor: если < 3 docs с score > 0, берём до floor_score.
+       Спасает edge cases где мало релевантных docs.
+
+    Вход: hits отсортированы по rerank_score desc (CE re-sort уже применён).
+    """
+    if not hits:
+        return hits
+
+    scores = [h.get("rerank_score", 0.0) for h in hits]
+
+    # Шаг 1: Gap detection — ищем резкий обрыв CE score
+    gap_cut = len(hits)
+    for i in range(len(scores) - 1):
+        if scores[i] - scores[i + 1] > gap_threshold:
+            gap_cut = i + 1
+            break
+
+    # Шаг 2: Positive count — сколько docs с CE > 0
+    positive_count = sum(1 for s in scores if s > 0)
+
+    # Шаг 3: Adaptive cut
+    if positive_count >= min_docs:
+        # Достаточно хороших docs — берём до gap или все positive, что больше
+        cut = max(gap_cut, positive_count)
+    elif positive_count > 0:
+        # Мало хороших — берём все positive + top-K guarantee до min_docs
+        cut = max(positive_count, min(min_docs, gap_cut))
+    else:
+        # Нет ни одного positive — floor: берём до floor_score
+        floor_cut = sum(1 for s in scores if s >= floor_score)
+        cut = max(min(min_docs, len(hits)), floor_cut)
+
+    return hits[:cut]
+
+
 def apply_action_state(ctx: RequestContext, action) -> None:
     """Сохраняет детерминированное состояние после успешных tool calls.
 
@@ -120,9 +168,10 @@ def apply_action_state(ctx: RequestContext, action) -> None:
         if not isinstance(indices, list) or not ctx.search_hits:
             return
 
-        # CRAG-style confidence filter: CE НЕ меняет порядок ColBERT,
-        # только помечает docs rerank_score и отсекает мусор (score < threshold).
-        # Порядок search_hits сохраняется — ColBERT ranking = source of truth.
+        # CE re-sort + adaptive filter.
+        # 1. Помечаем docs rerank_score
+        # 2. Re-sort по CE score desc (ablation: expected doc 4→1)
+        # 3. Adaptive filter: gap detection + top-K guarantee + floor
         passed_indices: set[int] = set()
         score_map: dict[int, float] = {}
         for position, raw_idx in enumerate(indices):
@@ -131,8 +180,6 @@ def apply_action_state(ctx: RequestContext, action) -> None:
                 if position < len(scores):
                     score_map[raw_idx] = scores[position]
 
-        # Сохраняем исходный ColBERT порядок, убираем только отфильтрованные CE
-        filtered_out = action.output.data.get("filtered_out", 0)
         kept_hits: list[dict[str, Any]] = []
         for idx, hit in enumerate(ctx.search_hits):
             if idx in passed_indices:
@@ -140,12 +187,18 @@ def apply_action_state(ctx: RequestContext, action) -> None:
                 h["rerank_score"] = score_map.get(idx, 0.0)
                 kept_hits.append(h)
 
+        # Re-sort по CE score desc
+        kept_hits.sort(key=lambda h: h.get("rerank_score", 0.0), reverse=True)
+
+        # Adaptive CE filter: gap detection + top-K guarantee + floor
+        kept_hits = _adaptive_ce_filter(kept_hits)
+
         if kept_hits:
-            if filtered_out > 0:
-                logger.info(
-                    "CE filter: %d docs removed, %d kept (ColBERT order preserved)",
-                    filtered_out, len(kept_hits),
-                )
+            original_count = len(ctx.search_hits)
+            logger.info(
+                "CE adaptive filter: %d → %d docs, re-sorted by CE score",
+                original_count, len(kept_hits),
+            )
             ctx.search_hits = kept_hits
         return
 
