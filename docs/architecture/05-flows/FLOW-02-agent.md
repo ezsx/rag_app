@@ -27,7 +27,7 @@ Content-Type: application/json
 - **QuerySignals** — rule-based pre-validator (<1ms): extracts dates, channels, entities
 - **ToolRunner** — tool registry + timeout execution
 - **LLM** — Qwen3.5-35B-A3B GGUF (llama-server, V100; `--jinja --reasoning-budget 0`). Выбирает из 15 LLM tools (search/temporal_search/channel_search/entity_tracker/arxiv_tracker/hot_topics/channel_expertise/...)
-- **HybridRetriever** — Qdrant: BM25+Dense → weighted RRF 3:1 → ColBERT MaxSim → channel dedup
+- **HybridRetriever** — Qdrant: BM25(100)+Dense(40) → weighted RRF 3:1 → ColBERT MaxSim → channel dedup. R2 lexicon normalization для BM25.
 - **RerankerService** — Qwen3-Reranker-0.6B-seq-cls (GPU, RTX 5060 Ti)
 - **QueryPlannerService** — тот же LLM endpoint (не отдельный CPU процесс)
 
@@ -60,13 +60,13 @@ sequenceDiagram
     Agent->>Tools: run tool
 
     alt tool = search / temporal_search / channel_search / cross_channel_compare / summarize_channel
-      Note over Tools: All subqueries, round-robin merge
+      Note over Tools: All subqueries, MMR merge
       loop for each subquery
         Tools->>Qdrant: search_with_plan
-        Note over Qdrant: BM25 top-100 + dense top-20<br/>weighted RRF 3:1<br/>ColBERT MaxSim rerank
+        Note over Qdrant: BM25 top-100 (R2 lexicon norm)<br/>+ dense top-40<br/>weighted RRF 3:1<br/>ColBERT MaxSim rerank
         Qdrant-->>Tools: candidates per query
       end
-      Tools->>Tools: round-robin merge + channel dedup
+      Tools->>Tools: MMR merge (λ=0.7) + channel dedup
     else tool = entity_tracker / arxiv_tracker(top)
       Tools->>Qdrant: Facet API / point-level aggregations
       Qdrant-->>Tools: analytics summary + data
@@ -84,8 +84,8 @@ sequenceDiagram
       Qdrant-->>Tools: channel profile + expertise areas
       Note over Agent: analytics_done=True<br/>forced search bypass
     else tool = rerank
-      Tools->>Tools: CE confidence filter via gpu_server
-      Note over Tools: CRAG-style: filter docs with score < threshold<br/>ColBERT order preserved
+      Tools->>Tools: CE re-sort + adaptive filter via gpu_server
+      Note over Tools: Re-sort by CE score desc<br/>Adaptive: gap detection + top-K(5) guarantee + floor(-2.0)
     else tool = compose_context
       Tools->>Tools: build prompt + citations
       Note over Tools: LANCER nugget coverage<br/>(query_plan subqueries = nuggets)
@@ -141,27 +141,49 @@ LLM видит **специализированные search и analytics tools*
 
 - Hard cap: максимум 5 видимых tools, лишние убираются по eviction priority из `datasets/tool_keywords.json`
 - Если LLM не вызывает tools → **forced search** с оригинальным запросом пользователя, кроме negative intent / analytics short-circuit
-- Оригинальный запрос **всегда** добавляется в subqueries (BM25 keyword match)
+- Оригинальный запрос **всегда** добавляется первым в subqueries (BM25 keyword anchor)
+- Subqueries генерируются **на языке запроса** (planner language fix)
 - Rule-based pre-validator (`query_signals.py`) извлекает даты/каналы/entities за <1ms
 
 ### Multi-Query Search Detail
 
 ```
 query_plan → subqueries: ["query A", "query B", "query C"]
-  + original user query (всегда добавляется)
+  + original user query (всегда добавляется первым)
+  + subqueries строго на языке запроса (planner language fix)
 
 for each subquery:
   → search_with_plan(subquery, plan)
-    → Qdrant: BM25 top-100 + dense top-20 → weighted RRF (3:1)
+    → BM25 top-100 (R2 lexicon normalization для сленга/aliases)
+    → Dense top-40 (ablation winner, was 20)
+    → Weighted RRF 3:1 (BM25 ×3)
     → ColBERT MaxSim rerank (top candidates)
   → append to per_query_results[]
 
-Round-robin merge:
-  for rank 0..max_len:
-    for each per_query_results:
-      if not seen → append to all_candidates
+MMR merge (replaces round-robin, ablation phase 3):
+  all unique docs from all subqueries
+  iterative selection: λ*relevance - (1-λ)*max_similarity_to_selected
+  λ=0.7 — balances relevance and diversity by dense_score
 
 Channel dedup: max 2 docs from same channel → diversity
+k_total cap: min(k × num_queries, 30)
+```
+
+### CE Re-sort + Adaptive Filter (post-merge)
+
+```
+After merge: ~30 docs
+
+CE re-sort: sort by cross-encoder score desc
+  → most relevant docs first for compose_context budget
+
+Adaptive filter (replaces fixed threshold):
+  1. Gap detection: if score[i] - score[i+1] > 2.0 → cut
+  2. Top-K guarantee:
+     - positive ≥ 5: keep all positive (or up to gap)
+     - 0 < positive < 5: keep max(positive, 5)
+     - positive = 0: floor to CE ≥ -2.0
+  3. Result: 4-25 docs depending on query specificity
 ```
 
 ### Coverage Check Detail

@@ -55,12 +55,13 @@
           ├─ query_plan(query) ────────────────► [QueryPlannerService → host.docker.internal:8080]
           ├─ search(queries) ──────────────────► [HybridRetriever]
           │     for each subquery:                    ├── embed(query) ─► [gpu_server @ host.docker.internal:8082]
-          │       round-robin merge results           └── [QdrantClient.query_points()]
-          │                                                  prefetch: BM25 top-100 + dense top-20
+          │       MMR merge (λ=0.7)                  └── [QdrantClient.query_points()]
+          │                                                  prefetch: BM25 top-100 (R2 lexicon norm) + dense top-40
           │                                                  RrfQuery(weights=[1.0, 3.0])
           │                                                  → ColBERT MaxSim rerank (if available)
           │                                                  → channel dedup (max 2/channel)
           ├─ rerank(query, docs) ──────────────► [gpu_server @ host.docker.internal:8082 /rerank]
+          │                                           CE re-sort + adaptive filter (gap/top-K/floor)
           ├─ compose_context(hit_ids, query) ──► [Builds prompt + citations + composite coverage]
           │                                           with_vectors=True → cosine sim per doc
           ├─ verify(query, claim) ─────────────► [Qdrant search] (системный, не LLM tool)

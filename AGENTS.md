@@ -37,8 +37,10 @@
 - **Dynamic visibility**: phase-based (pre-search / post-search / analytics-complete / nav-complete), max 5 видимых, data-driven keyword routing из `datasets/tool_keywords.json`.
 - **Forced search**: если LLM не вызывает tools, принудительный search. Bypass только для negative intent.
 - **Original query injection**: оригинальный запрос пользователя всегда в subqueries (BM25 match).
-- **Multi-query search**: все LLM subqueries через round-robin merge.
-- Retrieval: `query_plan → search (BM25 top-100 + dense top-20 → weighted RRF 3:1 → ColBERT rerank) → cross-encoder rerank → channel dedup`.
+- **Multi-query search**: все LLM subqueries через **MMR merge** (λ=0.7). Ablation phase 3.
+- Retrieval: `query_plan → search (BM25 top-100 + dense top-**40** → weighted RRF 3:1 → ColBERT rerank) → **CE re-sort + adaptive filter** → channel dedup`.
+- **Sparse normalization**: BM25 query нормализуется через lexicon (slang/aliases), dense — raw.
+- **Ablation study**: 39+ экспериментов, R@5 0.833→0.900. Docs: `docs/progress/ablation_study.md`.
 - Coverage: **LANCER nugget coverage** (query_plan subqueries = nuggets). Threshold **0.75**, max **1** targeted refinement. Module: `services/agent/coverage.py`.
 - **Navigation short-circuit**: list_channels → navigation_answered → skip forced search, only final_answer visible.
 - **Refusal policy**: explicit prompt rules + deterministic refusal trim + negative intent guard. Data-driven policies из `datasets/tool_keywords.json`.

@@ -269,6 +269,71 @@ Baseline: Phase 1 winner = R@5 **0.900**, MRR **0.823** (no-prefix + dense=40 + 
 
 ---
 
+---
+
+## Phase 3 — Orchestration Improvements (2026-04-06)
+
+А��ализ pipeline через детальные trace-ы конкретных запросов. Не parameter sweep, а структурные улучшения merge/filter/sort.
+
+### Изменения
+
+| Компонент | Было | Стало | Обоснование |
+|-----------|------|-------|-------------|
+| **Merge strategy** | Round-robin (по позиции) | **MMR** (λ=0.7, relevance + diversity) | RR терял expected docs: rank-1 от слабого subquery вытеснял rank-5 от strong query. MMR нашёл expected doc (#1) где RR пот��рял |
+| **CE ordering** | Merge order → compose_context | **CE re-sort** (desc by CE score) | Гарантирует что бюджет compose заполняется наиболее релевантными. Expected doc: position 4→1 |
+| **CE filtering** | Threshold=0.0 (фиксированный) | **Adaptive**: gap detection + top-K guarantee + floor | Gap > 2.0 → обрезка шу��а. Min 5 docs для LLM. Floor CE ≥ −2.0 если 0 positive |
+| **Planner language** | Subqueries на английском | **На языке запроса** | "anthropic pentagon scandal" → "anthropic пентагон скандал". BM25 матчит русские docs |
+
+### Trace Comparison (3 запроса, OLD vs NEW)
+
+| Query | Metric | OLD (RR + CE≥0) | NEW (MMR + adaptive) |
+|-------|--------|----------------|---------------------|
+| **"Anthropic + Пентагон"** | Expected doc | #1 | #1 |
+| | Mean CE top-10 | +5.6 | **+6.5** |
+| | Channels | 8 | **9** |
+| | Docs to LLM | 20 | 19 |
+| **"нейросетки видосы"** | Expected doc | **not found** | **#1** |
+| | Mean CE top-10 | +1.0 | +0.6 |
+| | Docs to LLM | 3 | 5 (adaptive min-K) |
+| **"OpenAI инвестиции"** | Expected doc | not found | not found |
+| | Mean CE top-10 | +4.2 | +4.2 |
+| | Docs to LLM | 4 | 4 (gap cut) |
+
+### Adaptive Filter Logic
+
+```
+1. CE re-sort (docs по CE score desc)
+2. Gap detection: score[i] − score[i+1] > 2.0 → cut
+3. Top-K guarantee:
+   - positive ≥ 5: берём все positive (или до gap)
+   - 0 < positive < 5: берём max(positive, 5)
+   - positive = 0: floor до CE ≥ −2.0
+```
+
+Примеры:
+- "Anthropic": 28 positive, gap at position 25 → 25 docs
+- "нейросетки": 3 positive, min-K=5 → 5 docs (3 good + 2 marginal)
+- "OpenAI": 4 positive, gap=2.9 at position 1 → 4 docs
+
+### Retrieval-Only Final (120 Qs, dense=40 + R2 norm)
+
+| Metric | Phase 1 Baseline | Phase 1 Winner | Phase 3 Final |
+|--------|-----------------|----------------|--------------|
+| R@1 | 0.708 | 0.758 | 0.750 |
+| R@5 | 0.833 | 0.900 | 0.900 |
+| R@20 | 0.867 | 0.933 | 0.933 |
+| MRR | 0.765 | 0.823 | 0.819 |
+
+Retrieval-only числа стабильны (no regression). MMR merge не влияет на single-query retrieval.
+
+### Full Pipeline Final (120 Qs, computing)
+
+Ожидается: MMR merge + adaptive filter + planner fix → улучшение на full pipeline (multi-query).
+
+**Артефакты**: `results/ablation/phase3/`, `scripts/_pipeline_trace_v2.py`, `scripts/_merge_comparison.py`
+
+---
+
 ## Хронология
 
 | Дата | Фаза | Экспериментов | Ключевой результат |
@@ -277,3 +342,4 @@ Baseline: Phase 1 winner = R@5 **0.900**, MRR **0.823** (no-prefix + dense=40 + 
 | 2026-04-05 | Phase 2a: diagnosis | — | CE bug fixed, stage attribution (4 rrf, 3 colbert, 1 not_found) |
 | 2026-04-05 | Phase 2b: query-plan ablation | 5 | qplan + inject = +2% R@5, filters/CE/dedup не помогают |
 | 2026-04-05 | Phase 2c: new retrieval tracks | 10 | Funnel ≠ bottleneck, R2 sparse norm лучший, PRF/normalize-all/HyDE не помогают |
+| 2026-04-06 | Phase 3: orchestration | 3 traces | MMR merge нашёл lost doc, CE re-sort + adaptive filter, planner language fix |

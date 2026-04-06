@@ -28,9 +28,11 @@
 - **Digest tools** (SPEC-RAG-16): `hot_topics` (weekly digest из `weekly_digests` коллекции) + `channel_expertise` (профиль канала из `channel_profiles` коллекции). ANALYTICS-COMPLETE phase.
 - **Forced search**: если LLM не вызывает tools, принудительный search. Bypass только для negative intent + refusal (не для обычных factual).
 - **Original query injection**: оригинальный запрос всегда в subqueries для BM25 keyword match.
-- **Multi-query search**: все LLM subqueries через round-robin merge (не только первый!).
+- **Multi-query search**: все LLM subqueries через **MMR merge** (λ=0.7, relevance + diversity). Заменил round-robin (ablation phase 3).
+- **Planner language**: subqueries строго на языке запроса (fix: ранее генерировались на английском).
 - `verify` и `fetch_docs` вызываются системно внутри `AgentService`, не через schema для модели.
-- Retrieval: `query_plan → search (BM25 top-100 + dense top-20 → RRF 3:1 → ColBERT rerank) → cross-encoder rerank → channel dedup (max 2/channel) → compose_context`.
+- Retrieval: `query_plan → search (BM25 top-100 + dense top-**40** → RRF 3:1 → ColBERT rerank) → **CE re-sort + adaptive filter** → channel dedup (max 2/channel) → compose_context`.
+- **Sparse normalization** (R2): BM25 query нормализуется через lexicon (`datasets/query_normalization_lexicon.json`), dense query остаётся raw. Ablation: R2 +0.009 R@1.
 - Coverage: **LANCER-style nugget coverage** (query_plan subqueries как nuggets). Threshold **0.75** (3/4 nuggets); max refinements: **1** (targeted по uncovered nuggets). Модуль: `services/agent/coverage.py`.
 - `agent_service.py` — единственный владелец состояния шага; не дублировать логику снаружи.
 - **Request isolation** (SPEC-RAG-17 FIX-01): `RequestContext` на `ContextVar` — per-request state вместо instance-level. Каждый запрос изолирован.

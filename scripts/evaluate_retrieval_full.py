@@ -66,19 +66,10 @@ def bootstrap():
     return settings, hybrid, planner, reranker
 
 
-def round_robin_merge(per_query_results: list[list]) -> list:
-    """Round-robin merge из search.py:20-36. Один code path."""
-    merged = []
-    seen_ids: set = set()
-    max_len = max((len(r) for r in per_query_results), default=0)
-    for rank_idx in range(max_len):
-        for sub_result in per_query_results:
-            if rank_idx < len(sub_result):
-                c = sub_result[rank_idx]
-                if c.id not in seen_ids:
-                    merged.append(c)
-                    seen_ids.add(c.id)
-    return merged
+def mmr_merge(per_query_results: list[list]) -> list:
+    """MMR merge из production search.py — один code path."""
+    from services.tools.search import _mmr_merge
+    return _mmr_merge(per_query_results)
 
 
 def channel_dedup(candidates: list, max_per_channel: int) -> list:
@@ -296,7 +287,7 @@ def run_single_query(
             trace.setdefault("search_errors", []).append(f"hyde: {e}")
 
     if len(per_query_results) > 1:
-        candidates = round_robin_merge(per_query_results)
+        candidates = mmr_merge(per_query_results)
     elif per_query_results:
         candidates = per_query_results[0]
     else:
@@ -304,24 +295,43 @@ def run_single_query(
 
     trace["merged_count"] = len(candidates)
 
-    # Step 4: CE filter
+    # Step 4: CE re-sort + adaptive filter (production parity with state.py)
     if args.ce_filter and reranker and candidates:
-        docs = [c.text for c in candidates]
+        docs_text = [c.text for c in candidates]
         try:
             indices, scores = reranker.rerank_with_raw_scores(
-                query=query, docs=docs,
-                top_n=min(len(docs), settings.reranker_top_n or 80),
+                query=query, docs=docs_text,
+                top_n=min(len(docs_text), settings.reranker_top_n or 80),
             )
-            # Если reranker вернул пустые scores (fallback) — не фильтруем
             if scores:
-                passed = []
+                # Присвоить CE scores каждому candidate
+                score_map = {}
                 for idx, score in zip(indices, scores):
-                    if score >= args.ce_threshold:
-                        passed.append(idx)
-                filtered_candidates = [c for i, c in enumerate(candidates) if i in set(passed)]
-                trace["ce_filtered_out"] = len(candidates) - len(filtered_candidates)
-                trace["ce_scores_sample"] = scores[:5]
-                candidates = filtered_candidates
+                    score_map[idx] = score
+
+                scored = [(i, c, score_map.get(i, 0.0)) for i, c in enumerate(candidates)]
+                # CE re-sort
+                scored.sort(key=lambda x: x[2], reverse=True)
+                # Adaptive filter (same logic as state.py _adaptive_ce_filter)
+                ce_vals = [s for _, _, s in scored]
+                gap_cut = len(ce_vals)
+                for gi in range(len(ce_vals) - 1):
+                    if ce_vals[gi] - ce_vals[gi + 1] > 2.0:
+                        gap_cut = gi + 1
+                        break
+                pos_count = sum(1 for s in ce_vals if s > 0)
+                if pos_count >= 5:
+                    cut = max(gap_cut, pos_count)
+                elif pos_count > 0:
+                    cut = max(pos_count, min(5, gap_cut))
+                else:
+                    floor_cut = sum(1 for s in ce_vals if s >= -2.0)
+                    cut = max(min(5, len(ce_vals)), floor_cut)
+                scored = scored[:cut]
+
+                trace["ce_filtered_out"] = len(candidates) - len(scored)
+                trace["ce_scores_sample"] = ce_vals[:5]
+                candidates = [c for _, c, _ in scored]
             else:
                 trace["ce_error"] = "reranker returned empty scores (fallback)"
                 trace["ce_filtered_out"] = 0
