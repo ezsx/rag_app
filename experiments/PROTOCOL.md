@@ -161,5 +161,5 @@ endpoints:
 5. **Не запускать полный прогон (120 Qs) без checkpoint на 10 Qs.**
 6. **Не перезапускать eval если raw data уже есть.** Извлекать артефакты из raw, не тратить compute.
 7. **Тестировать single query перед batch.** Проверить endpoint, auth, response format — 1 запрос до batch.
-8. **Agent eval preflight:** API container up + restart после code changes + API key + test query OK.
+8. **Agent eval preflight:** API container up + restart после code changes + API key + test query OK. **Проверить timestamp контейнера vs timestamp code change — ес��и code change позже, restart ОБЯЗАТЕЛЕН.**
 9. **Артефакты хранят ВСЕ docs (all_docs).** Judge и анализ по полному контексту, не top-5.
