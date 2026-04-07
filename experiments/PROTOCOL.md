@@ -163,3 +163,4 @@ endpoints:
 7. **Тестировать single query перед batch.** Проверить endpoint, auth, response format — 1 запрос до batch.
 8. **Agent eval preflight:** API container up + restart после code changes + API key + test query OK. **Проверить timestamp контейнера vs timestamp code change — ес��и code change позже, restart ОБЯЗАТЕЛЕН.**
 9. **Артефакты хранят ВСЕ docs (all_docs).** Judge и анализ по полному контексту, не top-5.
+10. **Не мусорить в репозиторий.** Не создавать временные файлы (промпты, заметки, debug output) в рабочем дереве. Временные данные — в /tmp или в памяти. Промпты для следующей сессии — в чат, не в файл. Каждый файл в repo должен иметь причину существования.
