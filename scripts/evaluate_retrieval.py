@@ -550,7 +550,10 @@ def main():
             "n_channels": n_channels,
             "top5_scores": top5_scores,
             "top5_hits": top5_hits,
-            "top5_texts": [p.get("payload", {}).get("text", "")[:300] for p in top5],
+            "all_docs": [
+                {"ch": p.get("payload", {}).get("channel", ""), "mid": p.get("payload", {}).get("message_id", ""), "text": p.get("payload", {}).get("text", "")}
+                for p in points[:20]
+            ],
             # CE quality metrics (None if reranker not configured)
             "ce_ok": ce_ok,
             "mean_ce": mean_ce,

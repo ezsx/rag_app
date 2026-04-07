@@ -1,0 +1,23 @@
+# RUN-003 Results
+id: RUN-003
+date: 2026-04-08
+
+metrics:
+  recall_at_5: 0.842
+  mrr_at_20: 0.638
+  mean_ce: ~same
+  n_cand: ~same
+
+comparison_to_baseline:
+  recall_at_5: "+0.000"
+  mrr_at_20: "+0.000"
+  per_query_diffs: "10/19 have minor n_cand/mce changes, 0 MRR or recall changes"
+
+interpretation: >
+  λ=0.85 vs 0.7 даёт чуть другой merge order, но CE re-sort
+  после merge полностью переранжирует по CE score. MMR λ не влияет
+  на финальный результат когда CE re-sort активен.
+
+decision: rejected
+reason: "No measurable effect. CE re-sort dominates final ordering regardless of MMR λ."
+rollback: "λ=0.7 restored"

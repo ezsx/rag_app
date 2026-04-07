@@ -1,0 +1,47 @@
+# RUN-002: Больше docs + жёстче фильтр
+# Гипотеза: больше качественных docs в контексте → лучший ответ LLM
+
+id: RUN-002
+date: 2026-04-08
+author: ezsx + claude
+
+hypothesis: >
+  Увеличение k_per_query (10→15), ужесточение adaptive filter floor (-2.0→0.0)
+  и расширение channel dedup (2→3) дадут LLM больше качественных docs.
+  ce_neg упадёт (меньше мусора), mean_ce вырастет (только релевантные),
+  при сохранении recall.
+
+what_changes:
+  - "settings.py: SEARCH_K_PER_QUERY_DEFAULT 10 → 15"
+  - "state.py: _adaptive_ce_filter floor_score -2.0 → 0.0"
+  - "evaluate_retrieval_full.py: --channel-dedup 3 (было 2)"
+
+what_stays: "embedding (no prefix), RRF [1:3], ColBERT, MMR λ=0.7, per-query dedup(2)"
+
+baseline_ref: "experiments/baseline.yaml"
+dataset: "datasets/_eval_20q_mixed.json"
+dataset_size: 20
+categories: "mixed (по 3-4 из каждой категории)"
+
+acceptance_criteria:
+  recall_at_5: ">= 0.900"       # не хуже baseline
+  ce_neg_avg: "< 2.0"           # было 3.2, цель < 2.0
+  mean_ce: ">= 3.5"            # не хуже baseline FP
+
+risks:
+  - "k_per_query=15 → ColBERT pool=30, latency +50%"
+  - "floor=0.0 может быть слишком агрессивным для edge queries (мало positive docs)"
+
+runs:
+  - name: "FP с изменениями"
+    script: "scripts/evaluate_retrieval_full.py"
+    args: >
+      --dataset datasets/_eval_20q_mixed.json
+      --use-query-plan --inject-original-query
+      --ce-filter --channel-dedup 3
+      --output experiments/runs/RUN-002/raw_fp.jsonl
+
+parity_check: pending
+preflight: pending
+results: null
+decision: null

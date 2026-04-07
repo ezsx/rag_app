@@ -1,0 +1,33 @@
+# RUN-003: MMR λ tuning — меньше diversity penalty
+# Один параметр, прямое влияние на MRR
+
+id: RUN-003
+date: 2026-04-08
+author: ezsx + claude
+
+hypothesis: >
+  MMR λ=0.85 (было 0.7) уменьшит diversity penalty.
+  Expected doc останется ближе к #1, MRR вырастет.
+  Diversity чуть снизится но CE re-sort компенсирует.
+
+what_changes:
+  - "search.py: _mmr_merge λ=0.7 → 0.85"
+
+what_stays: "k=10, floor=-2.0, dedup=2, всё остальное = baseline"
+
+baseline_ref: "experiments/baseline.yaml"
+dataset: "datasets/_eval_20q_mixed.json"
+dataset_size: 19
+
+acceptance_criteria:
+  recall_at_5: ">= 0.842"      # не хуже baseline на этом subset
+  mrr_at_20: "> 0.638"         # baseline MRR на этом subset, цель выше
+  mean_ce: ">= 3.0"            # не хуже
+
+risks:
+  - "Меньше diversity → больше docs от одного канала → redundancy"
+
+parity_check: pending
+preflight: pending
+results: null
+decision: null

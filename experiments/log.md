@@ -11,3 +11,5 @@
 > Runs выше проведены ДО введения протокола. Начиная с RUN-001 — по протоколу.
 
 | RUN-001 | 2026-04-08 | Baseline: RO vs FP после prefix fix | R@5 RO=FP=0.900, judge FP 6:1:8 | — | FP quality > RO | **adopted** |
+| RUN-002 | 2026-04-08 | k=15 + floor=0.0 + dedup=3 | ce_neg 4.2→6.4, mean_ce 3.2→2.9 | RUN-001 | больше docs но хуже quality | **rejected** |
+| RUN-003 | 2026-04-08 | MMR λ=0.85 (было 0.7) | MRR 0.638=0.638, 0 diffs | RUN-001 | CE re-sort доминирует, λ не влияет | **rejected** |

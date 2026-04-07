@@ -128,7 +128,7 @@ def _compute_coverage(
 def compose_context(
     docs: list[dict[str, Any]],
     query: str = "",
-    max_tokens_ctx: int = 1800,
+    max_tokens_ctx: int = 4000,
     citation_format: str = "footnotes",
     enable_lost_in_middle_mitigation: bool = True,
 ) -> dict[str, Any]:

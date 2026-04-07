@@ -1,0 +1,30 @@
+# RUN-002 Results
+# Date: 2026-04-08
+
+metrics:
+  recall_at_5: 0.842        # same as baseline on this subset
+  mrr_at_20: 0.638          # same as baseline
+  mean_ce: 2.9              # worse (was 3.2)
+  ce_neg_avg: 6.4           # worse (was 4.2)
+  n_candidates_avg: 18.3    # more docs (was 12.7), as intended
+  latency: 21.1s            # slightly worse
+
+comparison_to_baseline:
+  recall_at_5: "+0.000"
+  mean_ce: "-0.3"           # worse
+  ce_neg: "+2.2"            # much worse — more noise
+  n_candidates: "+5.6"      # more docs but lower quality
+
+anomalies:
+  - "ret_099: ce_neg 2→19, mean_ce 3.3→-0.6. k=15 pulled in too much noise"
+  - "ret_081: ce_neg 4→15. Same issue"
+  - "ret_108: ce_neg 9→0, mean_ce 0.5→4.0. Floor=0.0 helped here (only win)"
+
+interpretation: >
+  k_per_query=15 увеличил merge pool, но adaptive filter не справился
+  с фильтрацией дополнительного шума. gap detection + top-K guarantee
+  пропускают mediocre docs. floor=0.0 помог только в 1 из 19 queries.
+  Net effect отрицательный: больше docs но хуже quality.
+
+decision: rejected
+rollback: "k_per_query=10, floor=-2.0 restored, dedup=2 in baseline"

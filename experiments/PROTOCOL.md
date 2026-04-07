@@ -50,6 +50,7 @@ experiments/
    - `risks` — что может пойти не так
 
 3. **User ревьюит spec** — корректирует или утверждает.
+   **НИКОГДА не запускать compute без явного подтверждения пользователя.**
 
 ### Phase 2 — Validate (до compute, автоматически)
 
@@ -158,3 +159,7 @@ endpoints:
 3. **Не сравнивать runs с разными eval скриптами.** Git sha в spec для этого.
 4. **Не хардкодить параметры в eval скрипте.** Всё из settings.py.
 5. **Не запускать полный прогон (120 Qs) без checkpoint на 10 Qs.**
+6. **Не перезапускать eval если raw data уже есть.** Извлекать артефакты из raw, не тратить compute.
+7. **Тестировать single query перед batch.** Проверить endpoint, auth, response format — 1 запрос до batch.
+8. **Agent eval preflight:** API container up + restart после code changes + API key + test query OK.
+9. **Артефакты хранят ВСЕ docs (all_docs).** Judge и анализ по полному контексту, не top-5.

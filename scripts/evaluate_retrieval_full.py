@@ -617,8 +617,11 @@ def main():
             "latency": round(latency, 2),
         }
         row.update(trace)  # ce_ok, ce_top, ce_cut, ce_error, merged, n_cand, dedup_rm, ...
-        row["top5_texts"] = [c.text[:300] for c in candidates[:5]]
         row["top5_hits"] = [f"{c.metadata.get('channel','')}:{c.metadata.get('message_id','')}" for c in candidates[:5]]
+        row["all_docs"] = [
+            {"ch": c.metadata.get("channel", ""), "mid": c.metadata.get("message_id", ""), "text": c.text}
+            for c in candidates
+        ]
         writer.write(row)
 
         # Live stderr: каждые 10 queries или при R@5=0
