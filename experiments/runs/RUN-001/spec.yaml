@@ -1,0 +1,87 @@
+# RUN-001: Baseline comparison — RO vs FP после prefix fix
+# Первый прогон по experiment protocol.
+
+id: RUN-001
+date: 2026-04-08
+author: ezsx + claude
+
+# ── Hypothesis ───────────────────────────────────────────────────
+hypothesis: >
+  Full pipeline (query_plan + MMR merge + CE re-sort + adaptive filter + dedup)
+  после fix embedding prefix даёт лучший контекст для LLM чем retrieval-only,
+  при сопоставимом recall. Нужно установить валидный baseline с обоими прогонами
+  и полными артефактами (включая тексты документов) для качественного сравнения.
+
+# ── What changes vs baseline.yaml ────────────────────────────────
+what_changes: []   # ничего — оба прогона с текущим production config
+what_stays: "всё идентично baseline.yaml (af912bb)"
+
+# ── Design ───────────────────────────────────────────────────────
+runs:
+  - name: "RO (retrieval-only)"
+    script: "scripts/evaluate_retrieval.py"
+    args: >
+      --dataset datasets/eval_retrieval_v3.json
+      --collection news_colbert_v2
+      --no-prefix --dense-limit 40 --rrf-weights "1.0,3.0"
+      --normalize-sparse-only --lexicon datasets/query_normalization_lexicon.json
+      --reranker-url http://localhost:8082
+      --output experiments/runs/RUN-001/raw_ro.jsonl
+    notes: "Прямые Qdrant queries, CE scoring для quality метрик, тексты в артефакте"
+
+  - name: "FP (full pipeline)"
+    script: "scripts/evaluate_retrieval_full.py"
+    args: >
+      --dataset datasets/eval_retrieval_v3.json
+      --use-query-plan --inject-original-query
+      --ce-filter --channel-dedup 2
+      --output experiments/runs/RUN-001/raw_fp.jsonl
+    notes: "Production pipeline через HybridRetriever, prefix fix applied"
+
+baseline_ref: "experiments/baseline.yaml"
+dataset: "datasets/eval_retrieval_v3.json"
+dataset_size: 120
+categories: [factual, temporal, channel_specific, comparative, entity, edge]
+
+# ── Acceptance criteria ──────────────────────────────────────────
+acceptance_criteria:
+  # Нет порога для accept/reject — это baseline establishment run.
+  # Цель: получить валидные числа и артефакты для будущих сравнений.
+  fp_recall_at_5: ">= 0.870"       # не ниже чем -3% от RO baseline (0.900)
+  fp_ce_ok_rate: "== 1.0"          # CE должен работать на всех queries
+  both_runs_complete: true          # 0 errors
+
+# ── Risk assessment ──────────────────────────────────────────────
+risks:
+  - "RO eval скрипт не сохраняет тексты документов — нужно добавить поле"
+  - "FP eval скрипт не сохраняет тексты top-5 — нужно добавить поле"
+
+# ── Pre-run checklist ────────────────────────────────────────────
+parity_check: passed           # 2026-04-08, git af912bb, 0 drifts
+preflight:
+  qdrant: OK                   # localhost:16333 (started manually)
+  embedding: OK                # localhost:8082
+  reranker: OK                 # localhost:8082
+  llm: OK                     # localhost:8080
+  lexicon: OK                  # single file datasets/query_normalization_lexicon.json (122 entries)
+  dataset: OK                  # 120 queries, 6 categories
+code_changes_applied:
+  - "evaluate_retrieval.py: top5_texts[:300] добавлен в jsonl row"
+  - "evaluate_retrieval_full.py: top5_texts[:300] + top5_hits добавлены в jsonl row"
+
+# ── Phase 5: Answer comparison (10-15 queries) ──────────────────
+answer_comparison:
+  description: >
+    Для 10-15 queries из разных категорий: берём top-5 docs из RO и FP,
+    отправляем оба контекста Qwen3.5 с одинаковым промптом, получаем два ответа.
+    Claude judge оценивает: какой ответ полнее, точнее, лучше обоснован.
+  queries_count: 15
+  categories: "2-3 из каждой категории (factual, temporal, channel_specific, comparative, entity, edge)"
+  llm: "Qwen3.5-35B (localhost:8080)"
+  judge: "Claude (this session)"
+  output: "experiments/runs/RUN-001/judge.md"
+
+# ── Results (заполняется ПОСЛЕ прогона) ──────────────────────────
+results: null
+judge: null
+decision: null

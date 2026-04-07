@@ -1,0 +1,92 @@
+{
+  "A3": {
+    "name": "combo_d40_rrf100_cb40",
+    "recall_at_1": 0.725,
+    "recall_at_5": 0.9,
+    "recall_at_20": 0.9333333333333333,
+    "mrr_at_20": 0.8048958333333334,
+    "total_queries": 120,
+    "avg_latency": 4.360643541812896
+  },
+  "A2": {
+    "name": "colbert_pool_40",
+    "recall_at_1": 0.7416666666666667,
+    "recall_at_5": 0.9,
+    "recall_at_20": 0.9333333333333333,
+    "mrr_at_20": 0.8147503306878308,
+    "total_queries": 120,
+    "avg_latency": 4.352744686603546
+  },
+  "A1": {
+    "name": "rrf_limit_100",
+    "recall_at_1": 0.7333333333333333,
+    "recall_at_5": 0.9,
+    "recall_at_20": 0.9333333333333333,
+    "mrr_at_20": 0.8090625,
+    "total_queries": 120,
+    "avg_latency": 4.326060646772385
+  },
+  "R2": {
+    "name": "normalize_sparse_only",
+    "recall_at_1": 0.7416666666666667,
+    "recall_at_5": 0.9,
+    "recall_at_20": 0.9333333333333333,
+    "mrr_at_20": 0.8137037037037037,
+    "total_queries": 120,
+    "avg_latency": 4.3330456733703615
+  },
+  "R1": {
+    "name": "normalize_all",
+    "recall_at_1": 0.7,
+    "recall_at_5": 0.8583333333333333,
+    "recall_at_20": 0.9333333333333333,
+    "mrr_at_20": 0.7717618145743147,
+    "total_queries": 120,
+    "avg_latency": 4.327137140432994
+  },
+  "R3": {
+    "name": "single_rewrite",
+    "recall_at_1": 0.625,
+    "recall_at_5": 0.7916666666666666,
+    "recall_at_20": 0.8125,
+    "mrr_at_20": 0.7041666666666666,
+    "total_queries": 48,
+    "avg_latency": 8.502354900042215
+  },
+  "R6": {
+    "name": "rule_based_filters",
+    "recall_at_1": 0.6041666666666666,
+    "recall_at_5": 0.7708333333333334,
+    "recall_at_20": 0.7916666666666666,
+    "mrr_at_20": 0.6859217171717171,
+    "total_queries": 48,
+    "avg_latency": 2.9658076763153076
+  },
+  "R5": {
+    "name": "prf_expand",
+    "recall_at_1": 0.6333333333333333,
+    "recall_at_5": 0.8583333333333333,
+    "recall_at_20": 0.9166666666666666,
+    "mrr_at_20": 0.7330625624375624,
+    "total_queries": 120,
+    "avg_latency": 4.35676525036494
+  },
+  "E1": {
+    "name": "dense_only_colbert",
+    "recall_at_1": 0.7416666666666667,
+    "recall_at_5": 0.8916666666666667,
+    "recall_at_20": 0.925,
+    "mrr_at_20": 0.8090381335282651,
+    "total_queries": 120,
+    "avg_latency": 4.329169511795044
+  },
+  "D2": {
+    "name": "hyde_dual_branch",
+    "recall_at_1": 0.625,
+    "recall_at_5": 0.7916666666666666,
+    "recall_at_20": 0.7916666666666666,
+    "mrr_at_20": 0.6909722222222222,
+    "total_queries": 48,
+    "avg_latency": 9.889874642093977
+  }
+}

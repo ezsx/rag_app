@@ -12,7 +12,7 @@
 User asks a question about AI/ML news. ReAct agent plans sub-queries, runs hybrid retrieval (BM25 + dense + ColBERT) over 13K documents, filters with cross-encoder, produces a grounded answer with citations via SSE streaming.
 
 ```
-Query → query_plan → search (BM25+Dense → RRF → ColBERT) → CE filter → compose_context → answer
+Query → query_plan → multi-query search (BM25+Dense → RRF → ColBERT) → MMR merge → CE re-sort + adaptive filter → compose_context → answer
 ```
 
 15 LLM tools with phase-based dynamic visibility. Analytics tools (entity tracking, trend digests, channel expertise) short-circuit the search path when appropriate.
@@ -50,18 +50,18 @@ V100 in TCC mode poisons NVML in WSL2 — Docker GPU unavailable. All GPU worklo
 
 Claude judge (0.0-1.0 granular scale) + independent NLI faithfulness verification via ruBERT. Full metric definitions in [project scope](docs/progress/project_scope.md#автоматические-proxy-метрики-evaluate_agentpy-без-llm-judge).
 
-**LLM judge metrics** (36 Qs golden_v2, [eval results](results/raw/eval_results_20260401-091242.json)):
+**LLM judge metrics** (36 Qs golden_v2, [eval results](experiments/legacy/agent_eval/eval_results_20260401-091242.json)):
 
 | Metric | Value | Details |
 |--------|-------|---------|
 | **Factual correctness** | **0.842** | 36 Qs, Claude judge with 7 calibration examples |
 | **Usefulness** | **1.778 / 2** | 36 Qs |
 | **Key Tool Accuracy** | **1.000** | 36/36 correct tool selection |
-| **Faithfulness** | **0.91** | 17 retrieval Qs, 171 claims verified, **0 hallucinations** ([analysis](results/reports/nli_faithfulness_analysis_20260401.md)) |
+| **Faithfulness** | **0.91** | 17 retrieval Qs, 171 claims verified, **0 hallucinations** ([analysis](experiments/legacy/reports/nli_faithfulness_analysis_20260401.md)) |
 | **Retrieval recall@3** | **0.97** | 100 hand-crafted queries ([dataset](datasets/eval_retrieval_calibration.json)) |
 | **Mean latency** | **24.4s** | Full pipeline including LLM inference, p95=65.6s |
 
-**Automatic proxy metrics** (same run, no judge needed, [report](results/reports/eval_report_20260401-091242.json)):
+**Automatic proxy metrics** (same run, no judge needed, [report](experiments/legacy/reports/eval_report_20260401-091242.json)):
 
 | Metric | Value | Scope |
 |--------|-------|-------|
@@ -74,7 +74,7 @@ Claude judge (0.0-1.0 granular scale) + independent NLI faithfulness verificatio
 
 We compute BERTScore F1, SummaC, Precision@5, MRR, nDCG@5 automatically on every eval run ([SPEC-RAG-22](docs/specifications/completed/SPEC-RAG-22-comprehensive-eval-metrics.md), [R26](docs/research/reports/R26-deep-comprehensive-rag-eval-metrics.md)). These are standard RAG metrics used across the industry. Our finding: **they are poor proxies for actual answer quality** on Russian-language agent outputs.
 
-**Evidence: BERTScore vs Claude judge on the same 151 answers** ([BERTScore raw](results/robustness/ndr_rsr_ror_raw_20260402-082135.json), [Claude judge](results/robustness/judge_ndr_rsr_ror_final.json)):
+**Evidence: BERTScore vs Claude judge on the same 151 answers** ([BERTScore raw](experiments/legacy/robustness/ndr_rsr_ror_raw_20260402-082135.json), [Claude judge](experiments/legacy/robustness/judge_ndr_rsr_ror_final.json)):
 
 | What we measured | BERTScore F1 | Claude Judge | Gap |
 |-----------------|:---:|:---:|-----|
@@ -87,7 +87,7 @@ We compute BERTScore F1, SummaC, Precision@5, MRR, nDCG@5 automatically on every
 
 Root cause: BERTScore measures semantic similarity, not factual correctness. A "confident refusal" (`Я не могу ответить на этот вопрос`) gets high BERTScore against expected answer because both are fluent Russian text about the same topic. Claude judge correctly scores it 0.0.
 
-**Standard IR proxy metrics** (agent eval batches, [reports](results/reports/)):
+**Standard IR proxy metrics** (agent eval batches, [reports](experiments/legacy/reports/)):
 
 | Metric | Value | Scope | vs Claude judge |
 |--------|-------|-------|-----------------|
@@ -99,7 +99,7 @@ Root cause: BERTScore measures semantic similarity, not factual correctness. A "
 
 These metrics are standard in RAG evaluation literature but **systematically underestimate** our pipeline quality on Russian-language agent outputs. We implement them for completeness ([SPEC-RAG-22](docs/specifications/completed/SPEC-RAG-22-comprehensive-eval-metrics.md), [evaluate_agent.py](scripts/evaluate_agent.py)) and to demonstrate the gap.
 
-**Evidence: NLI faithfulness on full 36Q eval** ([nli_scores](results/raw/nli_scores_20260401_full.json), 1977 NLI pairs):
+**Evidence: NLI faithfulness on full 36Q eval** ([nli_scores](experiments/legacy/agent_eval/nli_scores_20260401_full.json), 1977 NLI pairs):
 
 | Metric | Value |
 |--------|-------|
@@ -109,13 +109,13 @@ These metrics are standard in RAG evaluation literature but **systematically und
 | claims supported | 133 / 171 (78%) |
 | contradictions (raw / real) | 19 / **0** |
 
-19 raw contradictions manually reviewed ([analysis](results/reports/nli_faithfulness_analysis_20260401.md)): 12 ruBERT false positives on Russian paraphrases (e.g. "Дженсен Хуанг (Nvidia)" not matched to "гендиректор NVIDIA"), 5 wrong-doc matches, 2 borderline. Zero actual hallucinations. SummaC sentence-level faithfulness available as a lighter alternative ([src/services/eval/summac.py](src/services/eval/summac.py)).
+19 raw contradictions manually reviewed ([analysis](experiments/legacy/reports/nli_faithfulness_analysis_20260401.md)): 12 ruBERT false positives on Russian paraphrases (e.g. "Дженсен Хуанг (Nvidia)" not matched to "гендиректор NVIDIA"), 5 wrong-doc matches, 2 borderline. Zero actual hallucinations. SummaC sentence-level faithfulness available as a lighter alternative ([src/services/eval/summac.py](src/services/eval/summac.py)).
 
 **Conclusion**: LLM judge (Claude) remains the only reliable scoring method for our domain. Automatic metrics serve as diagnostic signals, not primary quality measures. We implement them for completeness and to demonstrate the gap — a finding consistent with recent literature on RAG evaluation limitations.
 
 ### Robustness ([Cao et al. 2025](docs/progress/experiment_log.md#методология-наша-vs-cao-et-al-2025-arxiv2505-21870) adapted)
 
-Bypass pipeline: direct Qdrant + LLM, controlled k and ordering. 151 answers scored ([raw data](results/robustness/ndr_rsr_ror_raw_20260402-082135.json)).
+Bypass pipeline: direct Qdrant + LLM, controlled k and ordering. 151 answers scored ([raw data](experiments/legacy/robustness/ndr_rsr_ror_raw_20260402-082135.json)).
 
 | Metric | BERTScore (proxy) | Claude Judge (final) | Finding |
 |--------|:-:|:-:|---------|
@@ -124,7 +124,7 @@ Bypass pipeline: direct Qdrant + LLM, controlled k and ordering. 151 answers sco
 | **ROR** | 0.974 | **0.959** | Roughly correct |
 | **Composite** | 0.826 | **0.954** | |
 
-**BERTScore F1 failed as a robustness proxy**: semantic similarity doesn't capture factual correctness — a "confident refusal" scores high similarity to the expected answer. Claude judge is required for final numbers. [Judge scores](results/robustness/judge_ndr_rsr_ror_final.json).
+**BERTScore F1 failed as a robustness proxy**: semantic similarity doesn't capture factual correctness — a "confident refusal" scores high similarity to the expected answer. Claude judge is required for final numbers. [Judge scores](experiments/legacy/robustness/judge_ndr_rsr_ror_final.json).
 
 Retrieval adds **+0.53** absolute factual improvement (k=0: 0.10, k=20: 0.63). RSR monotonicity confirmed: k=3 (0.52) < k=5 (0.59) < k=10 (0.60) < k=20 (0.63).
 
@@ -176,7 +176,25 @@ Key findings:
 - **Custom 7x faster** than LlamaIndex maxed on retrieval (direct HTTP vs framework abstraction)
 - LlamaIndex adds ~70 transitive dependencies vs our ~12
 
-Full per-question breakdown in [judge_scores.md](benchmarks/results/judge_scores.md). Agent answers: [custom](benchmarks/results/agent_answers.json), [naive + LI](benchmarks/results/agent_naive_listock.json), [LI-maxed](benchmarks/results/agent_limaxed.json). Retrieval: [auto-generated](benchmarks/results/retrieval_auto_generated.json), [calibration](benchmarks/results/retrieval_calibration.json).
+Full per-question breakdown in [judge_scores.md](experiments/legacy/benchmarks/judge_scores.md). Agent answers: [custom](experiments/legacy/benchmarks/agent_answers.json), [naive + LI](experiments/legacy/benchmarks/agent_naive_listock.json), [LI-maxed](experiments/legacy/benchmarks/agent_limaxed.json). Retrieval: [auto-generated](experiments/legacy/benchmarks/retrieval_auto_generated.json), [calibration](experiments/legacy/benchmarks/retrieval_calibration.json).
+
+### Retrieval Ablation Study (39+ experiments)
+
+Systematic 5-day study: parameter sweep, diagnosis, new retrieval tracks, orchestration improvements. Full results: [ablation_study.md](docs/progress/ablation_study.md), artifacts: [experiments/](experiments/).
+
+**Progress**: R@5 0.833 → **0.900** (+8%), 120 natural-language queries across 6 categories.
+
+| Phase | Experiments | Key result |
+|-------|:-:|-----------|
+| **Parameter sweep** | 24 | no-prefix +5.8% R@5, dense 20→40 +3.4%, ColBERT critical (−10% without) |
+| **Diagnosis** | — | CE sigmoid bug fixed, stage attribution (semantic gap > truncation) |
+| **New tracks** | 10 | Sparse lexicon norm +0.009 R@1. PRF, HyDE, normalize-all rejected |
+| **Orchestration** | 3 traces | MMR merge, CE re-sort, adaptive filter, planner language fix |
+| **Validation** (RUN-001) | 1 | Full pipeline R@5 = Retrieval-only (0.900), **context quality better** (judge 6:1:8) |
+
+**Answer comparison** (15 queries, both contexts → Qwen3.5, Claude judge): full pipeline produced better LLM answers in 6/15, worse in 1/15, tie in 8/15. Subqueries find additional relevant documents; CE re-sort puts best docs first.
+
+**Experiment protocol** developed after two config-drift bugs wasted compute: spec-before-run, config parity checks, structured artifacts, early checkpoints. [Protocol](experiments/PROTOCOL.md).
 
 ### What didn't work (with evidence)
 
@@ -187,7 +205,11 @@ All rejected with measured evidence. Details in [experiment log](docs/progress/e
 | Cosine MMR | recall 0.70 → 0.11 | Re-promotes attractor documents |
 | Dense re-score after RRF | recall 0.33 → 0.15 | Erases BM25 contribution |
 | PCA whitening 1024→512 | recall 0.70 → 0.56 | Too aggressive dimensionality cut |
-| DBSF fusion | 0.72 vs RRF 0.73 | RRF slightly better |
+| DBSF fusion | 0.72 vs RRF 0.73 | RRF slightly better (ablation phase 1) |
+| Dense+BM25 normalize-all | R@5 −4.2% | Synonyms in dense query dilute embeddings (ablation R1) |
+| BM25 PRF expansion | R@5 −4.2% | Top terms from initial hits = noise (ablation R5) |
+| HyDE pseudo-document | No improvement | Hypothetical doc doesn't help on hard subset (ablation D2) |
+| Funnel expansion (RRF/ColBERT limits) | 0% change | Problem is semantic gap, not truncation (ablation A1-A3) |
 | CE reranking after ColBERT | r@3: 0.97 → 0.94 | Degrades top-3, replaced with [CE filter](docs/architecture/11-decisions/decision-log.md) (DEC-0045) |
 | Pipeline v2 (RRF→CE→ColBERT) | +0.02 r@2 only | Not worth complexity |
 | BERTScore as robustness proxy | NDR off by 0.145 | Doesn't capture factual correctness |
@@ -212,15 +234,21 @@ All rejected with measured evidence. Details in [experiment log](docs/progress/e
 ## Retrieval Pipeline
 
 ```
-BM25 top-100 ──┐
-               ├── Weighted RRF (3:1) ── ColBERT rerank ── CE confidence filter ── Channel dedup
-Dense top-20 ──┘
+BM25 top-100 (R2 lexicon norm) ──┐
+                                 ├── Weighted RRF (3:1) ── ColBERT MaxSim rerank
+Dense top-40 ───────────────────┘                              │
+                                                                ▼
+                                                     MMR merge (λ=0.7)
+                                                                │
+                                                                ▼
+                                              CE re-sort + adaptive filter ── Channel dedup (2/ch)
 ```
 
-- **Multi-query**: LLM generates 3-5 sub-queries, each runs independent hybrid retrieval, round-robin merge
+- **Multi-query**: LLM generates 3-5 sub-queries, each runs independent hybrid retrieval, **MMR merge** (balances relevance + diversity)
 - **Original query injection**: user query always in subqueries for BM25 keyword match
+- **Sparse normalization** (R2): BM25 query normalized via lexicon (slang/aliases), dense query stays raw
 - **LANCER nugget coverage**: query_plan subqueries as nuggets, targeted refinement on uncovered
-- **CE filter** (not reranker): documents with score < 0 removed, ColBERT order preserved
+- **CE re-sort + adaptive filter**: cross-encoder re-orders by relevance, then gap detection (>2.0) + top-K guarantee (min 5) + floor (CE >= -2.0)
 
 ## Agent Tools (15)
 
@@ -267,7 +295,7 @@ Research (29 reports) → Specification (35 specs) → Implementation → Evalua
 ```
 
 - **Research-driven**: every decision backed by deep research ([R00-R27](docs/research/reports/), [46 prompts](docs/research/prompts/))
-- **Evaluation-first**: 57 eval runs, every change measured against [golden dataset](datasets/eval_golden_v2.json) ([experiment log](docs/progress/experiment_log.md))
+- **Evaluation-first**: 57+ eval runs + 39 ablation experiments, every change measured against [golden dataset](datasets/eval_golden_v2.json) ([experiment log](docs/progress/experiment_log.md), [ablation study](docs/progress/ablation_study.md))
 - **Specs before code**: concrete acceptance criteria, reviewed by Codex ([35 completed specs](docs/specifications/completed/))
 - **Architecture docs**: mirror current codebase ([system overview](docs/architecture/04-system/overview.md), [flows](docs/architecture/05-flows/))
 - **Decision log**: [45 ADR entries](docs/architecture/11-decisions/decision-log.md) documenting every choice and why
@@ -309,6 +337,7 @@ docs/
   research/             46 prompts + 29 reports (R00-R27) + audio transcripts
   specifications/       35 completed specs
   progress/             Project scope + experiment log (57 runs)
+experiments/            Experiment protocol, baseline config, run artifacts (spec + data + results)
 benchmarks/             Framework comparison (LlamaIndex vs custom, 4 pipelines)
 datasets/               Golden dataset (36 Qs), calibration (100 Qs), prompts, entity dictionary
 deploy/                 Docker compose (dev, langfuse, test, benchmark)

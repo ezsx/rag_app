@@ -12,6 +12,7 @@
    - ReAct agent code → `agent_context/modules/agent.md`
    - Retrieval pipeline → `agent_context/modules/retrieval.md`
    - Docs changes → `docs/architecture/00-meta/02-documentation-governance.md`
+   - **Eval / experiment / ablation** → `experiments/PROTOCOL.md` + `experiments/baseline.yaml` + `experiments/log.md`
 3. **First step**: что конкретно делаешь первым
 
 ## Operational rules (всегда активны)

@@ -1,0 +1,72 @@
+# RUN-001 Results
+# Date: 2026-04-08
+# Both runs: 120 Qs, 0 errors, CE 120/120
+
+metrics:
+  retrieval_only:
+    recall_at_1: 0.742
+    recall_at_5: 0.900
+    mrr_at_20: 0.814
+    mean_ce: 3.1
+    ce_neg: 1.2
+    n_channels: 3.3
+    latency: 4.3s
+  full_pipeline:
+    recall_at_1: 0.667
+    recall_at_5: 0.900
+    mrr_at_20: 0.766
+    mean_ce: 3.5
+    ce_neg: 3.2
+    n_channels: 3.3
+    latency: 19.1s
+
+delta:
+  recall_at_5: 0.000       # паритет
+  mrr_at_20: -0.048        # FP ставит expected doc ниже внутри top-5
+  mean_ce: +0.4            # FP контекст релевантнее
+  ce_neg: +2.0             # FP больше шума (adaptive filter слишком мягкий)
+
+per_category:
+  factual:      { ro_r5: 0.958, fp_r5: 0.958, ro_mce: 3.1, fp_mce: 3.8 }
+  temporal:     { ro_r5: 0.889, fp_r5: 0.889, ro_mce: 2.6, fp_mce: 3.5 }
+  channel_specific: { ro_r5: 0.889, fp_r5: 0.889, ro_mce: 2.3, fp_mce: 3.2 }
+  comparative:  { ro_r5: 1.000, fp_r5: 1.000, ro_mce: 4.3, fp_mce: 3.0 }
+  entity:       { ro_r5: 0.917, fp_r5: 0.917, ro_mce: 5.3, fp_mce: 4.7 }
+  edge:         { ro_r5: 0.583, fp_r5: 0.583, ro_mce: 1.7, fp_mce: 2.1 }
+
+stage_attribution:
+  not_in_merge: 10
+  dedup: 1
+  # 11 misses total, 10 are retrieval-level (both pipelines miss)
+
+answer_comparison:
+  method: "top-5 docs → Qwen3.5 → Claude judge"
+  queries_evaluated: 15
+  fp_better: 6
+  ro_better: 1
+  tie: 8
+  key_wins_fp:
+    - "ret_009: FP synthesized answer, RO refused despite having doc"
+    - "ret_055: FP found AQUA-KV via subquery, RO didn't"
+    - "ret_072: FP answered, RO falsely refused"
+    - "ret_110: FP listed 5 models, RO only 2"
+    - "ret_111: FP found NFS Underground doc, RO missed"
+  key_wins_ro:
+    - "ret_102: RO had more detail from additional docs"
+
+caveats:
+  - "Answer comparison на top-5 docs, 300 chars. Production compose_context использует полный набор docs и полные тексты — реальная разница может быть больше"
+  - "ce_neg у FP высокий (3.2 vs 1.2) — adaptive filter пропускает шум, особенно на edge queries (7.2)"
+  - "MRR разница (-0.048) означает что expected doc сдвигается на 1-2 позиции — для LLM это не критично"
+
+interpretation: >
+  Full pipeline после prefix fix даёт одинаковый recall но лучший контекст.
+  Subqueries от query planner находят дополнительные релевантные docs которые
+  retrieval-only пропускает. CE re-sort поднимает лучшие docs наверх.
+  Главная проблема — adaptive filter слишком мягкий (ce_neg 3.2).
+
+decision: adopt
+decision_rationale: >
+  FP pipeline оправдан: recall = RO, quality > RO (judge 6:1:8).
+  Текущий config фиксируется как baseline. Следующие эксперименты:
+  ужесточение adaptive filter (ce_neg), исследование MRR gap.

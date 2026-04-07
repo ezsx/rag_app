@@ -13,7 +13,7 @@ Retrieval-only evaluation — прямые Qdrant queries без LLM.
         --dataset datasets/eval_retrieval_v3.json \
         --collection news_colbert_v2 \
         --no-prefix --dense-limit 40 --rrf-weights "1.0,3.0" \
-        --output results/ablation/phase3/ro_run.jsonl
+        --output experiments/runs/RUN-NNN/raw_ro.jsonl
 """
 
 import argparse
@@ -405,7 +405,7 @@ def main():
 
     # ── Output path ──
     ts = time.strftime("%Y%m%d-%H%M%S")
-    out_path = args.output or f"results/ablation/retrieval_{ts}.jsonl"
+    out_path = args.output or f"experiments/runs/retrieval_{ts}.jsonl"
     if not out_path.endswith(".jsonl"):
         out_path = out_path.rsplit(".", 1)[0] + ".jsonl"
 
@@ -550,6 +550,7 @@ def main():
             "n_channels": n_channels,
             "top5_scores": top5_scores,
             "top5_hits": top5_hits,
+            "top5_texts": [p.get("payload", {}).get("text", "")[:300] for p in top5],
             # CE quality metrics (None if reranker not configured)
             "ce_ok": ce_ok,
             "mean_ce": mean_ce,

@@ -1,12 +1,12 @@
 ## System Overview
 
-### Stack (актуально 2026-03-28)
+### Stack (актуально 2026-04-08)
 
 | Слой | Технология | Где работает |
 |------|-----------|-------------|
 | **API** | FastAPI + sse_starlette | Docker (CPU) |
 | **LLM** | llama-server HTTP → Qwen3.5-35B-A3B GGUF (Q4_K_M, MoE 3B active) | **Windows Host** (V100 TCC) |
-| **Embedding** | gpu_server.py → pplx-embed-v1-0.6B (bf16, mean pooling, 1024-dim) | **WSL2 native** (RTX 5060 Ti) → `:8082` |
+| **Embedding** | gpu_server.py → pplx-embed-v1-0.6B (bf16, mean pooling, 1024-dim, **без instruction prefix**) | **WSL2 native** (RTX 5060 Ti) → `:8082` |
 | **Reranker** | gpu_server.py → Qwen3-Reranker-0.6B-seq-cls (chat template, logit scoring) | **WSL2 native** (RTX 5060 Ti) → `:8082` |
 | **ColBERT** | gpu_server.py → jina-colbert-v2 (128-dim per-token MaxSim) | **WSL2 native** (RTX 5060 Ti) → `:8082` |
 | **Vector Store** | Qdrant HTTP (dense + sparse + ColBERT named vectors) | Docker (CPU) |

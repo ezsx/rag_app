@@ -1,0 +1,90 @@
+# Baseline — frozen production config + метрики
+# Обновляется ТОЛЬКО после adopt решения в experiment run.
+# Последнее обновление: 2026-04-08, commit af912bb
+
+git_sha: "af912bb"
+date: "2026-04-08"
+description: "Post prefix-fix baseline. Embedding без instruction prefix."
+
+# ── Production config (source of truth: src/core/settings.py) ────
+
+retrieval:
+  embedding_query_instruction: ""          # no prefix (DEC: ablation phase 1, +5.9% R@5)
+  search_k_per_query_default: 10
+  hybrid_enabled: true
+  qdrant_collection: "news_colbert_v2"
+
+fusion:
+  fusion_strategy: "rrf"
+  rrf_weights: [1.0, 3.0]                 # hardcoded in hybrid_retriever.py:308
+
+reranker:
+  enable_reranker: true
+  reranker_top_n: 80
+  reranker_tei_url: "http://localhost:8082"  # eval override; prod: host.docker.internal
+
+search_internals:                            # hardcoded в hybrid_retriever.py
+  bm25_prefetch_limit: "max(k*10, 100)"      # = 100 при k=10
+  dense_prefetch_limit: "max(k*4, 40)"       # = 40 при k=10
+  rrf_limit: "max(k*5, 50)"                  # = 50 при k=10
+  colbert_pool: "k*2"                         # = 20 при k=10
+  per_query_channel_dedup: 2                  # max 2 docs/channel per subquery
+
+pipeline:                                     # full pipeline components
+  query_planner: true
+  inject_original_query: true
+  mmr_merge: true                             # lambda=0.7
+  ce_resort: true
+  adaptive_filter: true                       # gap=2.0, min_docs=5, floor=-2.0
+  post_merge_channel_dedup: 2
+
+sparse_normalization:
+  enabled: true
+  lexicon: "datasets/query_normalization_lexicon.json"
+  mode: "sparse_only"                         # dense query stays raw
+
+# ── Endpoints (eval standalone, не Docker networking) ────────────
+
+endpoints:
+  qdrant_url: "http://localhost:16333"
+  embedding_tei_url: "http://localhost:8082"
+  reranker_tei_url: "http://localhost:8082"
+  llm_base_url: "http://localhost:8080"
+
+# ── Dataset ──────────────────────────────────────────────────────
+
+eval_dataset: "datasets/eval_retrieval_v3.json"
+eval_queries: 120
+eval_categories:
+  factual: 48
+  temporal: 18
+  channel_specific: 18
+  comparative: 12
+  entity: 12
+  edge: 12
+
+# ── Metrics (RUN-001, 2026-04-08) ────────────────────────────────
+# Source: experiments/runs/RUN-001/raw_fp.jsonl, raw_ro.jsonl
+
+metrics:
+  full_pipeline:
+    recall_at_1: 0.667
+    recall_at_5: 0.900
+    mrr_at_20: 0.766
+    ce_ok_rate: 1.0
+    avg_latency: 19.1
+    mean_ce: 3.5
+    ce_neg_avg: 3.2
+    n_channels_avg: 3.3
+  retrieval_only:
+    recall_at_1: 0.742
+    recall_at_5: 0.900
+    mrr_at_20: 0.814
+    avg_latency: 6.6
+    mean_ce: 3.1
+    ce_neg_avg: 1.2
+    n_channels_avg: 3.3
+  answer_comparison:                  # judge: 15 queries, top-5 docs
+    fp_better: 6
+    ro_better: 1
+    tie: 8

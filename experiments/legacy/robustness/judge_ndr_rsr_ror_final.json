@@ -1,0 +1,734 @@
+{
+  "metadata": {
+    "scoring": "claude_judge_granular_0.1",
+    "date": "2026-04-02",
+    "total_scores": 139
+  },
+  "ndr": {
+    "rate": 0.963,
+    "hits": 26,
+    "total": 27,
+    "per_question": [
+      {
+        "id": "golden_q26",
+        "score_rag": 0.5,
+        "score_no_rag": 0.8,
+        "delta": -0.3,
+        "hit": false,
+        "category": "future_baseline"
+      },
+      {
+        "id": "golden_q15",
+        "score_rag": 0.0,
+        "score_no_rag": 0.0,
+        "delta": 0.0,
+        "hit": true,
+        "category": "compare_summarize"
+      },
+      {
+        "id": "golden_q18",
+        "score_rag": 0.0,
+        "score_no_rag": 0.0,
+        "delta": 0.0,
+        "hit": true,
+        "category": "navigation"
+      },
+      {
+        "id": "golden_q29",
+        "score_rag": 0.0,
+        "score_no_rag": 0.0,
+        "delta": 0.0,
+        "hit": true,
+        "category": "future_baseline"
+      },
+      {
+        "id": "golden_q06",
+        "score_rag": 0.1,
+        "score_no_rag": 0.0,
+        "delta": 0.1,
+        "hit": true,
+        "category": "constrained_search"
+      },
+      {
+        "id": "golden_q11",
+        "score_rag": 0.1,
+        "score_no_rag": 0.0,
+        "delta": 0.1,
+        "hit": true,
+        "category": "constrained_search"
+      },
+      {
+        "id": "golden_q12",
+        "score_rag": 0.1,
+        "score_no_rag": 0.0,
+        "delta": 0.1,
+        "hit": true,
+        "category": "constrained_search"
+      },
+      {
+        "id": "golden_q27",
+        "score_rag": 0.7,
+        "score_no_rag": 0.6,
+        "delta": 0.1,
+        "hit": true,
+        "category": "future_baseline"
+      },
+      {
+        "id": "golden_q28",
+        "score_rag": 0.6,
+        "score_no_rag": 0.5,
+        "delta": 0.1,
+        "hit": true,
+        "category": "future_baseline"
+      },
+      {
+        "id": "golden_q17",
+        "score_rag": 0.3,
+        "score_no_rag": 0.0,
+        "delta": 0.3,
+        "hit": true,
+        "category": "navigation"
+      },
+      {
+        "id": "golden_q23",
+        "score_rag": 0.3,
+        "score_no_rag": 0.0,
+        "delta": 0.3,
+        "hit": true,
+        "category": "future_baseline"
+      },
+      {
+        "id": "golden_q24",
+        "score_rag": 0.3,
+        "score_no_rag": 0.0,
+        "delta": 0.3,
+        "hit": true,
+        "category": "future_baseline"
+      },
+      {
+        "id": "golden_q22",
+        "score_rag": 0.6,
+        "score_no_rag": 0.2,
+        "delta": 0.4,
+        "hit": true,
+        "category": "future_baseline"
+      },
+      {
+        "id": "golden_q25",
+        "score_rag": 0.4,
+        "score_no_rag": 0.0,
+        "delta": 0.4,
+        "hit": true,
+        "category": "broad_search"
+      },
+      {
+        "id": "golden_q10",
+        "score_rag": 0.5,
+        "score_no_rag": 0.0,
+        "delta": 0.5,
+        "hit": true,
+        "category": "constrained_search"
+      },
+      {
+        "id": "golden_q14",
+        "score_rag": 0.7,
+        "score_no_rag": 0.2,
+        "delta": 0.5,
+        "hit": true,
+        "category": "compare_summarize"
+      },
+      {
+        "id": "golden_q16",
+        "score_rag": 0.5,
+        "score_no_rag": 0.0,
+        "delta": 0.5,
+        "hit": true,
+        "category": "compare_summarize"
+      },
+      {
+        "id": "golden_q04",
+        "score_rag": 0.9,
+        "score_no_rag": 0.3,
+        "delta": 0.6,
+        "hit": true,
+        "category": "broad_search"
+      },
+      {
+        "id": "golden_q30",
+        "score_rag": 0.8,
+        "score_no_rag": 0.2,
+        "delta": 0.6,
+        "hit": true,
+        "category": "future_baseline"
+      },
+      {
+        "id": "golden_q08",
+        "score_rag": 0.7,
+        "score_no_rag": 0.0,
+        "delta": 0.7,
+        "hit": true,
+        "category": "constrained_search"
+      },
+      {
+        "id": "golden_q03",
+        "score_rag": 0.8,
+        "score_no_rag": 0.0,
+        "delta": 0.8,
+        "hit": true,
+        "category": "broad_search"
+      },
+      {
+        "id": "golden_q05",
+        "score_rag": 1.0,
+        "score_no_rag": 0.2,
+        "delta": 0.8,
+        "hit": true,
+        "category": "broad_search"
+      },
+      {
+        "id": "golden_q02",
+        "score_rag": 0.9,
+        "score_no_rag": 0.0,
+        "delta": 0.9,
+        "hit": true,
+        "category": "broad_search"
+      },
+      {
+        "id": "golden_q01",
+        "score_rag": 1.0,
+        "score_no_rag": 0.0,
+        "delta": 1.0,
+        "hit": true,
+        "category": "broad_search"
+      },
+      {
+        "id": "golden_q07",
+        "score_rag": 1.0,
+        "score_no_rag": 0.0,
+        "delta": 1.0,
+        "hit": true,
+        "category": "constrained_search"
+      },
+      {
+        "id": "golden_q09",
+        "score_rag": 1.0,
+        "score_no_rag": 0.0,
+        "delta": 1.0,
+        "hit": true,
+        "category": "constrained_search"
+      },
+      {
+        "id": "golden_q13",
+        "score_rag": 1.0,
+        "score_no_rag": 0.0,
+        "delta": 1.0,
+        "hit": true,
+        "category": "compare_summarize"
+      }
+    ]
+  },
+  "rsr": {
+    "rate": 0.9412,
+    "hits": 16,
+    "total": 17,
+    "violations": [
+      {
+        "id": "golden_q11",
+        "k_from": 10,
+        "k_to": 20,
+        "score_from": 1.0,
+        "score_to": 0.1,
+        "drop": 0.9
+      }
+    ],
+    "per_question": [
+      {
+        "id": "golden_q01",
+        "k_scores": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q02",
+        "k_scores": [
+          0.9,
+          0.9,
+          0.9,
+          0.9
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q03",
+        "k_scores": [
+          0.8,
+          0.8,
+          0.8,
+          0.8
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q04",
+        "k_scores": [
+          0.5,
+          0.7,
+          0.7,
+          0.9
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q05",
+        "k_scores": [
+          0.5,
+          0.5,
+          0.5,
+          1.0
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q06",
+        "k_scores": [
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q07",
+        "k_scores": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q08",
+        "k_scores": [
+          0.7,
+          0.7,
+          0.7,
+          0.7
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q09",
+        "k_scores": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q10",
+        "k_scores": [
+          0.5,
+          0.5,
+          0.5,
+          0.5
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q11",
+        "k_scores": [
+          0.2,
+          1.0,
+          1.0,
+          0.1
+        ],
+        "monotonic": false
+      },
+      {
+        "id": "golden_q12",
+        "k_scores": [
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q13",
+        "k_scores": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q14",
+        "k_scores": [
+          0.3,
+          0.5,
+          0.7,
+          0.7
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q15",
+        "k_scores": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q16",
+        "k_scores": [
+          0.0,
+          0.0,
+          0.0,
+          0.5
+        ],
+        "monotonic": true
+      },
+      {
+        "id": "golden_q25",
+        "k_scores": [
+          0.2,
+          0.2,
+          0.2,
+          0.4
+        ],
+        "monotonic": true
+      }
+    ]
+  },
+  "ror": {
+    "rate": 0.9592,
+    "per_question": [
+      {
+        "id": "golden_q04",
+        "scores": [
+          0.9,
+          0.9,
+          0.7
+        ],
+        "sigma": 0.1155,
+        "ror": 0.7691
+      },
+      {
+        "id": "golden_q02",
+        "scores": [
+          0.9,
+          1.0,
+          1.0
+        ],
+        "sigma": 0.0577,
+        "ror": 0.8845
+      },
+      {
+        "id": "golden_q03",
+        "scores": [
+          0.8,
+          0.8,
+          0.9
+        ],
+        "sigma": 0.0577,
+        "ror": 0.8845
+      },
+      {
+        "id": "golden_q11",
+        "scores": [
+          0.1,
+          0.0,
+          0.0
+        ],
+        "sigma": 0.0577,
+        "ror": 0.8845
+      },
+      {
+        "id": "golden_q25",
+        "scores": [
+          0.4,
+          0.3,
+          0.3
+        ],
+        "sigma": 0.0577,
+        "ror": 0.8845
+      },
+      {
+        "id": "golden_q01",
+        "scores": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      },
+      {
+        "id": "golden_q05",
+        "scores": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      },
+      {
+        "id": "golden_q06",
+        "scores": [
+          0.1,
+          0.1,
+          0.1
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      },
+      {
+        "id": "golden_q07",
+        "scores": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      },
+      {
+        "id": "golden_q08",
+        "scores": [
+          0.7,
+          0.7,
+          0.7
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      },
+      {
+        "id": "golden_q09",
+        "scores": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      },
+      {
+        "id": "golden_q10",
+        "scores": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      },
+      {
+        "id": "golden_q12",
+        "scores": [
+          0.1,
+          0.1,
+          0.1
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      },
+      {
+        "id": "golden_q13",
+        "scores": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      },
+      {
+        "id": "golden_q14",
+        "scores": [
+          0.7,
+          0.7,
+          0.7
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      },
+      {
+        "id": "golden_q15",
+        "scores": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      },
+      {
+        "id": "golden_q16",
+        "scores": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "sigma": 0.0,
+        "ror": 1.0
+      }
+    ]
+  },
+  "composite": 0.9544,
+  "all_scores": {
+    "golden_q01:ndr:k=0": 0.0,
+    "golden_q01:ror:reversed": 1.0,
+    "golden_q01:ror:shuffled": 1.0,
+    "golden_q01:rsr:k=10": 1.0,
+    "golden_q01:rsr:k=3": 1.0,
+    "golden_q01:rsr:k=5": 1.0,
+    "golden_q01:shared:k=20_original": 1.0,
+    "golden_q02:ndr:k=0": 0.0,
+    "golden_q02:ror:reversed": 1.0,
+    "golden_q02:ror:shuffled": 1.0,
+    "golden_q02:rsr:k=10": 0.9,
+    "golden_q02:rsr:k=3": 0.9,
+    "golden_q02:rsr:k=5": 0.9,
+    "golden_q02:shared:k=20_original": 0.9,
+    "golden_q03:ndr:k=0": 0.0,
+    "golden_q03:ror:reversed": 0.8,
+    "golden_q03:ror:shuffled": 0.9,
+    "golden_q03:rsr:k=10": 0.8,
+    "golden_q03:rsr:k=3": 0.8,
+    "golden_q03:rsr:k=5": 0.8,
+    "golden_q03:shared:k=20_original": 0.8,
+    "golden_q04:ndr:k=0": 0.3,
+    "golden_q04:ror:reversed": 0.9,
+    "golden_q04:ror:shuffled": 0.7,
+    "golden_q04:rsr:k=10": 0.7,
+    "golden_q04:rsr:k=3": 0.5,
+    "golden_q04:rsr:k=5": 0.7,
+    "golden_q04:shared:k=20_original": 0.9,
+    "golden_q05:ndr:k=0": 0.2,
+    "golden_q05:ror:reversed": 1.0,
+    "golden_q05:ror:shuffled": 1.0,
+    "golden_q05:rsr:k=10": 0.5,
+    "golden_q05:rsr:k=3": 0.5,
+    "golden_q05:rsr:k=5": 0.5,
+    "golden_q05:shared:k=20_original": 1.0,
+    "golden_q06:ndr:k=0": 0.0,
+    "golden_q06:ror:reversed": 0.1,
+    "golden_q06:ror:shuffled": 0.1,
+    "golden_q06:rsr:k=10": 0.1,
+    "golden_q06:rsr:k=3": 0.1,
+    "golden_q06:rsr:k=5": 0.1,
+    "golden_q06:shared:k=20_original": 0.1,
+    "golden_q07:ndr:k=0": 0.0,
+    "golden_q07:ror:reversed": 1.0,
+    "golden_q07:ror:shuffled": 1.0,
+    "golden_q07:rsr:k=10": 1.0,
+    "golden_q07:rsr:k=3": 1.0,
+    "golden_q07:rsr:k=5": 1.0,
+    "golden_q07:shared:k=20_original": 1.0,
+    "golden_q08:ndr:k=0": 0.0,
+    "golden_q08:ror:reversed": 0.7,
+    "golden_q08:ror:shuffled": 0.7,
+    "golden_q08:rsr:k=10": 0.7,
+    "golden_q08:rsr:k=3": 0.7,
+    "golden_q08:rsr:k=5": 0.7,
+    "golden_q08:shared:k=20_original": 0.7,
+    "golden_q09:ndr:k=0": 0.0,
+    "golden_q09:ror:reversed": 1.0,
+    "golden_q09:ror:shuffled": 1.0,
+    "golden_q09:rsr:k=10": 1.0,
+    "golden_q09:rsr:k=3": 1.0,
+    "golden_q09:rsr:k=5": 1.0,
+    "golden_q09:shared:k=20_original": 1.0,
+    "golden_q10:ndr:k=0": 0.0,
+    "golden_q10:ror:reversed": 0.5,
+    "golden_q10:ror:shuffled": 0.5,
+    "golden_q10:rsr:k=10": 0.5,
+    "golden_q10:rsr:k=3": 0.5,
+    "golden_q10:rsr:k=5": 0.5,
+    "golden_q10:shared:k=20_original": 0.5,
+    "golden_q11:ndr:k=0": 0.0,
+    "golden_q11:ror:reversed": 0.0,
+    "golden_q11:ror:shuffled": 0.0,
+    "golden_q11:rsr:k=10": 1.0,
+    "golden_q11:rsr:k=3": 0.2,
+    "golden_q11:rsr:k=5": 1.0,
+    "golden_q11:shared:k=20_original": 0.1,
+    "golden_q12:ndr:k=0": 0.0,
+    "golden_q12:ror:reversed": 0.1,
+    "golden_q12:ror:shuffled": 0.1,
+    "golden_q12:rsr:k=10": 0.1,
+    "golden_q12:rsr:k=3": 0.1,
+    "golden_q12:rsr:k=5": 0.1,
+    "golden_q12:shared:k=20_original": 0.1,
+    "golden_q13:ndr:k=0": 0.0,
+    "golden_q13:ror:reversed": 1.0,
+    "golden_q13:ror:shuffled": 1.0,
+    "golden_q13:rsr:k=10": 1.0,
+    "golden_q13:rsr:k=3": 1.0,
+    "golden_q13:rsr:k=5": 1.0,
+    "golden_q13:shared:k=20_original": 1.0,
+    "golden_q14:ndr:k=0": 0.2,
+    "golden_q14:ror:reversed": 0.7,
+    "golden_q14:ror:shuffled": 0.7,
+    "golden_q14:rsr:k=10": 0.7,
+    "golden_q14:rsr:k=3": 0.3,
+    "golden_q14:rsr:k=5": 0.5,
+    "golden_q14:shared:k=20_original": 0.7,
+    "golden_q15:ndr:k=0": 0.0,
+    "golden_q15:ror:reversed": 0.0,
+    "golden_q15:ror:shuffled": 0.0,
+    "golden_q15:rsr:k=10": 0.0,
+    "golden_q15:rsr:k=3": 0.0,
+    "golden_q15:rsr:k=5": 0.0,
+    "golden_q15:shared:k=20_original": 0.0,
+    "golden_q16:ndr:k=0": 0.0,
+    "golden_q16:ror:reversed": 0.5,
+    "golden_q16:ror:shuffled": 0.5,
+    "golden_q16:rsr:k=10": 0.0,
+    "golden_q16:rsr:k=3": 0.0,
+    "golden_q16:rsr:k=5": 0.0,
+    "golden_q16:shared:k=20_original": 0.5,
+    "golden_q17:ndr:k=0": 0.0,
+    "golden_q17:shared:k=20_original": 0.3,
+    "golden_q18:ndr:k=0": 0.0,
+    "golden_q18:shared:k=20_original": 0.0,
+    "golden_q22:ndr:k=0": 0.2,
+    "golden_q22:shared:k=20_original": 0.6,
+    "golden_q23:ndr:k=0": 0.0,
+    "golden_q23:shared:k=20_original": 0.3,
+    "golden_q24:ndr:k=0": 0.0,
+    "golden_q24:shared:k=20_original": 0.3,
+    "golden_q25:ndr:k=0": 0.0,
+    "golden_q25:ror:reversed": 0.3,
+    "golden_q25:ror:shuffled": 0.3,
+    "golden_q25:rsr:k=10": 0.2,
+    "golden_q25:rsr:k=3": 0.2,
+    "golden_q25:rsr:k=5": 0.2,
+    "golden_q25:shared:k=20_original": 0.4,
+    "golden_q26:ndr:k=0": 0.8,
+    "golden_q26:shared:k=20_original": 0.5,
+    "golden_q27:ndr:k=0": 0.6,
+    "golden_q27:shared:k=20_original": 0.7,
+    "golden_q28:ndr:k=0": 0.5,
+    "golden_q28:shared:k=20_original": 0.6,
+    "golden_q29:ndr:k=0": 0.0,
+    "golden_q29:shared:k=20_original": 0.0,
+    "golden_q30:ndr:k=0": 0.2,
+    "golden_q30:shared:k=20_original": 0.8
+  }
+}

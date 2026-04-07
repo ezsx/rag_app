@@ -31,6 +31,12 @@
   или нужно организовать write+review workflow:
   - прочитай `agent_context/modules/parallel_agents.md`
 
+- Если задача про **эксперимент**, eval прогон, ablation, A/B сравнение pipeline,
+  измерение метрик, запуск evaluate_retrieval/evaluate_agent:
+  - прочитай `experiments/PROTOCOL.md`
+  - прочитай `experiments/baseline.yaml`
+  - прочитай `experiments/log.md`
+
 ## Комбинирование
 
 - Если задача затрагивает несколько доменов — читай только нужные модули.

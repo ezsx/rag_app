@@ -1,0 +1,138 @@
+{
+  "total_queries": 36,
+  "answerable_queries": 33,
+  "negative_queries": 3,
+  "golden_queries": 33,
+  "errors": {
+    "agent": 0,
+    "baseline": 36
+  },
+  "primary": {
+    "key_tool_accuracy": {
+      "mean": 1.0,
+      "total_evaluated": 33
+    },
+    "factual_correctness": {
+      "mean": null,
+      "total_evaluated": 0
+    },
+    "usefulness": {
+      "mean": null,
+      "total_evaluated": 0
+    },
+    "failure_breakdown": {
+      "refusal_wrong": 2
+    }
+  },
+  "retrieval_grounding": {
+    "acceptable_set_hit": {
+      "mean": 0.47058823529411764,
+      "total_evaluated": 17
+    },
+    "retrieval_sufficiency_score": {
+      "mean": null,
+      "total_evaluated": 0,
+      "pending_offline_judge": true
+    },
+    "evidence_support_score": {
+      "mean": null,
+      "total_evaluated": 0,
+      "pending_offline_judge": true
+    }
+  },
+  "diagnostic": {
+    "strict_anchor_recall": {
+      "mean": 0.5882352941176471,
+      "full": 9,
+      "zero": 6,
+      "total_evaluated": 17
+    },
+    "coverage": {
+      "mean": 0.41398794919288323
+    },
+    "latency": {
+      "agent": {
+        "mean": 24.36854147778245,
+        "p95": 65.63421504999133
+      },
+      "baseline": {
+        "mean": null,
+        "p95": null
+      }
+    }
+  },
+  "by_category": {
+    "broad_search": {
+      "queries": 6,
+      "strict_anchor_recall_mean": 0.5,
+      "acceptable_set_hit_mean": 0.5,
+      "key_tool_accuracy_mean": 1.0,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 36.630261600002996
+    },
+    "constrained_search": {
+      "queries": 7,
+      "strict_anchor_recall_mean": 0.7142857142857143,
+      "acceptable_set_hit_mean": 0.42857142857142855,
+      "key_tool_accuracy_mean": 1.0,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 29.676221971437503
+    },
+    "compare_summarize": {
+      "queries": 4,
+      "strict_anchor_recall_mean": 0.5,
+      "acceptable_set_hit_mean": 0.5,
+      "key_tool_accuracy_mean": 1.0,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 48.39267215000291
+    },
+    "navigation": {
+      "queries": 2,
+      "strict_anchor_recall_mean": null,
+      "acceptable_set_hit_mean": null,
+      "key_tool_accuracy_mean": 1.0,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 11.697380849989713
+    },
+    "negative_refusal": {
+      "queries": 3,
+      "strict_anchor_recall_mean": null,
+      "acceptable_set_hit_mean": null,
+      "key_tool_accuracy_mean": null,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 23.666285833343863
+    },
+    "future_baseline": {
+      "queries": 8,
+      "strict_anchor_recall_mean": null,
+      "acceptable_set_hit_mean": null,
+      "key_tool_accuracy_mean": 1.0,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 10.209656975002872
+    },
+    "analytics_hot_topics": {
+      "queries": 3,
+      "strict_anchor_recall_mean": null,
+      "acceptable_set_hit_mean": null,
+      "key_tool_accuracy_mean": 1.0,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 15.222761366671572
+    },
+    "analytics_channel_expertise": {
+      "queries": 3,
+      "strict_anchor_recall_mean": null,
+      "acceptable_set_hit_mean": null,
+      "key_tool_accuracy_mean": 1.0,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 11.48084070000914
+    }
+  }
+}

@@ -8,5 +8,9 @@ PREFLIGHT! Перед каждой задачей — определи task type
 При создании/изменении любых файлов в docs/ — следовать правилам:
 @docs/architecture/00-meta/02-documentation-governance.md
 
+# Experiment Protocol
+При eval/experiment/ablation задачах — ОБЯЗАТЕЛЬНО загрузить:
+@experiments/PROTOCOL.md
+
 # Codex / OpenAI flow:
 @AGENTS.md

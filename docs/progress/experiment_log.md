@@ -326,7 +326,7 @@ Fix: добавлены `final_answer`, `verify`, `fetch_docs` в `_skip_securit
 | Claims verified | 171 |
 | Eval file | eval_results_20260401-091242.json |
 | NLI file | nli_scores_20260401_full.json |
-| Full analysis | [nli_faithfulness_analysis_20260401.md](../../results/reports/nli_faithfulness_analysis_20260401.md) |
+| Full analysis | [nli_faithfulness_analysis_20260401.md](../../experiments/legacy/reports/nli_faithfulness_analysis_20260401.md) |
 
 Model: rubert-base-cased-nli-threeway (180M, 0.36 GB). Выбрана после A/B с xlm-roberta-large-xnli (560M) — ruBERT дала ent=0.948 vs XLM-R ent=0.006 на тех же парах.
 
@@ -354,8 +354,8 @@ Bypass pipeline (прямые Qdrant + llama-server, без agent). BERTScore F1
 
 **Known issues**: q11 boris confusion, q12/q15/q06 missing docs (data quality, не pipeline).
 
-Raw: `results/robustness/ndr_rsr_ror_raw_20260402-082135.json`
-Report: `results/robustness/ndr_rsr_ror_report_20260402-082135.md`
+Raw: `experiments/legacy/robustness/ndr_rsr_ror_raw_20260402-082135.json`
+Report: `experiments/legacy/robustness/ndr_rsr_ror_report_20260402-082135.md`
 
 #### Методология: наша vs Cao et al. (2025, arXiv:2505.21870)
 

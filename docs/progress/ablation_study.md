@@ -96,7 +96,7 @@ R@1=0.758  R@5=0.900  R@20=0.933  MRR=0.823
 | ret_112 | edge | нейросети заменят программистов? | techno_yandex:4978 |
 | ret_113 | edge | ии-музыка через suno? | denissexy:10782 |
 
-**Артефакты**: `results/ablation/` (24 JSON), `results/ablation/_summary.json`, `scripts/evaluate_retrieval.py`
+**Артефакты**: `experiments/legacy/ablation/` (24 JSON), `experiments/legacy/ablation/_summary.json`, `scripts/evaluate_retrieval.py`
 
 ---
 
@@ -160,7 +160,7 @@ R@1=0.758  R@5=0.900  R@20=0.933  MRR=0.823
 
 **Вывод**: CE разделяет классы (mean relevant=5.9 vs mean irrelevant=−0.8), но с большим overlap (25% irrelevant docs имеют score > 3.3). Threshold=0.0 — рабочий порог.
 
-**Артефакты**: `results/ablation/stage_attribution.json`, `results/ablation/ce_score_distribution.json`
+**Артефакты**: `experiments/legacy/ablation/stage_attribution.json`, `experiments/legacy/ablation/ce_score_distribution.json`
 
 ---
 
@@ -193,7 +193,7 @@ R@1=0.758  R@5=0.900  R@20=0.933  MRR=0.823
 
 **Вывод**: основной рычаг = retriever tuning (dense limit, funnel width), не orchestration. Query plan полезен только с inject, и uplift скромный (+2%).
 
-**Артефакты**: `results/ablation/phase2/p2_*.json`, `scripts/evaluate_retrieval_full.py`
+**Артефакты**: `experiments/legacy/ablation/phase2/p2_*.json`, `scripts/evaluate_retrieval_full.py`
 
 ---
 
@@ -326,20 +326,107 @@ Baseline: Phase 1 winner = R@5 **0.900**, MRR **0.823** (no-prefix + dense=40 + 
 
 Retrieval-only числа стабильны (no regression). MMR merge не влияет на single-query retrieval.
 
-### Full Pipeline Final (120 Qs, computing)
+### Full Pipeline Final (RUN-001, 120 Qs, 2026-04-08)
 
-Ожидается: MMR merge + adaptive filter + planner fix → улучшение на full pipeline (multi-query).
+Прогон после fix двух production багов:
+1. **CE URL**: `.env` имел `host.docker.internal:8082`, `setdefault()` не перезаписывал → CE timeout 30s на всех queries. Fix: force `os.environ["RERANKER_TEI_URL"]`.
+2. **Embedding prefix**: `settings.py` имел instruction prefix (ablation phase 1 нашёл что вредит), но fix применили только в eval скрипте, не в production. Fix: `embedding_query_instruction=""` в settings.py.
 
-**Артефакты**: `results/ablation/phase3/`, `scripts/_pipeline_trace_v2.py`, `scripts/_merge_comparison.py`
+| Metric | Retrieval-Only | Full Pipeline | Delta |
+|--------|:---:|:---:|:---:|
+| R@1 | 0.742 | 0.667 | −0.075 |
+| R@5 | **0.900** | **0.900** | **0.000** |
+| R@20 | 0.933 | — | — |
+| MRR | 0.814 | 0.766 | −0.048 |
+| Mean CE (top-5) | 3.1 | **3.5** | **+0.4** |
+| CE neg (top-5) | **1.2** | 3.2 | +2.0 |
+| Channels (top-5) | 3.3 | 3.3 | 0.0 |
+| Latency | 6.6s | 19.1s | +12.5s |
+
+**Answer comparison** (15 queries, оба контекста → Qwen3.5, Claude judge):
+
+| Verdict | Count | Примеры |
+|---------|:---:|---------|
+| FP лучше | **6** | ShadowKV (FP synthesized, RO refused), нейросети-видео (FP 5 models vs RO 2), Claude Code игры (FP found doc, RO missed) |
+| Паритет | **8** | Роборука, VW effect, Stargate vs Genesis |
+| RO лучше | **1** | Forbes инноваторы (больше деталей) |
+
+**Вывод**: Full pipeline оправдан. R@5 = RO, quality > RO (judge 6:1:8). Subqueries от query planner находят дополнительные релевантные docs. CE re-sort ставит лучшие docs наверх. Главная проблема — adaptive filter слишком мягкий (ce_neg 3.2 vs 1.2), особенно на edge queries (7.2).
+
+**Stage attribution** (11 FP misses): 10 `not_in_merge` (оба pipeline не находят — потолок dataset), 1 `dedup`.
+
+**Артефакты**: `experiments/runs/RUN-001/` (spec.yaml, raw_ro.jsonl, raw_fp.jsonl, answers.json, results.yaml)
 
 ---
+
+## Phase 4 — Experiment Protocol (2026-04-08)
+
+После двух production багов (потерянный день compute) разработан формализованный experiment protocol:
+
+- **`experiments/PROTOCOL.md`** — правила: spec перед compute, parity check, preflight, early checkpoint, structured artifacts
+- **`experiments/baseline.yaml`** — frozen production config + метрики (обновляется только после adopt)
+- **`experiments/log.md`** — summary всех runs
+- **`scripts/parity_check.py`** — автоматическая проверка config vs baseline (exit 1 при drift)
+- Routing через `CLAUDE.md`, `preflight.md`, `claude_router.md` — agent загружает protocol при task type = eval
+
+Паттерны из: Promptfoo (config-as-YAML, assertions), DeepEval (Golden/TestCase split, pytest metrics), Anthropic (plan gate, progressive autonomy).
+
+**RUN-001** — первый прогон по протоколу. Preflight поймал незапущенный Qdrant, parity check прошёл без drift.
+
+---
+
+## Итоги Ablation Study
+
+### Прогресс метрик
+
+| Фаза | R@1 | R@5 | MRR | Что изменилось |
+|------|-----|-----|-----|---------------|
+| Baseline | 0.708 | 0.833 | 0.765 | prefix ON, dense=20 |
+| Phase 1 winner | 0.758 | **0.900** | 0.823 | no-prefix, dense=40, RRF [1:3] |
+| Phase 2 (R2 norm) | 0.750 | 0.900 | 0.819 | + sparse lexicon normalization |
+| **Phase 3 (RO)** | **0.742** | **0.900** | **0.814** | + MMR, CE re-sort, adaptive, planner fix |
+| **Phase 3 (FP)** | 0.667 | **0.900** | 0.766 | Full pipeline: R@5 = RO, quality > RO |
+
+### Ключевые решения (39+ экспериментов)
+
+| Решение | Источник | Влияние |
+|---------|----------|---------|
+| Instruction prefix OFF | Phase 1 (#2) | **+5.8% R@5** |
+| Dense limit 20→40 | Phase 1 (#3) | +3.4% R@5 |
+| ColBERT обязателен | Phase 1 (#13) | −10% R@5 без него |
+| BM25 нужен | Phase 2c (E1) | −0.8% R@5 без него |
+| Sparse-only normalization | Phase 2c (R2) | +0.009 R@1, +0.005 MRR |
+| Query plan + inject | Phase 2b (#3) | +2.1% R@5 на hard subset |
+| MMR merge (λ=0.7) | Phase 3 | Diversity, нашёл lost doc |
+| CE re-sort | Phase 3 | Лучший doc наверху для compose |
+| Adaptive CE filter | Phase 3 | Убирает шум, гарантирует min 5 docs |
+| Planner language fix | Phase 3 | Subqueries на языке запроса |
+
+### Что не работает
+
+| Подход | Результат |
+|--------|-----------|
+| Funnel expansion (rrf/ColBERT limits) | 0% change — проблема semantic, не truncation |
+| Normalize all (dense + BM25) | −4.2% R@5 — ломает dense embeddings |
+| PRF expansion | −4.2% R@5 — добавляет шум |
+| HyDE | Без улучшений на hard subset |
+| LLM rewrite | Без улучшений, дорого |
+| Rule-based filters | Хуже чем raw retriever |
+
+### Открытые вопросы
+
+1. **Adaptive filter ce_neg**: 3.2 avg (edge: 7.2). Нужно ужесточить без потери recall
+2. **MRR gap**: FP 0.766 vs RO 0.814. MMR diversity penalty сдвигает expected doc
+3. **10 permanent misses**: потолок dataset'а, оба pipeline не находят
 
 ## Хронология
 
 | Дата | Фаза | Экспериментов | Ключевой результат |
 |------|-------|--------------|-------------------|
 | 2026-04-04 | Phase 1: parameter sweep | 24 | R@5 0.833→0.900 (no-prefix + dense=40) |
-| 2026-04-05 | Phase 2a: diagnosis | — | CE bug fixed, stage attribution (4 rrf, 3 colbert, 1 not_found) |
-| 2026-04-05 | Phase 2b: query-plan ablation | 5 | qplan + inject = +2% R@5, filters/CE/dedup не помогают |
-| 2026-04-05 | Phase 2c: new retrieval tracks | 10 | Funnel ≠ bottleneck, R2 sparse norm лучший, PRF/normalize-all/HyDE не помогают |
-| 2026-04-06 | Phase 3: orchestration | 3 traces | MMR merge нашёл lost doc, CE re-sort + adaptive filter, planner language fix |
+| 2026-04-05 | Phase 2a: diagnosis | — | CE bug fixed, stage attribution |
+| 2026-04-05 | Phase 2b: query-plan ablation | 5 | qplan + inject = +2% R@5 |
+| 2026-04-05 | Phase 2c: new retrieval tracks | 10 | R2 sparse norm лучший, PRF/HyDE не помогают |
+| 2026-04-06 | Phase 3: orchestration | 3 traces | MMR merge, CE re-sort, adaptive filter, planner fix |
+| 2026-04-07 | Phase 3: bugs + eval | 2 bugs | CE URL fix, embedding prefix fix |
+| 2026-04-08 | Phase 4: protocol + RUN-001 | 1 | Experiment protocol, FP validated (quality > RO, judge 6:1:8) |

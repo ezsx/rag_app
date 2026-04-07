@@ -14,7 +14,7 @@ Full-pipeline retrieval evaluation — prod-parity через direct import prod
         --dataset datasets/eval_retrieval_v3.json \
         --use-query-plan --inject-original-query --use-metadata-filters \
         --ce-filter --ce-threshold 0.0 --channel-dedup 2 \
-        --output results/ablation/phase3/run_001.jsonl
+        --output experiments/runs/fp_run_001.jsonl
 """
 
 from __future__ import annotations
@@ -533,7 +533,7 @@ def main():
 
     # ── Output path ──
     ts = time.strftime("%Y%m%d-%H%M%S")
-    out_path = args.output or f"results/ablation/phase3/run_{ts}.jsonl"
+    out_path = args.output or f"experiments/runs/fp_run_{ts}.jsonl"
     if not out_path.endswith(".jsonl"):
         out_path = out_path.rsplit(".", 1)[0] + ".jsonl"
 
@@ -617,6 +617,8 @@ def main():
             "latency": round(latency, 2),
         }
         row.update(trace)  # ce_ok, ce_top, ce_cut, ce_error, merged, n_cand, dedup_rm, ...
+        row["top5_texts"] = [c.text[:300] for c in candidates[:5]]
+        row["top5_hits"] = [f"{c.metadata.get('channel','')}:{c.metadata.get('message_id','')}" for c in candidates[:5]]
         writer.write(row)
 
         # Live stderr: каждые 10 queries или при R@5=0

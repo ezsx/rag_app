@@ -43,6 +43,46 @@ test_*.json
 /results/
 src/results/
 
+# Experiment raw data (large jsonl from eval runs, keep locally)
+experiments/runs/*/raw_*.jsonl
+
+# Legacy artifacts — всё заигнорено кроме SUMMARY и selected samples
+experiments/legacy/*
+!experiments/legacy/SUMMARY.md
+# ablation: ignore all, un-ignore selected
+!experiments/legacy/ablation/
+experiments/legacy/ablation/*
+!experiments/legacy/ablation/SUMMARY.md
+!experiments/legacy/ablation/baseline.json
+!experiments/legacy/ablation/combo_noprefix_d40_rrf13.json
+!experiments/legacy/ablation/_summary.json
+!experiments/legacy/ablation/stage_attribution.json
+!experiments/legacy/ablation/phase2/
+experiments/legacy/ablation/phase2/*
+!experiments/legacy/ablation/phase2/_phase2_summary.json
+!experiments/legacy/ablation/phase3/
+experiments/legacy/ablation/phase3/*
+# agent_eval: ignore all, un-ignore selected
+!experiments/legacy/agent_eval/
+experiments/legacy/agent_eval/*
+!experiments/legacy/agent_eval/SUMMARY.md
+!experiments/legacy/agent_eval/eval_results_20260401-091242.json
+# reports: ignore all, un-ignore selected
+!experiments/legacy/reports/
+experiments/legacy/reports/*
+!experiments/legacy/reports/SUMMARY.md
+!experiments/legacy/reports/nli_faithfulness_analysis_20260401.md
+!experiments/legacy/reports/eval_report_20260401-091242.json
+!experiments/legacy/reports/eval_report_20260401-091242.md
+# robustness: ignore all, un-ignore selected
+!experiments/legacy/robustness/
+experiments/legacy/robustness/*
+!experiments/legacy/robustness/SUMMARY.md
+!experiments/legacy/robustness/judge_ndr_rsr_ror_final.json
+!experiments/legacy/robustness/ndr_rsr_ror_report_20260402-082135.md
+# benchmarks: keep all (valuable for portfolio)
+!experiments/legacy/benchmarks/
+
 # Binary models (regeneratable)
 datasets/bertopic_model/
 
