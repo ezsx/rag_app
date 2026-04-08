@@ -1,0 +1,10 @@
+# Progress log — 5 queries
+# Started: 2026-04-08 03:08:47
+# qid                  status    latency  tools   cov error
+# -------------------- -------- -------- ------ ----- --------------------
+  golden_q01           OK          32.2s      5  0.75 
+  golden_q08           OK          19.0s      4  0.67 
+  golden_q09           OK          19.4s      4  1.00 
+  golden_q10           OK          15.1s      4  0.67 
+  golden_q14           OK          54.4s      6  0.51 
+# Done: 5/5 queries, 0 errors, total 140s

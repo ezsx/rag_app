@@ -1,0 +1,587 @@
+[
+  {
+    "query_id": "golden_v2_q31",
+    "query": "Какие горячие темы были на неделе 2026-W10?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "На неделе 2026-W10 (с 2 по 9 марта 2026 года) в российских Telegram-каналах было опубликовано 325 постов, посвященных актуальным темам в сфере AI/ML.\n\nЛидирующими темами недели стали:\n1. **Обсуждение GPT-5 и его модификаций**: Высокий интерес проявили к версиям GPT-54, GPT-5 thinking и GPT-Plus. Эти темы обсуждались в 11 каналах, включая 'addmeto', 'ai_newz' и 'techno_yandex' [1].\n2. **Продукты Apple**: Активно обсуждались новые MacBook, iPhone (включая iPhone 17) и AirPods. Эта тема охватила 16 каналов, таких как 'protechietich', 'xor_journal' и 'techno_yandex' [1].\n3. **Технические архитектуры и модели**: Темы hrm, kv, mlp, reward и selfattention получили внимание в каналах 'ai_machinelearning_big_data', 'data_secrets' и других [1].\n4. **Нейроинтерфейсы (BCI) и Neuralink**: Обсуждения были сосредоточены на интеграции с памятью (dram) и Lidar, хотя количество постов было ниже (3 поста) [1].\n5. **Безопасность кода и процессы разработки**: Растет интерес к прозрачности, code review и security, что обсуждалось в 6 каналах [1].\n\nСреди наиболее упоминаемых компаний и моделей лидером стала OpenAI (48 упоминаний), за ней следуют Claude (33) и Anthropic (28). Также значительное внимание уделялось GPT-5 (22 упоминания), Google, Gemini, Qwen и Яндексу [1].\n\nКаналы 'ai_machinelearning_big_data' и 'data_secrets' выделялись активным обсуждением как новых технологий, так и практических аспектов их применения.",
+    "status": "ok",
+    "latency_sec": 13.851759400000446,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: 2026-W10; posts: 325; summary: В этой неделе активно обсуждались темы, связанные с GPT-5 и его возможностями. Посты о GPT-54, GPT-5 thinking и GPT-Plus появились в 11 каналах, включая 'addmeto', 'ai_newz' и 'techno_yandex'. Также п\n- hrm, kv, mlp (score=0.476, 22 posts, channels: ai_machinelearning_big_data,data_secrets,gonzo_ml)\n- gpt54, gpt5 thinking, plus (score=0.467, 11 posts, channels: addmeto,ai_machinelearning_big_data,ai_newz)\n- macbook, iphone, airpods (score=0.463, 16 posts, c",
+        "success": true,
+        "took_ms": 41,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1419 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q31",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен использовать hot_topics для периода 2026-W10",
+        "Ответ должен назвать минимум две реальные горячие темы недели"
+      ],
+      "expected_answer": "В неделю 2026-W10 среди горячих тем фигурировали Apple (iPhone 17, AirPods), GPT-5.4 и Codex, а также связанные обсуждения вокруг code review и безопасности.",
+      "expected_entities": [
+        "OpenAI",
+        "Claude",
+        "Anthropic"
+      ],
+      "expected_topics": [
+        "GPT-5.4",
+        "Codex",
+        "iPhone 17",
+        "AirPods"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": "analytics tool, judge checks period resolution and topic coverage",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "hot_topics",
+          "w10"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v2_q32",
+    "query": "Что обсуждали на неделе 2026-W11? Какие были тренды?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "На неделе 2026-W11 (с 9 по 16 марта 2026 года) в русскоязычных Telegram-каналах было опубликовано 317 постов, посвященных искусственному интеллекту и машинному обучению.\n\nОсновные тренды недели:\n1. Технические архитектуры: Наиболее обсуждаемой темой стали метрики и подходы к моделированию, связанные с HRM, KV (Key-Value) и MLP (Multi-Layer Perceptron), а также механизмы внимания (self-attention). Это активно обсуждалось в каналах MLunderhood, ai_machinelearning_big_data и других [1].\n2. Оценка моделей: Продолжались дискуссии о метриках оценки моделей, концепциях «правды» (ground truth) и их применении на практике [1].\n3. Научные конференции: В канале rybolos_channel и scientific_opensource обсуждались вопросы принятия статей в конференциях типа NeurIPS, а также темы компьютерных наук (CS) [1].\n4. Инструменты разработки: Упоминались инструменты для UI/UX, такие как Figma и HTML, что связано с практической разработкой интерфейсов для AI-продуктов [1].\n5. Протоколы и проекты: Обсуждались вопросы протоколов и проектов, связанных с Яндексом (aliceyandexru) [1].\n\nЛидеры по упоминаниям среди компаний и продуктов:\n• Claude (32 упоминания)\n• OpenAI (26 упоминаний)\n• Anthropic (21 упоминание)\n• Google (21 упоминание)\n• NVIDIA (20 упоминаний)\n• Gemini (18 упоминаний)\n• Microsoft (10 упоминаний)\n• GPT-5 (7 упоминаний) [1]\n\nВ целом, обсуждения варьировались от теоретических научных разработок до практических аспектов внедрения и оценки моделей.",
+    "status": "ok",
+    "latency_sec": 11.338846899998316,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: 2026-W11; posts: 317; summary: В этой неделе в Telegram-каналах активно обсуждались темы, связанные с HRM, KV и MLP. Наибольший интерес вызвало обсуждение метрик и подходов к моделированию, особенно в каналах MLunderhood и ai_machi\n- hrm, kv, mlp (score=0.456, 21 posts, channels: MLunderhood,ai_machinelearning_big_data,cryptovalerii)\n- eval, ground truth, truth (score=0.427, 4 posts, channels: gonzo_ml)\n- accept, cs, neurips (score=0.387, 7 posts, channels: rybolos_channel,scientific_ope",
+        "success": true,
+        "took_ms": 30,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1455 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q32",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен использовать hot_topics для периода 2026-W11",
+        "Ответ должен перечислить минимум две реальные темы из weekly digest за эту неделю"
+      ],
+      "expected_answer": "На неделе 2026-W11 среди заметных трендов были Codex и RFC, Eval/ground truth, Amazon AI/AWS AI, а также связанные обсуждения вокруг NeurIPS и legal topics.",
+      "expected_entities": [
+        "Claude",
+        "OpenAI",
+        "Anthropic"
+      ],
+      "expected_topics": [
+        "Codex",
+        "Eval",
+        "ground truth",
+        "Amazon AI"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": "analytics tool, weekly digest query",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "hot_topics",
+          "w11"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v2_q33",
+    "query": "Какие горячие темы были в марте 2026?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "</think>\n\nВ марте 2026 года в русскоязычных Telegram-каналах, посвященных AI/ML, наблюдался высокий интерес к нескольким ключевым темам. Всего было зафиксировано 1364 поста, затрагивающих различные аспекты развития искусственного интеллекта.\n\n**Топ горячих тем:**\n\n1.  **Оптимизация архитектуры моделей (HRM, KV, MLP)** — эта тема стала самой популярной с 90 постами и высоким показателем \"горячности\" (0.521). Обсуждения велись в таких каналах, как `neurohive`, `ai_machinelearning_big_data` и `MLunderhood`. Акцент делался на методах обучения, самопроверке (selfattention) и эффективности моделей [1].\n\n2.  **Философские и этические вопросы будущего ИИ (XXI, ASI, what is)** — вторая по популярности тема с 44 постами. В каналах `theworldisnoteasy` и `techsparks` обсуждались концепции сверхразума (ASI), искусственного интеллекта XXI века и сами определения этих технологий [1].\n\n3.  **Новые версии моделей GPT-5** — активно обсуждались детали GPT-54, режим \"GPT-5 thinking\" и подписка Plus. Темой интересовались в 11 каналах, включая `techno_yandex` и `ai_newz`, что указывает на значительный резонанс обновлений от OpenAI [1].\n\n4.  **Продукты Apple** — темы, связанные с новыми MacBook, iPhone и AirPods, получили 16 упоминаний. Обсуждения проходили в контексте интеграции ИИ в экосистему Apple [1].\n\n5.  **Оценка моделей (Eval, Ground Truth)** — менее массовая, но важная техническая тема, обсуждаемая в канале `gonzo_ml` в контексте проверки истинности данных и метрик оценки [1].\n\n**Лидеры по упоминаниям среди компаний:**\nВ ходе месяца безоговорочным лидером по количеству упоминаний стала **OpenAI** (152 поста), за ней следуют **Claude** (139) и **Anthropic** (101). Также высокий интерес проявляли к продуктам **Google**, **NVIDIA** и **Яндекс** [1].\n\nВ целом, март 2026 года характеризовался сочетанием глубоких технических дискуссий об архитектуре нейросетей с активным обсуждением новых релизов от крупных технологических гигантов и этических вопросов будущего ИИ.",
+    "status": "ok",
+    "latency_sec": 17.17630949999875,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "temporal_search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [
+      "В марте 2026 года в русскоязычных Telegram-каналах, посвященных AI/ML, наблюдался высокий интерес к нескольким ключевым темам. Всего было зафиксировано 1364 поста, затрагивающих различные аспекты разв"
+    ],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: month:2026-03; posts: 1364; summary: В этой неделе основное внимание в сообществе AI/ML было сосредоточено на темах, связанных с HRM, KV и MLP, где обсуждались методы оптимизации и эффективности моделей. В каналах, таких как MLunderhood \n- xxi, asi, what is (score=0.544, 44 posts, channels: theworldisnoteasy,techsparks,xor_journal)\n- hrm, kv, mlp (score=0.521, 90 posts, channels: seeallochnaya,singularityfm,stuffynlp)\n- gpt54, gpt5 thinking, plus (score=0.467, 11 posts, channels: addmeto",
+        "success": true,
+        "took_ms": 49,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q33",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен использовать hot_topics для month aggregation",
+        "Ответ должен назвать минимум две темы, реально попавшие в мартовский digest"
+      ],
+      "expected_answer": "В марте 2026 среди горячих тем выделялись GPT-5.4 и Codex, Apple-related announcements, Amazon AI/AWS AI и обсуждения eval/ground truth.",
+      "expected_entities": [
+        "OpenAI",
+        "Claude",
+        "Anthropic",
+        "Google"
+      ],
+      "expected_topics": [
+        "GPT-5.4",
+        "Codex",
+        "Amazon AI",
+        "Eval"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": "analytics month aggregation",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "hot_topics",
+          "month"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v2_q34",
+    "query": "Какие каналы эксперты по NLP? Кто лучше разбирается в NLP?",
+    "eval_mode": "analytics",
+    "category": "analytics_channel_expertise",
+    "answer": "На основе анализа базы данных каналов по теме NLP (Natural Language Processing), можно выделить следующие каналы, наиболее компетентные в этой области:\n\n**Топ-каналы по авторитетности в NLP:**\n\n1.  **@xor_journal** — самый авторитетный канал с оценкой 0.77. Основные темы: OpenAI, Claude, Яндекс, Google.\n2.  **@ai_newz** — второй по авторитетности (0.742), фокусируется на новостях ИИ и ML, часто упоминает Google, OpenAI, Claude.\n3.  **@gonzo_ml** (оценка 0.735) — специализируется на технических деталях: Transformer, Qwen, DeepSeek, HuggingFace.\n4.  **@seeallochnaya** (оценка 0.733) — публикует аналитику и обзоры по OpenAI, GPT-5, Anthropic.\n5.  **@llm_under_hood** (оценка 0.63) — углубляется в архитектуру LLM, RAG, часто обсуждает OpenAI и Claude.\n\n**Каналы с узкой специализацией на NLP:**\n*   **@stuffynlp** — канал с явным уклоном в NLP (упоминаются SFT, Qwen, Llama, GRPO).\n*   **@neurohive** — также затрагивает темы HuggingFace и квантования моделей.\n\n**Кто лучше разбирается?**\nБолее всего экспертности в вопросах архитектуры и технических аспектов NLP демонстрируют каналы **@xor_journal**, **@gonzo_ml** и **@llm_under_hood**. Они чаще других обсуждают конкретные модели (Transformer, Qwen, DeepSeek) и методы обучения. Для получения широкого обзора новостей лучше подходят @ai_newz и @seeallochnaya.\n\n⚠️ Источники не указаны. Информация может быть неточной.",
+    "status": "ok",
+    "latency_sec": 13.35683550000249,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "channel_expertise",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_expertise"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "channel_expertise",
+        "summary": "Found 10 channels for topic='NLP', metric=authority: xor_journal(0.77), ai_newz(0.742), gonzo_ml(0.735), seeallochnaya(0.733), protechietich(0.654)",
+        "success": true,
+        "took_ms": 316,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1376 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q34",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_expertise"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [
+        "list_channels"
+      ],
+      "required_claims": [
+        "Ответ должен использовать topic mode инструмента channel_expertise",
+        "Ответ должен назвать минимум два релевантных канала из топа по NLP"
+      ],
+      "expected_answer": "Среди сильных каналов по NLP должны появляться xor_journal, ai_newz и gonzo_ml; ответ должен опираться на channel_expertise ranking, а не на обычный search.",
+      "expected_entities": [],
+      "expected_topics": [
+        "NLP"
+      ],
+      "expected_channels": [
+        "xor_journal",
+        "ai_newz",
+        "gonzo_ml"
+      ],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": "topic ranking for NLP",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "channel_expertise",
+          "nlp"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v2_q35",
+    "query": "В чём экспертиза канала gonzo_ml?",
+    "eval_mode": "analytics",
+    "category": "analytics_channel_expertise",
+    "answer": "</think>\n\nКанал **gonzo_ml** обладает экспертизой в области искусственного интеллекта и машинного обучения, фокусируясь на технических аспектах и сравнениях моделей [1].\n\n**Основные характеристики экспертизы:**\n\n*   **Тематика:** Канал активно обсуждает ключевые архитектуры и модели, такие как **Transformer**, **Claude**, **Qwen**, **DeepSeek**, **HuggingFace**, **OpenAI**, **MoE** (Mixture of Experts), **Gemini** и **NVIDIA** [1].\n*   **Содержание:** Автор публикует аналитику, обзоры и новости о последних разработках в сфере ИИ. Контент структурирован и информативен, что делает его полезным как для специалистов, так и для любителей технологии [1].\n*   **Показатели активности:** За период с июля 2025 по март 2026 года канал опубликовал 856 постов со средней частотой около 22 сообщений в неделю.\n*   **Оценка профиля:** Канал имеет высокий балл авторитетности (0.735), что указывает на качество и надежность информации [1].\n\nВ целом, это специализированный ресурс для отслеживания технических деталей и сравнительного анализа современных AI/ML решений.",
+    "status": "ok",
+    "latency_sec": 10.151752100005979,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "channel_expertise"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_search",
+        "summarize_channel",
+        "channel_expertise"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [
+      "Канал **gonzo_ml** обладает экспертизой в области искусственного интеллекта и машинного обучения, фокусируясь на технических аспектах и сравнениях моделей [1]. **Основные характеристики экспертизы:** "
+    ],
+    "tool_observations": [
+      {
+        "tool": "channel_expertise",
+        "summary": "Channel gonzo_ml: authority=0.735, summary: Канал @gonzo_ml публикует 856 постов о AI/ML. Среди тем — Transformer, Claude, Qwen, DeepSeek, HuggingFace. Авторитетность 0.735, скорость публикаций 0.346. Охватывает последние разработки и модели. А",
+        "success": true,
+        "took_ms": 69,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q35",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_expertise"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search",
+        "channel_search"
+      ],
+      "acceptable_alternatives": [
+        "list_channels"
+      ],
+      "required_claims": [
+        "Ответ должен использовать profile lookup режима channel_expertise",
+        "Ответ должен описать экспертизу конкретного канала gonzo_ml"
+      ],
+      "expected_answer": "Ответ должен вернуть профиль gonzo_ml: темы канала, top_topics и общий профиль экспертизы без обычного retrieval path.",
+      "expected_entities": [],
+      "expected_topics": [
+        "architecture",
+        "papers",
+        "training"
+      ],
+      "expected_channels": [
+        "gonzo_ml"
+      ],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "easy",
+      "notes": "direct channel profile lookup",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "channel_expertise",
+          "profile",
+          "gonzo_ml"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v2_q36",
+    "query": "Какие каналы лучше пишут про робототехнику и роботакси?",
+    "eval_mode": "analytics",
+    "category": "analytics_channel_expertise",
+    "answer": "Согласно анализу авторитетности каналов в базе данных за период с июля 2025 по март 2026 года, лучше всего про робототехнику и роботакси пишут следующие каналы:\n\n1. **@xor_journal** — имеет наивысший показатель авторитетности (0.77) в данной тематике [1].\n2. **@techno_yandex** — занимает второе место с авторитетностью 0.675, что логично, учитывая высокую частоту упоминаний «Яндекса» и его робота-такси Яндекс.Ровер/Яндекс.Авто [1].\n3. **@protechietich** — третий по авторитетности (0.654), активно освещает темы NVIDIA, что критически важно для робототехники [1].\n\nЭти каналы демонстрируют наибольшую релевантность и глубину проработки тем, связанных с ИИ в контексте робототехники и автономного транспорта.",
+    "status": "ok",
+    "latency_sec": 10.212508799995703,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "channel_expertise",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_expertise"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "channel_expertise",
+        "summary": "Found 10 channels for topic='робототехника роботакси', metric=authority: xor_journal(0.77), techno_yandex(0.675), protechietich(0.654), llm_under_hood(0.63), singularityfm(0.59)",
+        "success": true,
+        "took_ms": 165,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (710 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q36",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_expertise"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен использовать topic mode инструмента channel_expertise",
+        "Ответ должен назвать минимум один канал, релевантный теме робототехники/роботакси"
+      ],
+      "expected_answer": "Среди релевантных каналов по робототехнике и роботакси должен фигурировать techsparks; ответ должен использовать channel_expertise как ranking/profile tool.",
+      "expected_entities": [],
+      "expected_topics": [
+        "robotics",
+        "robotaxi"
+      ],
+      "expected_channels": [
+        "techsparks"
+      ],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": "topic ranking for robotics / robotaxi. list_channels removed from alternatives — it gives empty nav response instead of topic ranking",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "channel_expertise",
+          "robotics",
+          "robotaxi"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  }
+]

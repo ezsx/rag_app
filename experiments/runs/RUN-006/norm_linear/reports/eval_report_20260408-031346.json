@@ -1,0 +1,132 @@
+{
+  "total_queries": 5,
+  "answerable_queries": 5,
+  "negative_queries": 0,
+  "golden_queries": 5,
+  "errors": {
+    "agent": 0,
+    "baseline": 5
+  },
+  "primary": {
+    "key_tool_accuracy": {
+      "mean": 1.0,
+      "total_evaluated": 5
+    },
+    "tool_call_f1": {
+      "mean": 1.0,
+      "total_evaluated": 5
+    },
+    "factual_correctness": {
+      "mean": null,
+      "total_evaluated": 0
+    },
+    "usefulness": {
+      "mean": null,
+      "total_evaluated": 0
+    },
+    "failure_breakdown": {}
+  },
+  "retrieval_ir": {
+    "precision_at_5": {
+      "mean": 0.08,
+      "total_evaluated": 5
+    },
+    "mrr": {
+      "mean": 0.3,
+      "total_evaluated": 5
+    },
+    "ndcg_at_5": {
+      "mean": 0.3261859507142915,
+      "total_evaluated": 5
+    },
+    "bertscore_f1": {
+      "mean": 0.47059999999999996,
+      "total_evaluated": 5
+    },
+    "summac_faithfulness": {
+      "mean": 0.37174,
+      "total_evaluated": 5
+    }
+  },
+  "retrieval_grounding": {
+    "acceptable_set_hit": {
+      "mean": 0.4,
+      "total_evaluated": 5
+    },
+    "retrieval_sufficiency_score": {
+      "mean": null,
+      "total_evaluated": 0,
+      "pending_offline_judge": true
+    },
+    "evidence_support_score": {
+      "mean": null,
+      "total_evaluated": 0,
+      "pending_offline_judge": true
+    }
+  },
+  "diagnostic": {
+    "strict_anchor_recall": {
+      "mean": 0.6,
+      "full": 2,
+      "zero": 1,
+      "total_evaluated": 5
+    },
+    "coverage": {
+      "mean": 0.7186899662316503
+    },
+    "latency": {
+      "agent": {
+        "mean": 28.011494800004584,
+        "p95": 49.94497154000419
+      },
+      "baseline": {
+        "mean": null,
+        "p95": null
+      }
+    }
+  },
+  "by_category": {
+    "broad_search": {
+      "queries": 1,
+      "strict_anchor_recall_mean": 1.0,
+      "acceptable_set_hit_mean": 1.0,
+      "key_tool_accuracy_mean": 1.0,
+      "tool_call_f1_mean": 1.0,
+      "precision_at_5_mean": 0.2,
+      "mrr_mean": 0.5,
+      "ndcg_at_5_mean": 0.6309297535714575,
+      "bertscore_f1_mean": 0.5786,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 32.178519300003245
+    },
+    "constrained_search": {
+      "queries": 3,
+      "strict_anchor_recall_mean": 0.5,
+      "acceptable_set_hit_mean": 0.3333333333333333,
+      "key_tool_accuracy_mean": 1.0,
+      "tool_call_f1_mean": 1.0,
+      "precision_at_5_mean": 0.06666666666666667,
+      "mrr_mean": 0.3333333333333333,
+      "ndcg_at_5_mean": 0.3333333333333333,
+      "bertscore_f1_mean": 0.44836666666666664,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 17.830790033338417
+    },
+    "compare_summarize": {
+      "queries": 1,
+      "strict_anchor_recall_mean": 0.5,
+      "acceptable_set_hit_mean": 0.0,
+      "key_tool_accuracy_mean": 1.0,
+      "tool_call_f1_mean": 1.0,
+      "precision_at_5_mean": 0.0,
+      "mrr_mean": 0.0,
+      "ndcg_at_5_mean": 0.0,
+      "bertscore_f1_mean": 0.4293,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 54.386584600004426
+    }
+  }
+}

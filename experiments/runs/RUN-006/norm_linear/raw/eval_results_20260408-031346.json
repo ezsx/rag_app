@@ -1,0 +1,4087 @@
+{
+  "eval_metadata": {
+    "eval_id": "eval_20260408-031346",
+    "timestamp": "2026-04-08T03:13:46.621473",
+    "dataset": "datasets\\eval_golden_v2.json",
+    "judge_model": null,
+    "total_questions": 5,
+    "duration_sec": 140.05747400002292
+  },
+  "aggregate": {
+    "total_queries": 5,
+    "answerable_queries": 5,
+    "negative_queries": 0,
+    "golden_queries": 5,
+    "errors": {
+      "agent": 0,
+      "baseline": 5
+    },
+    "primary": {
+      "key_tool_accuracy": {
+        "mean": 1.0,
+        "total_evaluated": 5
+      },
+      "tool_call_f1": {
+        "mean": 1.0,
+        "total_evaluated": 5
+      },
+      "factual_correctness": {
+        "mean": null,
+        "total_evaluated": 0
+      },
+      "usefulness": {
+        "mean": null,
+        "total_evaluated": 0
+      },
+      "failure_breakdown": {}
+    },
+    "retrieval_ir": {
+      "precision_at_5": {
+        "mean": 0.08,
+        "total_evaluated": 5
+      },
+      "mrr": {
+        "mean": 0.3,
+        "total_evaluated": 5
+      },
+      "ndcg_at_5": {
+        "mean": 0.3261859507142915,
+        "total_evaluated": 5
+      },
+      "bertscore_f1": {
+        "mean": 0.47059999999999996,
+        "total_evaluated": 5
+      },
+      "summac_faithfulness": {
+        "mean": 0.37174,
+        "total_evaluated": 5
+      }
+    },
+    "retrieval_grounding": {
+      "acceptable_set_hit": {
+        "mean": 0.4,
+        "total_evaluated": 5
+      },
+      "retrieval_sufficiency_score": {
+        "mean": null,
+        "total_evaluated": 0,
+        "pending_offline_judge": true
+      },
+      "evidence_support_score": {
+        "mean": null,
+        "total_evaluated": 0,
+        "pending_offline_judge": true
+      }
+    },
+    "diagnostic": {
+      "strict_anchor_recall": {
+        "mean": 0.6,
+        "full": 2,
+        "zero": 1,
+        "total_evaluated": 5
+      },
+      "coverage": {
+        "mean": 0.7186899662316503
+      },
+      "latency": {
+        "agent": {
+          "mean": 28.011494800004584,
+          "p95": 49.94497154000419
+        },
+        "baseline": {
+          "mean": null,
+          "p95": null
+        }
+      }
+    },
+    "by_category": {
+      "broad_search": {
+        "queries": 1,
+        "strict_anchor_recall_mean": 1.0,
+        "acceptable_set_hit_mean": 1.0,
+        "key_tool_accuracy_mean": 1.0,
+        "tool_call_f1_mean": 1.0,
+        "precision_at_5_mean": 0.2,
+        "mrr_mean": 0.5,
+        "ndcg_at_5_mean": 0.6309297535714575,
+        "bertscore_f1_mean": 0.5786,
+        "factual_correctness_mean": null,
+        "usefulness_mean": null,
+        "agent_latency_mean": 32.178519300003245
+      },
+      "constrained_search": {
+        "queries": 3,
+        "strict_anchor_recall_mean": 0.5,
+        "acceptable_set_hit_mean": 0.3333333333333333,
+        "key_tool_accuracy_mean": 1.0,
+        "tool_call_f1_mean": 1.0,
+        "precision_at_5_mean": 0.06666666666666667,
+        "mrr_mean": 0.3333333333333333,
+        "ndcg_at_5_mean": 0.3333333333333333,
+        "bertscore_f1_mean": 0.44836666666666664,
+        "factual_correctness_mean": null,
+        "usefulness_mean": null,
+        "agent_latency_mean": 17.830790033338417
+      },
+      "compare_summarize": {
+        "queries": 1,
+        "strict_anchor_recall_mean": 0.5,
+        "acceptable_set_hit_mean": 0.0,
+        "key_tool_accuracy_mean": 1.0,
+        "tool_call_f1_mean": 1.0,
+        "precision_at_5_mean": 0.0,
+        "mrr_mean": 0.0,
+        "ndcg_at_5_mean": 0.0,
+        "bertscore_f1_mean": 0.4293,
+        "factual_correctness_mean": null,
+        "usefulness_mean": null,
+        "agent_latency_mean": 54.386584600004426
+      }
+    }
+  },
+  "per_question": [
+    {
+      "query_id": "golden_q01",
+      "query": "Кого Financial Times назвала человеком года в 2025?",
+      "version": "2.0",
+      "category": "broad_search",
+      "eval_mode": "retrieval_evidence",
+      "difficulty": "easy",
+      "answerable": true,
+      "expected_answer": "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии.",
+      "calibration": true,
+      "dataset_contract": {
+        "id": "golden_q01",
+        "version": "2.0",
+        "eval_mode": "retrieval_evidence",
+        "answerable": true,
+        "expected_refusal": false,
+        "refusal_reason": null,
+        "key_tools": [
+          "search"
+        ],
+        "forbidden_tools": [
+          "temporal_search",
+          "summarize_channel",
+          "list_channels"
+        ],
+        "acceptable_alternatives": [],
+        "required_claims": [
+          "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии."
+        ],
+        "expected_answer": "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии.",
+        "expected_entities": [],
+        "expected_topics": [],
+        "expected_channels": [
+          "ai_machinelearning_big_data"
+        ],
+        "source_post_ids": [
+          "ai_machinelearning_big_data:9245"
+        ],
+        "acceptable_evidence_sets": [
+          [
+            "ai_machinelearning_big_data:9245"
+          ]
+        ],
+        "strict_anchor_recall_eligible": true,
+        "calibration": true,
+        "difficulty": "easy",
+        "notes": null,
+        "metadata": {
+          "created_at": "2026-03-24",
+          "created_by": "human",
+          "tags": [
+            "nvidia",
+            "jensen_huang",
+            "factual"
+          ]
+        }
+      },
+      "required_claims": [
+        "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии."
+      ],
+      "agent": {
+        "answer": "Журнал Financial Times назвал «Человеком года» в 2025 году Дженсена Хуанга (Jensen Huang), генерального директора NVIDIA [1].\n\nИздание отметило ключевую роль Хуанга в трансформации полупроводниковой индустрии и глобальном распространении искусственного интеллекта. В частности, под его руководством компания NVIDIA стала самой дорогой компанией в мире с рыночной капитализацией более $5 трлн [2].\n\nFT также указала на то, что 2025 год стал переломным: дата-центры окончательно закрепились как критически важная инфраструктура, а инвестиции в вычислительные мощности для ИИ стали главным драйвером роста ВВП США [2]. Примечательно, что Хуанг также был признан «Архитектором года» по версии журнала Time, став единственным человеком, получившим обе эти престижные награды одновременно [1].",
+        "citations": [
+          {
+            "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+            "index": 1,
+            "metadata": {
+              "channel_id": -1001009962628,
+              "channel": "techsparks",
+              "message_id": 5334,
+              "date": "2025-12-12T19:31:30",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+            "index": 2,
+            "metadata": {
+              "channel_id": -1001114591086,
+              "channel": "ai_machinelearning_big_data",
+              "message_id": 9245,
+              "date": "2025-12-13T07:10:10",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          }
+        ],
+        "coverage": 0.75,
+        "refinements": 0,
+        "verification": {
+          "verified": true,
+          "confidence": 0.8,
+          "documents_found": 3
+        },
+        "fallback": false,
+        "request_id": "7846fbe7-57b7-4a78-975e-f82219d4289c",
+        "citation_hits": [
+          "techsparks:5334",
+          "ai_machinelearning_big_data:9245"
+        ],
+        "tools_invoked": [
+          "query_plan",
+          "search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search"
+          ],
+          [
+            "query_plan",
+            "search"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "citations_detailed": [
+          {
+            "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+            "channel": "techsparks",
+            "message_id": 5334,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "А Хуанг стал не только архитектором года по версии Time (см. предыдущий пост), но и человеком года по мнению Financial Times -- знатный дубль вышел. Мотивировочная часть любопытна: Huang’s recognition reflects his emergence as a pivotal figure in U.S.-China relations and global technology policy\nВ прошлом году FT признала человеком года Трампа, между прочим.\nhttps://www.ft.com/content/11a018f4-95e0-41c2-99d8-aff105328a0b"
+          },
+          {
+            "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+            "channel": "ai_machinelearning_big_data",
+            "message_id": 9245,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "✔️ Financial Times назвала Дженсена Хуанга «Человеком года».\n\nДеловое издание отметило ключевую роль Хуанга в трансформации полупроводниковой индустрии и глобальном распространении ИИ. NVIDIA оказалась в центре беспрецедентной инвестиционной программы частного сектора, что позволило ей первой в мире преодолеть рубеж рыночной капитализации в $5 трлн. и стать самой дорогой компанией на планете.\n\nFT утверждает, что 2025 год войдет в историю как время, когда дата-центры окончательно закрепились в статусе критически важной инфраструктуры. Наращивание вычислительных мощностей для ИИ превратилась в драйвер экономики, обеспечив значительную долю роста ВВП США.\nft.com\n\n✔️ NVIDIA предложила ИИ-концепцию для инженерного моделирования.\n\nNVIDIA Research предлагает смену парадигмы Computer-Aided Engineering (CAE) на AI-Aided Engineering. Вместо прямых вычислений предлагается использовать ИИ-модели, обученные на физических законах и данных симуляций. Такие модели работают как быстрая замена классическим расчётам. Например, прогноз погоды можно сделать за минуты вместо дней."
+          }
+        ],
+        "tool_observations": [
+          {
+            "tool": "query_plan",
+            "summary": "Plan: 3 queries, k=10, fusion=rrf",
+            "success": true,
+            "took_ms": 4141,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "search",
+            "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['9eeae8ef-c533-587c-ab0d-9401e014f2d8', '9cb11247-b128-5079-9524-a7adbbe13bcc', '5e49661f-3b01-598c-9578-a30955a84905', '134381dc-6ef6-5886-be40-0eedad28324d', '704adad0-d1b0-5be5-9aeb-a552f6a6f12a', 'f5bd4f7f-5f12-5067-b73f-2bfce3728106', '60733e80-ee9c-5a1c-ba1a-cc003660ea53', '30b35f89-e77f-580c-92d1-1d77fe4f7177', '2e448778-11d4-574f-80e1-61b42e02cd31', '28126033-f4d1-50c5-998d-16138090772a', 'c6417020-664f-57",
+            "success": true,
+            "took_ms": 2204,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 5 documents by relevance, scores: [6.609, 5.234, 3.516, 2.471, 2.354]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 2192,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 2 citations, coverage: 0.61, contexts: 2",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (787 chars)",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "agent_thoughts": [],
+        "retrieved_docs": [
+          {
+            "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "9cb11247-b128-5079-9524-a7adbbe13bcc",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "5e49661f-3b01-598c-9578-a30955a84905",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "134381dc-6ef6-5886-be40-0eedad28324d",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "f5bd4f7f-5f12-5067-b73f-2bfce3728106",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "60733e80-ee9c-5a1c-ba1a-cc003660ea53",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "30b35f89-e77f-580c-92d1-1d77fe4f7177",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "2e448778-11d4-574f-80e1-61b42e02cd31",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "28126033-f4d1-50c5-998d-16138090772a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c6417020-664f-57a4-8728-386555a72f27",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "6519d86c-e874-5bb5-a107-14224d1fb899",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "eed047e2-2aae-5b34-a628-9892eb96d576",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "eca8caae-02a4-580c-8d90-67e7ae2aba77",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "6864b248-e159-5329-a03e-63b5e40d2e9a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "8dabf9b6-2d3b-5606-8e44-c3020654bdb1",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "aae04863-903d-56fc-ac60-d647ff0f8543",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "00352aa9-becc-528a-9f7d-93833012b66f",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c579ec2f-719c-5e55-99e9-decde9f30488",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "4ac8338e-24f5-5973-82fe-0e3db721833e",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "latency_sec": 32.178519300003245,
+        "error": false
+      },
+      "baseline": {
+        "answer": "[dry-run]",
+        "latency_sec": null,
+        "error": true,
+        "error_message": "dry_run"
+      },
+      "judge": {},
+      "metrics": {
+        "agent_latency_sec": 32.178519300003245,
+        "baseline_latency_sec": null,
+        "agent_coverage": 0.75,
+        "strict_anchor_recall": 1.0,
+        "strict_anchor_recall_eligible": true,
+        "acceptable_set_hit": 1.0,
+        "retrieval_sufficiency_score": null,
+        "evidence_support_score": null,
+        "key_tool_accuracy": 1.0,
+        "tool_call_f1": 1.0,
+        "precision_at_5": 0.2,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "bertscore_f1": 0.5786,
+        "summac_faithfulness": 0.3804,
+        "factual_correctness": null,
+        "usefulness": null,
+        "tools_invoked": [
+          "query_plan",
+          "search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "citation_hits": [
+          "techsparks:5334",
+          "ai_machinelearning_big_data:9245"
+        ],
+        "expected_documents": [
+          "ai_machinelearning_big_data:9245"
+        ]
+      },
+      "failure_type": null,
+      "status": "baseline_error",
+      "offline_judge_packet": {
+        "query_id": "golden_q01",
+        "query": "Кого Financial Times назвала человеком года в 2025?",
+        "eval_mode": "retrieval_evidence",
+        "category": "broad_search",
+        "answer": "Журнал Financial Times назвал «Человеком года» в 2025 году Дженсена Хуанга (Jensen Huang), генерального директора NVIDIA [1].\n\nИздание отметило ключевую роль Хуанга в трансформации полупроводниковой индустрии и глобальном распространении искусственного интеллекта. В частности, под его руководством компания NVIDIA стала самой дорогой компанией в мире с рыночной капитализацией более $5 трлн [2].\n\nFT также указала на то, что 2025 год стал переломным: дата-центры окончательно закрепились как критически важная инфраструктура, а инвестиции в вычислительные мощности для ИИ стали главным драйвером роста ВВП США [2]. Примечательно, что Хуанг также был признан «Архитектором года» по версии журнала Time, став единственным человеком, получившим обе эти престижные награды одновременно [1].",
+        "status": "ok",
+        "latency_sec": 32.178519300003245,
+        "coverage": 0.75,
+        "tools_invoked": [
+          "query_plan",
+          "search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search"
+          ],
+          [
+            "query_plan",
+            "search"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "agent_thoughts": [],
+        "tool_observations": [
+          {
+            "tool": "query_plan",
+            "summary": "Plan: 3 queries, k=10, fusion=rrf",
+            "success": true,
+            "took_ms": 4141,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "search",
+            "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['9eeae8ef-c533-587c-ab0d-9401e014f2d8', '9cb11247-b128-5079-9524-a7adbbe13bcc', '5e49661f-3b01-598c-9578-a30955a84905', '134381dc-6ef6-5886-be40-0eedad28324d', '704adad0-d1b0-5be5-9aeb-a552f6a6f12a', 'f5bd4f7f-5f12-5067-b73f-2bfce3728106', '60733e80-ee9c-5a1c-ba1a-cc003660ea53', '30b35f89-e77f-580c-92d1-1d77fe4f7177', '2e448778-11d4-574f-80e1-61b42e02cd31', '28126033-f4d1-50c5-998d-16138090772a', 'c6417020-664f-57",
+            "success": true,
+            "took_ms": 2204,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 5 documents by relevance, scores: [6.609, 5.234, 3.516, 2.471, 2.354]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 2192,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 2 citations, coverage: 0.61, contexts: 2",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (787 chars)",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "citations": [
+          {
+            "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+            "channel": "techsparks",
+            "message_id": 5334,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "А Хуанг стал не только архитектором года по версии Time (см. предыдущий пост), но и человеком года по мнению Financial Times -- знатный дубль вышел. Мотивировочная часть любопытна: Huang’s recognition reflects his emergence as a pivotal figure in U.S.-China relations and global technology policy\nВ прошлом году FT признала человеком года Трампа, между прочим.\nhttps://www.ft.com/content/11a018f4-95e0-41c2-99d8-aff105328a0b"
+          },
+          {
+            "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+            "channel": "ai_machinelearning_big_data",
+            "message_id": 9245,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "✔️ Financial Times назвала Дженсена Хуанга «Человеком года».\n\nДеловое издание отметило ключевую роль Хуанга в трансформации полупроводниковой индустрии и глобальном распространении ИИ. NVIDIA оказалась в центре беспрецедентной инвестиционной программы частного сектора, что позволило ей первой в мире преодолеть рубеж рыночной капитализации в $5 трлн. и стать самой дорогой компанией на планете.\n\nFT утверждает, что 2025 год войдет в историю как время, когда дата-центры окончательно закрепились в статусе критически важной инфраструктуры. Наращивание вычислительных мощностей для ИИ превратилась в драйвер экономики, обеспечив значительную долю роста ВВП США.\nft.com\n\n✔️ NVIDIA предложила ИИ-концепцию для инженерного моделирования.\n\nNVIDIA Research предлагает смену парадигмы Computer-Aided Engineering (CAE) на AI-Aided Engineering. Вместо прямых вычислений предлагается использовать ИИ-модели, обученные на физических законах и данных симуляций. Такие модели работают как быстрая замена классическим расчётам. Например, прогноз погоды можно сделать за минуты вместо дней."
+          }
+        ],
+        "citation_hits": [
+          "techsparks:5334",
+          "ai_machinelearning_big_data:9245"
+        ],
+        "retrieved_docs": [
+          {
+            "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "9cb11247-b128-5079-9524-a7adbbe13bcc",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "5e49661f-3b01-598c-9578-a30955a84905",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "134381dc-6ef6-5886-be40-0eedad28324d",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "f5bd4f7f-5f12-5067-b73f-2bfce3728106",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "60733e80-ee9c-5a1c-ba1a-cc003660ea53",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "30b35f89-e77f-580c-92d1-1d77fe4f7177",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "2e448778-11d4-574f-80e1-61b42e02cd31",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "28126033-f4d1-50c5-998d-16138090772a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c6417020-664f-57a4-8728-386555a72f27",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "6519d86c-e874-5bb5-a107-14224d1fb899",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "eed047e2-2aae-5b34-a628-9892eb96d576",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "eca8caae-02a4-580c-8d90-67e7ae2aba77",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "6864b248-e159-5329-a03e-63b5e40d2e9a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "8dabf9b6-2d3b-5606-8e44-c3020654bdb1",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "aae04863-903d-56fc-ac60-d647ff0f8543",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "00352aa9-becc-528a-9f7d-93833012b66f",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c579ec2f-719c-5e55-99e9-decde9f30488",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "4ac8338e-24f5-5973-82fe-0e3db721833e",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "dataset_contract": {
+          "id": "golden_q01",
+          "version": "2.0",
+          "eval_mode": "retrieval_evidence",
+          "answerable": true,
+          "expected_refusal": false,
+          "refusal_reason": null,
+          "key_tools": [
+            "search"
+          ],
+          "forbidden_tools": [
+            "temporal_search",
+            "summarize_channel",
+            "list_channels"
+          ],
+          "acceptable_alternatives": [],
+          "required_claims": [
+            "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии."
+          ],
+          "expected_answer": "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии.",
+          "expected_entities": [],
+          "expected_topics": [],
+          "expected_channels": [
+            "ai_machinelearning_big_data"
+          ],
+          "source_post_ids": [
+            "ai_machinelearning_big_data:9245"
+          ],
+          "acceptable_evidence_sets": [
+            [
+              "ai_machinelearning_big_data:9245"
+            ]
+          ],
+          "strict_anchor_recall_eligible": true,
+          "calibration": true,
+          "difficulty": "easy",
+          "notes": null,
+          "metadata": {
+            "created_at": "2026-03-24",
+            "created_by": "human",
+            "tags": [
+              "nvidia",
+              "jensen_huang",
+              "factual"
+            ]
+          }
+        },
+        "diagnostic_metrics": {
+          "strict_anchor_recall": 1.0,
+          "acceptable_set_hit": 1.0,
+          "key_tool_accuracy": 1.0
+        }
+      }
+    },
+    {
+      "query_id": "golden_q08",
+      "query": "Какие AI-события произошли в феврале 2026?",
+      "version": "2.0",
+      "category": "constrained_search",
+      "eval_mode": "retrieval_evidence",
+      "difficulty": "medium",
+      "answerable": true,
+      "expected_answer": "В феврале 2026 вышел Opus 4.6, Себрант обсуждал AI-тренды, танцующие роботы Agibot в Шанхае.",
+      "calibration": false,
+      "dataset_contract": {
+        "id": "golden_q08",
+        "version": "2.0",
+        "eval_mode": "retrieval_evidence",
+        "answerable": true,
+        "expected_refusal": false,
+        "refusal_reason": null,
+        "key_tools": [
+          "temporal_search"
+        ],
+        "forbidden_tools": [
+          "channel_search",
+          "list_channels"
+        ],
+        "acceptable_alternatives": [
+          "search"
+        ],
+        "required_claims": [
+          "В феврале 2026 вышел Opus 4.6, Себрант обсуждал AI-тренды, танцующие роботы Agibot в Шанхае."
+        ],
+        "expected_answer": "В феврале 2026 вышел Opus 4.6, Себрант обсуждал AI-тренды, танцующие роботы Agibot в Шанхае.",
+        "expected_entities": [],
+        "expected_topics": [],
+        "expected_channels": [
+          "boris_again",
+          "techsparks"
+        ],
+        "source_post_ids": [
+          "boris_again:3740",
+          "techsparks:5444"
+        ],
+        "acceptable_evidence_sets": [
+          [
+            "boris_again:3740",
+            "techsparks:5444"
+          ]
+        ],
+        "strict_anchor_recall_eligible": true,
+        "calibration": false,
+        "difficulty": "medium",
+        "notes": null,
+        "metadata": {
+          "created_at": "2026-03-24",
+          "created_by": "human",
+          "tags": [
+            "temporal",
+            "february_2026"
+          ]
+        }
+      },
+      "required_claims": [
+        "В феврале 2026 вышел Opus 4.6, Себрант обсуждал AI-тренды, танцующие роботы Agibot в Шанхае."
+      ],
+      "agent": {
+        "answer": "В феврале 2026 года в сфере искусственного интеллекта произошло несколько значимых событий:\n\n1. **Ожидание крупных релизов моделей**: В начале месяца сообщалось о грядущих выходах новых моделей, включая китайские GLM-5, версии Claude Sonnet 4.6/5 и GPT-5.3 [1]. Также упоминалось, что DeepSeek отменила выпуск модели V4 в конце февраля.\n\n2. **Конференция OpenTalks.AI 2026**: В Белграде (Сербия) 19-20 февраля состоялась русскоязычная конференция по ИИ. На мероприятии присутствовало более 100 докладчиков, обсуждались темы AI-агентов, LLM, RL и генеративного ИИ. Конференция проходила в трех треках: исследовательском, инженерном и бизнес [3][4].\n\n3. **Онлайн-конференция AI Hard Fork**: С 24 по 26 февраля прошла онлайн-конференция с панельными дискуссиями об использовании AI-инструментов в различных командах (исследования, инжиниринг, разработка, стартапы) [2].\n\n4. **Финансовые события**: В феврале активно обсуждалось возможное IPO OpenAI, Anthropic и SpaceX в 2026 году, а также потенциальное объединение xAI с Tesla/SpaceX [1].",
+        "citations": [
+          {
+            "id": "3fc9e14d-4053-5d84-828e-c0d96b483b09",
+            "index": 1,
+            "metadata": {
+              "channel_id": -1001511414765,
+              "channel": "seeallochnaya",
+              "message_id": 3343,
+              "date": "2026-02-02T12:57:48",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "bbf0888a-0244-5feb-af83-fc6acec3ab0e",
+            "index": 2,
+            "metadata": {
+              "channel_id": -1001466120158,
+              "channel": "ai_newz",
+              "message_id": 4428,
+              "date": "2026-02-19T09:23:36",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "776d260e-9ff6-5e14-89c1-6d5ad3541141",
+            "index": 3,
+            "metadata": {
+              "channel_id": -1001178238337,
+              "channel": "boris_again",
+              "message_id": 3748,
+              "date": "2026-02-09T14:36:01",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "8091a2cb-f07e-59e0-b2cb-69c59f8075ca",
+            "index": 4,
+            "metadata": {
+              "channel_id": -1001466120158,
+              "channel": "ai_newz",
+              "message_id": 4410,
+              "date": "2026-02-11T15:37:08",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          }
+        ],
+        "coverage": 0.6666666666666666,
+        "refinements": 0,
+        "verification": {
+          "verified": true,
+          "confidence": 0.8,
+          "documents_found": 3
+        },
+        "fallback": false,
+        "request_id": "b45abeb1-c7d6-4f22-8619-d08f3a3b1a5b",
+        "citation_hits": [
+          "seeallochnaya:3343",
+          "ai_newz:4428",
+          "boris_again:3748",
+          "ai_newz:4410"
+        ],
+        "tools_invoked": [
+          "temporal_search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search",
+            "temporal_search"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "citations_detailed": [
+          {
+            "id": "3fc9e14d-4053-5d84-828e-c0d96b483b09",
+            "channel": "seeallochnaya",
+            "message_id": 3343,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Быстроновости в понедельник:\n\n— Начался февраль, ожидается много релизов моделек, от китайских GLM-5 до Claude Sonnet 4.6 / 5 (который может выйти вообще завтра, судя по некоторым утечкам) и GPT-5.3.\n\n— При этом источники из Китая говорят, что DeepSeek уже не планирует выпуск V4 в конце февраля (к Лунному Новому году). Компания, кстати, получила одобрение от Партии на закупку H200 у Nvidia — ещё месяц назад был полный запрет, «должно быть всё своё родное», потом разрешили закупку для Tencent и Alibaba, и вот дошли до Китов.\n\n— OpenAI пытается успеть провести IPO в 2026-м году, Anthropic и SpaceX тоже. Большой год для финансовых рынков. А ещё xAI может ещё объединиться с Tesla/SpaceX, так что формально тоже выйти на биржу. Мне не нравится идея выхода Anthropic и особенно OpenAI на IPO — потому что оценка публичных компаний сильно подвержена новостному фону и настроению инвесторов, которые зачастую ничего не понимают. «Пишут, что GPT-5 плохая? Сливаем акции»."
+          },
+          {
+            "id": "bbf0888a-0244-5feb-af83-fc6acec3ab0e",
+            "channel": "ai_newz",
+            "message_id": 4428,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Всем, привет! Меня позвали поучаствовать в панельной дискуссии на онлайн-конфе AI Hard Fork.\n\nДоклады готовить к сожалению времени нет, из-за очень плотной работы в GenPeach AI, а вот на дискуссию я с удовольствием приду!\n\nТам еще будут и другие доклады онлайн с 24 по 26 февраля. Но самое интересное будет на нашей панели)) 25 февраля в 18:55 cet.\n\nПодключайтесь, если хотите послушать про то, как AI тулы используются в разных командах: ресерче (в нашей команде, например), инжиниринге, классической разработке и стартапах.\n\nРегистрация здесь, участие бесплатное.\n\n@ai_newz"
+          },
+          {
+            "id": "776d260e-9ff6-5e14-89c1-6d5ad3541141",
+            "channel": "boris_again",
+            "message_id": 3748,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "В Белграде 19-20 февраля пройдет OpenTalks.AI 2026.\n\nНедавно опубликовали программу конференции. Среди спикеров: Дмитрий Ветров, Евгений Бурнаев, Андрей Устюжанин, Татьяна Шаврина, Анна-Вероника Дорогуш, Сергей Николенко, Рома Доронин и многие другие. Съезжается едва ли не всё русскоязычное AI/ML сообщество. И я почти наверняка буду 👀!\n\nНа конференции будет 3 трека: исследовательский, инженерный и бизнес. Очень много про ИИ-агентов, обучение LLM, оптимизацию вычислений, генерацию данных, генеративный ИИ в бизнесе.\n\nЕсть онлайн формат, хотя конечно лучше слетайте в Белград, там хорошо.\n\nРегистрироваться и платить сюда: https://opentalks.ai/ru/#registration\n\nДля подписчиков есть промокод на 20% скидку: RD20\n\nUPD: взял билеты в Белград, точно буду. Приходите общаться!"
+          },
+          {
+            "id": "8091a2cb-f07e-59e0-b2cb-69c59f8075ca",
+            "channel": "ai_newz",
+            "message_id": 4410,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "На следующей неделе пройдет русскоязычная AI конфа OpenTalks.AI-2026 в Белграде (Сербия)\n\nБудет 100+ крутых докладчиков из разных стран, разбитых на 3 трека:\n- исследовательский, \n- инженерный и \n- бизнес. \nКонечно, будет много разговоров про актуальное – AI-агенты, LLM, RL, GenAI и многое другое.\n\nВ 2024 году я там выступал с обзорным докладом про CV – как много с того момента поменялось в сфере! А в этому году я доклад про GenAI подготовить не успел, потому приеду просто потусить. Конфа обычно очень толковая, её организатора я знаю лично (привет, Игорь!). Приезжайте и вы - познакомимся! \n\nЯ возможно еще организую афтерпати-ивент эйай ньюз - т.к. у меня еще и ДР 20 февраля :)\n\nКонфа будет идти два дня - 19-20 февраля 2026 года.\nПри регистрации на OpenTalks.AI можно указать наш специальный промокод AINEWZ, и он даст скидку в 21% (Выбил для вас наилучшие условия!)\n\n@ai_newz"
+          }
+        ],
+        "tool_observations": [
+          {
+            "tool": "temporal_search",
+            "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['776d260e-9ff6-5e14-89c1-6d5ad3541141', '3fc9e14d-4053-5d84-828e-c0d96b483b09', 'efd6e91c-a3f9-520a-835b-0c6848619fd2', '9e0402cf-f15f-5867-9dfe-324159d0a30b', '8091a2cb-f07e-59e0-b2cb-69c59f8075ca', 'db24d827-9b62-5e1f-ade6-dcc374390db2', 'e0f1713c-6cfd-5f08-8844-365ed094ee18', 'a29252f1-fbfe-51a1-b4ed-86cbbdf0e7df', '827415b0-be11-5b1d-ba8b-9f89b2eeac20', '2707ab13-667e-5efb-a5a6-3d00c6b2d2c8', '45a6d499-203a-57",
+            "success": true,
+            "took_ms": 2354,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 10 documents by relevance, scores: [5.008, 4.867, 4.527, 3.709, 3.539]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 1984,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 4 citations, coverage: 0.48, contexts: 4",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (1036 chars)",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "agent_thoughts": [],
+        "retrieved_docs": [
+          {
+            "id": "776d260e-9ff6-5e14-89c1-6d5ad3541141",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "3fc9e14d-4053-5d84-828e-c0d96b483b09",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "efd6e91c-a3f9-520a-835b-0c6848619fd2",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "9e0402cf-f15f-5867-9dfe-324159d0a30b",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "8091a2cb-f07e-59e0-b2cb-69c59f8075ca",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "db24d827-9b62-5e1f-ade6-dcc374390db2",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "e0f1713c-6cfd-5f08-8844-365ed094ee18",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "a29252f1-fbfe-51a1-b4ed-86cbbdf0e7df",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "827415b0-be11-5b1d-ba8b-9f89b2eeac20",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "2707ab13-667e-5efb-a5a6-3d00c6b2d2c8",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "45a6d499-203a-577a-87db-1d9b03a38e16",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "6fb9e495-51bd-5087-aa0e-7b276908960e",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "4c1aa809-ea11-5476-8d4e-99824cefed6c",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "f3625f81-3bd0-5406-aef9-2c908fdfafba",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "9816e33f-0212-5fce-81f2-4117b5b4864b",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "46ac4a6f-0e74-5219-8eec-72ff70450a71",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "fb97d7c2-d613-5d7c-8c51-5a395b6100e0",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "bbf0888a-0244-5feb-af83-fc6acec3ab0e",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "ab876a5a-4540-5375-8c03-9a37bfb7ca6b",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "817b969b-a01c-5dde-adfb-4c566bbae686",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "latency_sec": 18.995572300002095,
+        "error": false
+      },
+      "baseline": {
+        "answer": "[dry-run]",
+        "latency_sec": null,
+        "error": true,
+        "error_message": "dry_run"
+      },
+      "judge": {},
+      "metrics": {
+        "agent_latency_sec": 18.995572300002095,
+        "baseline_latency_sec": null,
+        "agent_coverage": 0.6666666666666666,
+        "strict_anchor_recall": 0.5,
+        "strict_anchor_recall_eligible": true,
+        "acceptable_set_hit": 0.0,
+        "retrieval_sufficiency_score": null,
+        "evidence_support_score": null,
+        "key_tool_accuracy": 1.0,
+        "tool_call_f1": 1.0,
+        "precision_at_5": 0.0,
+        "mrr": 0.0,
+        "ndcg_at_5": 0.0,
+        "bertscore_f1": 0.4174,
+        "summac_faithfulness": 0.3139,
+        "factual_correctness": null,
+        "usefulness": null,
+        "tools_invoked": [
+          "temporal_search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "citation_hits": [
+          "seeallochnaya:3343",
+          "ai_newz:4428",
+          "boris_again:3748",
+          "ai_newz:4410"
+        ],
+        "expected_documents": [
+          "boris_again:3740",
+          "techsparks:5444"
+        ]
+      },
+      "failure_type": null,
+      "status": "baseline_error",
+      "offline_judge_packet": {
+        "query_id": "golden_q08",
+        "query": "Какие AI-события произошли в феврале 2026?",
+        "eval_mode": "retrieval_evidence",
+        "category": "constrained_search",
+        "answer": "В феврале 2026 года в сфере искусственного интеллекта произошло несколько значимых событий:\n\n1. **Ожидание крупных релизов моделей**: В начале месяца сообщалось о грядущих выходах новых моделей, включая китайские GLM-5, версии Claude Sonnet 4.6/5 и GPT-5.3 [1]. Также упоминалось, что DeepSeek отменила выпуск модели V4 в конце февраля.\n\n2. **Конференция OpenTalks.AI 2026**: В Белграде (Сербия) 19-20 февраля состоялась русскоязычная конференция по ИИ. На мероприятии присутствовало более 100 докладчиков, обсуждались темы AI-агентов, LLM, RL и генеративного ИИ. Конференция проходила в трех треках: исследовательском, инженерном и бизнес [3][4].\n\n3. **Онлайн-конференция AI Hard Fork**: С 24 по 26 февраля прошла онлайн-конференция с панельными дискуссиями об использовании AI-инструментов в различных командах (исследования, инжиниринг, разработка, стартапы) [2].\n\n4. **Финансовые события**: В феврале активно обсуждалось возможное IPO OpenAI, Anthropic и SpaceX в 2026 году, а также потенциальное объединение xAI с Tesla/SpaceX [1].",
+        "status": "ok",
+        "latency_sec": 18.995572300002095,
+        "coverage": 0.6666666666666666,
+        "tools_invoked": [
+          "temporal_search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search",
+            "temporal_search"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "agent_thoughts": [],
+        "tool_observations": [
+          {
+            "tool": "temporal_search",
+            "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['776d260e-9ff6-5e14-89c1-6d5ad3541141', '3fc9e14d-4053-5d84-828e-c0d96b483b09', 'efd6e91c-a3f9-520a-835b-0c6848619fd2', '9e0402cf-f15f-5867-9dfe-324159d0a30b', '8091a2cb-f07e-59e0-b2cb-69c59f8075ca', 'db24d827-9b62-5e1f-ade6-dcc374390db2', 'e0f1713c-6cfd-5f08-8844-365ed094ee18', 'a29252f1-fbfe-51a1-b4ed-86cbbdf0e7df', '827415b0-be11-5b1d-ba8b-9f89b2eeac20', '2707ab13-667e-5efb-a5a6-3d00c6b2d2c8', '45a6d499-203a-57",
+            "success": true,
+            "took_ms": 2354,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 10 documents by relevance, scores: [5.008, 4.867, 4.527, 3.709, 3.539]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 1984,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 4 citations, coverage: 0.48, contexts: 4",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (1036 chars)",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "citations": [
+          {
+            "id": "3fc9e14d-4053-5d84-828e-c0d96b483b09",
+            "channel": "seeallochnaya",
+            "message_id": 3343,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Быстроновости в понедельник:\n\n— Начался февраль, ожидается много релизов моделек, от китайских GLM-5 до Claude Sonnet 4.6 / 5 (который может выйти вообще завтра, судя по некоторым утечкам) и GPT-5.3.\n\n— При этом источники из Китая говорят, что DeepSeek уже не планирует выпуск V4 в конце февраля (к Лунному Новому году). Компания, кстати, получила одобрение от Партии на закупку H200 у Nvidia — ещё месяц назад был полный запрет, «должно быть всё своё родное», потом разрешили закупку для Tencent и Alibaba, и вот дошли до Китов.\n\n— OpenAI пытается успеть провести IPO в 2026-м году, Anthropic и SpaceX тоже. Большой год для финансовых рынков. А ещё xAI может ещё объединиться с Tesla/SpaceX, так что формально тоже выйти на биржу. Мне не нравится идея выхода Anthropic и особенно OpenAI на IPO — потому что оценка публичных компаний сильно подвержена новостному фону и настроению инвесторов, которые зачастую ничего не понимают. «Пишут, что GPT-5 плохая? Сливаем акции»."
+          },
+          {
+            "id": "bbf0888a-0244-5feb-af83-fc6acec3ab0e",
+            "channel": "ai_newz",
+            "message_id": 4428,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Всем, привет! Меня позвали поучаствовать в панельной дискуссии на онлайн-конфе AI Hard Fork.\n\nДоклады готовить к сожалению времени нет, из-за очень плотной работы в GenPeach AI, а вот на дискуссию я с удовольствием приду!\n\nТам еще будут и другие доклады онлайн с 24 по 26 февраля. Но самое интересное будет на нашей панели)) 25 февраля в 18:55 cet.\n\nПодключайтесь, если хотите послушать про то, как AI тулы используются в разных командах: ресерче (в нашей команде, например), инжиниринге, классической разработке и стартапах.\n\nРегистрация здесь, участие бесплатное.\n\n@ai_newz"
+          },
+          {
+            "id": "776d260e-9ff6-5e14-89c1-6d5ad3541141",
+            "channel": "boris_again",
+            "message_id": 3748,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "В Белграде 19-20 февраля пройдет OpenTalks.AI 2026.\n\nНедавно опубликовали программу конференции. Среди спикеров: Дмитрий Ветров, Евгений Бурнаев, Андрей Устюжанин, Татьяна Шаврина, Анна-Вероника Дорогуш, Сергей Николенко, Рома Доронин и многие другие. Съезжается едва ли не всё русскоязычное AI/ML сообщество. И я почти наверняка буду 👀!\n\nНа конференции будет 3 трека: исследовательский, инженерный и бизнес. Очень много про ИИ-агентов, обучение LLM, оптимизацию вычислений, генерацию данных, генеративный ИИ в бизнесе.\n\nЕсть онлайн формат, хотя конечно лучше слетайте в Белград, там хорошо.\n\nРегистрироваться и платить сюда: https://opentalks.ai/ru/#registration\n\nДля подписчиков есть промокод на 20% скидку: RD20\n\nUPD: взял билеты в Белград, точно буду. Приходите общаться!"
+          },
+          {
+            "id": "8091a2cb-f07e-59e0-b2cb-69c59f8075ca",
+            "channel": "ai_newz",
+            "message_id": 4410,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "На следующей неделе пройдет русскоязычная AI конфа OpenTalks.AI-2026 в Белграде (Сербия)\n\nБудет 100+ крутых докладчиков из разных стран, разбитых на 3 трека:\n- исследовательский, \n- инженерный и \n- бизнес. \nКонечно, будет много разговоров про актуальное – AI-агенты, LLM, RL, GenAI и многое другое.\n\nВ 2024 году я там выступал с обзорным докладом про CV – как много с того момента поменялось в сфере! А в этому году я доклад про GenAI подготовить не успел, потому приеду просто потусить. Конфа обычно очень толковая, её организатора я знаю лично (привет, Игорь!). Приезжайте и вы - познакомимся! \n\nЯ возможно еще организую афтерпати-ивент эйай ньюз - т.к. у меня еще и ДР 20 февраля :)\n\nКонфа будет идти два дня - 19-20 февраля 2026 года.\nПри регистрации на OpenTalks.AI можно указать наш специальный промокод AINEWZ, и он даст скидку в 21% (Выбил для вас наилучшие условия!)\n\n@ai_newz"
+          }
+        ],
+        "citation_hits": [
+          "seeallochnaya:3343",
+          "ai_newz:4428",
+          "boris_again:3748",
+          "ai_newz:4410"
+        ],
+        "retrieved_docs": [
+          {
+            "id": "776d260e-9ff6-5e14-89c1-6d5ad3541141",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "3fc9e14d-4053-5d84-828e-c0d96b483b09",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "efd6e91c-a3f9-520a-835b-0c6848619fd2",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "9e0402cf-f15f-5867-9dfe-324159d0a30b",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "8091a2cb-f07e-59e0-b2cb-69c59f8075ca",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "db24d827-9b62-5e1f-ade6-dcc374390db2",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "e0f1713c-6cfd-5f08-8844-365ed094ee18",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "a29252f1-fbfe-51a1-b4ed-86cbbdf0e7df",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "827415b0-be11-5b1d-ba8b-9f89b2eeac20",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "2707ab13-667e-5efb-a5a6-3d00c6b2d2c8",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "45a6d499-203a-577a-87db-1d9b03a38e16",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "6fb9e495-51bd-5087-aa0e-7b276908960e",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "4c1aa809-ea11-5476-8d4e-99824cefed6c",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "f3625f81-3bd0-5406-aef9-2c908fdfafba",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "9816e33f-0212-5fce-81f2-4117b5b4864b",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "46ac4a6f-0e74-5219-8eec-72ff70450a71",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "fb97d7c2-d613-5d7c-8c51-5a395b6100e0",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "bbf0888a-0244-5feb-af83-fc6acec3ab0e",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "ab876a5a-4540-5375-8c03-9a37bfb7ca6b",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "817b969b-a01c-5dde-adfb-4c566bbae686",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "dataset_contract": {
+          "id": "golden_q08",
+          "version": "2.0",
+          "eval_mode": "retrieval_evidence",
+          "answerable": true,
+          "expected_refusal": false,
+          "refusal_reason": null,
+          "key_tools": [
+            "temporal_search"
+          ],
+          "forbidden_tools": [
+            "channel_search",
+            "list_channels"
+          ],
+          "acceptable_alternatives": [
+            "search"
+          ],
+          "required_claims": [
+            "В феврале 2026 вышел Opus 4.6, Себрант обсуждал AI-тренды, танцующие роботы Agibot в Шанхае."
+          ],
+          "expected_answer": "В феврале 2026 вышел Opus 4.6, Себрант обсуждал AI-тренды, танцующие роботы Agibot в Шанхае.",
+          "expected_entities": [],
+          "expected_topics": [],
+          "expected_channels": [
+            "boris_again",
+            "techsparks"
+          ],
+          "source_post_ids": [
+            "boris_again:3740",
+            "techsparks:5444"
+          ],
+          "acceptable_evidence_sets": [
+            [
+              "boris_again:3740",
+              "techsparks:5444"
+            ]
+          ],
+          "strict_anchor_recall_eligible": true,
+          "calibration": false,
+          "difficulty": "medium",
+          "notes": null,
+          "metadata": {
+            "created_at": "2026-03-24",
+            "created_by": "human",
+            "tags": [
+              "temporal",
+              "february_2026"
+            ]
+          }
+        },
+        "diagnostic_metrics": {
+          "strict_anchor_recall": 0.5,
+          "acceptable_set_hit": 0.0,
+          "key_tool_accuracy": 1.0
+        }
+      }
+    },
+    {
+      "query_id": "golden_q09",
+      "query": "Что писал llm_under_hood про отключение reasoning у GPT-5?",
+      "version": "2.0",
+      "category": "constrained_search",
+      "eval_mode": "retrieval_evidence",
+      "difficulty": "medium",
+      "answerable": true,
+      "expected_answer": "Автор llm_under_hood описал способ отключения reasoning у GPT-5 через developer role инструкцию. Juice — интенсивность работы ризонера.",
+      "calibration": true,
+      "dataset_contract": {
+        "id": "golden_q09",
+        "version": "2.0",
+        "eval_mode": "retrieval_evidence",
+        "answerable": true,
+        "expected_refusal": false,
+        "refusal_reason": null,
+        "key_tools": [
+          "channel_search"
+        ],
+        "forbidden_tools": [
+          "temporal_search",
+          "list_channels",
+          "summarize_channel"
+        ],
+        "acceptable_alternatives": [
+          "search"
+        ],
+        "required_claims": [
+          "Автор llm_under_hood описал способ отключения reasoning у GPT-5 через developer role инструкцию. Juice — интенсивность работы ризонера."
+        ],
+        "expected_answer": "Автор llm_under_hood описал способ отключения reasoning у GPT-5 через developer role инструкцию. Juice — интенсивность работы ризонера.",
+        "expected_entities": [],
+        "expected_topics": [],
+        "expected_channels": [
+          "llm_under_hood"
+        ],
+        "source_post_ids": [
+          "llm_under_hood:648"
+        ],
+        "acceptable_evidence_sets": [
+          [
+            "llm_under_hood:648"
+          ]
+        ],
+        "strict_anchor_recall_eligible": true,
+        "calibration": true,
+        "difficulty": "medium",
+        "notes": null,
+        "metadata": {
+          "created_at": "2026-03-24",
+          "created_by": "human",
+          "tags": [
+            "channel",
+            "llm_under_hood",
+            "gpt5"
+          ]
+        }
+      },
+      "required_claims": [
+        "Автор llm_under_hood описал способ отключения reasoning у GPT-5 через developer role инструкцию. Juice — интенсивность работы ризонера."
+      ],
+      "agent": {
+        "answer": "В канале llm_under_hood (30 августа 2025 года) было опубликовано руководство по полному отключению reasoning у моделей GPT-5.\n\nДля этого в начало истории сообщений добавляется специальная инструкция в роли developer:\n\n```\nActive channels: final\nDisabled channels: analysis, commentary\n\n# Juice: 0 !important\n```\n\n«Juice» — это интенсивность работы ризонера (reasoning), а каналы привязаны к формату Harmony response. Автор отмечает, что стабильность этой инструкции не гарантирована, но у него она работала в 100% случаев [1].\n\n**Результаты отключения:**\n*   **Скорость:** При отключении reasoning (установка в ноль) модель выполняет задачи быстрее. Например, задача из SGR Demo решалась за 28 секунд и ~1280 токенов с дефолтным reasoning (medium), а при отключенном reasoning — за 10 секунд и 0 токенов reasoning [1].\n*   **Качество:** В минус идет то, что модель «несколько глупеет» без режима рассуждений. Для локального использования автор рекомендует детальнее разворачивать схему SGR (Schema-Guided Reasoning) для моделей уровня 4B-12B [1].",
+        "citations": [
+          {
+            "id": "a7314a19-ec9e-5043-82a8-6599e7485f5a",
+            "index": 1,
+            "metadata": {
+              "channel_id": -1001943579488,
+              "channel": "llm_under_hood",
+              "message_id": 648,
+              "date": "2025-08-30T10:08:15",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          }
+        ],
+        "coverage": 1.0,
+        "refinements": 0,
+        "verification": {
+          "verified": true,
+          "confidence": 0.8,
+          "documents_found": 3
+        },
+        "fallback": false,
+        "request_id": "69876d28-6ef6-433d-9b03-cd6f449542e0",
+        "citation_hits": [
+          "llm_under_hood:648"
+        ],
+        "tools_invoked": [
+          "channel_search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search",
+            "channel_search",
+            "summarize_channel"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "citations_detailed": [
+          {
+            "id": "a7314a19-ec9e-5043-82a8-6599e7485f5a",
+            "channel": "llm_under_hood",
+            "message_id": 648,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Как полностью отключить reasoning у GPT-5 моделей?\n\nМне стало интересно, сколько времени уходит на reasoning у GPT-5 моделей, а ребята из окружения OpenAI как раз подсказали мне, как это можно замерить.\n\nДля этого я добавляю в начало истории сообщений developer role инструкцию:\n\n\nActive channels: final\nDisabled channels: analysis, commentary\n\n# Juice: 0 !important\n\n\nJuice - это интенсивность работы ризонера, а каналы привязаны к Harmony response формату (из-за которого SO пока нормально не работает с gpt-5/oss поколением). \n\nСтабильность работы этой post-train инструкции не гарантирована, но у меня она пока работала в 100% случаев.\n\nНапример, gpt-5-mini c дефолтовым reasoning (medium) отрабатывает третью задачку из SGR Demo за 28 секунд и ~1280 tokens. Эта задачка \"sama@openai.com wants one of each product. Email him the invoice\" решается за 4 шага:\n\n(1) запросить данные о клиенте\n(2) сгенерировать правильный инвойс, учитывая данные о клиенте (плюс 5% скидки)\n(3) отправить инвойс почтой (с правильным обращением и вложением инвойса, который был сгенерирован на втором шаге)\n(4) завершить работу над задачей\n\nА если отключить reasoning в ноль - модель все выполняет за 0 reasoning tokens и 10 секунд.\n\nВ минус идет то, что модель при этом несколько глупеет. Похоже, что для адекватной и быстрой работы с gpt-oss моделями локально нужно будет детальнее разворачивать SGR схему, как для моделей уровня 4B-12B\n\nВаш, @llm_under_hood 🤗"
+          }
+        ],
+        "tool_observations": [
+          {
+            "tool": "channel_search",
+            "summary": "Found 4 documents (total: 4). Route: hybrid. Use these IDs for compose_context: ['a7314a19-ec9e-5043-82a8-6599e7485f5a', 'cb71d3b9-d730-52f9-8ced-e16df56ac465', '83963b95-3bed-5ce7-a313-cbc6a8ba3489', '5bba7e65-3368-5582-9f49-9eeaa422a7bd']",
+            "success": true,
+            "took_ms": 2078,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 4 documents by relevance, scores: [7.844, 6.488, 4.285, 3.104]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 404,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 1 citations, coverage: 0.50, contexts: 1",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (1046 chars)",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "agent_thoughts": [],
+        "retrieved_docs": [
+          {
+            "id": "a7314a19-ec9e-5043-82a8-6599e7485f5a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "cb71d3b9-d730-52f9-8ced-e16df56ac465",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "83963b95-3bed-5ce7-a313-cbc6a8ba3489",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "5bba7e65-3368-5582-9f49-9eeaa422a7bd",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "latency_sec": 19.37783780000609,
+        "error": false
+      },
+      "baseline": {
+        "answer": "[dry-run]",
+        "latency_sec": null,
+        "error": true,
+        "error_message": "dry_run"
+      },
+      "judge": {},
+      "metrics": {
+        "agent_latency_sec": 19.37783780000609,
+        "baseline_latency_sec": null,
+        "agent_coverage": 1.0,
+        "strict_anchor_recall": 1.0,
+        "strict_anchor_recall_eligible": true,
+        "acceptable_set_hit": 1.0,
+        "retrieval_sufficiency_score": null,
+        "evidence_support_score": null,
+        "key_tool_accuracy": 1.0,
+        "tool_call_f1": 1.0,
+        "precision_at_5": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "bertscore_f1": 0.5012,
+        "summac_faithfulness": 0.584,
+        "factual_correctness": null,
+        "usefulness": null,
+        "tools_invoked": [
+          "channel_search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "citation_hits": [
+          "llm_under_hood:648"
+        ],
+        "expected_documents": [
+          "llm_under_hood:648"
+        ]
+      },
+      "failure_type": null,
+      "status": "baseline_error",
+      "offline_judge_packet": {
+        "query_id": "golden_q09",
+        "query": "Что писал llm_under_hood про отключение reasoning у GPT-5?",
+        "eval_mode": "retrieval_evidence",
+        "category": "constrained_search",
+        "answer": "В канале llm_under_hood (30 августа 2025 года) было опубликовано руководство по полному отключению reasoning у моделей GPT-5.\n\nДля этого в начало истории сообщений добавляется специальная инструкция в роли developer:\n\n```\nActive channels: final\nDisabled channels: analysis, commentary\n\n# Juice: 0 !important\n```\n\n«Juice» — это интенсивность работы ризонера (reasoning), а каналы привязаны к формату Harmony response. Автор отмечает, что стабильность этой инструкции не гарантирована, но у него она работала в 100% случаев [1].\n\n**Результаты отключения:**\n*   **Скорость:** При отключении reasoning (установка в ноль) модель выполняет задачи быстрее. Например, задача из SGR Demo решалась за 28 секунд и ~1280 токенов с дефолтным reasoning (medium), а при отключенном reasoning — за 10 секунд и 0 токенов reasoning [1].\n*   **Качество:** В минус идет то, что модель «несколько глупеет» без режима рассуждений. Для локального использования автор рекомендует детальнее разворачивать схему SGR (Schema-Guided Reasoning) для моделей уровня 4B-12B [1].",
+        "status": "ok",
+        "latency_sec": 19.37783780000609,
+        "coverage": 1.0,
+        "tools_invoked": [
+          "channel_search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search",
+            "channel_search",
+            "summarize_channel"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "agent_thoughts": [],
+        "tool_observations": [
+          {
+            "tool": "channel_search",
+            "summary": "Found 4 documents (total: 4). Route: hybrid. Use these IDs for compose_context: ['a7314a19-ec9e-5043-82a8-6599e7485f5a', 'cb71d3b9-d730-52f9-8ced-e16df56ac465', '83963b95-3bed-5ce7-a313-cbc6a8ba3489', '5bba7e65-3368-5582-9f49-9eeaa422a7bd']",
+            "success": true,
+            "took_ms": 2078,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 4 documents by relevance, scores: [7.844, 6.488, 4.285, 3.104]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 404,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 1 citations, coverage: 0.50, contexts: 1",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (1046 chars)",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "citations": [
+          {
+            "id": "a7314a19-ec9e-5043-82a8-6599e7485f5a",
+            "channel": "llm_under_hood",
+            "message_id": 648,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Как полностью отключить reasoning у GPT-5 моделей?\n\nМне стало интересно, сколько времени уходит на reasoning у GPT-5 моделей, а ребята из окружения OpenAI как раз подсказали мне, как это можно замерить.\n\nДля этого я добавляю в начало истории сообщений developer role инструкцию:\n\n\nActive channels: final\nDisabled channels: analysis, commentary\n\n# Juice: 0 !important\n\n\nJuice - это интенсивность работы ризонера, а каналы привязаны к Harmony response формату (из-за которого SO пока нормально не работает с gpt-5/oss поколением). \n\nСтабильность работы этой post-train инструкции не гарантирована, но у меня она пока работала в 100% случаев.\n\nНапример, gpt-5-mini c дефолтовым reasoning (medium) отрабатывает третью задачку из SGR Demo за 28 секунд и ~1280 tokens. Эта задачка \"sama@openai.com wants one of each product. Email him the invoice\" решается за 4 шага:\n\n(1) запросить данные о клиенте\n(2) сгенерировать правильный инвойс, учитывая данные о клиенте (плюс 5% скидки)\n(3) отправить инвойс почтой (с правильным обращением и вложением инвойса, который был сгенерирован на втором шаге)\n(4) завершить работу над задачей\n\nА если отключить reasoning в ноль - модель все выполняет за 0 reasoning tokens и 10 секунд.\n\nВ минус идет то, что модель при этом несколько глупеет. Похоже, что для адекватной и быстрой работы с gpt-oss моделями локально нужно будет детальнее разворачивать SGR схему, как для моделей уровня 4B-12B\n\nВаш, @llm_under_hood 🤗"
+          }
+        ],
+        "citation_hits": [
+          "llm_under_hood:648"
+        ],
+        "retrieved_docs": [
+          {
+            "id": "a7314a19-ec9e-5043-82a8-6599e7485f5a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "cb71d3b9-d730-52f9-8ced-e16df56ac465",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "83963b95-3bed-5ce7-a313-cbc6a8ba3489",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "5bba7e65-3368-5582-9f49-9eeaa422a7bd",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "dataset_contract": {
+          "id": "golden_q09",
+          "version": "2.0",
+          "eval_mode": "retrieval_evidence",
+          "answerable": true,
+          "expected_refusal": false,
+          "refusal_reason": null,
+          "key_tools": [
+            "channel_search"
+          ],
+          "forbidden_tools": [
+            "temporal_search",
+            "list_channels",
+            "summarize_channel"
+          ],
+          "acceptable_alternatives": [
+            "search"
+          ],
+          "required_claims": [
+            "Автор llm_under_hood описал способ отключения reasoning у GPT-5 через developer role инструкцию. Juice — интенсивность работы ризонера."
+          ],
+          "expected_answer": "Автор llm_under_hood описал способ отключения reasoning у GPT-5 через developer role инструкцию. Juice — интенсивность работы ризонера.",
+          "expected_entities": [],
+          "expected_topics": [],
+          "expected_channels": [
+            "llm_under_hood"
+          ],
+          "source_post_ids": [
+            "llm_under_hood:648"
+          ],
+          "acceptable_evidence_sets": [
+            [
+              "llm_under_hood:648"
+            ]
+          ],
+          "strict_anchor_recall_eligible": true,
+          "calibration": true,
+          "difficulty": "medium",
+          "notes": null,
+          "metadata": {
+            "created_at": "2026-03-24",
+            "created_by": "human",
+            "tags": [
+              "channel",
+              "llm_under_hood",
+              "gpt5"
+            ]
+          }
+        },
+        "diagnostic_metrics": {
+          "strict_anchor_recall": 1.0,
+          "acceptable_set_hit": 1.0,
+          "key_tool_accuracy": 1.0
+        }
+      }
+    },
+    {
+      "query_id": "golden_q10",
+      "query": "О чём писал gonzo_ml про трансформеры и рекуррентные сети?",
+      "version": "2.0",
+      "category": "constrained_search",
+      "eval_mode": "retrieval_evidence",
+      "difficulty": "medium",
+      "answerable": true,
+      "expected_answer": "gonzo_ml писал об AlphaGenome от DeepMind и ограничениях рекуррентных нейросетей по сравнению с трансформерами.",
+      "calibration": false,
+      "dataset_contract": {
+        "id": "golden_q10",
+        "version": "2.0",
+        "eval_mode": "retrieval_evidence",
+        "answerable": true,
+        "expected_refusal": false,
+        "refusal_reason": null,
+        "key_tools": [
+          "channel_search"
+        ],
+        "forbidden_tools": [
+          "temporal_search",
+          "list_channels"
+        ],
+        "acceptable_alternatives": [
+          "search"
+        ],
+        "required_claims": [
+          "gonzo_ml писал об AlphaGenome от DeepMind и ограничениях рекуррентных нейросетей по сравнению с трансформерами."
+        ],
+        "expected_answer": "gonzo_ml писал об AlphaGenome от DeepMind и ограничениях рекуррентных нейросетей по сравнению с трансформерами.",
+        "expected_entities": [],
+        "expected_topics": [],
+        "expected_channels": [
+          "gonzo_ml"
+        ],
+        "source_post_ids": [
+          "gonzo_ml:4885",
+          "gonzo_ml:4667"
+        ],
+        "acceptable_evidence_sets": [
+          [
+            "gonzo_ml:4885",
+            "gonzo_ml:4667"
+          ]
+        ],
+        "strict_anchor_recall_eligible": true,
+        "calibration": false,
+        "difficulty": "medium",
+        "notes": null,
+        "metadata": {
+          "created_at": "2026-03-24",
+          "created_by": "human",
+          "tags": [
+            "channel",
+            "gonzo_ml",
+            "transformers"
+          ]
+        }
+      },
+      "required_claims": [
+        "gonzo_ml писал об AlphaGenome от DeepMind и ограничениях рекуррентных нейросетей по сравнению с трансформерами."
+      ],
+      "agent": {
+        "answer": "В канале gonzo_ml обсуждалось сравнение трансформеров и рекуррентных сетей, а также перспективы их развития:\n\n1. **Проблемы современных трансформеров**: Отмечается, что архитектура современных трансформеров довольно неглубокая с фиксированной глубиной, из-за чего они ограничены низкими классами вычислительной сложности (AC⁰ или TC⁰) и с трудом справляются с задачами, требующими глубокого алгоритмического мышления [2].\n\n2. **Преимущества рекуррентных сетей**: В то же время рекуррентные нейросети (RNN) находятся в более высоком классе вычислительной сложности и теоретически являются полными по Тьюрингу, что делает их более подходящими для сложных алгоритмических задач [2].\n\n3. **Возвращение рекуррентности**: В 2026 году наблюдается возвращение рекуррентных идей в контексте задачи ARC-AGI, где появились модели типа HRM (Hierarchical Reasoning Model), TRM и URM, воскрешающие концепции Universal Transformer [1].\n\n4. **Гибридные подходы**: Вместо «убийц трансформеров» наблюдается рост гибридных архитектур, объединяющих трансформеры с SSM-подобными моделями (например, Mamba) [1]. Также отмечается интерес к иерархическим рекуррентным архитектурам, вдохновленным принципами работы человеческого мозга [2].",
+        "citations": [
+          {
+            "id": "c8a52761-ba83-5632-9d9d-9a2e4f79cac6",
+            "index": 1,
+            "metadata": {
+              "channel_id": -1001150855655,
+              "channel": "gonzo_ml",
+              "message_id": 4502,
+              "date": "2026-01-04T23:02:27",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "c368a85b-f88a-579b-a02c-1850748bf72b",
+            "index": 2,
+            "metadata": {
+              "channel_id": -1001150855655,
+              "channel": "gonzo_ml",
+              "message_id": 4097,
+              "date": "2025-10-12T12:23:04",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          }
+        ],
+        "coverage": 0.6666666666666666,
+        "refinements": 0,
+        "verification": {
+          "verified": true,
+          "confidence": 0.8,
+          "documents_found": 3
+        },
+        "fallback": false,
+        "request_id": "1f3998a7-2a29-401a-9b16-07f8c58b37fe",
+        "citation_hits": [
+          "gonzo_ml:4502",
+          "gonzo_ml:4097"
+        ],
+        "tools_invoked": [
+          "channel_search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search",
+            "channel_search",
+            "summarize_channel"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "citations_detailed": [
+          {
+            "id": "c8a52761-ba83-5632-9d9d-9a2e4f79cac6",
+            "channel": "gonzo_ml",
+            "message_id": 4502,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Убийцы трансформеров не появилось, зато гибриды трансформеров и мамбы (и всяких других SSM-подобных штук) продолжают плодиться. KAN’ы из прошлого года как-то сильно пока никого не потеснили, но где-то локально вроде используются. Какую-то новую архитектуру сложно назвать, из условно прикольного были Tversky Neural Networks, но не ожидаю от них какого-то особого прорыва, честно говоря. Рекуррентность возвращается, на ARC-AGI пришло несколько моделей, воскрешающих старые идеи Universal Transformer — HRM, TRM, URM.  Много было работ про reasoning in the latent space (например, это и это), ожидаю дальнейшего развития. \n\n———\n\nЧто важного упустил?"
+          },
+          {
+            "id": "c368a85b-f88a-579b-a02c-1850748bf72b",
+            "channel": "gonzo_ml",
+            "message_id": 4097,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Современные трансформеры добились значительных результатов в разных задачах, но сама их архитектура в целом довольно неглубокая с фиксированной глубиной (но есть исключения с рекурсией или динамической глубиной). Из-за этого они ограничены низкими классами вычислительной сложности (такими как AC⁰ или TC⁰, https://arxiv.org/abs/2308.03212, схемы фиксированной глубины) и с трудом справляются с проблемами, требующими глубокого, итеративного и алгоритмического мышления. Напомню, что RNN сидят в более высоком классе и вообще вроде как Тьюринг полны. Подробнее про классы тут (https://en.wikipedia.org/wiki/TC_(complexity)). \n\nВдохновляясь иерархической обработкой на разных временных масштабах, присущей человеческому мозгу, авторы представляют Hierarchical Reasoning Model (HRM) — новую рекуррентную архитектуру.\n\n🏗 Структура HRM\n\nВ основе HRM лежат три принципа, наблюдаемые в нейронных вычислениях: иерархическая обработка, разделение во времени и рекуррентные связи. Архитектура включает два взаимозависимых рекуррентных модуля, работающих на разных временных масштабах:"
+          }
+        ],
+        "tool_observations": [
+          {
+            "tool": "channel_search",
+            "summary": "Found 8 documents (total: 8). Route: hybrid. Use these IDs for compose_context: ['a9fcf804-b9a4-5a34-b980-11197590e502', 'ba36d2c7-7e34-5c67-91f2-fb3f0589645a', 'b42b8d30-d120-58be-a1a7-9e2c2aa6a0aa', '4af04bd5-f0ca-51fd-b723-3cb53946ccb0', '814f010e-017b-59d5-a35a-2b09372d54b2', 'b5fd985b-1f44-5054-8243-01f42c9487db', 'c8a52761-ba83-5632-9d9d-9a2e4f79cac6', 'c368a85b-f88a-579b-a02c-1850748bf72b']",
+            "success": true,
+            "took_ms": 1907,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 5 documents by relevance, scores: [7.621, 7.562, 5.566, 5.426, 5.336]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 446,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 2 citations, coverage: 0.41, contexts: 2",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (1214 chars)",
+            "success": true,
+            "took_ms": 0,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "agent_thoughts": [],
+        "retrieved_docs": [
+          {
+            "id": "a9fcf804-b9a4-5a34-b980-11197590e502",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "ba36d2c7-7e34-5c67-91f2-fb3f0589645a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "b42b8d30-d120-58be-a1a7-9e2c2aa6a0aa",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "4af04bd5-f0ca-51fd-b723-3cb53946ccb0",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "814f010e-017b-59d5-a35a-2b09372d54b2",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "b5fd985b-1f44-5054-8243-01f42c9487db",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c8a52761-ba83-5632-9d9d-9a2e4f79cac6",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c368a85b-f88a-579b-a02c-1850748bf72b",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "latency_sec": 15.118960000007064,
+        "error": false
+      },
+      "baseline": {
+        "answer": "[dry-run]",
+        "latency_sec": null,
+        "error": true,
+        "error_message": "dry_run"
+      },
+      "judge": {},
+      "metrics": {
+        "agent_latency_sec": 15.118960000007064,
+        "baseline_latency_sec": null,
+        "agent_coverage": 0.6666666666666666,
+        "strict_anchor_recall": 0.0,
+        "strict_anchor_recall_eligible": true,
+        "acceptable_set_hit": 0.0,
+        "retrieval_sufficiency_score": null,
+        "evidence_support_score": null,
+        "key_tool_accuracy": 1.0,
+        "tool_call_f1": 1.0,
+        "precision_at_5": 0.0,
+        "mrr": 0.0,
+        "ndcg_at_5": 0.0,
+        "bertscore_f1": 0.4265,
+        "summac_faithfulness": 0.2113,
+        "factual_correctness": null,
+        "usefulness": null,
+        "tools_invoked": [
+          "channel_search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "citation_hits": [
+          "gonzo_ml:4502",
+          "gonzo_ml:4097"
+        ],
+        "expected_documents": [
+          "gonzo_ml:4885",
+          "gonzo_ml:4667"
+        ]
+      },
+      "failure_type": null,
+      "status": "baseline_error",
+      "offline_judge_packet": {
+        "query_id": "golden_q10",
+        "query": "О чём писал gonzo_ml про трансформеры и рекуррентные сети?",
+        "eval_mode": "retrieval_evidence",
+        "category": "constrained_search",
+        "answer": "В канале gonzo_ml обсуждалось сравнение трансформеров и рекуррентных сетей, а также перспективы их развития:\n\n1. **Проблемы современных трансформеров**: Отмечается, что архитектура современных трансформеров довольно неглубокая с фиксированной глубиной, из-за чего они ограничены низкими классами вычислительной сложности (AC⁰ или TC⁰) и с трудом справляются с задачами, требующими глубокого алгоритмического мышления [2].\n\n2. **Преимущества рекуррентных сетей**: В то же время рекуррентные нейросети (RNN) находятся в более высоком классе вычислительной сложности и теоретически являются полными по Тьюрингу, что делает их более подходящими для сложных алгоритмических задач [2].\n\n3. **Возвращение рекуррентности**: В 2026 году наблюдается возвращение рекуррентных идей в контексте задачи ARC-AGI, где появились модели типа HRM (Hierarchical Reasoning Model), TRM и URM, воскрешающие концепции Universal Transformer [1].\n\n4. **Гибридные подходы**: Вместо «убийц трансформеров» наблюдается рост гибридных архитектур, объединяющих трансформеры с SSM-подобными моделями (например, Mamba) [1]. Также отмечается интерес к иерархическим рекуррентным архитектурам, вдохновленным принципами работы человеческого мозга [2].",
+        "status": "ok",
+        "latency_sec": 15.118960000007064,
+        "coverage": 0.6666666666666666,
+        "tools_invoked": [
+          "channel_search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search",
+            "channel_search",
+            "summarize_channel"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "agent_thoughts": [],
+        "tool_observations": [
+          {
+            "tool": "channel_search",
+            "summary": "Found 8 documents (total: 8). Route: hybrid. Use these IDs for compose_context: ['a9fcf804-b9a4-5a34-b980-11197590e502', 'ba36d2c7-7e34-5c67-91f2-fb3f0589645a', 'b42b8d30-d120-58be-a1a7-9e2c2aa6a0aa', '4af04bd5-f0ca-51fd-b723-3cb53946ccb0', '814f010e-017b-59d5-a35a-2b09372d54b2', 'b5fd985b-1f44-5054-8243-01f42c9487db', 'c8a52761-ba83-5632-9d9d-9a2e4f79cac6', 'c368a85b-f88a-579b-a02c-1850748bf72b']",
+            "success": true,
+            "took_ms": 1907,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 5 documents by relevance, scores: [7.621, 7.562, 5.566, 5.426, 5.336]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 446,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 2 citations, coverage: 0.41, contexts: 2",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (1214 chars)",
+            "success": true,
+            "took_ms": 0,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "citations": [
+          {
+            "id": "c8a52761-ba83-5632-9d9d-9a2e4f79cac6",
+            "channel": "gonzo_ml",
+            "message_id": 4502,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Убийцы трансформеров не появилось, зато гибриды трансформеров и мамбы (и всяких других SSM-подобных штук) продолжают плодиться. KAN’ы из прошлого года как-то сильно пока никого не потеснили, но где-то локально вроде используются. Какую-то новую архитектуру сложно назвать, из условно прикольного были Tversky Neural Networks, но не ожидаю от них какого-то особого прорыва, честно говоря. Рекуррентность возвращается, на ARC-AGI пришло несколько моделей, воскрешающих старые идеи Universal Transformer — HRM, TRM, URM.  Много было работ про reasoning in the latent space (например, это и это), ожидаю дальнейшего развития. \n\n———\n\nЧто важного упустил?"
+          },
+          {
+            "id": "c368a85b-f88a-579b-a02c-1850748bf72b",
+            "channel": "gonzo_ml",
+            "message_id": 4097,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Современные трансформеры добились значительных результатов в разных задачах, но сама их архитектура в целом довольно неглубокая с фиксированной глубиной (но есть исключения с рекурсией или динамической глубиной). Из-за этого они ограничены низкими классами вычислительной сложности (такими как AC⁰ или TC⁰, https://arxiv.org/abs/2308.03212, схемы фиксированной глубины) и с трудом справляются с проблемами, требующими глубокого, итеративного и алгоритмического мышления. Напомню, что RNN сидят в более высоком классе и вообще вроде как Тьюринг полны. Подробнее про классы тут (https://en.wikipedia.org/wiki/TC_(complexity)). \n\nВдохновляясь иерархической обработкой на разных временных масштабах, присущей человеческому мозгу, авторы представляют Hierarchical Reasoning Model (HRM) — новую рекуррентную архитектуру.\n\n🏗 Структура HRM\n\nВ основе HRM лежат три принципа, наблюдаемые в нейронных вычислениях: иерархическая обработка, разделение во времени и рекуррентные связи. Архитектура включает два взаимозависимых рекуррентных модуля, работающих на разных временных масштабах:"
+          }
+        ],
+        "citation_hits": [
+          "gonzo_ml:4502",
+          "gonzo_ml:4097"
+        ],
+        "retrieved_docs": [
+          {
+            "id": "a9fcf804-b9a4-5a34-b980-11197590e502",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "ba36d2c7-7e34-5c67-91f2-fb3f0589645a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "b42b8d30-d120-58be-a1a7-9e2c2aa6a0aa",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "4af04bd5-f0ca-51fd-b723-3cb53946ccb0",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "814f010e-017b-59d5-a35a-2b09372d54b2",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "b5fd985b-1f44-5054-8243-01f42c9487db",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c8a52761-ba83-5632-9d9d-9a2e4f79cac6",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c368a85b-f88a-579b-a02c-1850748bf72b",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "dataset_contract": {
+          "id": "golden_q10",
+          "version": "2.0",
+          "eval_mode": "retrieval_evidence",
+          "answerable": true,
+          "expected_refusal": false,
+          "refusal_reason": null,
+          "key_tools": [
+            "channel_search"
+          ],
+          "forbidden_tools": [
+            "temporal_search",
+            "list_channels"
+          ],
+          "acceptable_alternatives": [
+            "search"
+          ],
+          "required_claims": [
+            "gonzo_ml писал об AlphaGenome от DeepMind и ограничениях рекуррентных нейросетей по сравнению с трансформерами."
+          ],
+          "expected_answer": "gonzo_ml писал об AlphaGenome от DeepMind и ограничениях рекуррентных нейросетей по сравнению с трансформерами.",
+          "expected_entities": [],
+          "expected_topics": [],
+          "expected_channels": [
+            "gonzo_ml"
+          ],
+          "source_post_ids": [
+            "gonzo_ml:4885",
+            "gonzo_ml:4667"
+          ],
+          "acceptable_evidence_sets": [
+            [
+              "gonzo_ml:4885",
+              "gonzo_ml:4667"
+            ]
+          ],
+          "strict_anchor_recall_eligible": true,
+          "calibration": false,
+          "difficulty": "medium",
+          "notes": null,
+          "metadata": {
+            "created_at": "2026-03-24",
+            "created_by": "human",
+            "tags": [
+              "channel",
+              "gonzo_ml",
+              "transformers"
+            ]
+          }
+        },
+        "diagnostic_metrics": {
+          "strict_anchor_recall": 0.0,
+          "acceptable_set_hit": 0.0,
+          "key_tool_accuracy": 1.0
+        }
+      }
+    },
+    {
+      "query_id": "golden_q14",
+      "query": "Сравни как разные каналы обсуждали DeepSeek — какие мнения?",
+      "version": "2.0",
+      "category": "compare_summarize",
+      "eval_mode": "retrieval_evidence",
+      "difficulty": "hard",
+      "answerable": true,
+      "expected_answer": "DeepSeek обсуждался широко: seeallochnaya — технические детали V3 и mHC, ai_machinelearning_big_data — безопасность и атаки, другие — общие новости релизов.",
+      "calibration": false,
+      "dataset_contract": {
+        "id": "golden_q14",
+        "version": "2.0",
+        "eval_mode": "retrieval_evidence",
+        "answerable": true,
+        "expected_refusal": false,
+        "refusal_reason": null,
+        "key_tools": [
+          "cross_channel_compare"
+        ],
+        "forbidden_tools": [
+          "list_channels"
+        ],
+        "acceptable_alternatives": [
+          "search"
+        ],
+        "required_claims": [
+          "DeepSeek обсуждался широко: seeallochnaya — технические детали V3 и mHC, ai_machinelearning_big_data — безопасность и атаки, другие — общие новости релизов."
+        ],
+        "expected_answer": "DeepSeek обсуждался широко: seeallochnaya — технические детали V3 и mHC, ai_machinelearning_big_data — безопасность и атаки, другие — общие новости релизов.",
+        "expected_entities": [],
+        "expected_topics": [],
+        "expected_channels": [
+          "seeallochnaya",
+          "ai_machinelearning_big_data"
+        ],
+        "source_post_ids": [
+          "seeallochnaya:3162",
+          "ai_machinelearning_big_data:9583"
+        ],
+        "acceptable_evidence_sets": [
+          [
+            "seeallochnaya:3162",
+            "ai_machinelearning_big_data:9583"
+          ]
+        ],
+        "strict_anchor_recall_eligible": true,
+        "calibration": false,
+        "difficulty": "hard",
+        "notes": null,
+        "metadata": {
+          "created_at": "2026-03-24",
+          "created_by": "human",
+          "tags": [
+            "cross_channel",
+            "deepseek"
+          ]
+        }
+      },
+      "required_claims": [
+        "DeepSeek обсуждался широко: seeallochnaya — технические детали V3 и mHC, ai_machinelearning_big_data — безопасность и атаки, другие — общие новости релизов."
+      ],
+      "agent": {
+        "answer": "Обсуждение DeepSeek в российских Telegram-каналах выявило два основных направления: критический анализ с позиции западных обвинений и восприятие успеха китайской компании как системного триумфа.\n\n**1. Конфликт нарративов: «Частный гений» против «Системного успеха»**\nКанал `theworldisnoteasy` описывает раскол в экспертном сообществе. Американский аналитик Пол Триоло (цитируемый в статье) представляет DeepSeek как историю частного предпринимательства, где основатель Лян Вэньфэн инвестировал личные средства без помощи государства, и называет обвинения в краже технологий «FUD-кампанией» (Fear, Uncertainty, Doubt) [1].\nНапротив, российские эксперты рассматривают успех DeepSeek как закономерный результат десятилетней государственной стратегии Китая в сфере ИИ, где частная компания опирается на мощную экосистему университетов и научных программ [4].\n\n**2. Обвинения со стороны OpenAI и реакция каналов**\nКанал `ai_machinelearning_big_data` сообщает о серьезном конфликте: OpenAI официально обвинила DeepSeek в краже знаний через дистилляцию (использование выходных данных чужих моделей) для обучения своих систем [13]. В меморандуме для Конгресса США говорится, что китайская компания использовала обходные пути доступа к API для получения преимуществ [15]. Канал `aioftheday` также подтверждает эти обвинения, отмечая, что OpenAI пытается защитить свои технологии от «изощренных» методов китайских разработчиков [13][15].\n\n**3. Технические оценки и бенчмарки**\nКаналы с технической направленностью (`xor_journal`, `data_secrets`, `seeallochnaya`) фокусируются на производительности:\n*   **Прорывные результаты:** `xor_journal` отмечает, что модели DeepSeek-V3.2 Special превосходят GPT-5 High и Gemini 3 Pro в задачах кодинга и олимпиадной математике [10].\n*   **Ограничения:** Канал `seeallochnaya` указывает на то, что, несмотря на паритет в некоторых бенчмарках, модель все еще отстает по широте знаний и требует больше вычислительных ресурсов (токенов) для генерации ответов [3].\n*   **Гибридная архитектура:** `data_secrets` и `aioftheday` обсуждают релиз DeepSeek-V3.1, которая использует гибридный инференс: режим «мышления» (аналогичный R1) для сложных задач и быстрый режим для обычных запросов [5][12].\n\n**4. Вопросы безопасности и качества кода**\nКанал `aioftheday` цитирует исследование CrowdStrike, показавшее зависимость качества кода от целевого пользователя: ошибки встречаются в 23% случаев для промышленных систем, но возрастают до 42% при запросах на создание вредоносного ПО или кода для сепаратистских регионов (Тибет, Тайвань) [14].\n\n**5. Рыночное положение**\nКанал `protechietich` сообщает, что DeepSeek занимает второе место по трафику среди ИИ-сервисов в России (после ChatGPT), демонстрируя высокую популярность у пользователей [18].\n\nТаким образом, мнения варьируются от признания DeepSeek «честным частным прорывом» до критики за использование методов дистилляции западных моделей и подозрений в политической ангажированности при генерации кода.",
+        "citations": [
+          {
+            "id": "223d951c-8d8c-523e-b184-1ef0915dfd05",
+            "index": 1,
+            "metadata": {
+              "channel_id": -1001090966837,
+              "channel": "theworldisnoteasy",
+              "message_id": 2179,
+              "date": "2025-07-02T11:07:11",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "ba96bc24-2fc9-5734-84f7-969f846d0e49",
+            "index": 2,
+            "metadata": {
+              "channel_id": -1001646511362,
+              "channel": "cryptovalerii",
+              "message_id": 898,
+              "date": "2026-02-02T08:15:39",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "e46189d8-22e2-521d-80f6-a163f195f92c",
+            "index": 3,
+            "metadata": {
+              "channel_id": -1001511414765,
+              "channel": "seeallochnaya",
+              "message_id": 3163,
+              "date": "2025-12-01T21:53:38",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "094673b0-7135-5101-9eef-0457e6609db4",
+            "index": 4,
+            "metadata": {
+              "channel_id": -1001090966837,
+              "channel": "theworldisnoteasy",
+              "message_id": 2179,
+              "date": "2025-07-02T11:07:11",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "ba43fc8c-17e4-594b-bebf-bdf65532bc3a",
+            "index": 5,
+            "metadata": {
+              "channel_id": -1001720833502,
+              "channel": "data_secrets",
+              "message_id": 7654,
+              "date": "2025-08-21T09:03:41",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "f0d8ee89-55c4-5471-ab0f-c76bfc110754",
+            "index": 6,
+            "metadata": {
+              "channel_id": -1001150855655,
+              "channel": "gonzo_ml",
+              "message_id": 4033,
+              "date": "2025-09-18T01:07:07",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "3068bda8-ea6d-5ce5-a3d1-4d0e01f8bbd5",
+            "index": 7,
+            "metadata": {
+              "channel_id": -1001511414765,
+              "channel": "seeallochnaya",
+              "message_id": 2824,
+              "date": "2025-09-01T08:35:49",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "4c78d5de-14a4-5723-92bb-3a6b17ac992b",
+            "index": 8,
+            "metadata": {
+              "channel_id": -1001720833502,
+              "channel": "data_secrets",
+              "message_id": 7612,
+              "date": "2025-08-14T11:17:47",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "3abf293a-7d4b-5bb3-a436-e6f8cc3ee8b9",
+            "index": 9,
+            "metadata": {
+              "channel_id": -1001943579488,
+              "channel": "llm_under_hood",
+              "message_id": 670,
+              "date": "2025-09-29T20:25:04",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "37f11e31-8634-52da-8005-69041629d670",
+            "index": 10,
+            "metadata": {
+              "channel_id": -1001758234692,
+              "channel": "xor_journal",
+              "message_id": 8223,
+              "date": "2025-12-01T12:31:24",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "275112c7-fd36-5052-a553-3c290a1aead2",
+            "index": 11,
+            "metadata": {
+              "channel_id": -1001150855655,
+              "channel": "gonzo_ml",
+              "message_id": 4199,
+              "date": "2025-11-07T20:01:17",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "a62f8a6b-ca59-554d-8727-359596e2683d",
+            "index": 12,
+            "metadata": {
+              "channel_id": -1001680223814,
+              "channel": "aioftheday",
+              "message_id": 3380,
+              "date": "2025-08-21T14:20:23",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "2156c6de-cc73-57ac-a858-f8fc1056d9a4",
+            "index": 13,
+            "metadata": {
+              "channel_id": -1001114591086,
+              "channel": "ai_machinelearning_big_data",
+              "message_id": 9520,
+              "date": "2026-02-14T06:10:07",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "851ed1c0-d3c9-5fd1-b0fd-d705b72aa6ce",
+            "index": 14,
+            "metadata": {
+              "channel_id": -1001680223814,
+              "channel": "aioftheday",
+              "message_id": 3528,
+              "date": "2025-09-22T16:19:41",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "348a120c-dd9e-55f9-a99f-877b4aee6d6f",
+            "index": 15,
+            "metadata": {
+              "channel_id": -1001680223814,
+              "channel": "aioftheday",
+              "message_id": 4152,
+              "date": "2026-02-13T16:33:01",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "567480a5-397f-52d2-85ca-2b0335abef90",
+            "index": 16,
+            "metadata": {
+              "channel_id": -1001114591086,
+              "channel": "ai_machinelearning_big_data",
+              "message_id": 7948,
+              "date": "2025-07-03T06:01:06",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "3ff3b70d-84df-58af-9d28-92c01f60a11f",
+            "index": 17,
+            "metadata": {
+              "channel_id": -1001051500113,
+              "channel": "denissexy",
+              "message_id": 11263,
+              "date": "2026-03-03T12:48:13",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "5659b047-8668-5809-8b9a-93306225d3cf",
+            "index": 18,
+            "metadata": {
+              "channel_id": -1001152531213,
+              "channel": "protechietich",
+              "message_id": 3792,
+              "date": "2025-11-27T13:57:53",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "13ee934e-6195-56e6-91c5-e0348cd74b23",
+            "index": 19,
+            "metadata": {
+              "channel_id": -1001720833502,
+              "channel": "data_secrets",
+              "message_id": 7308,
+              "date": "2025-07-04T08:04:06",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "8fa0c734-570e-5d41-a5b2-fedce661fbec",
+            "index": 20,
+            "metadata": {
+              "channel_id": -1001622822682,
+              "channel": "oulenspiegel_channel",
+              "message_id": 4760,
+              "date": "2025-10-01T07:58:40",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          }
+        ],
+        "coverage": 0.5101164978249182,
+        "refinements": 1,
+        "verification": {
+          "verified": true,
+          "confidence": 0.8,
+          "documents_found": 3
+        },
+        "fallback": false,
+        "request_id": "a5da2980-bcd1-4811-8629-b6241d8f0b0b",
+        "citation_hits": [
+          "theworldisnoteasy:2179",
+          "cryptovalerii:898",
+          "seeallochnaya:3163",
+          "data_secrets:7654",
+          "gonzo_ml:4033",
+          "seeallochnaya:2824",
+          "data_secrets:7612",
+          "llm_under_hood:670",
+          "xor_journal:8223",
+          "gonzo_ml:4199",
+          "aioftheday:3380",
+          "ai_machinelearning_big_data:9520",
+          "aioftheday:3528",
+          "aioftheday:4152",
+          "ai_machinelearning_big_data:7948",
+          "denissexy:11263",
+          "protechietich:3792",
+          "data_secrets:7308",
+          "oulenspiegel_channel:4760"
+        ],
+        "tools_invoked": [
+          "cross_channel_compare",
+          "rerank",
+          "compose_context",
+          "search",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search",
+            "cross_channel_compare"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "citations_detailed": [
+          {
+            "id": "223d951c-8d8c-523e-b184-1ef0915dfd05",
+            "channel": "theworldisnoteasy",
+            "message_id": 2179,
+            "url": "https://t.me/theworldisnoteasy/2179",
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Кто прав в деле DeepSeek: Пол Триоло против российских экспертов\nДве версии одного прорыва\nФеномен DeepSeek расколол экспертное сообщество на два лагеря. Американский аналитик Пол Триоло в своих статьях \"Laying on the DeepSeek FUD\" и \"Reports of DeepSeek 'deception' deeply flawed\" рисует картину незаслуженно оклеветанной частной компании, ставшей жертвой FUD-кампании дезинформации (Fear, Uncertainty, Doubt), цель которой посеять страх, неопределенность и сомнения по отношению к DeepSeek, чем поставить конкурента в невыгодное положение. \nРоссийские же эксперты, напротив, видят в DeepSeek закономерный триумф китайской стратегии в области ИИ.\n\nВерсия Триоло: частный гений против государственной машины\nАмериканский аналитик убедительно доказывает: DeepSeek — это история частного предпринимательства, а не государственного планирования. Лян Вэньфэн, бывший управляющий хедж-фондом, вложил собственные средства в разработку ИИ без копейки государственных денег. А прорывной успех DeepSeek стал сюрпризом для больших китайских руководителей."
+          },
+          {
+            "id": "ba96bc24-2fc9-5734-84f7-969f846d0e49",
+            "channel": "cryptovalerii",
+            "message_id": 898,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Не перестаю удивляться качеству журналистики. В тех темах, где я разбираюсь, это хотя бы мне понятно, а в тех, где нет?\n\nFinancial times пишет\n\nDeepSeek had beaten many of its US rivals, producing a world-class reasoning model using significantly fewer advanced chips than those of its international peers\n\nЭто притом что любая серьёзная аналитика +- оценивает затраты только в капекс на тот момент в 1.5-2 млрд долларов.\n\nНу ладно, вы плохие журналисты, но у вас же следующий параграф шизофреничен, где сотрудник Дипсика сам говорит про безлимитные ресурсы.\n\nWorking at DeepSeek was a thrilling time for Wang. “No KPI [key performance indicators], no hierarchy, no one at your back, and endless resources for you to experiment new ideas,”\n\nНапомнило это \nhttps://t.me/cryptovalerii/229"
+          },
+          {
+            "id": "e46189d8-22e2-521d-80f6-a163f195f92c",
+            "channel": "seeallochnaya",
+            "message_id": 3163,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Про метрики не вижу большого смысла говорить — по бенчмаркам показывают, что на равне или почти нос к носу с фронтиром, но мы-то с вами знаем, что это не так, и что в лучшем случае паритет в достаточно узком наборе доменов на 2-3 языках. Что не отменяет того, что модель может быть лучшей с открытыми весами.\n\nDeepSeek сами пишут, что «Широта знаний о мире у DeepSeek-V3.2 всё еще отстает от ведущих проприетарных моделей» — и это одно из ограничений. Второе — это длина цепочек рассуждений, для Speciale-версии модели (см. в следующем посте) нужно в 2-3 раза больше токенов (при более низкой скорости генерации, по крайней мере в официальном API), чем другим моделям — вторая картинка, цифры в скобках это количество генерируемых токенов."
+          },
+          {
+            "id": "094673b0-7135-5101-9eef-0457e6609db4",
+            "channel": "theworldisnoteasy",
+            "message_id": 2179,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Триоло методично развенчивает мифы о \"50 000 чипов Hopper\", связях с армией и краже технологий OpenAI. Он показывает, как американские \"аналитики открытых источников\" создают конспирологические теории из фрагментарных данных, не понимая ни китайской реальности, ни специфики инноваций.\n\nРоссийская перспектива: системный успех\nРоссийские эксперты видят в DeepSeek нечто большее — демонстрацию мощи китайской научно-технической экосистемы. Даже если компания формально частная, ее успех стал возможен благодаря десятилетиям инвестиций в образование, науку и технологии. Китайские университеты, Академия наук, государственные программы привлечения талантов — все это создало питательную среду для прорыва.\n\nС этой точки зрения, DeepSeek — не аномалия, а закономерность. Китай методично строил свою позицию в высшей лиге ИИ, и DeepSeek — лишь наиболее яркое проявление этого процесса.\n\nПарадокс истины\nУдивительно, но обе версии могут быть верными одновременно. Триоло прав в том, что DeepSeek — это частная инициатива, а американские обвинения — это FUD-кампания дезинформации. Но российские эксперты тоже правы: частный успех DeepSeek неотделим от системных преимуществ Китая."
+          },
+          {
+            "id": "ba43fc8c-17e4-594b-bebf-bdf65532bc3a",
+            "channel": "data_secrets",
+            "message_id": 7654,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Мы наконец-то дождались официального анонса новой DeepSeek-V3.1. Главное: \n\n➖ Инференс действительно гибридный: одна модель, два мода. Причем DeepSeek-V3.1-Think «соображает» быстрее DeepSeek-R1-0528 (см. график 3): для получения тех же результатов тратится намного меньше токенов. \n\n➖ Улучшенный tool use и мультиагентные способности. На Terminal bench перформит в 6 раз лучше R1-0528. На SWE-bench выбивает 66%. Для сравнения, результат gpt-oss – 62%. \n\n➖ Цены: 0.56$/1.68$ за млн токенов. Немного дороже gpt-oss, но дешевле, например, Sonnet. Эти цены вступят в силу 6 сентября + с этой даты перестанут действовать ночные скидки. \n\nИ еще раз ссылка на веса: huggingface.co/deepseek-ai/DeepSeek-V3.1"
+          },
+          {
+            "id": "f0d8ee89-55c4-5471-ab0f-c76bfc110754",
+            "channel": "gonzo_ml",
+            "message_id": 4033,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Прикольно. Статья про Deepseek-R1 (https://t.me/gonzo_ML/3319) вышла в натуре. Не всё Дипмайнду только там публиковаться :)\n\nhttps://www.nature.com/articles/s41586-025-09422-z"
+          },
+          {
+            "id": "3068bda8-ea6d-5ce5-a3d1-4d0e01f8bbd5",
+            "channel": "seeallochnaya",
+            "message_id": 2824,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "DeepSeek для себя решают следующее: они будут учить модель, которая получает на вход промпт, от одного до нескольких ответов на него, генерирует критику для каждого из ответов, и в конце выдаёт оценки всех ответов по шкале от 1 до 10. Получается что модель обладает и input flexibility, и можно генерировать несколько ответов в параллель, если хочется потратить больше мощностей.\n\nКритики будут опираться на принципы, которые специфичны для каждого промпта и генерируются самой моделью. Принципы — это описание человеческим языком того, что может служить критерием хорошего и плохого ответа на данный вопрос. Они гибкие: для запроса про код можно вписать корректность, качество кода, читаемость, итд; для запроса по переводу текста принципы совершенно другие. DeepSeek не пишут про это явно, но по примерам + визуализациям становится ясно, что критерии ещё и имеют вес в процентах. Корректность может отвечать за 40% оценки, понятность, скажем, ещё за 40%, и стиль — за 20%. Тогда если модель в ходе своих же рассуждений оценит ответ на 6/8/6, то финальная оценка (которую посчитает сама модель; никаких калькуляторов к ней не подключено) будет 6*0.4 + 8 * 0.4 + 6 * 0.2=6,8."
+          },
+          {
+            "id": "4c78d5de-14a4-5723-92bb-3a6b17ac992b",
+            "channel": "data_secrets",
+            "message_id": 7612,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Пошел слух, что скоро выйдет DeepSeek R2 \n\nЯкобы из внутренних каналов стартапа в сеть просочились упоминания о релизе между 15 и 30 августа и даже некоторые технические детали модели. \n\nГоворят, что это MoE на 1.2 триллиона параметров с новой техникой роутинга, которая будет бегать исключительно на китайских чипах Huawei Ascend 910B (из-за перехода на которые и возникла задержка с выпуском). \n\nСама компания, по словам инсайдеров, слухи опровергает и не называет точных дат релиза. Такое повторяется уже не первый раз (сначала журналисты обещали 17 марта, потом конец мая, а сейчас вот август). \n\nНо воз и ныне там. А жаль. По DeepSeek мы уже успели соскучиться"
+          },
+          {
+            "id": "3abf293a-7d4b-5bb3-a436-e6f8cc3ee8b9",
+            "channel": "llm_under_hood",
+            "message_id": 670,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Бенчмарки Sonnet 4.5 и Deepseek - ничего особенного\n\nВ этом бенчмарке никаких особых прорывов, просто последовательное небольшое улучшение качества.\n\nAnthropic Sonnet 4.5 заняла 24ое место, что на четыре пункта выше, чем Sonnet 4.0. Главное, она выше Opus 4.0, так что если вдруг выйдет Opus 4.5, то у него есть шансы подняться повыше (например, до уровня Sonnet-3.7 thinking)\n\nВообще, с Anthropic Sonnet у меня двойственные отношения. С одной стороны эта модель допускает достаточно глупые ошибки в сложном коде. Но, с другой стороны, если нужно сделать красивый интерфейс, то альтернатив ей я пока не вижу.\n\nDeepseek V3.2 Experimental - 36ое место, на уровне deepseek-chat-v3-0324. Среди всех deepseek моделей (не r1) - это самое высокое. Кстати, terminus 3.1 будет пониже - на 45ом.\n\nВаш, @llm_under_hood 🤗\n\nPS: про бенчмарки, включая их двухлетнюю историю, расписано тут"
+          },
+          {
+            "id": "37f11e31-8634-52da-8005-69041629d670",
+            "channel": "xor_journal",
+            "message_id": 8223,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Ого, китайцы релизнули две новые опенсорс модели DeepSeek — и они показывают результат на уровне и даже лучше GPT-5 High и Gemini 3 Pro.\n\nТак, DeepSeek-V3.2 Special обгоняет GPT-5 High сразу в нескольких категориях, включая кодинг и агентные задачи. А в олимпиадных бенчмарках по математике и информатике модель не просто берёт золото — она показывает результаты выше всех западных моделей.\n\nDeepSeek-V3.2 уже доступна бесплатно в DeepSeek Chat и HF. А звездочка Special пока только через API. Позиционируются обе, кстати, как модели для агентов.\n\nКитайцы не дают Google и OpenAI отдыхать 😁\n\n@xor_journal"
+          },
+          {
+            "id": "275112c7-fd36-5052-a553-3c290a1aead2",
+            "channel": "gonzo_ml",
+            "message_id": 4199,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "В целом постить анонсы появления разных новых моделей перестало быть особенно интересно, про это и так все напишут (тут ещё и Gemini 3.0 Pro и GPT-5.1 обещают), но удивительно, конечно, как сокращается разрыв между коммерческим close-source'ом и китайским опен-сорсом. Кто бы мог подумать несколько лет назад, что именно Китай будет лидить это направление.\n\nВыход новой Kimi K2 Thinking некоторые (например, Томас Вулф) окрестили новым DeepSeek Moment.\n\nМодель -- MoE на 1T общих параметров и 32B активных, контекст 256k, родная INT4 (QAT) с сохранением качества; Moonshot прямо заявляет про стабильный тул‑юзинг при 200–300 последовательных вызовов. Все бенчмарки для Thinking репортились в 4‑битной точности."
+          },
+          {
+            "id": "a62f8a6b-ca59-554d-8727-359596e2683d",
+            "channel": "aioftheday",
+            "message_id": 3380,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "DeepSeek V3.1 представили официально\n\nГлавное отличие от V3 в том, что модель теперь гибридная. Она может рассуждать или отвечать быстро в зависимости от задачи. Качество мышления сопоставимо с DeepSeek R1, но ответы генерируются быстрее.\n\nТакже DeepSeek утверждает о существенном улучшении агентских навыков в V3.1.\n\nМодель уже доступна в чате и приложении."
+          },
+          {
+            "id": "2156c6de-cc73-57ac-a858-f8fc1056d9a4",
+            "channel": "ai_machinelearning_big_data",
+            "message_id": 9520,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "✔️ OpenAI обвинила DeepSeek в краже знаний через дистилляцию.\n\nВ меморандуме для Комитета Палаты представителей по Китаю OpenAI пожаловалась, что DeepSeek обучала свои модели на выходных данных чужих моделей для воспроизведения возможностей американских ИИ-систем. \n\nПо данным компании, сотрудники DeepSeek применяли сторонние роутеры и программный доступ к API, чтобы обойти защитные механизмы. OpenAI также указала на теневых реселлеров своих сервисов. Заблокировать их активность пока безрезультатны: методы обфускации становятся все изощреннее.\n\nПомимо бизнес-угрозы, китайские модели бесплатны, тогда как американские ИИ-гиганты инвестировали миллиарды в инфраструктуру.\nbloomberg.com\n\n✔️ Пентагон хочет развернуть GPT и Claude в секретных контурах.\n\nМинобороны США ведет переговоры с OpenAI и Anthropic о размещении их моделей на всех уровнях секретности. При этом военные требуют снять большинство ограничений и этических фильтров."
+          },
+          {
+            "id": "851ed1c0-d3c9-5fd1-b0fd-d705b72aa6ce",
+            "channel": "aioftheday",
+            "message_id": 3528,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Качество кода DeepSeek зависит от того, кому он предназначен\n\nИсследователи CrowdStrike заметили, что если попросить DeepSeek написать код для промышленной системы, то в 23% ответов встретятся баги. Но если добавить, что код нужен ИГИЛ*, то ошибки будут уже в 42% ответов. \n\nВ проектах для Тибета и Тайваня качество кода падало еще сильнее, а иногда модель просто отказывалась отвечать.\n\nCrowdStrike предполагает несколько объяснений: либо DeepSeek настроен следовать линии партии и вредит намеренно, либо модель обучалась на слабом коде из этих регионов, либо AI самостоятельно «решил» занижать качество ответов.\n\n*запрещённая в России террористическая организация\n\nhttps://www.techspot.com/news/109526-deepseek-ai-code-quality-depends-who-ndash-china.html"
+          },
+          {
+            "id": "348a120c-dd9e-55f9-a99f-877b4aee6d6f",
+            "channel": "aioftheday",
+            "message_id": 4152,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "OpenAI обвинила DeepSeek в незаконном использовании её технологий\n\nВ OpenAI считают, что DeepSeek использует её модели для тренировки своих моделей. Метод называется дистилляция.\n\nOpenAI пытается защищаться от дистилляции, но китайские разработчики постояннно находят «изощренные и нечестные» способы обойти защиту.\n\nDeepSeek подозревали в этом и раньше. Теперь OpenAI обратилась с предупреждением к американским законодателям.\n\nhttps://www.bloomberg.com/news/articles/2026-02-12/openai-accuses-deepseek-of-distilling-us-models-to-gain-an-edge?sref=l3J6d079"
+          },
+          {
+            "id": "567480a5-397f-52d2-85ca-2b0335abef90",
+            "channel": "ai_machinelearning_big_data",
+            "message_id": 7948,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "✔️ SciArena: платформа для тестирования ИИ на научных задачах.\n\nУченые из Yale, NYU и Allen Institute запустили SciArena - платформу для сравнения ИИ-моделей по качеству ответов на научные вопросы. Система работает так: исследователи задают вопросы, получают пары ответов от моделей и выбирают лучший. \n\nСреди лидеров: OpenAI o3, обогнавший Claude и Gemini, а из открытых моделей Deepseek-R1-0528 вне конкуренции, она превзошла закрытые аналоги. В автоматическом режиме, где вместо людей результаты оценивают другие модели, бенчмарк пока работает не очень: даже топ-модели совпадают с мнением людей лишь на 65%. Код и наборы данных бенчмарка опубликованы в отрытом доступе.\nallenai.org\n\n✔️ X запускает ИИ-заметки для фактчекинга.\n\nСоцсеть X (бывшая Twitter) внедряет ИИ-генерируемые заметки, чтобы дополнять или опровергать информацию в постах. Это фактические проверки, ссылки на источники и уточнения, направленные на борьбу с дезинформацией."
+          },
+          {
+            "id": "3ff3b70d-84df-58af-9d28-92c01f60a11f",
+            "channel": "denissexy",
+            "message_id": 11263,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Пока одна половина обсуждает дополнения к контракту OpenAI с Минобороны (в котором теперь в явном виде запретили работу с NSA, про которую рассказывал Snowden), а другая — что Anthropic подала своё предложение в конкурсе Пентагона на разработку технологии для автономного управления роем дронов с помощью голоса 🤫, на этой неделе мы ждём:\n\n— DeepSeek V4, по слухам, появится завтра или до конца недели; при этом ожидается, что вместе с ней выйдет краткий отчёт (System Card), а где-то через месяц полноценная техническая статья\n\n— GPT-5.4, пропустив GPT-5.3 (хоть под этим номером и вышел Codex). Упоминания модели были найдены в коде Codex, в ошибках от сервера, на скриншотах сотрудников. Также у некоторых пользователей появился обновлённый интерфейс GPT-5 Pro."
+          },
+          {
+            "id": "5659b047-8668-5809-8b9a-93306225d3cf",
+            "channel": "protechietich",
+            "message_id": 3792,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "За десять месяцев 2025 года совокупный трафик на ИИ-сервисы вырос почти в шесть раз, пишет «Коммерсантъ». Лидером из топ-5 платформ в России стал ChatGPT, его доля достигла почти 40%, на втором месте — Deepseek, на третьем — GigaChat.\n\nПричем половину этого трафика сделали авторы телеграм-каналов, пока переписывали новости.\n\n😎 Читайте Про tech и этих"
+          },
+          {
+            "id": "13ee934e-6195-56e6-91c5-e0348cd74b23",
+            "channel": "data_secrets",
+            "message_id": 7308,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Пользуясь случаем, не можем еще раз не подсветить замечательный канал Валерия Neural Deep \n\nВо-первых, автор большой спец по RAG, LLMOps, локальному инференсу и всему, что связано с AI Infrastructure (отсюда и такие частые и глубокие разборы кейсов с локальными LLM на канале). \n\nЗа весь свой опыт Валерий успел построить рексис в Билайне, кучу RAG-платформ для крупных заказчиков, а теперь работает Head of AI в red_mad_robot. \n\nПишет он про железо, RAG, реальный опыт внедрения LLM в прод и запуск ИИ-продуктов. Инженерно, интересно, иногда хардово. \n\nИз последнего – обязательно почитайте пост про вайб-кодинг. Это, пожалуй, наиболее трезвое мнение по поводу этого явления: просто потому что это слова не вайб-кодера из X, которому «Ааа, ИИ сгенерировал приложение за 5 минут», а технически подкованного человека с кучей лет опыта, который видит в коде любые косяки и понимает важность системного подхода. \n\nСоветуем от души: @neuraldeep"
+          },
+          {
+            "id": "8fa0c734-570e-5d41-a5b2-fedce661fbec",
+            "channel": "oulenspiegel_channel",
+            "message_id": 4760,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "🎧 Искусственный интеллект сможет передавать запахи?\n\nСнова говорим про ИИ. После нашего предыдущего выпуска на эту тему вышли релизы DeepSeek R1, Gemini 2.5 Deep Think и GPT-5 и изменили индустрию.\n\nВ гостях у Антона Комолова и Петра Чернышева — Сергей Марков, директор по развитию технологий искусственного интеллекта ПАО Сбербанк @oulenspiegel_channel. \n\nОбсудили с Сергеем различия между крупными игроками в ИИ, тренды, бенчмарки и будущее (компьют есть, данных мало). \n\n🎧 Слушать эпизод:\nPodcast.ru \nApple Podcasts\nЯндекс Музыка\nVK\nЗвук"
+          }
+        ],
+        "tool_observations": [
+          {
+            "tool": "cross_channel_compare",
+            "summary": "Compared 10 channels on topic='DeepSeek': ai_machinelearning_big_data, data_secrets, gonzo_ml, ai_newz, protechietich. Total hits: 20",
+            "success": true,
+            "took_ms": 257,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 1 documents by relevance, scores: [6.090]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 1360,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 1 citations, coverage: 0.59, contexts: 1",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "search",
+            "summary": "Found 20 documents (total: 20). Route: hybrid. Use these IDs for compose_context: ['223d951c-8d8c-523e-b184-1ef0915dfd05', 'ba96bc24-2fc9-5734-84f7-969f846d0e49', 'e46189d8-22e2-521d-80f6-a163f195f92c', '094673b0-7135-5101-9eef-0457e6609db4', 'ba43fc8c-17e4-594b-bebf-bdf65532bc3a', 'f0d8ee89-55c4-5471-ab0f-c76bfc110754', '3068bda8-ea6d-5ce5-a3d1-4d0e01f8bbd5', '4c78d5de-14a4-5723-92bb-3a6b17ac992b', '3abf293a-7d4b-5bb3-a436-e6f8cc3ee8b9', '37f11e31-8634-52da-8005-69041629d670', '275112c7-fd36-50",
+            "success": true,
+            "took_ms": 979,
+            "system_generated": true,
+            "refinement": true,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 20 citations, coverage: 0.51, contexts: 20",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": true,
+            "refinement": true,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (2979 chars)",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "agent_thoughts": [
+          "Покрытие контекста недостаточно. Выполняю дополнительный поиск."
+        ],
+        "retrieved_docs": [
+          {
+            "id": "223d951c-8d8c-523e-b184-1ef0915dfd05",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "ba96bc24-2fc9-5734-84f7-969f846d0e49",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "e46189d8-22e2-521d-80f6-a163f195f92c",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "094673b0-7135-5101-9eef-0457e6609db4",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "ba43fc8c-17e4-594b-bebf-bdf65532bc3a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "f0d8ee89-55c4-5471-ab0f-c76bfc110754",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "3068bda8-ea6d-5ce5-a3d1-4d0e01f8bbd5",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "4c78d5de-14a4-5723-92bb-3a6b17ac992b",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "3abf293a-7d4b-5bb3-a436-e6f8cc3ee8b9",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "37f11e31-8634-52da-8005-69041629d670",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "275112c7-fd36-5052-a553-3c290a1aead2",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "a62f8a6b-ca59-554d-8727-359596e2683d",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "2156c6de-cc73-57ac-a858-f8fc1056d9a4",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "851ed1c0-d3c9-5fd1-b0fd-d705b72aa6ce",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "348a120c-dd9e-55f9-a99f-877b4aee6d6f",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "567480a5-397f-52d2-85ca-2b0335abef90",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "3ff3b70d-84df-58af-9d28-92c01f60a11f",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "5659b047-8668-5809-8b9a-93306225d3cf",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "13ee934e-6195-56e6-91c5-e0348cd74b23",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "8fa0c734-570e-5d41-a5b2-fedce661fbec",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "latency_sec": 54.386584600004426,
+        "error": false
+      },
+      "baseline": {
+        "answer": "[dry-run]",
+        "latency_sec": null,
+        "error": true,
+        "error_message": "dry_run"
+      },
+      "judge": {},
+      "metrics": {
+        "agent_latency_sec": 54.386584600004426,
+        "baseline_latency_sec": null,
+        "agent_coverage": 0.5101164978249182,
+        "strict_anchor_recall": 0.5,
+        "strict_anchor_recall_eligible": true,
+        "acceptable_set_hit": 0.0,
+        "retrieval_sufficiency_score": null,
+        "evidence_support_score": null,
+        "key_tool_accuracy": 1.0,
+        "tool_call_f1": 1.0,
+        "precision_at_5": 0.0,
+        "mrr": 0.0,
+        "ndcg_at_5": 0.0,
+        "bertscore_f1": 0.4293,
+        "summac_faithfulness": 0.3691,
+        "factual_correctness": null,
+        "usefulness": null,
+        "tools_invoked": [
+          "cross_channel_compare",
+          "rerank",
+          "compose_context",
+          "search",
+          "compose_context",
+          "final_answer"
+        ],
+        "citation_hits": [
+          "theworldisnoteasy:2179",
+          "cryptovalerii:898",
+          "seeallochnaya:3163",
+          "data_secrets:7654",
+          "gonzo_ml:4033",
+          "seeallochnaya:2824",
+          "data_secrets:7612",
+          "llm_under_hood:670",
+          "xor_journal:8223",
+          "gonzo_ml:4199",
+          "aioftheday:3380",
+          "ai_machinelearning_big_data:9520",
+          "aioftheday:3528",
+          "aioftheday:4152",
+          "ai_machinelearning_big_data:7948",
+          "denissexy:11263",
+          "protechietich:3792",
+          "data_secrets:7308",
+          "oulenspiegel_channel:4760"
+        ],
+        "expected_documents": [
+          "seeallochnaya:3162",
+          "ai_machinelearning_big_data:9583"
+        ]
+      },
+      "failure_type": null,
+      "status": "baseline_error",
+      "offline_judge_packet": {
+        "query_id": "golden_q14",
+        "query": "Сравни как разные каналы обсуждали DeepSeek — какие мнения?",
+        "eval_mode": "retrieval_evidence",
+        "category": "compare_summarize",
+        "answer": "Обсуждение DeepSeek в российских Telegram-каналах выявило два основных направления: критический анализ с позиции западных обвинений и восприятие успеха китайской компании как системного триумфа.\n\n**1. Конфликт нарративов: «Частный гений» против «Системного успеха»**\nКанал `theworldisnoteasy` описывает раскол в экспертном сообществе. Американский аналитик Пол Триоло (цитируемый в статье) представляет DeepSeek как историю частного предпринимательства, где основатель Лян Вэньфэн инвестировал личные средства без помощи государства, и называет обвинения в краже технологий «FUD-кампанией» (Fear, Uncertainty, Doubt) [1].\nНапротив, российские эксперты рассматривают успех DeepSeek как закономерный результат десятилетней государственной стратегии Китая в сфере ИИ, где частная компания опирается на мощную экосистему университетов и научных программ [4].\n\n**2. Обвинения со стороны OpenAI и реакция каналов**\nКанал `ai_machinelearning_big_data` сообщает о серьезном конфликте: OpenAI официально обвинила DeepSeek в краже знаний через дистилляцию (использование выходных данных чужих моделей) для обучения своих систем [13]. В меморандуме для Конгресса США говорится, что китайская компания использовала обходные пути доступа к API для получения преимуществ [15]. Канал `aioftheday` также подтверждает эти обвинения, отмечая, что OpenAI пытается защитить свои технологии от «изощренных» методов китайских разработчиков [13][15].\n\n**3. Технические оценки и бенчмарки**\nКаналы с технической направленностью (`xor_journal`, `data_secrets`, `seeallochnaya`) фокусируются на производительности:\n*   **Прорывные результаты:** `xor_journal` отмечает, что модели DeepSeek-V3.2 Special превосходят GPT-5 High и Gemini 3 Pro в задачах кодинга и олимпиадной математике [10].\n*   **Ограничения:** Канал `seeallochnaya` указывает на то, что, несмотря на паритет в некоторых бенчмарках, модель все еще отстает по широте знаний и требует больше вычислительных ресурсов (токенов) для генерации ответов [3].\n*   **Гибридная архитектура:** `data_secrets` и `aioftheday` обсуждают релиз DeepSeek-V3.1, которая использует гибридный инференс: режим «мышления» (аналогичный R1) для сложных задач и быстрый режим для обычных запросов [5][12].\n\n**4. Вопросы безопасности и качества кода**\nКанал `aioftheday` цитирует исследование CrowdStrike, показавшее зависимость качества кода от целевого пользователя: ошибки встречаются в 23% случаев для промышленных систем, но возрастают до 42% при запросах на создание вредоносного ПО или кода для сепаратистских регионов (Тибет, Тайвань) [14].\n\n**5. Рыночное положение**\nКанал `protechietich` сообщает, что DeepSeek занимает второе место по трафику среди ИИ-сервисов в России (после ChatGPT), демонстрируя высокую популярность у пользователей [18].\n\nТаким образом, мнения варьируются от признания DeepSeek «честным частным прорывом» до критики за использование методов дистилляции западных моделей и подозрений в политической ангажированности при генерации кода.",
+        "status": "ok",
+        "latency_sec": 54.386584600004426,
+        "coverage": 0.5101164978249182,
+        "tools_invoked": [
+          "cross_channel_compare",
+          "rerank",
+          "compose_context",
+          "search",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search",
+            "cross_channel_compare"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "agent_thoughts": [
+          "Покрытие контекста недостаточно. Выполняю дополнительный поиск."
+        ],
+        "tool_observations": [
+          {
+            "tool": "cross_channel_compare",
+            "summary": "Compared 10 channels on topic='DeepSeek': ai_machinelearning_big_data, data_secrets, gonzo_ml, ai_newz, protechietich. Total hits: 20",
+            "success": true,
+            "took_ms": 257,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 1 documents by relevance, scores: [6.090]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 1360,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 1 citations, coverage: 0.59, contexts: 1",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "search",
+            "summary": "Found 20 documents (total: 20). Route: hybrid. Use these IDs for compose_context: ['223d951c-8d8c-523e-b184-1ef0915dfd05', 'ba96bc24-2fc9-5734-84f7-969f846d0e49', 'e46189d8-22e2-521d-80f6-a163f195f92c', '094673b0-7135-5101-9eef-0457e6609db4', 'ba43fc8c-17e4-594b-bebf-bdf65532bc3a', 'f0d8ee89-55c4-5471-ab0f-c76bfc110754', '3068bda8-ea6d-5ce5-a3d1-4d0e01f8bbd5', '4c78d5de-14a4-5723-92bb-3a6b17ac992b', '3abf293a-7d4b-5bb3-a436-e6f8cc3ee8b9', '37f11e31-8634-52da-8005-69041629d670', '275112c7-fd36-50",
+            "success": true,
+            "took_ms": 979,
+            "system_generated": true,
+            "refinement": true,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 20 citations, coverage: 0.51, contexts: 20",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": true,
+            "refinement": true,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (2979 chars)",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "citations": [
+          {
+            "id": "223d951c-8d8c-523e-b184-1ef0915dfd05",
+            "channel": "theworldisnoteasy",
+            "message_id": 2179,
+            "url": "https://t.me/theworldisnoteasy/2179",
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Кто прав в деле DeepSeek: Пол Триоло против российских экспертов\nДве версии одного прорыва\nФеномен DeepSeek расколол экспертное сообщество на два лагеря. Американский аналитик Пол Триоло в своих статьях \"Laying on the DeepSeek FUD\" и \"Reports of DeepSeek 'deception' deeply flawed\" рисует картину незаслуженно оклеветанной частной компании, ставшей жертвой FUD-кампании дезинформации (Fear, Uncertainty, Doubt), цель которой посеять страх, неопределенность и сомнения по отношению к DeepSeek, чем поставить конкурента в невыгодное положение. \nРоссийские же эксперты, напротив, видят в DeepSeek закономерный триумф китайской стратегии в области ИИ.\n\nВерсия Триоло: частный гений против государственной машины\nАмериканский аналитик убедительно доказывает: DeepSeek — это история частного предпринимательства, а не государственного планирования. Лян Вэньфэн, бывший управляющий хедж-фондом, вложил собственные средства в разработку ИИ без копейки государственных денег. А прорывной успех DeepSeek стал сюрпризом для больших китайских руководителей."
+          },
+          {
+            "id": "ba96bc24-2fc9-5734-84f7-969f846d0e49",
+            "channel": "cryptovalerii",
+            "message_id": 898,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Не перестаю удивляться качеству журналистики. В тех темах, где я разбираюсь, это хотя бы мне понятно, а в тех, где нет?\n\nFinancial times пишет\n\nDeepSeek had beaten many of its US rivals, producing a world-class reasoning model using significantly fewer advanced chips than those of its international peers\n\nЭто притом что любая серьёзная аналитика +- оценивает затраты только в капекс на тот момент в 1.5-2 млрд долларов.\n\nНу ладно, вы плохие журналисты, но у вас же следующий параграф шизофреничен, где сотрудник Дипсика сам говорит про безлимитные ресурсы.\n\nWorking at DeepSeek was a thrilling time for Wang. “No KPI [key performance indicators], no hierarchy, no one at your back, and endless resources for you to experiment new ideas,”\n\nНапомнило это \nhttps://t.me/cryptovalerii/229"
+          },
+          {
+            "id": "e46189d8-22e2-521d-80f6-a163f195f92c",
+            "channel": "seeallochnaya",
+            "message_id": 3163,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Про метрики не вижу большого смысла говорить — по бенчмаркам показывают, что на равне или почти нос к носу с фронтиром, но мы-то с вами знаем, что это не так, и что в лучшем случае паритет в достаточно узком наборе доменов на 2-3 языках. Что не отменяет того, что модель может быть лучшей с открытыми весами.\n\nDeepSeek сами пишут, что «Широта знаний о мире у DeepSeek-V3.2 всё еще отстает от ведущих проприетарных моделей» — и это одно из ограничений. Второе — это длина цепочек рассуждений, для Speciale-версии модели (см. в следующем посте) нужно в 2-3 раза больше токенов (при более низкой скорости генерации, по крайней мере в официальном API), чем другим моделям — вторая картинка, цифры в скобках это количество генерируемых токенов."
+          },
+          {
+            "id": "094673b0-7135-5101-9eef-0457e6609db4",
+            "channel": "theworldisnoteasy",
+            "message_id": 2179,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Триоло методично развенчивает мифы о \"50 000 чипов Hopper\", связях с армией и краже технологий OpenAI. Он показывает, как американские \"аналитики открытых источников\" создают конспирологические теории из фрагментарных данных, не понимая ни китайской реальности, ни специфики инноваций.\n\nРоссийская перспектива: системный успех\nРоссийские эксперты видят в DeepSeek нечто большее — демонстрацию мощи китайской научно-технической экосистемы. Даже если компания формально частная, ее успех стал возможен благодаря десятилетиям инвестиций в образование, науку и технологии. Китайские университеты, Академия наук, государственные программы привлечения талантов — все это создало питательную среду для прорыва.\n\nС этой точки зрения, DeepSeek — не аномалия, а закономерность. Китай методично строил свою позицию в высшей лиге ИИ, и DeepSeek — лишь наиболее яркое проявление этого процесса.\n\nПарадокс истины\nУдивительно, но обе версии могут быть верными одновременно. Триоло прав в том, что DeepSeek — это частная инициатива, а американские обвинения — это FUD-кампания дезинформации. Но российские эксперты тоже правы: частный успех DeepSeek неотделим от системных преимуществ Китая."
+          },
+          {
+            "id": "ba43fc8c-17e4-594b-bebf-bdf65532bc3a",
+            "channel": "data_secrets",
+            "message_id": 7654,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Мы наконец-то дождались официального анонса новой DeepSeek-V3.1. Главное: \n\n➖ Инференс действительно гибридный: одна модель, два мода. Причем DeepSeek-V3.1-Think «соображает» быстрее DeepSeek-R1-0528 (см. график 3): для получения тех же результатов тратится намного меньше токенов. \n\n➖ Улучшенный tool use и мультиагентные способности. На Terminal bench перформит в 6 раз лучше R1-0528. На SWE-bench выбивает 66%. Для сравнения, результат gpt-oss – 62%. \n\n➖ Цены: 0.56$/1.68$ за млн токенов. Немного дороже gpt-oss, но дешевле, например, Sonnet. Эти цены вступят в силу 6 сентября + с этой даты перестанут действовать ночные скидки. \n\nИ еще раз ссылка на веса: huggingface.co/deepseek-ai/DeepSeek-V3.1"
+          },
+          {
+            "id": "f0d8ee89-55c4-5471-ab0f-c76bfc110754",
+            "channel": "gonzo_ml",
+            "message_id": 4033,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Прикольно. Статья про Deepseek-R1 (https://t.me/gonzo_ML/3319) вышла в натуре. Не всё Дипмайнду только там публиковаться :)\n\nhttps://www.nature.com/articles/s41586-025-09422-z"
+          },
+          {
+            "id": "3068bda8-ea6d-5ce5-a3d1-4d0e01f8bbd5",
+            "channel": "seeallochnaya",
+            "message_id": 2824,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "DeepSeek для себя решают следующее: они будут учить модель, которая получает на вход промпт, от одного до нескольких ответов на него, генерирует критику для каждого из ответов, и в конце выдаёт оценки всех ответов по шкале от 1 до 10. Получается что модель обладает и input flexibility, и можно генерировать несколько ответов в параллель, если хочется потратить больше мощностей.\n\nКритики будут опираться на принципы, которые специфичны для каждого промпта и генерируются самой моделью. Принципы — это описание человеческим языком того, что может служить критерием хорошего и плохого ответа на данный вопрос. Они гибкие: для запроса про код можно вписать корректность, качество кода, читаемость, итд; для запроса по переводу текста принципы совершенно другие. DeepSeek не пишут про это явно, но по примерам + визуализациям становится ясно, что критерии ещё и имеют вес в процентах. Корректность может отвечать за 40% оценки, понятность, скажем, ещё за 40%, и стиль — за 20%. Тогда если модель в ходе своих же рассуждений оценит ответ на 6/8/6, то финальная оценка (которую посчитает сама модель; никаких калькуляторов к ней не подключено) будет 6*0.4 + 8 * 0.4 + 6 * 0.2=6,8."
+          },
+          {
+            "id": "4c78d5de-14a4-5723-92bb-3a6b17ac992b",
+            "channel": "data_secrets",
+            "message_id": 7612,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Пошел слух, что скоро выйдет DeepSeek R2 \n\nЯкобы из внутренних каналов стартапа в сеть просочились упоминания о релизе между 15 и 30 августа и даже некоторые технические детали модели. \n\nГоворят, что это MoE на 1.2 триллиона параметров с новой техникой роутинга, которая будет бегать исключительно на китайских чипах Huawei Ascend 910B (из-за перехода на которые и возникла задержка с выпуском). \n\nСама компания, по словам инсайдеров, слухи опровергает и не называет точных дат релиза. Такое повторяется уже не первый раз (сначала журналисты обещали 17 марта, потом конец мая, а сейчас вот август). \n\nНо воз и ныне там. А жаль. По DeepSeek мы уже успели соскучиться"
+          },
+          {
+            "id": "3abf293a-7d4b-5bb3-a436-e6f8cc3ee8b9",
+            "channel": "llm_under_hood",
+            "message_id": 670,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Бенчмарки Sonnet 4.5 и Deepseek - ничего особенного\n\nВ этом бенчмарке никаких особых прорывов, просто последовательное небольшое улучшение качества.\n\nAnthropic Sonnet 4.5 заняла 24ое место, что на четыре пункта выше, чем Sonnet 4.0. Главное, она выше Opus 4.0, так что если вдруг выйдет Opus 4.5, то у него есть шансы подняться повыше (например, до уровня Sonnet-3.7 thinking)\n\nВообще, с Anthropic Sonnet у меня двойственные отношения. С одной стороны эта модель допускает достаточно глупые ошибки в сложном коде. Но, с другой стороны, если нужно сделать красивый интерфейс, то альтернатив ей я пока не вижу.\n\nDeepseek V3.2 Experimental - 36ое место, на уровне deepseek-chat-v3-0324. Среди всех deepseek моделей (не r1) - это самое высокое. Кстати, terminus 3.1 будет пониже - на 45ом.\n\nВаш, @llm_under_hood 🤗\n\nPS: про бенчмарки, включая их двухлетнюю историю, расписано тут"
+          },
+          {
+            "id": "37f11e31-8634-52da-8005-69041629d670",
+            "channel": "xor_journal",
+            "message_id": 8223,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Ого, китайцы релизнули две новые опенсорс модели DeepSeek — и они показывают результат на уровне и даже лучше GPT-5 High и Gemini 3 Pro.\n\nТак, DeepSeek-V3.2 Special обгоняет GPT-5 High сразу в нескольких категориях, включая кодинг и агентные задачи. А в олимпиадных бенчмарках по математике и информатике модель не просто берёт золото — она показывает результаты выше всех западных моделей.\n\nDeepSeek-V3.2 уже доступна бесплатно в DeepSeek Chat и HF. А звездочка Special пока только через API. Позиционируются обе, кстати, как модели для агентов.\n\nКитайцы не дают Google и OpenAI отдыхать 😁\n\n@xor_journal"
+          },
+          {
+            "id": "275112c7-fd36-5052-a553-3c290a1aead2",
+            "channel": "gonzo_ml",
+            "message_id": 4199,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "В целом постить анонсы появления разных новых моделей перестало быть особенно интересно, про это и так все напишут (тут ещё и Gemini 3.0 Pro и GPT-5.1 обещают), но удивительно, конечно, как сокращается разрыв между коммерческим close-source'ом и китайским опен-сорсом. Кто бы мог подумать несколько лет назад, что именно Китай будет лидить это направление.\n\nВыход новой Kimi K2 Thinking некоторые (например, Томас Вулф) окрестили новым DeepSeek Moment.\n\nМодель -- MoE на 1T общих параметров и 32B активных, контекст 256k, родная INT4 (QAT) с сохранением качества; Moonshot прямо заявляет про стабильный тул‑юзинг при 200–300 последовательных вызовов. Все бенчмарки для Thinking репортились в 4‑битной точности."
+          },
+          {
+            "id": "a62f8a6b-ca59-554d-8727-359596e2683d",
+            "channel": "aioftheday",
+            "message_id": 3380,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "DeepSeek V3.1 представили официально\n\nГлавное отличие от V3 в том, что модель теперь гибридная. Она может рассуждать или отвечать быстро в зависимости от задачи. Качество мышления сопоставимо с DeepSeek R1, но ответы генерируются быстрее.\n\nТакже DeepSeek утверждает о существенном улучшении агентских навыков в V3.1.\n\nМодель уже доступна в чате и приложении."
+          },
+          {
+            "id": "2156c6de-cc73-57ac-a858-f8fc1056d9a4",
+            "channel": "ai_machinelearning_big_data",
+            "message_id": 9520,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "✔️ OpenAI обвинила DeepSeek в краже знаний через дистилляцию.\n\nВ меморандуме для Комитета Палаты представителей по Китаю OpenAI пожаловалась, что DeepSeek обучала свои модели на выходных данных чужих моделей для воспроизведения возможностей американских ИИ-систем. \n\nПо данным компании, сотрудники DeepSeek применяли сторонние роутеры и программный доступ к API, чтобы обойти защитные механизмы. OpenAI также указала на теневых реселлеров своих сервисов. Заблокировать их активность пока безрезультатны: методы обфускации становятся все изощреннее.\n\nПомимо бизнес-угрозы, китайские модели бесплатны, тогда как американские ИИ-гиганты инвестировали миллиарды в инфраструктуру.\nbloomberg.com\n\n✔️ Пентагон хочет развернуть GPT и Claude в секретных контурах.\n\nМинобороны США ведет переговоры с OpenAI и Anthropic о размещении их моделей на всех уровнях секретности. При этом военные требуют снять большинство ограничений и этических фильтров."
+          },
+          {
+            "id": "851ed1c0-d3c9-5fd1-b0fd-d705b72aa6ce",
+            "channel": "aioftheday",
+            "message_id": 3528,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Качество кода DeepSeek зависит от того, кому он предназначен\n\nИсследователи CrowdStrike заметили, что если попросить DeepSeek написать код для промышленной системы, то в 23% ответов встретятся баги. Но если добавить, что код нужен ИГИЛ*, то ошибки будут уже в 42% ответов. \n\nВ проектах для Тибета и Тайваня качество кода падало еще сильнее, а иногда модель просто отказывалась отвечать.\n\nCrowdStrike предполагает несколько объяснений: либо DeepSeek настроен следовать линии партии и вредит намеренно, либо модель обучалась на слабом коде из этих регионов, либо AI самостоятельно «решил» занижать качество ответов.\n\n*запрещённая в России террористическая организация\n\nhttps://www.techspot.com/news/109526-deepseek-ai-code-quality-depends-who-ndash-china.html"
+          },
+          {
+            "id": "348a120c-dd9e-55f9-a99f-877b4aee6d6f",
+            "channel": "aioftheday",
+            "message_id": 4152,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "OpenAI обвинила DeepSeek в незаконном использовании её технологий\n\nВ OpenAI считают, что DeepSeek использует её модели для тренировки своих моделей. Метод называется дистилляция.\n\nOpenAI пытается защищаться от дистилляции, но китайские разработчики постояннно находят «изощренные и нечестные» способы обойти защиту.\n\nDeepSeek подозревали в этом и раньше. Теперь OpenAI обратилась с предупреждением к американским законодателям.\n\nhttps://www.bloomberg.com/news/articles/2026-02-12/openai-accuses-deepseek-of-distilling-us-models-to-gain-an-edge?sref=l3J6d079"
+          },
+          {
+            "id": "567480a5-397f-52d2-85ca-2b0335abef90",
+            "channel": "ai_machinelearning_big_data",
+            "message_id": 7948,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "✔️ SciArena: платформа для тестирования ИИ на научных задачах.\n\nУченые из Yale, NYU и Allen Institute запустили SciArena - платформу для сравнения ИИ-моделей по качеству ответов на научные вопросы. Система работает так: исследователи задают вопросы, получают пары ответов от моделей и выбирают лучший. \n\nСреди лидеров: OpenAI o3, обогнавший Claude и Gemini, а из открытых моделей Deepseek-R1-0528 вне конкуренции, она превзошла закрытые аналоги. В автоматическом режиме, где вместо людей результаты оценивают другие модели, бенчмарк пока работает не очень: даже топ-модели совпадают с мнением людей лишь на 65%. Код и наборы данных бенчмарка опубликованы в отрытом доступе.\nallenai.org\n\n✔️ X запускает ИИ-заметки для фактчекинга.\n\nСоцсеть X (бывшая Twitter) внедряет ИИ-генерируемые заметки, чтобы дополнять или опровергать информацию в постах. Это фактические проверки, ссылки на источники и уточнения, направленные на борьбу с дезинформацией."
+          },
+          {
+            "id": "3ff3b70d-84df-58af-9d28-92c01f60a11f",
+            "channel": "denissexy",
+            "message_id": 11263,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Пока одна половина обсуждает дополнения к контракту OpenAI с Минобороны (в котором теперь в явном виде запретили работу с NSA, про которую рассказывал Snowden), а другая — что Anthropic подала своё предложение в конкурсе Пентагона на разработку технологии для автономного управления роем дронов с помощью голоса 🤫, на этой неделе мы ждём:\n\n— DeepSeek V4, по слухам, появится завтра или до конца недели; при этом ожидается, что вместе с ней выйдет краткий отчёт (System Card), а где-то через месяц полноценная техническая статья\n\n— GPT-5.4, пропустив GPT-5.3 (хоть под этим номером и вышел Codex). Упоминания модели были найдены в коде Codex, в ошибках от сервера, на скриншотах сотрудников. Также у некоторых пользователей появился обновлённый интерфейс GPT-5 Pro."
+          },
+          {
+            "id": "5659b047-8668-5809-8b9a-93306225d3cf",
+            "channel": "protechietich",
+            "message_id": 3792,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "За десять месяцев 2025 года совокупный трафик на ИИ-сервисы вырос почти в шесть раз, пишет «Коммерсантъ». Лидером из топ-5 платформ в России стал ChatGPT, его доля достигла почти 40%, на втором месте — Deepseek, на третьем — GigaChat.\n\nПричем половину этого трафика сделали авторы телеграм-каналов, пока переписывали новости.\n\n😎 Читайте Про tech и этих"
+          },
+          {
+            "id": "13ee934e-6195-56e6-91c5-e0348cd74b23",
+            "channel": "data_secrets",
+            "message_id": 7308,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Пользуясь случаем, не можем еще раз не подсветить замечательный канал Валерия Neural Deep \n\nВо-первых, автор большой спец по RAG, LLMOps, локальному инференсу и всему, что связано с AI Infrastructure (отсюда и такие частые и глубокие разборы кейсов с локальными LLM на канале). \n\nЗа весь свой опыт Валерий успел построить рексис в Билайне, кучу RAG-платформ для крупных заказчиков, а теперь работает Head of AI в red_mad_robot. \n\nПишет он про железо, RAG, реальный опыт внедрения LLM в прод и запуск ИИ-продуктов. Инженерно, интересно, иногда хардово. \n\nИз последнего – обязательно почитайте пост про вайб-кодинг. Это, пожалуй, наиболее трезвое мнение по поводу этого явления: просто потому что это слова не вайб-кодера из X, которому «Ааа, ИИ сгенерировал приложение за 5 минут», а технически подкованного человека с кучей лет опыта, который видит в коде любые косяки и понимает важность системного подхода. \n\nСоветуем от души: @neuraldeep"
+          },
+          {
+            "id": "8fa0c734-570e-5d41-a5b2-fedce661fbec",
+            "channel": "oulenspiegel_channel",
+            "message_id": 4760,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "🎧 Искусственный интеллект сможет передавать запахи?\n\nСнова говорим про ИИ. После нашего предыдущего выпуска на эту тему вышли релизы DeepSeek R1, Gemini 2.5 Deep Think и GPT-5 и изменили индустрию.\n\nВ гостях у Антона Комолова и Петра Чернышева — Сергей Марков, директор по развитию технологий искусственного интеллекта ПАО Сбербанк @oulenspiegel_channel. \n\nОбсудили с Сергеем различия между крупными игроками в ИИ, тренды, бенчмарки и будущее (компьют есть, данных мало). \n\n🎧 Слушать эпизод:\nPodcast.ru \nApple Podcasts\nЯндекс Музыка\nVK\nЗвук"
+          }
+        ],
+        "citation_hits": [
+          "theworldisnoteasy:2179",
+          "cryptovalerii:898",
+          "seeallochnaya:3163",
+          "data_secrets:7654",
+          "gonzo_ml:4033",
+          "seeallochnaya:2824",
+          "data_secrets:7612",
+          "llm_under_hood:670",
+          "xor_journal:8223",
+          "gonzo_ml:4199",
+          "aioftheday:3380",
+          "ai_machinelearning_big_data:9520",
+          "aioftheday:3528",
+          "aioftheday:4152",
+          "ai_machinelearning_big_data:7948",
+          "denissexy:11263",
+          "protechietich:3792",
+          "data_secrets:7308",
+          "oulenspiegel_channel:4760"
+        ],
+        "retrieved_docs": [
+          {
+            "id": "223d951c-8d8c-523e-b184-1ef0915dfd05",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "ba96bc24-2fc9-5734-84f7-969f846d0e49",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "e46189d8-22e2-521d-80f6-a163f195f92c",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "094673b0-7135-5101-9eef-0457e6609db4",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "ba43fc8c-17e4-594b-bebf-bdf65532bc3a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "f0d8ee89-55c4-5471-ab0f-c76bfc110754",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "3068bda8-ea6d-5ce5-a3d1-4d0e01f8bbd5",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "4c78d5de-14a4-5723-92bb-3a6b17ac992b",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "3abf293a-7d4b-5bb3-a436-e6f8cc3ee8b9",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "37f11e31-8634-52da-8005-69041629d670",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "275112c7-fd36-5052-a553-3c290a1aead2",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "a62f8a6b-ca59-554d-8727-359596e2683d",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "2156c6de-cc73-57ac-a858-f8fc1056d9a4",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "851ed1c0-d3c9-5fd1-b0fd-d705b72aa6ce",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "348a120c-dd9e-55f9-a99f-877b4aee6d6f",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "567480a5-397f-52d2-85ca-2b0335abef90",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "3ff3b70d-84df-58af-9d28-92c01f60a11f",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "5659b047-8668-5809-8b9a-93306225d3cf",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "13ee934e-6195-56e6-91c5-e0348cd74b23",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "8fa0c734-570e-5d41-a5b2-fedce661fbec",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "dataset_contract": {
+          "id": "golden_q14",
+          "version": "2.0",
+          "eval_mode": "retrieval_evidence",
+          "answerable": true,
+          "expected_refusal": false,
+          "refusal_reason": null,
+          "key_tools": [
+            "cross_channel_compare"
+          ],
+          "forbidden_tools": [
+            "list_channels"
+          ],
+          "acceptable_alternatives": [
+            "search"
+          ],
+          "required_claims": [
+            "DeepSeek обсуждался широко: seeallochnaya — технические детали V3 и mHC, ai_machinelearning_big_data — безопасность и атаки, другие — общие новости релизов."
+          ],
+          "expected_answer": "DeepSeek обсуждался широко: seeallochnaya — технические детали V3 и mHC, ai_machinelearning_big_data — безопасность и атаки, другие — общие новости релизов.",
+          "expected_entities": [],
+          "expected_topics": [],
+          "expected_channels": [
+            "seeallochnaya",
+            "ai_machinelearning_big_data"
+          ],
+          "source_post_ids": [
+            "seeallochnaya:3162",
+            "ai_machinelearning_big_data:9583"
+          ],
+          "acceptable_evidence_sets": [
+            [
+              "seeallochnaya:3162",
+              "ai_machinelearning_big_data:9583"
+            ]
+          ],
+          "strict_anchor_recall_eligible": true,
+          "calibration": false,
+          "difficulty": "hard",
+          "notes": null,
+          "metadata": {
+            "created_at": "2026-03-24",
+            "created_by": "human",
+            "tags": [
+              "cross_channel",
+              "deepseek"
+            ]
+          }
+        },
+        "diagnostic_metrics": {
+          "strict_anchor_recall": 0.5,
+          "acceptable_set_hit": 0.0,
+          "key_tool_accuracy": 1.0
+        }
+      }
+    }
+  ]
+}
