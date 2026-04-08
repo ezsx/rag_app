@@ -349,7 +349,7 @@ class HybridRetriever:
         candidates = _to_candidates(result.points, dense_vector)
 
         # Channel dedup: max 2 docs per channel для diversity
-        candidates = self._channel_dedup(candidates, max_per_channel=2)
+        candidates = self._channel_dedup(candidates, max_per_channel=3)
 
         logger.debug(
             "HybridRetriever: %d результатов для '%s'", len(candidates), query_text[:60]

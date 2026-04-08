@@ -1,0 +1,39 @@
+# RUN-004: compose_context token budget увеличение
+# Один параметр, без рисков для retrieval
+
+id: RUN-004
+date: 2026-04-08
+author: ezsx + claude
+
+hypothesis: >
+  compose_context max_tokens_ctx 1800→4000. LLM увидит ~28 docs вместо ~14.
+  Больше source material = полнее ответ. Qwen3.5 на 32K context справится.
+  Retrieval не меняется — docs уже найдены, просто обрезались бюджетом.
+
+what_changes:
+  - "compose_context.py: max_tokens_ctx 1800 → 4000"
+
+what_stays: "всё retrieval = baseline. k=10, floor=-2.0, dedup=2, MMR λ=0.7"
+
+baseline_ref: "experiments/baseline.yaml"
+dataset: "datasets/_eval_20q_mixed.json"
+dataset_size: 19
+
+acceptance_criteria:
+  recall_at_5: ">= 0.842"
+  n_docs_in_context: "> 14"     # baseline ~14, цель 20+
+
+risks:
+  - "Больше контекста = больше latency на LLM generation (но это eval retrieval, не agent)"
+  - "Этот параметр влияет на agent e2e, не на retrieval eval. В retrieval eval compose_context не вызывается."
+
+note: >
+  ВАЖНО: compose_context вызывается agent'ом при e2e, не в retrieval eval скрипте.
+  Для проверки эффекта нужен agent eval, не retrieval eval.
+  Этот RUN проверяет только что параметр не ломает ничего.
+  Реальный эффект увидим при e2e agent прогоне.
+
+parity_check: pending
+preflight: pending
+results: null
+decision: null

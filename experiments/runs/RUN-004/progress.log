@@ -1,0 +1,41 @@
+# Progress log — 36 queries
+# Started: 2026-04-08 01:10:03
+# qid                  status    latency  tools   cov error
+# -------------------- -------- -------- ------ ----- --------------------
+  golden_q01           OK          16.8s      5  1.00 
+  golden_q02           OK          24.4s      5  1.00 
+  golden_q03           OK          20.3s      4  1.00 
+  golden_q04           OK          29.7s      4  1.00 
+  golden_q05           OK          38.4s      5  0.75 
+  golden_q06           OK          42.5s      4  0.80 
+  golden_q07           OK          37.7s      4  1.00 
+  golden_q08           OK          35.1s      4  0.67 
+  golden_q09           OK          21.1s      4  1.00 
+  golden_q10           OK          21.8s      4  1.00 
+  golden_q11           OK          20.0s      4  0.67 
+  golden_q12           OK          24.2s      4  1.00 
+  golden_q13           OK          35.7s      5  0.75 
+  golden_q14           OK          62.4s      6  0.60 
+  golden_q15           OK          21.4s      3  0.00 
+  golden_q16           OK          23.6s      3  0.00 
+  golden_q17           OK          15.4s      2  0.00 
+  golden_q18           OK           8.6s      2  0.00 
+  golden_q19           OK          21.1s      4  1.00 
+  golden_q20           OK           2.3s      0  0.00 
+  golden_q21           OK          23.7s      4  1.00 
+  golden_q22           OK          12.8s      2  0.00 
+  golden_q23           OK          10.3s      2  0.00 
+  golden_q24           OK          12.7s      2  0.00 
+  golden_q25           OK          43.0s      5  0.75 
+  golden_q26           OK          11.9s      2  0.00 
+  golden_q27           OK           5.2s      2  0.00 
+  golden_q28           OK           9.7s      2  0.00 
+  golden_q29           OK          11.3s      2  0.00 
+  golden_q30           OK          12.8s      2  0.00 
+  golden_v2_q31        OK          13.9s      2  0.00 
+  golden_v2_q32        OK          11.3s      2  0.00 
+  golden_v2_q33        OK          17.2s      1  0.00 
+  golden_v2_q34        OK          13.4s      2  0.00 
+  golden_v2_q35        OK          10.2s      1  0.00 
+  golden_v2_q36        OK          10.2s      2  0.00 
+# Done: 36/36 queries, 0 errors, total 752s

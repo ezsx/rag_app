@@ -28,14 +28,14 @@ search_internals:                            # hardcoded в hybrid_retriever.py
   dense_prefetch_limit: "max(k*4, 40)"       # = 40 при k=10
   rrf_limit: "max(k*5, 50)"                  # = 50 при k=10
   colbert_pool: "k*2"                         # = 20 при k=10
-  per_query_channel_dedup: 2                  # max 2 docs/channel per subquery
+  per_query_channel_dedup: 3                  # max 3 docs/channel per subquery (RUN-005)
 
 pipeline:                                     # full pipeline components
   query_planner: true
   inject_original_query: true
   mmr_merge: true                             # lambda=0.7
   ce_resort: true
-  adaptive_filter: true                       # gap=2.0, min_docs=5, floor=-2.0
+  adaptive_filter: true                       # gap=2.0, min_docs=5, floor=-2.0, cosine recall guard (RUN-007)
   post_merge_channel_dedup: 2
 
 sparse_normalization:

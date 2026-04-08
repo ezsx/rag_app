@@ -166,6 +166,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if request.url.path in ["/health", "/metrics", "/docs", "/openapi.json"]:
             return await call_next(request)
 
+        # Bypass rate limit для eval (X-Eval-Bypass header)
+        if request.headers.get("X-Eval-Bypass") == "1":
+            return await call_next(request)
+
         client_id = self._get_client_id(request)
         endpoint = f"{request.method}:{request.url.path}"
 

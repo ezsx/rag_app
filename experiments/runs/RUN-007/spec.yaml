@@ -1,0 +1,50 @@
+# RUN-007: Cosine recall guard — bi-encoder защита от CE false negatives
+# CE сортирует и фильтрует, cosine гарантирует recall
+
+id: RUN-007
+date: 2026-04-08
+author: ezsx + claude
+
+hypothesis: >
+  CE cross-encoder плохо скорит multi-topic docs (дайджесты, bullet-lists).
+  Подтверждено: sentence-transformers#2874, наш трейс boris:3749 CE=-5.8.
+  Решение из production (Elasticsearch weighted RRF): CE для precision,
+  bi-encoder для recall guarantee. Doc нельзя убить CE filter если он
+  в top-K по dense_score (cosine similarity).
+
+what_changes:
+  - "state.py: _adaptive_ce_filter — после CE cut, проверяем rejected docs"
+  - "Правило: если doc в top-K bi-encoder (dense_score rank) и отрезан CE → вернуть"
+  - "K = количество docs до CE cut (т.е. сколько CE пропустил)"
+  - "Спасённые docs добавляются в конец kept list"
+
+what_stays:
+  - "CE сортировка — без изменений"
+  - "Gap detection — без изменений (gap=2.0)"
+  - "channel_dedup = 3 (из RUN-005, applied)"
+  - "Всё retrieval до CE: BM25, dense, RRF, ColBERT"
+
+baseline_ref: "experiments/runs/RUN-005 (dedup=3, ce_only)"
+
+dataset: "datasets/eval_golden_v2.json (targeted: q01, q08, q09, q10, q14)"
+dataset_size: 5
+
+acceptance_criteria:
+  q08_boris_found: "boris_again:3749 в citations"
+  q08_techsparks_found: "techsparks:5439 в citations"
+  control_stable: "q01, q09 не деградируют"
+  no_noise: "не добавляет нерелевантные docs в stable questions"
+
+risks:
+  - "Cosine может спасать шумные docs семантически близкие но фактически нерелевантные"
+  - "Нужно проверить что на stable questions (q01, q09) не появляется мусор"
+
+note: >
+  RUN-006 показал что ЗАМЕНА CE scoring на combined не работает —
+  пересортировка ломает gap detection. Правильный подход: CE режет,
+  cosine СПАСАЕТ отрезанное. CE для precision, bi-encoder для recall.
+
+parity_check: pending
+preflight: pending
+results: null
+decision: null

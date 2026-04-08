@@ -1,0 +1,48 @@
+# RUN-006: Dual scoring (CE + cosine) в adaptive filter
+# Два варианта combined scoring, сравнение с CE-only baseline
+
+id: RUN-006
+date: 2026-04-08
+author: ezsx + claude
+
+hypothesis: >
+  CE cross-encoder плохо скорит дайджесты/bullet-lists (boris_again:3749 CE=-5.8
+  при реальной семантической релевантности). Добавление cosine similarity (dense_score)
+  как второго сигнала в adaptive filter позволит спасать семантически релевантные docs
+  убитые CE. Два варианта формулы combined score.
+
+what_changes:
+  - "state.py: _adaptive_ce_filter принимает scoring_mode из env SCORING_MODE"
+  - "state.py: новая функция _dual_score() — пересчёт и пересортировка hits"
+  - "Variant A (norm_linear): combined = 0.7 * norm_CE + 0.3 * cosine"
+  - "Variant B (rrf_ranks): combined = 1/(10+rank_CE) + 1/(10+rank_cosine)"
+  - "hybrid_retriever.py: channel_dedup 2 → 3 (из RUN-005, уже applied)"
+  - "Gap threshold: CE=2.0, norm_linear=0.15, rrf_ranks=0.03"
+
+what_stays: "всё retrieval до CE filter: BM25, dense, RRF, ColBERT. k=10, MMR λ=0.7"
+
+baseline_ref: "experiments/baseline.yaml + RUN-005 (dedup=3, ce_only)"
+
+dataset: "datasets/eval_golden_v2.json (targeted: q01, q08, q09, q10, q14)"
+dataset_size: 5
+
+acceptance_criteria:
+  q08_opus_found: "boris_again:3749 в citations И Opus 4.6 в ответе"
+  q08_agibot_found: "techsparks:5439 в citations"
+  control_no_regression: "q01, q09 не деградируют"
+  overall: "проблемные вопросы улучшаются без деградации stable"
+
+variants:
+  baseline: "SCORING_MODE=ce_only (current, dedup=3)"
+  norm_linear: "SCORING_MODE=norm_linear (α=0.7)"
+  rrf_ranks: "SCORING_MODE=rrf_ranks (k=10)"
+
+risks:
+  - "Cosine может поднимать шум — семантически близкие но фактически нерелевантные docs"
+  - "Gap threshold для normalized scores (0.15, 0.03) подобран на глаз, может быть неоптимален"
+  - "SCORING_MODE env не прокидывается в Docker container через .env — нужно добавить в compose"
+
+parity_check: pending
+preflight: pending
+results: null
+decision: null

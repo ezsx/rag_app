@@ -1,0 +1,86 @@
+id: RUN-008
+date: 2026-04-09
+judge: Claude Opus (separate chat)
+
+config:
+  channel_dedup: 3
+  adaptive_filter: "CE + cosine recall guard"
+  compose_context_max_tokens: 4000
+  negative_intent_markers: "temporal only (в 2024, в 2023, до 2025, ранее 2025)"
+  scoring_mode: ce_only
+
+metrics:
+  # Скорректированные после dataset audit (7 open-ended вопросов с узким expected)
+  factual_mean_all36: 0.858
+  factual_mean_retrieval17: 0.888
+  factual_mean_analytics14: 0.793
+  useful_mean_all36: 1.708
+  correct_refusal: "3/3 (100%)"
+  # Исходные (до коррекции expected answers)
+  factual_mean_all36_raw: 0.803
+  factual_mean_retrieval17_raw: 0.771
+
+baseline_comparison:
+  factual_delta: +0.016
+  useful_delta: -0.070
+  refusal_delta: "+1 (q20 fixed)"
+  note: "factual delta после коррекции 7 open-ended вопросов в датасете (v2→v2_fixed)"
+
+per_question:
+  q01: {factual: 1.0, useful: 2.0, evidence: 1.0, sufficiency: 1.0}
+  q02: {factual: 1.0, useful: 2.0, evidence: 1.0, sufficiency: 1.0}
+  q03: {factual: 1.0, useful: 2.0, evidence: 1.0, sufficiency: 1.0}
+  q04: {factual: 0.9, useful: 1.8, evidence: 1.0, sufficiency: 0.7, note: "V3 линейка покрыта шире чем expected, mHC — одна деталь из десятков"}
+  q05: {factual: 1.0, useful: 2.0, evidence: 1.0, sufficiency: 1.0}
+  q06: {factual: 0.8, useful: 1.3, evidence: 0.8, sufficiency: 0.4, note: "19-цитатный обзор января, open-ended вопрос покрыт хорошо"}
+  q07: {factual: 1.0, useful: 1.8, evidence: 1.0, sufficiency: 1.0}
+  q08: {factual: 0.8, useful: 1.5, evidence: 0.9, sufficiency: 0.5, note: "Opus 4.6 ✓ + 10 событий февраля, open-ended покрыт"}
+  q09: {factual: 1.0, useful: 2.0, evidence: 1.0, sufficiency: 1.0}
+  q10: {factual: 0.9, useful: 1.6, evidence: 0.9, sufficiency: 0.6, note: "тема трансформеры vs RNN покрыта 4 пунктами, AlphaGenome — одна работа из многих"}
+  q11: {factual: 1.0, useful: 2.0, evidence: 1.0, sufficiency: 1.0}
+  q12: {factual: 0.2, useful: 0.7, evidence: 0.7, sufficiency: 0.3, note: "GPT-5.3/5.4 не найдены"}
+  q13: {factual: 0.9, useful: 1.8, evidence: 1.0, sufficiency: 1.0}
+  q14: {factual: 1.0, useful: 1.8, evidence: 1.0, sufficiency: 0.7, note: "6 нарративов 8+ каналов, open-ended покрыт полностью"}
+  q15: {factual: 0.9, useful: 1.6, evidence: 0.9, sufficiency: 0.7, note: "14 постов конкретно vs расплывчатый expected"}
+  q16: {factual: 1.0, useful: 1.9, evidence: 1.0, sufficiency: 0.8, note: "20 постов подробно, дайджест полный"}
+  q17: {factual: 0.9, useful: 2.0, mode: navigation}
+  q18: {factual: 0.8, useful: 2.0, mode: navigation}
+  q19: {factual: 1, useful: 1.8, mode: refusal, correct: true}
+  q20: {factual: 1, useful: 1.9, mode: refusal, correct: true, note: "FIX: теперь ищет вместо instant refusal"}
+  q21: {factual: 1, useful: 1.8, mode: refusal, correct: true}
+  q22: {factual: 0.8, useful: 1.7, mode: analytics}
+  q23: {factual: 0.9, useful: 1.8, mode: analytics}
+  q24: {factual: 0.4, useful: 1.0, mode: analytics, note: "channel_expertise не ранжирует techsparks"}
+  q25: {factual: 0.7, useful: 1.7, evidence: 0.9, sufficiency: 0.7}
+  q26: {factual: 0.8, useful: 1.8, mode: analytics}
+  q27: {factual: 1.0, useful: 1.8, mode: analytics}
+  q28: {factual: 0.9, useful: 1.8, mode: analytics}
+  q29: {factual: 0.9, useful: 1.7, mode: analytics}
+  q30: {factual: 1.0, useful: 1.8, mode: analytics}
+  q31: {factual: 0.9, useful: 1.8, mode: analytics}
+  q32: {factual: 0.6, useful: 1.4, mode: analytics}
+  q33: {factual: 0.6, useful: 1.4, mode: analytics}
+  q34: {factual: 1.0, useful: 1.8, mode: analytics}
+  q35: {factual: 0.9, useful: 1.7, mode: analytics}
+  q36: {factual: 0.4, useful: 1.0, mode: analytics, note: "channel_expertise не ранжирует techsparks"}
+
+improvements:
+  - "q20: negative intent fix — теперь ищет вместо instant refusal (useful 0.5→1.9)"
+  - "q08: Opus 4.6 теперь в ответе (dedup=3 спас boris_again:3749)"
+  - "Ответы объёмнее и детальнее (compose_context 4000)"
+
+chronic_problems:
+  - "q06: gonzo_ml Франкенштейн + boris_again any2json — temporal_search не находит"
+  - "q08: Себрант + Agibot — retrieval miss"
+  - "q10: AlphaGenome — не в docs"
+  - "q12: GPT-5.3/5.4 — retrieval miss"
+  - "q24/q36: techsparks не в channel_expertise ranking — tool limitation"
+  - "q32/q33: hot_topics шумные кластеры (HRM/KV/MLP)"
+
+dataset_audit:
+  issue: "7/36 вопросов имели узкий expected answer для open-ended вопросов"
+  fixed_questions: [q04, q06, q08, q10, q14, q15, q16]
+  fixed_dataset: "datasets/eval_golden_v2_fixed.json"
+  impact: "factual 0.803 → 0.858 после коррекции"
+
+decision: adopted

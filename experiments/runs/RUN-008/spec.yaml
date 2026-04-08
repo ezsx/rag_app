@@ -1,0 +1,15 @@
+id: RUN-008
+date: 2026-04-09
+author: ezsx + claude
+hypothesis: >
+  Full 36q eval с production config после adopted changes:
+  dedup=3 (RUN-005), cosine recall guard (RUN-007), negative intent fix,
+  compose_context=4000. Ожидаем улучшение factual vs baseline 0.842.
+what_changes:
+  - "channel_dedup 2→3"
+  - "cosine recall guard в adaptive filter"
+  - "negative_intent_markers: только temporal"
+  - "compose_context: 4000 (не откачен)"
+baseline_ref: "experiments/baseline.yaml"
+dataset: "datasets/eval_golden_v2.json"
+dataset_size: 36

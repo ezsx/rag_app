@@ -796,12 +796,37 @@ class AgentEvaluationRunner:
         self.limit = min(limit, len(dataset)) if limit > 0 else len(dataset)
         self.run_baseline = run_baseline
 
-        self._headers: dict[str, str] = {}
+        self._headers: dict[str, str] = {"X-Eval-Bypass": "1"}
         if api_key:
             self._headers["Authorization"] = f"Bearer {api_key}"
 
-    def run(self) -> list[dict[str, Any]]:
+    def run(self, output_dir: Path | None = None) -> list[dict[str, Any]]:
+        """Запуск eval с live-записью judge артефакта и progress log.
+
+        output_dir: если указан, пишет live файлы:
+          - judge_live.md — judge packet, append per query
+          - progress.log — одна строка на query (qid, latency, status, error)
+        """
         results: list[dict[str, Any]] = []
+
+        # Live writers
+        judge_live_path: Path | None = None
+        progress_path: Path | None = None
+        if output_dir:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            judge_live_path = output_dir / "judge_live.md"
+            progress_path = output_dir / "progress.log"
+            # Записываем header judge markdown
+            judge_live_path.write_text(
+                _render_judge_header_md(self.limit), encoding="utf-8",
+            )
+            # Записываем header progress log
+            with progress_path.open("w", encoding="utf-8") as f:
+                f.write(f"# Progress log — {self.limit} queries\n")
+                f.write(f"# Started: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"# {'qid':<20} {'status':<8} {'latency':>8} {'tools':>6} {'cov':>5} {'error'}\n")
+                f.write(f"# {'-'*20} {'-'*8} {'-'*8} {'-'*6} {'-'*5} {'-'*20}\n")
+
         for idx, item in enumerate(self.dataset[: self.limit]):
             logger.info(
                 "[%d/%d] %s (%s, %s)",
@@ -848,7 +873,7 @@ class AgentEvaluationRunner:
                     except Exception as exc:
                         logger.warning("SummaC failed for %s: %s", item.id, exc)
 
-            results.append({
+            result_item = {
                 "query_id": item.id,
                 "query": item.query,
                 "version": item.version,
@@ -867,7 +892,35 @@ class AgentEvaluationRunner:
                 "failure_type": failure,
                 "status": self._status(agent_result, baseline_result),
                 "offline_judge_packet": offline_judge_packet,
-            })
+            }
+            results.append(result_item)
+
+            # ── Live write: append judge question ──
+            if judge_live_path:
+                with judge_live_path.open("a", encoding="utf-8") as f:
+                    f.write(_render_judge_question_md(offline_judge_packet))
+                    f.flush()
+
+            # ── Live write: append progress line ──
+            if progress_path:
+                latency = agent_result.get("latency_sec") or 0
+                n_tools = len(agent_result.get("tools_invoked", []))
+                cov = agent_result.get("coverage")
+                cov_str = f"{cov:.2f}" if cov is not None else "N/A"
+                error = agent_result.get("error") or ""
+                status = "ERROR" if error else "OK"
+                with progress_path.open("a", encoding="utf-8") as f:
+                    f.write(f"  {item.id:<20} {status:<8} {latency:>7.1f}s {n_tools:>6} {cov_str:>5} {error[:50]}\n")
+                    f.flush()
+
+        # Финальная строка в progress log
+        if progress_path:
+            total_latency = sum(r["metrics"].get("agent_latency_sec") or 0 for r in results)
+            errors = sum(1 for r in results if r["agent"].get("error"))
+            with progress_path.open("a", encoding="utf-8") as f:
+                f.write(f"# Done: {len(results)}/{self.limit} queries, "
+                        f"{errors} errors, total {total_latency:.0f}s\n")
+
         return results
 
     @staticmethod
@@ -1462,12 +1515,210 @@ def chunked(seq: Sequence[Any], size: int) -> Iterator[Sequence[Any]]:
         yield seq[i:i + size]
 
 
-def build_offline_judge_markdown(batch: Sequence[dict[str, Any]], batch_no: int) -> str:
-    """Строит markdown packet для offline judge review."""
+# ─── Live judge artifact helpers ──────────────────────────────────
+
+
+def _render_judge_header_md(total_questions: int) -> str:
+    """Scoring instructions header для judge markdown. Пишется один раз в начале."""
+    return "\n".join([
+        "# Offline Judge",
+        "",
+        f"Questions: {total_questions}",
+        "",
+        "## Scoring Instructions",
+        "",
+        "Ты — judge для RAG-системы. Оцени каждый ответ агента по метрикам ниже.",
+        "Сравнивай ответ агента с **Expected answer** и **Required claims**.",
+        "Учитывай **Documents** — это контекст, который видела LLM при генерации ответа.",
+        "",
+        "### Шкалы",
+        "",
+        "**factual (0.0-1.0, step 0.1)** — полнота и точность фактов:",
+        "- 1.0 — все required claims покрыты, нет фактических ошибок",
+        "- 0.8-0.9 — основные факты верны, но упущена 1-2 мелкие детали из expected",
+        "- 0.5-0.7 — часть ключевых фактов отсутствует или неточна",
+        "- 0.1-0.4 — большая часть фактов отсутствует или ошибочна",
+        "- 0.0 — ответ полностью неверен или отсутствует",
+        "",
+        "**useful (0.0-2.0, step 0.1)** — полезность для пользователя:",
+        "- 2.0 — ответ полностью отвечает на вопрос, можно использовать as-is",
+        "- 1.5-1.9 — отвечает хорошо, но есть мелкие недочёты (стиль, порядок, избыточность)",
+        "- 1.0-1.4 — частично полезен, но неполный или требует существенного уточнения",
+        "- 0.5-0.9 — минимально полезен, есть зерно ответа но в целом не помогает",
+        "- 0.0 — бесполезен, не отвечает на вопрос",
+        "",
+        "**evidence_support (0.0-1.0, step 0.1)** — подтверждается ли ответ документами:",
+        "- 1.0 — каждое утверждение подкреплено цитатой из documents",
+        "- 0.5 — часть утверждений не подтверждена документами",
+        "- 0.0 — ответ не опирается на предоставленные документы",
+        "",
+        "**retrieval_sufficiency (0.0-1.0, step 0.1)** — достаточно ли документов:",
+        "- 1.0 — documents содержат всю информацию для полного ответа",
+        "- 0.5 — documents покрывают тему частично, для полного ответа нужно больше",
+        "- 0.0 — documents не релевантны вопросу",
+        "",
+        "### Правила",
+        "- Бонусная информация сверх expected answer НЕ снижает factual",
+        "- Если факт верен но неточная формулировка — снижение 0.1, не больше",
+        "- Если ответ на другом языке чем вопрос — useful максимум 1",
+        "- Для refusal: оцени correct_refusal (0/1) вместо factual/evidence/sufficiency",
+        "",
+        "---",
+        "",
+    ])
+
+
+def _render_judge_question_md(packet: dict[str, Any]) -> str:
+    """Рендерит один вопрос для judge markdown. Вызывается per-query в live mode."""
+    contract = packet["dataset_contract"]
+    lines = [
+        f"## {packet['query_id']} — {packet['query']}",
+        f"- Eval mode: `{packet['eval_mode']}`",
+        f"- Category: `{packet['category']}`",
+        f"- Answerable: `{contract['answerable']}`",
+        f"- Key tools: `{', '.join(contract['key_tools']) or '-'}`",
+        f"- Forbidden tools: `{', '.join(contract['forbidden_tools']) or '-'}`",
+        f"- Tools invoked: `{', '.join(packet['tools_invoked']) or '-'}`",
+        f"- Coverage: `{packet.get('coverage')}`",
+        "",
+        "**Expected answer**",
+        "",
+        contract.get("expected_answer") or "_N/A_",
+        "",
+        "**Required claims**",
+        "",
+    ]
+    claims = contract.get("required_claims") or []
+    if claims:
+        lines.extend([f"- {claim}" for claim in claims])
+    else:
+        lines.append("- _none_")
+    lines.extend(["", "**Agent answer**", "", packet.get("answer") or "_empty_", ""])
+
+    lines.extend(["**Agent thoughts**", ""])
+    thoughts = packet.get("agent_thoughts") or []
+    if thoughts:
+        lines.extend([f"- {thought}" for thought in thoughts])
+    else:
+        lines.append("- _none_")
+    lines.append("")
+
+    lines.extend(["**Tool observations**", ""])
+    observations = packet.get("tool_observations") or []
+    if observations:
+        for obs in observations:
+            lines.append(f"- `{obs.get('tool', 'unknown')}`: {obs.get('summary', '')}")
+    else:
+        lines.append("- _none_")
+    lines.append("")
+
+    lines.extend(["**Citations (документы использованные в ответе)**", ""])
+    citations = packet.get("citations") or []
+    if citations:
+        for i, cit in enumerate(citations, 1):
+            lines.append(
+                f"**[{i}]** `{cit.get('channel') or '-'}:{cit.get('message_id') or '-'}` "
+                f"({cit.get('id') or '-'})"
+            )
+            text = cit.get("text") or ""
+            if text:
+                lines.append(f"  > {text}")
+            else:
+                lines.append("  > _(текст не загружен)_")
+            lines.append("")
+    else:
+        lines.append("- _none_")
+    lines.append("")
+
+    # Offline judge scoring section
+    if packet["eval_mode"] == "retrieval_evidence":
+        lines.extend([
+            "**Offline Judge Scoring**", "",
+            "| Metric | Score | Reasoning |",
+            "|--------|-------|-----------|",
+            "| factual (0.0-1.0, step 0.1): полнота и точность фактов vs expected | ___ | |",
+            "| useful (0.0-2.0, step 0.1): 0=бесполезен, 1=частично, 2=полностью отвечает | ___ | |",
+            "| evidence_support (0.0-1.0, step 0.1): подтверждается ли ответ документами? | ___ | |",
+            "| retrieval_sufficiency (0.0-1.0, step 0.1): достаточно ли документов для ответа? | ___ | |",
+            "",
+        ])
+    elif packet["eval_mode"] == "analytics":
+        lines.extend([
+            "**Offline Judge Scoring**", "",
+            "| Metric | Score | Reasoning |",
+            "|--------|-------|-----------|",
+            "| factual (0.0-1.0, step 0.1): полнота и точность фактов vs expected | ___ | |",
+            "| useful (0.0-2.0, step 0.1): 0=бесполезен, 1=частично, 2=полностью отвечает | ___ | |",
+            "",
+        ])
+    elif packet["eval_mode"] == "refusal":
+        lines.extend([
+            "**Offline Judge Scoring**", "",
+            "| Metric | Score | Reasoning |",
+            "|--------|-------|-----------|",
+            "| correct_refusal (0/1) | ___ | |",
+            "| useful (0.0-2.0, step 0.1): 0=бесполезен, 1=частично, 2=полностью отвечает | ___ | |",
+            "",
+        ])
+    lines.extend(["---", ""])
+    return "\n".join(lines)
+
+
+def _build_offline_judge_markdown_compat(batch: Sequence[dict[str, Any]], batch_no: int) -> str:
+    """Batch judge markdown (backward compat wrapper)."""
+    header = _render_judge_header_md(len(batch))
+    questions = "\n".join(
+        _render_judge_question_md(item["offline_judge_packet"]) for item in batch
+    )
+    return header + questions
+
+
+def _OLD_build_offline_judge_markdown(batch: Sequence[dict[str, Any]], batch_no: int) -> str:
+    """DEPRECATED: replaced by _render_judge_header_md + _render_judge_question_md."""
     lines = [
         f"# Offline Judge Batch {batch_no:02d}",
         "",
         f"Questions: {len(batch)}",
+        "",
+        "## Scoring Instructions",
+        "",
+        "Ты — judge для RAG-системы. Оцени каждый ответ агента по метрикам ниже.",
+        "Сравнивай ответ агента с **Expected answer** и **Required claims**.",
+        "Учитывай **Documents** — это контекст, который видела LLM при генерации ответа.",
+        "",
+        "### Шкалы",
+        "",
+        "**factual (0.0–1.0, step 0.1)** — полнота и точность фактов:",
+        "- 1.0 — все required claims покрыты, нет фактических ошибок",
+        "- 0.8–0.9 — основные факты верны, но упущена 1-2 мелкие детали из expected",
+        "- 0.5–0.7 — часть ключевых фактов отсутствует или неточ��а",
+        "- 0.1–0.4 — большая часть фактов отсутствует или ошибочна",
+        "- 0.0 — ответ полностью неверен или отсутствует",
+        "",
+        "**useful (0.0–2.0, step 0.1)** — полезность для пользователя:",
+        "- 2.0 — ответ полностью отвечает на вопрос, можно использовать as-is",
+        "- 1.5–1.9 — отвечает хорошо, но есть мелкие недочёты (стиль, порядок, избыточность)",
+        "- 1.0–1.4 — частично полезен, но неполный или требует существенного уточнения",
+        "- 0.5–0.9 — минимально полезен, есть зерно ответа но в целом не помогает",
+        "- 0.0 — бесполезен, не отвечает на вопрос",
+        "",
+        "**evidence_support (0.0–1.0, step 0.1)** — подтверждается ли ответ документами:",
+        "- 1.0 — каждое утверждение подкреплено цитатой из documents",
+        "- 0.5 — часть утверждений не подтверждена документами",
+        "- 0.0 �� ответ не опирается на предоставленные документы",
+        "",
+        "**retrieval_sufficiency (0.0–1.0, step 0.1)** — достаточно ли документов:",
+        "- 1.0 — documents содержат всю информацию для полного ответа",
+        "- 0.5 — documents покрывают тему частично, для полного ответа нужно больше",
+        "- 0.0 — documents не релевантны вопросу",
+        "",
+        "### Правила",
+        "- Бонусная информация сверх expected answer НЕ снижает factual",
+        "- Если факт верен но неточная формулировка — снижение 0.1, не больше",
+        "- Если ответ на другом языке чем вопрос — useful максимум 1",
+        "- Для refusal: оцени correct_refusal (0/1) вместо factual/evidence/sufficiency",
+        "",
+        "---",
         "",
     ]
     for item in batch:
@@ -1550,16 +1801,16 @@ def build_offline_judge_markdown(batch: Sequence[dict[str, Any]], batch_no: int)
                 lines.append(f"- `{gen['name']}`: {gen.get('latency', '?')}s, tools={tool_names}, usage={gen.get('usageDetails', {})}")
             lines.append("")
 
-        # Offline judge scoring section
+        # Offline judge scoring section — гранулярная шкала (ablation protocol)
         if packet["eval_mode"] == "retrieval_evidence":
             lines.extend([
                 "**Offline Judge Scoring**", "",
                 "| Metric | Score | Reasoning |",
                 "|--------|-------|-----------|",
-                "| factual_correctness (0/0.5/1) | ___ | |",
-                "| usefulness (0/1/2) | ___ | |",
-                "| evidence_support (0/0.5/1): подтверждается ли ответ документами? | ___ | |",
-                "| retrieval_sufficiency (0/0.5/1): достаточно ли документов для ответа? | ___ | |",
+                "| factual (0.0-1.0, step 0.1): полнота и точность фактов vs expected | ___ | |",
+                "| useful (0.0-2.0, step 0.1): 0=бесполезен, 1=частично, 2=полностью отвечает | ___ | |",
+                "| evidence_support (0.0-1.0, step 0.1): подтверждается ли ответ документами? | ___ | |",
+                "| retrieval_sufficiency (0.0-1.0, step 0.1): достаточно ли документов для ответа? | ___ | |",
                 "",
             ])
         elif packet["eval_mode"] == "analytics":
@@ -1567,8 +1818,8 @@ def build_offline_judge_markdown(batch: Sequence[dict[str, Any]], batch_no: int)
                 "**Offline Judge Scoring**", "",
                 "| Metric | Score | Reasoning |",
                 "|--------|-------|-----------|",
-                "| factual_correctness (0/0.5/1) | ___ | |",
-                "| usefulness (0/1/2) | ___ | |",
+                "| factual (0.0-1.0, step 0.1): полнота и точность фактов vs expected | ___ | |",
+                "| useful (0.0-2.0, step 0.1): 0=бесполезен, 1=частично, 2=полностью отвечает | ___ | |",
                 "",
             ])
         elif packet["eval_mode"] == "refusal":
@@ -1577,12 +1828,16 @@ def build_offline_judge_markdown(batch: Sequence[dict[str, Any]], batch_no: int)
                 "| Metric | Score | Reasoning |",
                 "|--------|-------|-----------|",
                 "| correct_refusal (0/1) | ___ | |",
-                "| usefulness (0/1/2) | ___ | |",
+                "| useful (0.0-2.0, step 0.1): 0=бесполезен, 1=частично, 2=полностью отвечает | ___ | |",
                 "",
             ])
         lines.extend(["---", ""])
 
     return "\n".join(lines)
+
+
+# Kept for backward compat — batch export uses these building blocks too.
+build_offline_judge_markdown = _build_offline_judge_markdown_compat
 
 
 def export_offline_judge_batches(
@@ -1697,7 +1952,7 @@ def main() -> int:
     )
 
     try:
-        raw_results = runner.run()
+        raw_results = runner.run(output_dir=args.output_dir)
     except KeyboardInterrupt:
         logger.warning("Оценка прервана пользователем")
         return 130
@@ -1740,8 +1995,9 @@ def main() -> int:
         md = build_markdown_report(aggregated, timestamp, args.dataset, judge_model)
         markdown_path.write_text(md, encoding="utf-8")
 
+    # Judge packets экспортируются всегда — основной артефакт для offline judge
     exported_batches: list[Path] = []
-    if args.export_offline_judge:
+    if not args.skip_markdown:  # judge packets нужны при любом нормальном прогоне
         # Enrich offline judge packets with Langfuse trace data
         langfuse_host = os.environ.get("LANGFUSE_EXPORT_HOST", "http://localhost:3100")
         langfuse_pk = os.environ.get("LANGFUSE_PUBLIC_KEY", "pk-lf-rag-app-dev")

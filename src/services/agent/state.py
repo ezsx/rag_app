@@ -72,15 +72,13 @@ def _adaptive_ce_filter(
     min_docs: int = 5,
     floor_score: float = -2.0,
 ) -> list[dict[str, Any]]:
-    """Адаптивный CE фильтр: gap detection + top-K guarantee + floor.
+    """Адаптивный CE фильтр + cosine recall guard.
 
-    Гибридная эвристика (ablation phase 3):
-    1. Gap detection: ищем резкое падение CE score (> gap_threshold).
-       Обрезаем после gap — отделяем "cluster релевантных" от "хвост шума".
-    2. Top-K guarantee: если после gap < min_docs, расширяем до min_docs.
-       LLM всегда получает достаточно контекста для ответа.
-    3. Adaptive floor: если < 3 docs с score > 0, берём до floor_score.
-       Спасает edge cases где мало релевантных docs.
+    CE для precision (сортировка + gap detection), cosine для recall (rescue).
+    1. Gap detection: резкое падение CE score (> gap_threshold).
+    2. Top-K guarantee + adaptive floor.
+    3. Cosine recall guard: rejected docs с высоким bi-encoder rank спасаются.
+       Doc нельзя убить CE если он в top-K по dense_score (K = len(kept)).
 
     Вход: hits отсортированы по rerank_score desc (CE re-sort уже применён).
     """
@@ -101,17 +99,46 @@ def _adaptive_ce_filter(
 
     # Шаг 3: Adaptive cut
     if positive_count >= min_docs:
-        # Достаточно хороших docs — берём до gap или все positive, что больше
         cut = max(gap_cut, positive_count)
     elif positive_count > 0:
-        # Мало хороших — берём все positive + top-K guarantee до min_docs
         cut = max(positive_count, min(min_docs, gap_cut))
     else:
-        # Нет ни одного positive — floor: берём до floor_score
         floor_cut = sum(1 for s in scores if s >= floor_score)
         cut = max(min(min_docs, len(hits)), floor_cut)
 
-    return hits[:cut]
+    kept = hits[:cut]
+    rejected = hits[cut:]
+
+    # Шаг 4: Cosine recall guard — спасаем docs с высоким bi-encoder rank
+    # Логика: если CE отрезал doc, но bi-encoder считает его в top-K → вернуть.
+    # K = len(kept): doc должен быть в top-N по cosine, где N = сколько CE пропустил.
+    if rejected:
+        # Ранжируем ВСЕ hits (kept + rejected) по dense_score desc
+        cosine_ranked = sorted(
+            range(len(hits)), key=lambda i: hits[i].get("dense_score", 0.0), reverse=True
+        )
+        # Top-K по cosine (K = сколько CE пропустил)
+        cosine_top_k = set(cosine_ranked[:len(kept)])
+
+        rescued = []
+        for i in range(cut, len(hits)):
+            if i in cosine_top_k:
+                rescued.append(hits[i])
+                logger.info(
+                    "Cosine recall guard: rescued %s:%s CE=%.2f dense=%.3f",
+                    hits[i].get("meta", {}).get("channel", "?"),
+                    hits[i].get("meta", {}).get("message_id", "?"),
+                    hits[i].get("rerank_score", 0.0),
+                    hits[i].get("dense_score", 0.0),
+                )
+
+        if rescued:
+            logger.info(
+                "Cosine recall guard: %d docs rescued from CE filter", len(rescued),
+            )
+            kept.extend(rescued)
+
+    return kept
 
 
 def apply_action_state(ctx: RequestContext, action) -> None:
