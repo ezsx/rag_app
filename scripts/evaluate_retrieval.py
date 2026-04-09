@@ -17,13 +17,15 @@ Retrieval-only evaluation — прямые Qdrant queries без LLM.
 """
 
 import argparse
+import contextlib
 import json
 import os
 import subprocess
 import sys
 import time
 import urllib.request
-from collections import Counter, defaultdict
+from collections import Counter
+from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -45,7 +47,9 @@ class LiveWriter:
 
     def __init__(self, path: str):
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-        self._f = open(path, "w", encoding="utf-8")
+        self._stack = contextlib.ExitStack()
+        # Держим файл открытым на весь прогон для live jsonl-append.
+        self._f = self._stack.enter_context(Path(path).open("w", encoding="utf-8"))  # noqa: SIM115
         self._path = path
 
     def write(self, obj: dict) -> None:
@@ -53,7 +57,7 @@ class LiveWriter:
         self._f.flush()
 
     def close(self) -> None:
-        self._f.close()
+        self._stack.close()
 
     @property
     def path(self) -> str:
@@ -81,7 +85,7 @@ def rerank_texts(query: str, texts: list[str], reranker_url: str) -> list[float]
         for item in results:
             scores[item["index"]] = item["score"]
         return scores
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -99,7 +103,8 @@ def preflight_check(qdrant_url: str, embedding_url: str, reranker_url: str | Non
         t0 = time.time()
         try:
             req = urllib.request.Request(url, method="GET")
-            resp = urllib.request.urlopen(req, timeout=5)
+            with urllib.request.urlopen(req, timeout=5):
+                pass
             ms = (time.time() - t0) * 1000
             results[svc] = {"ok": True, "url": base, "ms": round(ms)}
         except Exception as e:
@@ -498,7 +503,6 @@ def main():
         search_ms = round((time.time() - t0) * 1000)
 
         r1 = check_recall(points, expected, 1, args.fuzzy)
-        r3 = check_recall(points, expected, 3, args.fuzzy)
         r5 = check_recall(points, expected, 5, args.fuzzy)
         r10 = check_recall(points, expected, 10, args.fuzzy)
         r20 = check_recall(points, expected, 20, args.fuzzy)

@@ -24,6 +24,7 @@ datasets/_*
 datasets/*.m4a
 datasets/*.mp3
 datasets/*.wav
+docs/research/audio/
 
 # Telethon sessions
 /sessions/
@@ -92,4 +93,5 @@ datasets/bertopic_model/
 
 # Local notes (not for repo)
 fix_tcc.md
+scripts/start_wsl_tei_relay.cmd
 nul

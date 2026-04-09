@@ -20,13 +20,14 @@ Full-pipeline retrieval evaluation — prod-parity через direct import prod
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import subprocess
 import sys
 import time
 import urllib.request
-from collections import defaultdict
+from pathlib import Path
 from typing import Any
 
 # Bootstrap: добавляем src/ в path для import production модулей
@@ -58,7 +59,9 @@ class LiveWriter:
 
     def __init__(self, path: str):
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-        self._f = open(path, "w", encoding="utf-8")
+        self._stack = contextlib.ExitStack()
+        # Держим файл открытым на весь прогон для live jsonl-append.
+        self._f = self._stack.enter_context(Path(path).open("w", encoding="utf-8"))  # noqa: SIM115
         self._path = path
         self._count = 0
 
@@ -68,7 +71,7 @@ class LiveWriter:
         self._count += 1
 
     def close(self) -> None:
-        self._f.close()
+        self._stack.close()
 
     @property
     def path(self) -> str:
@@ -594,7 +597,6 @@ def main():
         latency = time.time() - t0
 
         r1 = check_recall(candidates, expected, 1, args.fuzzy)
-        r3 = check_recall(candidates, expected, 3, args.fuzzy)
         r5 = check_recall(candidates, expected, 5, args.fuzzy)
         r10 = check_recall(candidates, expected, 10, args.fuzzy)
         r20 = check_recall(candidates, expected, 20, args.fuzzy)

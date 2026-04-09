@@ -12,7 +12,6 @@ Exit code 0 = parity OK, exit code 1 = drift detected.
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import subprocess
 import sys
@@ -30,7 +29,7 @@ def load_baseline() -> dict:
     if not baseline_path.exists():
         print(f"FAIL: baseline.yaml не найден: {baseline_path}", file=sys.stderr)
         sys.exit(1)
-    with open(baseline_path, encoding="utf-8") as f:
+    with baseline_path.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
