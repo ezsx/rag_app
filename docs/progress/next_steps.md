@@ -9,8 +9,8 @@
 
 ## Current State
 
-- Factual: **0.858** (36 Qs, cross-family judge: Claude Opus + GPT-5.4 + manual calibration)
-- Useful: **1.71/2**, Faithfulness: **0.91**, Robustness: **0.954**, R@5: **0.900**
+- Factual: **0.858** with **95% CI [0.792, 0.917]** (36 Qs, cross-family judge: Claude Opus + GPT-5.4 + manual calibration)
+- Useful: **1.71/2** with **95% CI [1.606, 1.803]**, Faithfulness: **0.91**, Robustness: **0.954**, R@5: **0.900**
 - Benchmark: **+0.30 factual** vs LlamaIndex on identical data
 - 39 ablation experiments, 8 formal runs (RUN-001–RUN-008)
 - README: updated with hook, latency decomposition, mermaid diagrams, security section
@@ -24,23 +24,23 @@
 - [ ] **GIF SSE-streaming** (10-15 сек) — живой запрос в Web UI, SSE streaming ответа с citations
 - [ ] **Скриншот Langfuse trace** — реальный retrieval query (q01 или q02), показать span tree с таймингами
 - [ ] **Заменить ASCII observability** на скриншот Langfuse
-- [ ] **Заполнить concrete example** реальными числами из trace (вместо TODO)
-- [ ] **Создать файл LICENSE** (Apache 2.0) в корне
-- [ ] **Shields.io badges** для метрик в шапке README (nice-to-have, визуально профессиональнее)
+- [x] **Заполнить concrete example** реальными числами из trace (RUN-008 q01)
+- [x] **Создать файл LICENSE** (Apache 2.0) в корне
+- [x] **Shields.io badges** для метрик в шапке README
 
 ---
 
 ## Tier 2 — Статистика (полдня, 0 compute)
 
-Bootstrap CI и significance tests — превращает "0.858" в "0.858 +- 0.04 (95% CI)".
+Bootstrap CI и significance tests — превращает "0.858" в "0.858 ± 0.063 (95% CI [0.792, 0.917])".
 
 **Делать дважды:** сейчас на n=36 с honest "wide CIs due to small n", потом повторить после Tier 4 на расширенном датасете. Не блокировать outreach ожиданием tight numbers.
 
-- [ ] **Bootstrap CI** на factual, R@5, faithfulness (50 строк Python, `scripts/bootstrap_ci.py`)
+- [x] **Bootstrap CI** для baseline judge metrics через `scripts/compute_confidence.py` (`RUN-008`: factual `0.858 ± 0.063`, useful `1.708 ± 0.099`)
 - [ ] **Paired significance test** для benchmark custom vs LlamaIndex (paired bootstrap, p-value)
 - [ ] **Multiple comparisons correction** в ablation (Benjamini-Hochberg на 39 экспериментов)
 - [ ] **Cohen's kappa** между Claude и GPT-5.4 judge на 30-50 hard cases (`sklearn.metrics.cohen_kappa_score`). kappa > 0.7 = substantial agreement — железный аргумент про judge reliability
-- [ ] **Обновить README** — добавить CI к ключевым метрикам
+- [x] **Обновить README** — добавить CI к ключевым метрикам
 - [ ] **Обновить ablation_study.md** — пометить какие changes значимы после correction
 - [ ] **Повторить** на v3 dataset после Tier 4 — CIs сузятся вдвое
 

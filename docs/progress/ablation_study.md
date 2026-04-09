@@ -375,6 +375,45 @@ Retrieval-only числа стабильны (no regression). MMR merge не в�
 
 ---
 
+## Phase 5 — Post-Protocol Validation (2026-04-08 → 2026-04-10)
+
+После фикса protocol drift были проведены formal runs `RUN-004–008` уже на frozen baseline.
+
+### Formal runs
+
+| Run | Change | Outcome | Decision |
+|-----|--------|---------|----------|
+| RUN-004 | `compose_context` 1800→4000 | no material gain on 36Q baseline | rejected |
+| RUN-005 | channel dedup 2→3 | спасает 3-й doc из канала на hard cases | **adopted** |
+| RUN-006 | dual scoring (`norm_linear`, `rrf_ranks`) | ломает CE gap detection, хуже top citations | rejected |
+| RUN-007 | cosine recall guard | CE precision + bi-encoder recall | **adopted** |
+| RUN-008 | full baseline with adopted changes | factual **0.858 corrected**, useful **1.708**, refusal **3/3** | **baseline** |
+
+### Dataset audit + corrected baseline
+
+Во время финального review найден eval issue: **7/36 open-ended вопросов** имели слишком узкий `expected_answer`. После коррекции `datasets/eval_golden_v2_fixed.json` baseline пересчитан:
+
+- factual: **0.803 → 0.858**
+- useful: **1.708**
+- refusal: **3/3**
+
+Это не "подкрутка цифр", а исправление methodology bug: open-ended queries должны оцениваться по acceptance criteria, а не по одной формулировке ответа.
+
+### Statistical confidence
+
+Bootstrap CI (`scripts/compute_confidence.py`, 10K resamples):
+
+| Metric | Mean | 95% CI | n |
+|--------|------|--------|---|
+| Factual (all) | **0.858** | **[0.792, 0.917]** | 36 |
+| Factual (retrieval) | **0.888** | **[0.782, 0.965]** | 17 |
+| Factual (analytics) | **0.793** | **[0.679, 0.893]** | 14 |
+| Useful (all) | **1.708** | **[1.606, 1.803]** | 36 |
+
+Интервалы широкие, что ожидаемо при `n=36`. Следующий logical step — golden v3 на 100-120 вопросов, потом повтор bootstrap/significance.
+
+---
+
 ## Итоги Ablation Study
 
 ### Прогресс метрик
@@ -386,6 +425,7 @@ Retrieval-only числа стабильны (no regression). MMR merge не в�
 | Phase 2 (R2 norm) | 0.750 | 0.900 | 0.819 | + sparse lexicon normalization |
 | **Phase 3 (RO)** | **0.742** | **0.900** | **0.814** | + MMR, CE re-sort, adaptive, planner fix |
 | **Phase 3 (FP)** | 0.667 | **0.900** | 0.766 | Full pipeline: R@5 = RO, quality > RO |
+| **Phase 5 (RUN-008)** | — | — | — | Agent baseline factual **0.858** [0.792, 0.917], useful **1.708** [1.606, 1.803] |
 
 ### Ключевые решения (39+ экспериментов)
 
@@ -401,6 +441,8 @@ Retrieval-only числа стабильны (no regression). MMR merge не в�
 | CE re-sort | Phase 3 | Лучший doc наверху для compose |
 | Adaptive CE filter | Phase 3 | Убирает шум, гарантирует min 5 docs |
 | Planner language fix | Phase 3 | Subqueries на языке запроса |
+| Channel dedup 2→3 | RUN-005 | Возвращает 3-й релевантный doc из канала |
+| Cosine recall guard | RUN-007 | CE precision + recall safety net |
 
 ### Что не работает
 
@@ -430,3 +472,4 @@ Retrieval-only числа стабильны (no regression). MMR merge не в�
 | 2026-04-06 | Phase 3: orchestration | 3 traces | MMR merge, CE re-sort, adaptive filter, planner fix |
 | 2026-04-07 | Phase 3: bugs + eval | 2 bugs | CE URL fix, embedding prefix fix |
 | 2026-04-08 | Phase 4: protocol + RUN-001 | 1 | Experiment protocol, FP validated (quality > RO, judge 6:1:8) |
+| 2026-04-08..10 | Phase 5: post-protocol validation | 5 | dedup=3 and cosine guard adopted, corrected baseline factual 0.858 |

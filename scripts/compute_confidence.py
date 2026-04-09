@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 """Статистические confidence intervals для eval метрик (SPEC-RAG-22 Layer 3).
 
-Читает eval_results JSON, вычисляет:
-- Bootstrap CIs (BCa, B=1000) для всех continuous metrics
+Поддерживает два формата входа:
+- raw eval JSON из `scripts/evaluate_agent.py`
+- aggregated `results.yaml` из `experiments/runs/*`
+
+Вычисляет:
+- Bootstrap CIs для continuous metrics
 - Wilson intervals для binary metrics
 - Paired bootstrap test для A/B comparisons
 
 Использование:
     python scripts/compute_confidence.py results/raw/eval_results_YYYYMMDD.json
-    python scripts/compute_confidence.py --compare results/a.json results/b.json
+    python scripts/compute_confidence.py experiments/runs/RUN-008/results.yaml --dataset datasets/eval_golden_v2_fixed.json --portfolio
+    python scripts/compute_confidence.py a.json --compare b.json
 """
 from __future__ import annotations
 
@@ -19,6 +24,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import yaml
 
 # ─── Bootstrap CI ─────────────────────────────────────────────────
 
@@ -121,11 +127,106 @@ BINARY_METRICS = [
     "key_tool_accuracy", "acceptable_set_hit",
 ]
 
+RETRIEVAL_MODES = {"retrieval_evidence", "retrieval"}
+
+
+def normalize_query_id(query_id: str | None) -> str | None:
+    """Нормализует qid между dataset (`golden_q01`) и results (`q01`)."""
+    if not query_id:
+        return None
+    return query_id.removeprefix("golden_")
+
+
+def load_structured_file(path: Path) -> Any:
+    """Загружает JSON/YAML по расширению файла."""
+    with path.open("r", encoding="utf-8") as f:
+        if path.suffix.lower() in {".yaml", ".yml"}:
+            return yaml.safe_load(f)
+        return json.load(f)
+
+
+def load_dataset_index(path: Path | None) -> dict[str, dict[str, Any]]:
+    """Строит индекс dataset item по query id для mode/category lookup."""
+    if path is None:
+        return {}
+
+    data = load_structured_file(path)
+    items = data.get("questions", data) if isinstance(data, dict) else data
+    if not isinstance(items, list):
+        raise ValueError(f"Unsupported dataset format: {path}")
+
+    index: dict[str, dict[str, Any]] = {}
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        qid = item.get("id") or item.get("query_id")
+        if qid:
+            index[qid] = item
+            normalized_qid = normalize_query_id(qid)
+            if normalized_qid:
+                index[normalized_qid] = item
+    return index
+
+
+def normalize_results(data: Any, dataset_index: dict[str, dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+    """Нормализует raw eval JSON и aggregated results.yaml к единому виду."""
+    dataset_index = dataset_index or {}
+
+    if isinstance(data, list):
+        return data
+
+    if not isinstance(data, dict):
+        raise ValueError("Unsupported results payload")
+
+    per_question = data.get("per_question", data)
+
+    if isinstance(per_question, list):
+        return per_question
+
+    if isinstance(per_question, dict):
+        normalized = []
+        for qid, values in per_question.items():
+            values = values or {}
+            dataset_item = dataset_index.get(qid, {})
+            normalized.append(
+                {
+                    "query_id": qid,
+                    "eval_mode": values.get("mode") or dataset_item.get("eval_mode"),
+                    "category": values.get("category") or dataset_item.get("category"),
+                    "metrics": {
+                        "factual_correctness": values.get("factual"),
+                        "usefulness": values.get("useful"),
+                        "evidence": values.get("evidence"),
+                        "sufficiency": values.get("sufficiency"),
+                    },
+                }
+            )
+        return normalized
+
+    raise ValueError("Unsupported per_question format")
+
 
 def extract_metric(results: list[dict], metric: str) -> list[float]:
     """Извлечь per-question metric values из eval results."""
     values = []
     for r in results:
+        m = r.get("metrics", {})
+        v = m.get(metric)
+        if v is not None:
+            values.append(float(v))
+    return values
+
+
+def extract_metric_with_filter(
+    results: list[dict],
+    metric: str,
+    predicate,
+) -> list[float]:
+    """Извлекает metric только для подмножества вопросов."""
+    values = []
+    for r in results:
+        if not predicate(r):
+            continue
         m = r.get("metrics", {})
         v = m.get(metric)
         if v is not None:
@@ -186,6 +287,57 @@ def build_ci_report(cis: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def build_portfolio_report(results: list[dict], B: int = 10000) -> str:
+    """Короткий отчёт для README/roadmap по golden dataset."""
+    slices = [
+        (
+            "Factual (all)",
+            extract_metric(results, "factual_correctness"),
+        ),
+        (
+            "Factual (retrieval)",
+            extract_metric_with_filter(
+                results,
+                "factual_correctness",
+                lambda r: r.get("eval_mode") in RETRIEVAL_MODES,
+            ),
+        ),
+        (
+            "Factual (analytics)",
+            extract_metric_with_filter(
+                results,
+                "factual_correctness",
+                lambda r: r.get("eval_mode") == "analytics",
+            ),
+        ),
+        (
+            "Useful (all)",
+            extract_metric(results, "usefulness"),
+        ),
+    ]
+
+    lines = [
+        "=" * 60,
+        "Bootstrap Confidence Intervals (95%)",
+        "=" * 60,
+    ]
+
+    for name, scores in slices:
+        if not scores:
+            continue
+        mean, lo, hi = bootstrap_ci(scores, B=B)
+        margin = (hi - lo) / 2
+        lines.extend(
+            [
+                "",
+                f"{name}:",
+                f"  {mean:.3f} ± {margin:.3f} (95% CI [{lo:.3f}, {hi:.3f}], n={len(scores)})",
+            ]
+        )
+
+    return "\n".join(lines)
+
+
 # ─── CLI ──────────────────────────────────────────────────────────
 
 
@@ -194,14 +346,16 @@ def main():
     parser.add_argument("results", type=Path, help="Path to eval_results JSON")
     parser.add_argument("--compare", type=Path, default=None, help="Second results file for A/B test")
     parser.add_argument("--bootstrap-samples", type=int, default=1000, help="Bootstrap resamples (B)")
+    parser.add_argument("--dataset", type=Path, default=None, help="Dataset JSON/YAML for eval_mode/category join")
     parser.add_argument("--output", type=Path, default=None, help="Output JSON path")
+    parser.add_argument("--portfolio", action="store_true", help="Print compact portfolio report for results.yaml/golden set")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducible bootstrap")
     args = parser.parse_args()
 
-    with args.results.open("r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    # Поддержка unified report format (per_question внутри)
-    results = data.get("per_question", data) if isinstance(data, dict) else data
+    np.random.seed(args.seed)
+    dataset_index = load_dataset_index(args.dataset)
+    data = load_structured_file(args.results)
+    results = normalize_results(data, dataset_index=dataset_index)
 
     print(f"Computing CIs for {len(results)} questions (B={args.bootstrap_samples})...")
     cis = compute_all_cis(results, B=args.bootstrap_samples)
@@ -209,9 +363,8 @@ def main():
     # A/B comparison
     ab_results = None
     if args.compare:
-        with args.compare.open("r", encoding="utf-8") as f:
-            data_b = json.load(f)
-        results_b = data_b.get("per_question", data_b) if isinstance(data_b, dict) else data_b
+        data_b = load_structured_file(args.compare)
+        results_b = normalize_results(data_b, dataset_index=dataset_index)
         ab_results = {}
         for metric in CONTINUOUS_METRICS:
             va = extract_metric(results, metric)
@@ -238,7 +391,10 @@ def main():
 
     # Print report
     print()
-    print(build_ci_report(cis))
+    if args.portfolio:
+        print(build_portfolio_report(results, B=args.bootstrap_samples))
+    else:
+        print(build_ci_report(cis))
 
     if ab_results:
         print("\n## A/B Comparison")

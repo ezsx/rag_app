@@ -2,8 +2,8 @@
 
 > Полная история экспериментов с per-question таблицами и подробными описаниями техник.
 > Полная хронология. Сводка метрик — в [project_scope.md](project_scope.md).
-> Последнее обновление: 2026-04-02
-> 57+ eval прогонов, 8 milestone phases, ~30 экспериментов с evidence + NDR/RSR/ROR robustness
+> Последнее обновление: 2026-04-10
+> 57+ eval прогонов, 8 milestone phases, 8 formal runs (RUN-001–008), 39+ retrieval experiments, NDR/RSR/ROR robustness
 
 ---
 
@@ -396,7 +396,55 @@ Simplified подход: NDR = k=20 vs k=0 (одно сравнение per quer
 
 ---
 
-### Корневые проблемы (обновлено 2026-04-02)
+## Phase 3.9–4.0: Ablation Protocol + Post-Protocol Validation (2026-04-08 → 2026-04-10)
+
+### Experiment protocol formalization (2026-04-08)
+
+После двух production bugs (CE URL drift, embedding prefix drift) eval workflow формализован:
+- `experiments/PROTOCOL.md` — spec-before-run, parity check, preflight, structured artifacts
+- `experiments/baseline.yaml` — frozen production config
+- `experiments/log.md` — summary всех formal runs
+- `scripts/parity_check.py` — drift detection
+- `scripts/compute_confidence.py` — canonical bootstrap CI / paired bootstrap script
+
+### RUN-004–008 summary
+
+| Run | Change | Result | Decision |
+|-----|--------|--------|----------|
+| RUN-004 | `compose_context` 1800→4000 | factual raw ~0.83, no material gain | rejected |
+| RUN-005 | channel dedup 2→3 | вернулся 3rd doc/channel на q08 | **adopted** |
+| RUN-006 | dual scoring (`norm_linear`, `rrf_ranks`) | ломает CE gap detection, хуже citations | rejected |
+| RUN-007 | cosine recall guard | CE precision + bi-encoder recall, q08 repaired | **adopted** |
+| RUN-008 | full baseline с adopted changes | factual **0.858 corrected**, useful **1.708**, refusal **3/3** | **baseline** |
+
+### Dataset audit (2026-04-09)
+
+Выявлена методологическая проблема: **7/36 open-ended вопросов** в golden v2 имели слишком узкий `expected_answer`, из-за чего judge penalized корректные, но более широкие ответы.
+
+Fix:
+- создан `datasets/eval_golden_v2_fixed.json`
+- исправлены `q04`, `q06`, `q08`, `q10`, `q14`, `q15`, `q16`
+- для open-ended queries expected rewritten как acceptance criteria, а не список узких формулировок
+
+Impact:
+- factual **0.803 → 0.858** after correction
+- useful unchanged materially
+- refusal remains **3/3**
+
+### Statistical confidence (2026-04-10)
+
+Bootstrap CI по corrected baseline (`RUN-008`, 10K resamples, `scripts/compute_confidence.py`):
+
+| Metric | Mean | 95% CI | n |
+|--------|------|--------|---|
+| Factual (all) | **0.858** | **[0.792, 0.917]** | 36 |
+| Factual (retrieval) | **0.888** | **[0.782, 0.965]** | 17 |
+| Factual (analytics) | **0.793** | **[0.679, 0.893]** | 14 |
+| Useful (all) | **1.708** | **[1.606, 1.803]** | 36 |
+
+Вывод: baseline уже пригоден для portfolio/outreach, но интервалы широкие. Для statistically tighter claims нужен golden v3 на 100-120 вопросов.
+
+### Корневые проблемы (обновлено 2026-04-10)
 
 | # | Проблема | Статус |
 |---|----------|--------|

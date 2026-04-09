@@ -89,13 +89,15 @@ V100 in TCC mode poisons NVML in WSL2 — Docker GPU unavailable. All GPU worklo
 
 | Metric | Value | Details |
 |--------|-------|---------|
-| **Factual correctness** | **0.858** | 36 Qs, cross-family judge consensus |
-| **Usefulness** | **1.71 / 2** | 36 Qs |
+| **Factual correctness** | **0.858** | 95% CI **[0.792, 0.917]**, n=36, cross-family judge consensus |
+| **Usefulness** | **1.71 / 2** | 95% CI **[1.606, 1.803]**, n=36 |
 | **Key Tool Accuracy** | **1.000** | 36/36 correct tool selection |
 | **Faithfulness** | **0.91** | 17 retrieval Qs, 171 claims verified, **0 hallucinations** ([analysis](experiments/legacy/reports/nli_faithfulness_analysis_20260401.md)) |
 | **Retrieval R@5** | **0.900** | 120 natural-language queries, 6 categories |
 | **Correct refusal** | **3/3** | Agent correctly refuses out-of-scope queries |
 | **Mean latency** | **~30s** | LLM inference 84% (self-hosted Qwen3.5-35B on V100), retrieval ~2.5s, CE rerank ~2s. With managed API: ~6-8s estimated |
+
+Bootstrap confidence via [`scripts/compute_confidence.py`](scripts/compute_confidence.py): retrieval factual **0.888** (95% CI [0.782, 0.965], n=17), analytics factual **0.793** (95% CI [0.679, 0.893], n=14). Intervals are intentionally wide at n=36; expanding the golden set to 100+ questions is the next step.
 
 ### Why standard proxy metrics fail (and why we still implement them)
 
