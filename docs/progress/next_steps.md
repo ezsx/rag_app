@@ -3,7 +3,7 @@
 > Scope задач после ablation study + README polish.
 > **Tier 1+3 + lite Tier 2 = ready for outreach (3-4 дня).** Не блокировать job search остальными тирами.
 > Tier 4-6 делать параллельно с активным поиском.
-> Последнее обновление: 2026-04-09
+> Последнее обновление: 2026-04-10
 
 ---
 
@@ -74,16 +74,18 @@ Bootstrap CI и significance tests — превращает "0.858" в "0.858 ±
 
 Расширение golden set для статистической значимости.
 
-- [ ] **Golden set v3: 150-200 Qs** стратифицированный:
-  - Retrieval: 50% (~100 Qs)
-  - Analytics: 25% (~50 Qs)
-  - Navigation: 5-10% (~15 Qs)
-  - Refusal: 5-10% (~15 Qs)
-  - Adversarial: ~10 Qs — prompt injection, tool abuse, jailbreak. Expected: жёсткий refusal
-  - Edge cases: ~10 Qs — ambiguous, mixed language, multi-tool boundary, scope boundary. Expected: best-effort + caveats
+- [x] **Golden set v3: 120 Qs** стратифицированный (ROI target; 150-200 Qs — optional follow-up):
+  - Retrieval: 50% (~60 Qs)
+  - Analytics: 25% (~30 Qs)
+  - Navigation: ~8 Qs
+  - Refusal: ~8 Qs
+  - Adversarial: ~7 Qs (`eval_mode=refusal`) — prompt injection, tool abuse, jailbreak. Expected: жёсткий refusal
+  - Edge cases: ~7 Qs (`retrieval_evidence` / `analytics`) — ambiguous, mixed language, multi-tool boundary, scope boundary. Expected: best-effort + caveats
+- [x] **Golden v3 draft** — `datasets/golden_v3/eval_golden_v3_draft.json` (125 candidates, 5 rejected kept for audit)
+- [x] **Golden v3 final** — `datasets/golden_v3/eval_golden_v3.json` (120 reviewed Qs; schema/load/anchor validation passed)
 - [ ] **Inter-annotator agreement** на hard cases — Claude vs GPT-5.4 independent expected answers, **Cohen's kappa** на 30-50 hard cases
 - [ ] **Прогон + judge** на расширенном датасете
-- [ ] **Повторить Tier 2** (bootstrap CI, significance tests) — CIs сузятся вдвое на n=150+
+- [ ] **Повторить Tier 2** (bootstrap CI, significance tests) — CIs сузятся на n=120
 - [ ] **Обновить README** с новыми метриками и tight CI
 
 ---

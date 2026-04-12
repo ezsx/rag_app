@@ -444,6 +444,34 @@ Bootstrap CI по corrected baseline (`RUN-008`, 10K resamples, `scripts/compute
 
 Вывод: baseline уже пригоден для portfolio/outreach, но интервалы широкие. Для statistically tighter claims нужен golden v3 на 100-120 вопросов.
 
+### Golden v3 dataset expansion (2026-04-10)
+
+Создан финальный `datasets/golden_v3/eval_golden_v3.json` на 120 reviewed questions без смены frozen pipeline baseline.
+
+Методология:
+- `datasets/golden_v3/eval_golden_v3_draft.json`: 125 candidates, 5 rejected kept for audit
+- `datasets/golden_v3/golden_v3_plan.md`: review protocol and status
+- `datasets/golden_v3/golden_v3_review_packet_001.md` ... `008.md`: semi-manual review packets with source snippets
+- `scripts/build_golden_v3_draft.py`: candidate builder
+- `scripts/export_golden_v3_review_packet.py`: review packet exporter
+
+Final mix:
+
+| Eval mode | Count |
+|-----------|------:|
+| retrieval_evidence | 65 |
+| analytics | 32 |
+| navigation | 8 |
+| refusal | 15 |
+
+Validation:
+- `scripts.evaluate_agent.load_dataset(...)`: 120 final / 120 reviewed / 125 draft
+- strict-anchor source lookup: 60/60 source ids found in `news_colbert_v2`
+- `ruff`: pass for changed scripts/security files
+- `pytest src/tests/test_security.py`: 30 passed
+
+Следующий шаг: сделать full eval + judge на `eval_golden_v3.json`, затем повторить bootstrap CI и обновить README только после v3 judge.
+
 ### Корневые проблемы (обновлено 2026-04-10)
 
 | # | Проблема | Статус |
