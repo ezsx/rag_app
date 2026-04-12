@@ -1,0 +1,104 @@
+{
+  "total_queries": 1,
+  "answerable_queries": 1,
+  "negative_queries": 0,
+  "golden_queries": 1,
+  "errors": {
+    "agent": 0,
+    "baseline": 1
+  },
+  "primary": {
+    "key_tool_accuracy": {
+      "mean": 1.0,
+      "total_evaluated": 1
+    },
+    "tool_call_f1": {
+      "mean": 1.0,
+      "total_evaluated": 1
+    },
+    "factual_correctness": {
+      "mean": null,
+      "total_evaluated": 0
+    },
+    "usefulness": {
+      "mean": null,
+      "total_evaluated": 0
+    },
+    "failure_breakdown": {}
+  },
+  "retrieval_ir": {
+    "precision_at_5": {
+      "mean": 0.2,
+      "total_evaluated": 1
+    },
+    "mrr": {
+      "mean": 0.5,
+      "total_evaluated": 1
+    },
+    "ndcg_at_5": {
+      "mean": 0.6309297535714575,
+      "total_evaluated": 1
+    },
+    "bertscore_f1": {
+      "mean": null,
+      "total_evaluated": 0
+    },
+    "summac_faithfulness": {
+      "mean": null,
+      "total_evaluated": 0
+    }
+  },
+  "retrieval_grounding": {
+    "acceptable_set_hit": {
+      "mean": 1.0,
+      "total_evaluated": 1
+    },
+    "retrieval_sufficiency_score": {
+      "mean": null,
+      "total_evaluated": 0,
+      "pending_offline_judge": true
+    },
+    "evidence_support_score": {
+      "mean": null,
+      "total_evaluated": 0,
+      "pending_offline_judge": true
+    }
+  },
+  "diagnostic": {
+    "strict_anchor_recall": {
+      "mean": 1.0,
+      "full": 1,
+      "zero": 0,
+      "total_evaluated": 1
+    },
+    "coverage": {
+      "mean": 1.0
+    },
+    "latency": {
+      "agent": {
+        "mean": 32.26752757699978,
+        "p95": 32.26752757699978
+      },
+      "baseline": {
+        "mean": null,
+        "p95": null
+      }
+    }
+  },
+  "by_category": {
+    "broad_search": {
+      "queries": 1,
+      "strict_anchor_recall_mean": 1.0,
+      "acceptable_set_hit_mean": 1.0,
+      "key_tool_accuracy_mean": 1.0,
+      "tool_call_f1_mean": 1.0,
+      "precision_at_5_mean": 0.2,
+      "mrr_mean": 0.5,
+      "ndcg_at_5_mean": 0.6309297535714575,
+      "bertscore_f1_mean": null,
+      "factual_correctness_mean": null,
+      "usefulness_mean": null,
+      "agent_latency_mean": 32.26752757699978
+    }
+  }
+}

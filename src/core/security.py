@@ -29,6 +29,7 @@ class SecurityManager:
 
     PROMPT_INJECTION_PATTERNS = [
         r"ignore\s+(previous|all)\s+(instructions?|prompts?)",
+        r"игнорируй\s+.*(инструкц|prompt|промпт)",
         r"disregard\s+(previous|all)\s+(instructions?|prompts?)",
         r"forget\s+(everything|all)",
         r"new\s+instructions?:",
@@ -41,6 +42,14 @@ class SecurityManager:
         r"roleplay\s+as",
         r"pretend\s+(to\s+be|you\s+are)",
         r"bypass\s+(safety|security|restrictions?)",
+        r"(раскрой|покажи|выведи|напечатай)\s+.*(system\s*prompt|системн\w*\s+промпт|скрыт\w*\s+инструкц)",
+        r"(секретн\w*|api)\s+(ключ|key)",
+        r"\.env\b",
+        r"(вызови|используй)\s+tool\s+\w+",
+        r"не\s+ищи\b.*(просто|уверенн\w*)\s+скажи",
+        r"(удали|удален\w*|delete|drop)\s+.*(qdrant|коллекц|collection)",
+        r"(сделай вид|pretend)\W+.*(наш[её]л|found).*(citation|ссылк|документ)",
+        r"(debug-agent|developer\s*mode|режим\s+разработчика)",
         r"jailbreak",
         r"DAN\s+mode",  # "Do Anything Now"
     ]

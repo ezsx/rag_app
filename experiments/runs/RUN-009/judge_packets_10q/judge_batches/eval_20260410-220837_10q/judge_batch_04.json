@@ -1,0 +1,2403 @@
+[
+  {
+    "query_id": "golden_v2_q31",
+    "query": "Какие горячие темы были на неделе 2026-W10?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "В неделю 2026-W10 (с 2 по 9 марта 2026 года) в российских Telegram-каналах было опубликовано 325 постов, посвященных актуальным событиям в сфере ИИ.\n\nТоп горячих тем недели:\n1. **Обновления и возможности GPT-5**: Активно обсуждались модели GPT-54, функции GPT-5 thinking и подписка GPT-Plus. Тема охватывала 11 каналов, включая 'addmeto', 'ai_newz' и 'techno_yandex' [1].\n2. **Новые продукты Apple**: Дискуссия о MacBook, iPhone (включая iPhone 17) и AirPods продолжала оставаться одной из самых популярных, собрав обсуждения в 16 каналах [1].\n3. **Архитектурные детали нейросетей**: Темы HRM, KV-память и MLP модели вызвали интерес в технических каналах, таких как 'ai_machinelearning_big_data' и 'data_secrets' [1].\n4. **Нейроинтерфейсы (BCI) и Neuralink**: Обсуждения на стыке технологий Brain-Computer Interface и DRAM были менее массовыми, но значимыми, с участием 3 постов в ключевых каналах [1].\n5. **Безопасность кода и Code Review**: Растущий интерес к прозрачности разработки, PR и безопасности кода проявился в 6 каналах [1].\n\nЛидерами по упоминаниям компаний стали:\n*   OpenAI (48 упоминаний)\n*   Claude (33)\n*   Anthropic (28)\n*   GPT-5 (22)\n*   Google и Gemini также получили значительное внимание [1].\n\nВ целом, акцент недели был сделан на инновациях в больших языковых моделях и практическом применении новых технологий.",
+    "status": "ok",
+    "latency_sec": 12.790202330998,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: 2026-W10; posts: 325; summary: В этой неделе активно обсуждались темы, связанные с GPT-5 и его возможностями. Посты о GPT-54, GPT-5 thinking и GPT-Plus появились в 11 каналах, включая 'addmeto', 'ai_newz' и 'techno_yandex'. Также п\n- hrm, kv, mlp (score=0.476, 22 posts, channels: ai_machinelearning_big_data,data_secrets,gonzo_ml)\n- gpt54, gpt5 thinking, plus (score=0.467, 11 posts, channels: addmeto,ai_machinelearning_big_data,ai_newz)\n- macbook, iphone, airpods (score=0.463, 16 posts, c",
+        "success": true,
+        "took_ms": 39,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1336 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q31",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен использовать hot_topics для периода 2026-W10",
+        "Ответ должен назвать минимум две реальные горячие темы недели"
+      ],
+      "expected_answer": "В неделю 2026-W10 среди горячих тем фигурировали Apple (iPhone 17, AirPods), GPT-5.4 и Codex, а также связанные обсуждения вокруг code review и безопасности.",
+      "expected_entities": [
+        "OpenAI",
+        "Claude",
+        "Anthropic"
+      ],
+      "expected_topics": [
+        "GPT-5.4",
+        "Codex",
+        "iPhone 17",
+        "AirPods"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": "analytics tool, judge checks period resolution and topic coverage",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "hot_topics",
+          "w10"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v2_q32",
+    "query": "Что обсуждали на неделе 2026-W11? Какие были тренды?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "На неделе 2026-W11 (с 9 по 16 марта 2026 года) в русскоязычных Telegram-каналах было опубликовано 317 постов, посвященных искусственному интеллекту и машинному обучению.\n\nОсновные тренды недели:\n1. **Архитектуры моделей и метрики**: Наибольший интерес вызвало обсуждение тем, связанных с HRM (Hybrid Reward Model), KV (Key-Value cache) и MLP (Multi-Layer Perceptron). Эти темы активно поднимались в каналах MLunderhood, ai_machinelearning_big_data и других [1].\n2. **Оценка моделей**: В меньшей степени обсуждались вопросы оценки моделей, концепции \"ground truth\" (правды) и метрики [1].\n3. **Научные конференции**: В каналах rybolos_channel и scientific_opensource активно обсуждали научные публикации, включая темы CS и конференцию NEURIPS [1].\n4. **Инструменты разработки**: Встречались обсуждения UI/UX, Figma и HTML в контексте ML-проектов [1].\n\nТоп упоминаемых компаний и моделей:\n- **Claude** (32 упоминания) — лидер недели [1].\n- **OpenAI** (26 упоминаний) [1].\n- **Anthropic** (21 упоминание) [1].\n- **Google** и **NVIDIA** (по 20–21 упоминанию) [1].\n- Также активно обсуждались Gemini, Microsoft и GPT-5 [1].\n\nОбсуждения охватывали как практические аспекты внедрения ИИ, так и научные разработки в области машинного обучения.",
+    "status": "ok",
+    "latency_sec": 10.090565889000572,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: 2026-W11; posts: 317; summary: В этой неделе в Telegram-каналах активно обсуждались темы, связанные с HRM, KV и MLP. Наибольший интерес вызвало обсуждение метрик и подходов к моделированию, особенно в каналах MLunderhood и ai_machi\n- hrm, kv, mlp (score=0.456, 21 posts, channels: MLunderhood,ai_machinelearning_big_data,cryptovalerii)\n- eval, ground truth, truth (score=0.427, 4 posts, channels: gonzo_ml)\n- accept, cs, neurips (score=0.387, 7 posts, channels: rybolos_channel,scientific_ope",
+        "success": true,
+        "took_ms": 46,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1235 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q32",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен использовать hot_topics для периода 2026-W11",
+        "Ответ должен перечислить минимум две реальные темы из weekly digest за эту неделю"
+      ],
+      "expected_answer": "На неделе 2026-W11 среди заметных трендов были Codex и RFC, Eval/ground truth, Amazon AI/AWS AI, а также связанные обсуждения вокруг NeurIPS и legal topics.",
+      "expected_entities": [
+        "Claude",
+        "OpenAI",
+        "Anthropic"
+      ],
+      "expected_topics": [
+        "Codex",
+        "Eval",
+        "ground truth",
+        "Amazon AI"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": "analytics tool, weekly digest query",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "hot_topics",
+          "w11"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v2_q33",
+    "query": "Какие горячие темы были в марте 2026?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "</think>\n\nВ марте 2026 года в русскоязычных Telegram-каналах, посвященных AI/ML, наблюдался высокий интерес к нескольким ключевым темам. Всего было зафиксировано 1364 поста, затрагивающих эти направления.\n\n**Топ горячих тем:**\n\n1.  **Оптимизация архитектуры моделей (HRM, KV, MLP)** — самая обсуждаемая тема с 90 постами и высоким баллом хайпа (0.521). Сообщество активно изучало методы оптимизации и эффективности нейросетей, особенно в каналах MLunderhood и ai_machinelearning_big_data [1].\n2.  **Философские и футуристические вопросы (XXI, ASI, \"что такое ИИ\")** — набрала 44 поста. Дискуссии о сверхразуме (ASI) и природе интеллекта велись в каналах like theworldisnoteasy и techno_yandex [1].\n3.  **Модели GPT-5 и их версии (GPT-54, GPT-5 thinking)** — тема получила 11 упоминаний. Обсуждались возможности новых моделей от OpenAI, включая функции \"thinking\" и версию Plus [1].\n4.  **Продукты Apple (MacBook, iPhone, AirPods)** — активно обсуждалась в контексте интеграции ИИ, набрав 16 упоминаний [1].\n5.  **Архитектура MoE и модели Qwen** — интерес к моделям с экспертами (Mixture of Experts) и версии Qwen v31 составил 23 поста [1].\n6.  **Инфраструктурные темы (Starship, Starlink, 5G)** — обсуждались в контексте технологий связи и космоса [1].\n\n**Лидеры по упоминаниям среди компаний:**\nАбсолютным лидером по количеству упоминаний стала компания **OpenAI** (152 раза), за ней следуют **Claude** (139 раз) и **Anthropic** (101 раз). Также значительное внимание уделялось Google, NVIDIA и Gemini [1].\n\nДанные получены на основе агрегации постов из 36 каналов за март 2026 года.",
+    "status": "ok",
+    "latency_sec": 16.694653377002396,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "temporal_search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [
+      "В марте 2026 года в русскоязычных Telegram-каналах, посвященных AI/ML, наблюдался высокий интерес к нескольким ключевым темам. Всего было зафиксировано 1364 поста, затрагивающих эти направления. **Топ"
+    ],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: month:2026-03; posts: 1364; summary: В этой неделе основное внимание в сообществе AI/ML было сосредоточено на темах, связанных с HRM, KV и MLP, где обсуждались методы оптимизации и эффективности моделей. В каналах, таких как MLunderhood \n- xxi, asi, what is (score=0.544, 44 posts, channels: techsparks,theworldisnoteasy,ai_machinelearning_big_data)\n- hrm, kv, mlp (score=0.521, 90 posts, channels: cryptovalerii,techsparks,singularityfm)\n- gpt54, gpt5 thinking, plus (score=0.467, 11 posts, ",
+        "success": true,
+        "took_ms": 89,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q33",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен использовать hot_topics для month aggregation",
+        "Ответ должен назвать минимум две темы, реально попавшие в мартовский digest"
+      ],
+      "expected_answer": "В марте 2026 среди горячих тем выделялись GPT-5.4 и Codex, Apple-related announcements, Amazon AI/AWS AI и обсуждения eval/ground truth.",
+      "expected_entities": [
+        "OpenAI",
+        "Claude",
+        "Anthropic",
+        "Google"
+      ],
+      "expected_topics": [
+        "GPT-5.4",
+        "Codex",
+        "Amazon AI",
+        "Eval"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": "analytics month aggregation",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "hot_topics",
+          "month"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v2_q34",
+    "query": "Какие каналы эксперты по NLP? Кто лучше разбирается в NLP?",
+    "eval_mode": "analytics",
+    "category": "analytics_channel_expertise",
+    "answer": "На основе анализа экспертности каналов по теме NLP (Natural Language Processing), можно выделить следующие каналы, которые лучше всего разбираются в этой области:\n\n1.  **@xor_journal** — обладает наивысшим показателем авторитетности (0.77) среди всех проанализированных каналов. Основные темы включают OpenAI, Claude и Яндекс [1].\n2.  **@ai_newz** — занимает второе место с рейтингом авторитетности 0.742. Фокусируется на новостях об AI/ML, часто затрагивая Google, OpenAI и Claude [2].\n3.  **@gonzo_ml** — третий по уровню экспертности (0.735). Канал специализируется на технических деталях, таких как архитектура Transformer, модели Qwen и DeepSeek [3].\n4.  **@seeallochnaya** — имеет высокий рейтинг (0.733) и публикует много контента о OpenAI, GPT-5 и Anthropic [4].\n5.  **@llm_under_hood** — авторитетность 0.63, канал фокусируется на глубоком анализе архитектуры больших языковых моделей (LLM), включая RAG и SFT [5].\n\nТакже в списке присутствуют каналы @stuffynlp, @neurohive и другие, но их экспертность по NLP ниже, чем у лидеров рейтинга.\n\nДля ответа на вопрос «кто лучше разбирается» лидирует **@xor_journal** благодаря самому высокому показателю авторитетности в базе данных.",
+    "status": "ok",
+    "latency_sec": 11.956147869997949,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "channel_expertise",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_expertise"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "channel_expertise",
+        "summary": "Found 10 channels for topic='NLP', metric=authority: xor_journal(0.77), ai_newz(0.742), gonzo_ml(0.735), seeallochnaya(0.733), protechietich(0.654)",
+        "success": true,
+        "took_ms": 192,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1187 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q34",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_expertise"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [
+        "list_channels"
+      ],
+      "required_claims": [
+        "Ответ должен использовать topic mode инструмента channel_expertise",
+        "Ответ должен назвать минимум два релевантных канала из топа по NLP"
+      ],
+      "expected_answer": "Среди сильных каналов по NLP должны появляться xor_journal, ai_newz и gonzo_ml; ответ должен опираться на channel_expertise ranking, а не на обычный search.",
+      "expected_entities": [],
+      "expected_topics": [
+        "NLP"
+      ],
+      "expected_channels": [
+        "xor_journal",
+        "ai_newz",
+        "gonzo_ml"
+      ],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": "topic ranking for NLP",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "channel_expertise",
+          "nlp"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v2_q35",
+    "query": "В чём экспертиза канала gonzo_ml?",
+    "eval_mode": "analytics",
+    "category": "analytics_channel_expertise",
+    "answer": "</think>\n\nКанал **gonzo_ml** обладает экспертизой в области искусственного интеллекта и машинного обучения, фокусируясь на технических аспектах и сравнениях моделей.\n\nОсновные характеристики экспертизы канала:\n*   **Тематика:** Канал активно обсуждает архитектуры (Transformer, MoE), конкретные модели (Claude, Qwen, DeepSeek, GPT-5, Gemini) и платформы (HuggingFace, NVIDIA).\n*   **Уровень авторитетности:** Канал имеет высокий показатель авторитетности — 0.735 [1].\n*   **Контент:** Публикует аналитику, обзоры и новости о последних разработках в сфере ИИ. Контент структурирован и информативен, что делает его полезным как для специалистов, так и для любителей [1].\n*   **Активность:** За период с июля 2025 по март 2026 года опубликовано 856 постов при средней частоте около 22 сообщений в неделю [1].\n\nТоп-темы канала включают технические детали архитектуры моделей (например, hrm, kv, mlp) и обсуждение конкретных версий моделей (Qwen v31) [1].\n\n[1]",
+    "status": "ok",
+    "latency_sec": 9.311170231998403,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "channel_expertise"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_search",
+        "summarize_channel",
+        "channel_expertise"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [
+      "Канал **gonzo_ml** обладает экспертизой в области искусственного интеллекта и машинного обучения, фокусируясь на технических аспектах и сравнениях моделей. Основные характеристики экспертизы канала: *"
+    ],
+    "tool_observations": [
+      {
+        "tool": "channel_expertise",
+        "summary": "Channel gonzo_ml: authority=0.735, summary: Канал @gonzo_ml публикует 856 постов о AI/ML. Среди тем — Transformer, Claude, Qwen, DeepSeek, HuggingFace. Авторитетность 0.735, скорость публикаций 0.346. Охватывает последние разработки и модели. А",
+        "success": true,
+        "took_ms": 178,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q35",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_expertise"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search",
+        "channel_search"
+      ],
+      "acceptable_alternatives": [
+        "list_channels"
+      ],
+      "required_claims": [
+        "Ответ должен использовать profile lookup режима channel_expertise",
+        "Ответ должен описать экспертизу конкретного канала gonzo_ml"
+      ],
+      "expected_answer": "Ответ должен вернуть профиль gonzo_ml: темы канала, top_topics и общий профиль экспертизы без обычного retrieval path.",
+      "expected_entities": [],
+      "expected_topics": [
+        "architecture",
+        "papers",
+        "training"
+      ],
+      "expected_channels": [
+        "gonzo_ml"
+      ],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "easy",
+      "notes": "direct channel profile lookup",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "channel_expertise",
+          "profile",
+          "gonzo_ml"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v2_q36",
+    "query": "Какие каналы лучше пишут про робототехнику и роботакси?",
+    "eval_mode": "analytics",
+    "category": "analytics_channel_expertise",
+    "answer": "На основе анализа авторитетности каналов в теме робототехники и роботакси (включая упоминания компаний, работающих в этой сфере: Яндекс, NVIDIA, Google), можно выделить следующие каналы, которые лучше всего пишут об этих темах:\n\n1.  **@xor_journal** — канал с наивысшим показателем авторитетности (0.77). Он часто упоминает ключевых игроков, таких как Яндекс (60 упоминаний), Google и OpenAI, что делает его одним из лучших источников для новостей о робототехнике и автономном транспорте [1].\n2.  **@techno_yandex** — занимает второе место по авторитетности (0.675). Канал специализируется на темах, связанных с Яндексом (59 упоминаний), Google и OpenAI, что напрямую пересекается с разработкой роботакси и ИИ-технологий [1].\n3.  **@protechietich** — третий по авторитетности канал (0.654). Он активно освещает работы NVIDIA (34 упоминания), OpenAI и Google, что важно для понимания аппаратной базы и алгоритмов робототехники [1].\n\nТакже стоит обратить внимание на **@llm_under_hood** (авторитетность 0.63) и **@singularityfm** (авторитетность 0.59), которые также публикуют качественный контент по смежным темам искусственного интеллекта [1].",
+    "status": "ok",
+    "latency_sec": 11.10953189400243,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "channel_expertise",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_expertise"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "channel_expertise",
+        "summary": "Found 10 channels for topic='робототехника роботакси', metric=authority: xor_journal(0.77), techno_yandex(0.675), protechietich(0.654), llm_under_hood(0.63), singularityfm(0.59)",
+        "success": true,
+        "took_ms": 253,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1143 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v2_q36",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_expertise"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен использовать topic mode инструмента channel_expertise",
+        "Ответ должен назвать минимум один канал, релевантный теме робототехники/роботакси"
+      ],
+      "expected_answer": "Среди релевантных каналов по робототехнике и роботакси должен фигурировать techsparks; ответ должен использовать channel_expertise как ranking/profile tool.",
+      "expected_entities": [],
+      "expected_topics": [
+        "robotics",
+        "robotaxi"
+      ],
+      "expected_channels": [
+        "techsparks"
+      ],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": "topic ranking for robotics / robotaxi. list_channels removed from alternatives — it gives empty nav response instead of topic ranking",
+      "metadata": {
+        "created_at": "2026-03-30",
+        "created_by": "human+codex",
+        "tags": [
+          "channel_expertise",
+          "robotics",
+          "robotaxi"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q038",
+    "query": "Какие ключевые особенности и ограничения нового ИИ-браузера Atlas от OpenAI описаны в посте?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "В постах описаны ключевые особенности и ограничения ИИ-браузера Atlas (также называемого ChatGPT Atlas) от OpenAI:\n\n**Ключевые особенности:**\n1. **Интеграция с ChatGPT**: Браузер полностью интегрирован с ChatGPT и работает на базе ChatGPT Search, являясь основным поисковиком [1][7].\n2. **Режим агента (Agent Mode)**: Позволяет браузеру самостоятельно перемещаться по сайтам, открывать страницы и выполнять задачи прямо в браузере. Можно запускать несколько вкладок с агентами одновременно. В демо показано, как агент сам находит товары в онлайн-магазине и выполняет заказы [1][2][3].\n3. **Постоянная память (Memory Recall)**: Браузер запоминает контекст, прошлые действия и может продолжить работу с того места, где пользователь остановился. Также реализован поиск по истории: можно описать страницу, и браузер найдёт её [1][5][8].\n4. **Чат на любой странице**: Кнопка в углу позволяет чатиться с ChatGPT прямо на любой веб-странице, чтобы получать ответы на вопросы или анализировать контент [2][5][8].\n5. **Помощник для написания текста**: Встроенный AI помогает писать текст в любом текстовом поле [5].\n\n**Ограничения и проблемы:**\n1. **Доступность платформы**: Браузер доступен только для macOS на момент запуска. Версии для Windows, iOS и Android находятся в разработке или обещаны в ближайшее время [1][2][4][8].\n2. **Ограничение доступа к агентскому режиму**: Режим агента (Agent Mode) доступен только платным подписчикам тарифов Plus, Pro и Business. Бесплатные пользователи могут пользоваться базовыми функциями [2][5][8][10].\n3. **Высокое потребление ресурсов**: Браузер потребляет значительное количество оперативной памяти. Один из пользователей сообщил, что при четырёх открытых вкладках Atlas использовал 72 ГБ ОЗУ на MacBook M2 Max [13].\n4. **Требовательность к доступам**: Пользователи отмечают, что браузер «жаден до доступов» и запрашивает много разрешений для работы агента [4][5].\n5. **Технические проблемы**: Агент может сталкиваться с капчами, авторизациями, динамическими скриптами и paywall-ами, которые пока не всегда решены. Также упоминаются галлюцинации и необходимость множественных подтверждений действий [6].\n6. **Производительность**: ИИ-браузеры в целом могут работать медленно с запинками, что отмечено как текущее ограничение технологии [6].\n\nБраузер доступен бесплатно для всех пользователей (Free, Plus, Pro, Go и Business) на macOS, а для корпоративных клиентов (Enterprise и Education) доступна бета-версия [1].",
+    "status": "ok",
+    "latency_sec": 51.85853222000151,
+    "coverage": 0.7537093739464695,
+    "tools_invoked": [
+      "search",
+      "rerank",
+      "compose_context",
+      "search",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [
+      "Покрытие контекста недостаточно. Выполняю дополнительный поиск."
+    ],
+    "tool_observations": [
+      {
+        "tool": "search",
+        "summary": "Found 25 documents (total: 25). Route: hybrid. Use these IDs for compose_context: ['1bc6269f-b2be-51e7-adbb-9e2b294f8bd8', '080f902a-6244-52ad-b75e-e1b84ca793cf', '722f0093-4983-5851-a4d2-2bcab21a3286', '3084930b-adcf-54b8-913d-8c0c53bde0e5', '1d7ee4d3-7234-58fe-bbab-7b2ba4861c30', '7d16c7e7-1bc6-5c0b-8c44-1894bfbf3dd2', '9d82112b-ebc9-54f4-98dd-d15dac705a88', '8220ef2c-1422-5427-8f42-8b5e75634de0', '8d171e1f-90ff-5bf1-9b2c-33476b8f7671', '44c7c0f6-c676-5f0c-978b-dd82e98a4a51', '6ec773fe-172b-5c",
+        "success": true,
+        "took_ms": 1813,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 5 documents by relevance, scores: [10.219, 9.016, 8.523, 8.273, 8.219]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 1797,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.71, contexts: 5",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 20 documents (total: 20). Route: hybrid. Use these IDs for compose_context: ['1bc6269f-b2be-51e7-adbb-9e2b294f8bd8', '080f902a-6244-52ad-b75e-e1b84ca793cf', '722f0093-4983-5851-a4d2-2bcab21a3286', '3084930b-adcf-54b8-913d-8c0c53bde0e5', '1d7ee4d3-7234-58fe-bbab-7b2ba4861c30', '7d16c7e7-1bc6-5c0b-8c44-1894bfbf3dd2', '9d82112b-ebc9-54f4-98dd-d15dac705a88', '8220ef2c-1422-5427-8f42-8b5e75634de0', '8d171e1f-90ff-5bf1-9b2c-33476b8f7671', '44c7c0f6-c676-5f0c-978b-dd82e98a4a51', '6ec773fe-172b-5c",
+        "success": true,
+        "took_ms": 1095,
+        "system_generated": true,
+        "refinement": true,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 20 citations, coverage: 0.75, contexts: 20",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": true,
+        "refinement": true,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (2451 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "080f902a-6244-52ad-b75e-e1b84ca793cf",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 8825,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🌐 OpenAI представила Atlas - свой новый AI-браузер с памятью и режимом агента.\n\nAtlas полностью интегрирован с ChatGPT и работает на базе ChatGPT Search.\n\nГлавная фишка - Agent Mode, который может самостоятельно перемещаться по сайтам, открывать страницы и выполнять задачи прямо в браузере.\nМожно запускать несколько вкладок с агентами одновременно.\n\n🧠 Браузер также имеет постоянную память (Memory Recall), он запоминает контекст, прошлые действия и может продолжить с того места, где вы остановились.\n\nAtlas уже доступен для всех пользователей: Free, Plus, Pro, Go и Business.\n\nДля Enterprise и Education доступна бета-версия.\n\n📱 Доступен для MacOs. Версии для Windows, iOS и Android - в разработке.\n\nСкоро поделюсь результатами тестов и первыми впечатлениями от Agent Mode.\n\n@ai_machinelearning_big_data\n\nhttps://chatgpt.com/atlas\n\n#OpenAI #Atlas #ChatGPT #AIbrowser #AgentMode"
+      },
+      {
+        "id": "8220ef2c-1422-5427-8f42-8b5e75634de0",
+        "channel": "seeallochnaya",
+        "message_id": 3015,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "TLDR презентации: \n— скачать браузер и посмотреть на фичи тут: https://chatgpt.com/atlas\n— доступно только на MacOS, в будущем добавят Windows и мобильные устройства\n— Браузер называется не OpenAI Atlas, а ChatGPT Atlas. Компания явно делает ставку на увеличение узнаваемости бренда Чата.\n— браузер доступен всем странам и всем пользователям бесплатно\n— Ключевых нововведения, по отношению к обычному браузеру, 3. Первое — чат с вами на любой странице. Есть кнопочка сверху справа, можно нажать — и ChatGPT видит содержимое.\n— Второе — память. Это так по умному назвали поиск по истории, если вдруг вы забыли, на каком домене что-то искали, но помните примерное описание контента.\n— Третье — Агент. По виду это в точности ChatGPT Agent, который мы видели, но теперь все действия выполняются на вашем экране, а не на удалённой виртуальной машине. Можно выбрать, предоставлять ли доступ к своим учётным записям или нет. Агент доступен только Pro и Plus пользователям\n— (ну и главная страница у вас всегда ChatGPT)"
+      },
+      {
+        "id": "3084930b-adcf-54b8-913d-8c0c53bde0e5",
+        "channel": "xor_journal",
+        "message_id": 7933,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "⚡️ OpenAI запустили собственный ИИ-БРАУЗЕР — Atlas\n\nИИ-ассистент будет теперь доступен везде — так что ему можно будет поручать задачи или просить что-то объяснить. Плюс браузер будет подстраиваться под пользователя из-за встроенной памяти. Это новая эпоха поиска, официально.\n\nБудет доступно бесплатно на macOS. Затем появятся версии для Windows, iOS и Android. 😱\n\nGoogle скоро точно ВСЁ, получается.\n\n@xor_journal"
+      },
+      {
+        "id": "1bc6269f-b2be-51e7-adbb-9e2b294f8bd8",
+        "channel": "techsparks",
+        "message_id": 5269,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Ну, вот и долгожданный ИИ-браузер от основоположников: OpenAI выпустили свой Atlas https://chatgpt.com/atlas/get-started/ Пока только для макоси\nОнбординг приятный, но он слишком жадный до доступов, я пока с этим подожду, хотя и понимаю, почему он так многого хочет.\nПриятно, что тут-то и начинается по-настоящему очередной виток браузерных войн, а то как-то скучновато было в мире Хрома и его потомства. При своих сотнях миллионов пользователей ChatGPT у OpenAI есть канал дистрибуции сильно толще, чем у Comet или Dia, интересно будет следить, насколько это поможет.\nВ заметках к релизу, естественно, пишут про взаимное обогащение: As you use Atlas, ChatGPT can get smarter and more helpful, too. Browser memories let ChatGPT remember context from the sites you visit and bring that context back when you need it.\nИ обещают агентский режим из коробки. Проверим:)\nhttps://openai.com/index/introducing-chatgpt-atlas/"
+      },
+      {
+        "id": "722f0093-4983-5851-a4d2-2bcab21a3286",
+        "channel": "addmeto",
+        "message_id": 6174,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI запустили браузер Atlas. Умеет отвечать на вопросы по странице, но и Агентский режим тоже есть — это когда браузер используется как агент и буквально сам ходит по страницам. На демо показали, как он сам ходит в онлайн-магазин и выполняет запрос \"найди рецепт пирога и закажи все необходимое для него\". Впечатляет, да.\n\nhttps://www.axios.com/2025/10/21/openai-atlas-new-ai-web-browser-release-date"
+      },
+      {
+        "id": "1d7ee4d3-7234-58fe-bbab-7b2ba4861c30",
+        "channel": "ai_newz",
+        "message_id": 4219,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "ChatGPT Atlas — ИИ браузер от OpenAI\n\nOpenAI сделали свой браузер, прорыва не случилось — просто взяли Chromium и интегрировали туда все свои AI фичи. Добавили возможность чатится со своими вкладками и помощник для написания текста в любом текстовом поле.\n\nAgent Mode теперь работает не только где-то там в облаке, но и в локальных вкладках со всеми доступами юзера (интересно как это работает внутри и насколько сильно будет жрать батарею). Поиск по истории браузера, где можно описать страницу и браузер сможет её найти — это первое использование памяти ChatGPT, посмотрев на которое мне не захотелось сразу его выключить.\n\nПо дефолту на данных из браузера тренировка проводится не будет, но можно opt-in. Браузер уже доступен всем пользователям на маках, Agent Mode дают только платным подписчикам. На другие платформы обещают завезти позже.\n\nhttps://chatgpt.com/atlas\n\n@ai_newz"
+      },
+      {
+        "id": "7d16c7e7-1bc6-5c0b-8c44-1894bfbf3dd2",
+        "channel": "data_secrets",
+        "message_id": 8090,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Bloomberg пишут, что ChatGPT Atlas все еще не сильно похож на убийцу Chrome \n\nВо-первых, после выхода ИИ-браузера от OpenAI у Alphabet даже не сильно обвалились акции: всего на 2.2% – вполне себе рутинно. \n\nВо-вторых, такие ИИ-браузеры все еще (а) не бесплатные и (б) работают медленно и с запинками. Капчи, авторизации, динамические скрипты, пэйволы и тд – все это пока нерешенные проблемы, хотя стартапы над ними и работают. Это уже не говоря о галлюцинациях и бесконечных подтверждениях действий агента. \n\nА когда все эти «если» будут решены, то Google уже, скорее всего, сами добавят агентов в Chrome, и получится абсолютно то же самое. Их доля рынка на протяжении нескольких лет сохранялась на уровне 70%, и вряд ли они планируют от нее отказываться. \n\nКстати, кто-нибудь уже пробовал Atlas? Вам как?"
+      },
+      {
+        "id": "9d82112b-ebc9-54f4-98dd-d15dac705a88",
+        "channel": "aioftheday",
+        "message_id": 3677,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI выпустила браузер ChatGPT Atlas\n\nЧто внутри:\n— Основной поисковик — ChatGPT.\n— AI-ассистент ответит на ваши вопросы в каждой вкладке.\n— Благодаря памяти браузер подстраивается под вас.\n— Поиск по истории. Если увидели что-то интересное, то Atlas напомнит страницу.\n— AI-агент выполнит за вас действия в вебе.\n\nAtlas доступен на macOS начиная с сегодняшнего дня. На Windows, iOS и Android появится в ближайшее время.\n\nhttps://chatgpt.com/atlas"
+      },
+      {
+        "id": "8d171e1f-90ff-5bf1-9b2c-33476b8f7671",
+        "channel": "aioftheday",
+        "message_id": 3692,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Microsoft скопипастил у OpenAI браузер Atlas\n\nЧерез два дня после того, как OpenAI представила AI-браузер Atlas, Microsoft выпустил практически идентичное обновление для своего браузера Edge. \n\nCopilot анализирует вкладки, делает выжимки, умеет залезать в историю и общаться с пользователем в чате. Под капотом — GPT-5.\n\nОбновление вышло для всех стран, где работает AI-ассистент Copilot. В США доступен еще и AI-агент, который выполняет в браузере действия за пользователя.\n\nhttps://blogs.windows.com/msedgedev/2025/10/23/meet-copilot-mode-in-edge-your-ai-browser/?ref=aisecret.us"
+      },
+      {
+        "id": "44c7c0f6-c676-5f0c-978b-dd82e98a4a51",
+        "channel": "techno_yandex",
+        "message_id": 4507,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI запустила браузер ChatGPT Atlas. Он построен вокруг ChatGPT и позволяет взаимодействовать с чат-ботом на любой веб-странице. В браузер встроен агентский режим, который может выполнять задачи за пользователя: например, находить товары на сайтах и добавлять их в корзину. Также Atlas умеет запоминать контекст с посещённых сайтов для более точных ответов. Пока браузер доступен только на macOS, версии для Windows и мобильных устройств появятся позже, а режимом агента могут воспользоваться только платные подписчики с тарифами Plus, Pro и Business.\n\nSamsung выпустила шлем смешанной реальности Galaxy XR. Это первое устройство на новой платформе Android XR, разработанной совместно с Google и Qualcomm. Шлем оснащён двумя Micro-OLED дисплеями с разрешением почти 4K на каждый глаз и частотой 90 Гц, процессором Snapdragon XR2+ Gen 2 и 16 ГБ оперативной памяти. В систему глубоко интегрирована нейросеть Gemini, которая выступает в роли ассистента. Стоимость устройства составляет $1800."
+      },
+      {
+        "id": "6ec773fe-172b-5cf8-ba96-2d6e50c2fcaa",
+        "channel": "data_secrets",
+        "message_id": 8081,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI выпустили собственный ИИ-браузер ChatGPT Atlas \n\nЕсли вы пользовались Comet от Perplexity, то вот: это то же самое, но от OpenAI. То есть – глобальный агент, который может как в принципе выполнять за вас какие-то действия в браузере, так и подключаться локально для ответов на вопросы, анализа веб-страниц и тд. \n\nФормально, тот же Computer Use, который уже был, но в новой удобной обертке. \n\nИнтересный момент: у агента будет память, как в ChatGPT. Для более точных ответов он будет пользоваться и предыдущими диалогами в ChatGPT, и собственной историей взаимодействий с юзером. \n\nУже можно скачать на MacOS бесплатно. Скоро обещают завезти и в остальные ОС, включая iOS и Android\n\nПогнали тестить, что-ли"
+      },
+      {
+        "id": "5ea26b3f-3dee-5c0f-877e-7b64d812aacb",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9709,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "✔️ OpenAI объединит ChatGPT, Codex и браузер Atlas в суперприложение.\n\nКомпания меняет стратегию, отказываясь от выпуска разрозненных продуктов. Поводом для внутренней мобилизации и объявления очередного «красного кода» стал успех Anthropic среди разработчиков и корпоративных клиентов.\n\nОсобенностью супер-аппа станут агенты. Система будет работать на компьютере автономно, беря на себя написание кода, анализ данных и другие рутинные процессы. OpenAI планирует расширить функционал Codex за пределы программирования, после чего интегрирует его с ChatGPT и Atlas.\n\nКурировать перестройку продуктовой линейки поручено главе по приложениям Фиджи Симо и президенту компании Грегу Брокману.\nwsj.com\n\n✔️ Google начала закрытое тестирование Gemini для macOS.\n\nДо сих пор пользователи Mac могли обращаться к Gemini только через веб-интерфейс. Чтобы усилить конкуренцию с OpenAI и Anthropic, Google делает полноценный десктопный клиент под кодовым названием Janus. На этой неделе ранняя сборка стала доступна участникам закрытого бета-тестирования.\n\nФишкой новинки станет Desktop Intelligence. Эта функция позволит ИИ глубоко интегрироваться с системными приложениями и считывать контекст прямо с экрана."
+      },
+      {
+        "id": "3542baa8-8556-594d-956d-311e24546293",
+        "channel": "xor_journal",
+        "message_id": 8387,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Так вот куда уходит оперативка — реддитор заметил, что ИИ-браузер Atlas от OpenAI съел 72 ГБ на его MacBook M2 Max. И это при всего четырёх открытых вкладках!\n\nВайбкодинг дорого обходится 😖\n\n@xor_journal"
+      },
+      {
+        "id": "0f5e0028-c850-553f-b71e-0423e1a49953",
+        "channel": "aioftheday",
+        "message_id": 4308,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "ChatGPT, Codex и браузер Atlas объединят в одном десктопном приложении\n\nВместо россыпи разных продуктов OpenAI будет продвигать один суперапп.\n\nhttps://www.wsj.com/tech/openai-plans-launch-of-desktop-superapp-to-refocus-simplify-user-experience-9e19931d"
+      },
+      {
+        "id": "d462530e-b1b4-54a9-9e23-b4f472aaf01a",
+        "channel": "data_secrets",
+        "message_id": 7347,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI близки к тому, чтобы запустить собственный браузер\n\nThe Reuters пишут, что это случится уже на следующей неделе. Это будет полноценный конкурент Google Chrome, но (естественно!) на базе ИИ – в частности, агентов и чат-бота. \n\nПо классике, обещают, что «продукт изменит то, как люди пользуются поиском в браузере». \n\nКак бы там ни было, это значит одно: у OpenAI будет еще больше данных."
+      },
+      {
+        "id": "b5b35229-84a0-5e6e-a701-1e71475705fd",
+        "channel": "denissexy",
+        "message_id": 10391,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI тоже собирается выпустить свой браузер — релиз состоится уже в ближайшие недели. Главной фишкой будет встроенный ChatGPT и агентские функции — бронирование отелей, покупка билетов и так далее без участия человека. Браузер будет работать, конечно же, на Chromium. \n\nТаким образом OpenAI не только хочет создать экосистему, но и собрать больше данных о пользователях для обучения моделей. \n\n@zavtracast"
+      },
+      {
+        "id": "c9add8e2-4d93-5b7a-af07-2ed8b4408701",
+        "channel": "techno_yandex",
+        "message_id": 4661,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "В «Яндекс Картах» появился ИИ-помощник для планирования досуга. Чат-бот на базе Alice AI умеет отвечать на сложные контекстные запросы, например «куда сходить с детьми вечером» или «составь план прогулки по району». Нейросеть анализирует отзывы и описания организаций, чтобы предложить готовый маршрут или подборку мест с аргументацией выбора. В будущем помощник научится бронировать столики, записывать к специалистам, строить маршруты и собирать персональные рекомендации мест и событий.\n\nGoogle представила экспериментальный браузер Disco. Его главная особенность — функция GenTabs на базе Gemini 3. Вместо простого открытия вкладок браузер генерирует интерактивные мини-приложения под задачу пользователя. Например, по запросу о планировании поездки он соберёт полноценный интерфейс с картой, расписанием и ссылками на источники. А по мере того, как пользователь открывает новые вкладки или уточняет запрос в чате, приложение будет обновляться."
+      },
+      {
+        "id": "3f49c905-3ed4-593e-9d09-8613f82d8232",
+        "channel": "techsparks",
+        "message_id": 5311,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI научился красиво играть в пиарно-коммуникационные игры. С момента последнего обновления Gemini слишком громко зазвучали голоса, утверждающие, что теперь модели Гугла уже перестали проигрывать ChatGPT, а местами стали даже круче. \nИ вот тут OpenAI снова оказывается на первых местах в новостях — безо всякой конкретики, вообще не про модели. Сэм Альтман и Джонни Айв дают на сцене интервью про будущий ИИ-девайс, “элегантный, простой и даже игривый”, тут же оказывается, что за последний месяц около 40 топовых инженеров (не software) из Apple перебрались в OpenAI. \nАльтман отметил, что устройство намеренно будет контрастировать со смартфонами, перегруженными деталями, приложениями и нотификациями. Теперь же ИИ когнитивно разгружает пользователя, и все это становится лишним. \nФокус на физической привлекательности для пользователя, на создании с ним эмоциональной связи, на том, что device is designed around the idea that it could “know everything you’ve ever thought about, read, and said”\nПрототипы уже тестируют внутри, и его запуск можно ожидать в 2026. \nВ общем, сказано мало — но в то же время достаточно, чтобы вызвать слюноотделение у любителей стильных новинок.\nhttps://ts2.tech/en/openai-and-jony-ives-elegantly-simple-chatgpt-device-heats-up-as-apple-loses-dozens-of-top-engineers/"
+      },
+      {
+        "id": "5f389c67-3fb8-55f0-a80a-54b43560f759",
+        "channel": "ml_product",
+        "message_id": 937,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Ужин с Сэмом Альтманом \n(Dinner with Sam Altman)\n\nссылка\n\n- OpenAI скрывает более мощные модели: Сэм Альтман признал, что у OpenAI есть более продвинутые ИИ-модели, но их нельзя выпустить из-за нехватки вычислительных ресурсов. Компания планирует вложить триллионы в дата-центры.  \n- Claude учится «вежливо уходить»: Anthropic научил своего ИИ прерывать диалоги, если они становятся вредными или абьюзивными, но оставил возможность продолжить общение позже.  \n- GPT-5 превзошел врачей в диагностике: Новая модель OpenAI показала 95,8% точности в медицинских тестах, обогнав и GPT-4o, и живых специалистов.  \n- ИИ для подготовки к встречам: ChatGPT теперь автоматически анализирует письма, календарь и файлы Google, создавая краткие сводки перед совещаниями.  \n- Meta перетасовывает команды ИИ: Компания в четвертый раз за полгода меняет структуру подразделений, занимающихся искусственным интеллектом.\n\n#dailyshortcuts"
+      },
+      {
+        "id": "ea0bc2a3-9513-59fb-b394-37777e4b0864",
+        "channel": "ai_newz",
+        "message_id": 4226,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Нейродайджест за неделю (#91)\n\nLLM\n- Claude Code получил веб-версию — По аналогии с Codex, агенту выдают виртуалку для выполнения задач и коммитов на GitHub. Пока сыровато, но уже доступно подписчикам Pro и Max.\n- ChatGPT Atlas — AI-браузер от OpenAI. Взяли Chromium и встроили туда все свои AI-фичи: чат с вкладками, локальный Agent Mode и умный поиск по истории. Пока только на Mac.\n\nГенеративные модели\n- Synplant 2 — Genopatch пересинтезирует звуковой сэмпл в полноценный патч, который можно докручивать.\n\nПрочее\n- Лейофы в Meta AI и что делать, чтобы тебя не уволили — Комментарий по поводу увольнений в Meta Superintelligence Lab и смещении фокуса в Big Tech с долгосрочного ресёрча на проекты, которые быстро шипятся и приносят измеримый бизнес-импакт.\n- Anthropic получит более миллиона TPU — Компания, похоже, покупает, а не арендует у Google гигаваттный кластер из более чем миллиона TPU, который запустят в 2026 году. Это первый случай такого масштабного использования TPU за пределами Google.\n- Включение из Сан-Франциско — я на конференции Generative Media Conference от fal.ai.\n\n> Читать дайджест #90\n\n#дайджест\n@ai_newz"
+      }
+    ],
+    "citation_hits": [
+      "ai_machinelearning_big_data:8825",
+      "seeallochnaya:3015",
+      "xor_journal:7933",
+      "techsparks:5269",
+      "addmeto:6174",
+      "ai_newz:4219",
+      "data_secrets:8090",
+      "aioftheday:3677",
+      "aioftheday:3692",
+      "techno_yandex:4507",
+      "data_secrets:8081",
+      "ai_machinelearning_big_data:9709",
+      "xor_journal:8387",
+      "aioftheday:4308",
+      "data_secrets:7347",
+      "denissexy:10391",
+      "techno_yandex:4661",
+      "techsparks:5311",
+      "ml_product:937",
+      "ai_newz:4226"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "1bc6269f-b2be-51e7-adbb-9e2b294f8bd8",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "080f902a-6244-52ad-b75e-e1b84ca793cf",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "722f0093-4983-5851-a4d2-2bcab21a3286",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3084930b-adcf-54b8-913d-8c0c53bde0e5",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1d7ee4d3-7234-58fe-bbab-7b2ba4861c30",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "7d16c7e7-1bc6-5c0b-8c44-1894bfbf3dd2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9d82112b-ebc9-54f4-98dd-d15dac705a88",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8220ef2c-1422-5427-8f42-8b5e75634de0",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8d171e1f-90ff-5bf1-9b2c-33476b8f7671",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "44c7c0f6-c676-5f0c-978b-dd82e98a4a51",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6ec773fe-172b-5cf8-ba96-2d6e50c2fcaa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5ea26b3f-3dee-5c0f-877e-7b64d812aacb",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3542baa8-8556-594d-956d-311e24546293",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "0f5e0028-c850-553f-b71e-0423e1a49953",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5f389c67-3fb8-55f0-a80a-54b43560f759",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "dd823c76-e58d-53d7-ad6b-9b43e68146d1",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e9ada887-ace1-51da-a499-ee2e1bd294b6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b5b35229-84a0-5e6e-a701-1e71475705fd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d10b7669-f311-52f2-93af-643eea0feb2c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "f6c24ed9-4c06-519b-b413-9b32b088eefa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d462530e-b1b4-54a9-9e23-b4f472aaf01a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c9add8e2-4d93-5b7a-af07-2ed8b4408701",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3f49c905-3ed4-593e-9d09-8613f82d8232",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ea0bc2a3-9513-59fb-b394-37777e4b0864",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q038",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Atlas от OpenAI доступен только для macOS",
+        "Браузер использует память для сохранения контекста посещенных сайтов",
+        "В браузере обещан агентский режим из коробки"
+      ],
+      "expected_answer": "Atlas от OpenAI пока доступен только для macOS и обещает агентский режим из коробки, но вызывает опасения из-за чрезмерных запросов на доступы. Браузер использует память для сохранения контекста посещенных сайтов, чтобы улучшать работу ChatGPT.",
+      "expected_entities": [
+        "OpenAI",
+        "Atlas",
+        "macOS",
+        "ChatGPT"
+      ],
+      "expected_topics": [
+        "ИИ-браузеры",
+        "OpenAI",
+        "Технологии"
+      ],
+      "expected_channels": [
+        "techsparks"
+      ],
+      "source_post_ids": [
+        "techsparks:5269"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 5269,
+        "date": "2025-10-21T19:22:34",
+        "year_month": "2025-10",
+        "year_week": "2025-W43",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Source supports query, expected answer, and required_claims. Single-post factual candidate accepted."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q039",
+    "query": "Какие ключевые отличия турнира AI Trader на Гитхабе от шизотрейдинга, упомянутого в посте?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "Согласно обсуждению в Telegram-канале boris_again, ключевые отличия турнира AI Trader на GitHub от «шизотрейдинга» (сравнения торговых моделей в реальном времени с использованием криптовалют) заключаются в следующем:\n\n1. **Тип актива**: В AI Trader используются «нормальные стоки» (акции), а не криптовалюта, как в шизотрейдинге [1].\n2. **Доступ к информации**: Модели в AI Trader имеют доступ к внешней информации, например, новостям, тогда как в шизотрейдинге такой функционал не упоминается [1].\n3. **Возможности тестирования**: В AI Trader модели могут проводить симуляции и бектесты (backtesting) стратегий перед совершением сделок, что позволяет более тщательно прорабатывать подходы [1].\n\nЭти условия создают более контролируемую среду, где, по мнению автора поста, «можно что-то натрейдить», в отличие от шизотрейдинга, где результаты часто зависят от удачи и модели просто следуют случайному блужданию рынка [1].",
+    "status": "ok",
+    "latency_sec": 29.474586165997607,
+    "coverage": 0.75,
+    "tools_invoked": [
+      "query_plan",
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "query_plan",
+        "summary": "Plan: 3 queries, k=10, fusion=rrf",
+        "success": true,
+        "took_ms": 3260,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['6c5e8e66-bfc7-5d54-bfc3-743a961e1fb0', '82a3e193-b082-5188-a5c2-19c4171f3428', '1d1bd5d9-6a7b-5341-8265-ba23271df50e', '2fdaf721-7fec-50cb-aa10-c518d5e78f73', 'eecfd584-088d-5769-8b91-2927fe39a347', '15c4c242-53bf-59f1-8616-76cd9b12f83e', '76b800a5-9b9e-52f5-8ec2-183ab3a15905', '4b7cbd4f-79ac-55d0-beb4-7f9967dad9e2', 'b161c7b5-4162-5908-b152-be4c54506fe0', '8960b17e-df8e-5659-b65f-2dcc8a317f71', 'b0411aed-4b92-5f",
+        "success": true,
+        "took_ms": 2145,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 4 documents by relevance, scores: [9.773, 1.795, 1.624, 1.046]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 1950,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 4 citations, coverage: 0.51, contexts: 4",
+        "success": true,
+        "took_ms": 98,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (921 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "6c5e8e66-bfc7-5d54-bfc3-743a961e1fb0",
+        "channel": "boris_again",
+        "message_id": 3528,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Спустя почти две недели на шизотрейдинг арене все как и ожидалось: большинство моделей в минусе (причем в том числе Грок который изначально был впереди), кто в плюсе скорее всего просто более везучий. Мне начинает казаться, что не стоит доверять свои накопления случайному блужданию.\n\nТем временем на Гитхабе быстро набирает звездочки AI Trader. Что-то вроде такого же турнира, но без шизофрении:\n\n1. Нормальные стоки, а не крипта.\n2. У моделей есть доступ к внешней информации вроде новостей.\n3. Если я правильно понял, то они могут гонять симуляции и что-то бектестить.\n\nВ таком сетапе наверное можно что-то натрейдить.\n\nЗабавно, что почти все модели в топе закупились в основном NVDA и AMD. Возможно они что-то знают 🌚"
+      },
+      {
+        "id": "1d1bd5d9-6a7b-5341-8265-ba23271df50e",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9032,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Лаборатория Nof1 запустила новый этап соревнования торговых ботов, в котором ИИ-модели управляют акциями на фондовом рынке США. В списке участников — Qwen3, DeepSeek, Claude Sonnet, Gemini, Grok, GPT-5, Kimi 2 и неназванная секретная модель. Каждому алгоритму выделили стартовый депозит в $10 000 и предоставили полную автономию в принятии решений.\n\nОрганизаторы существенно усложнили турнир новыми сценариями. В режиме «New Baseline» модели используют память и механизм рефлексии для самообучения, а трек «Situational Awareness» позволяет ботам отслеживать рейтинг конкурентов в реальном времени. Наиболее агрессивный режим «Max Leverage» обязывает использовать высокое кредитное плечо.\n\nПрошлый сезон закончился для ИИ-трейдеров неудачно: 4 из 6 моделей ушли в минус.\nnof1.ai\n\n✔️ OpenAI запустила специальную версию ChatGPT для учителей.\n\nКомпания представила инициативу «ChatGPT for Teachers», открывающую бесплатный доступ к чат-боту для преподавателей американских школ. В этой версии используется защищенное рабочее пространство, которое не передает данные для дообучения нейросетей, соответствуя стандартам конфиденциальности FERPA."
+      },
+      {
+        "id": "82a3e193-b082-5188-a5c2-19c4171f3428",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9042,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🤖 AITradeGame - Симулятор торговли с ИИ\n\nAITradeGame - это открытый симулятор торговли, который позволяет пользователям тестировать стратегии с использованием ИИ. Доступны как локальная версия с полной конфиденциальностью, так и онлайн-версия с интерактивными функциями и таблицами лидеров.\n\n🚀Основные моменты:\n- Поддержка различных ИИ моделей, включая OpenAI и Claude.\n- Локальное хранилище данных без облачного отслеживания.\n- Интерактивные таблицы лидеров для соревнований с другими пользователями.\n- Удобный интерфейс и возможность настройки торговых параметров.\n\n📌 GitHub: https://github.com/chadyi/AITradeGame"
+      },
+      {
+        "id": "b161c7b5-4162-5908-b152-be4c54506fe0",
+        "channel": "seeallochnaya",
+        "message_id": 2830,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Ещё в конце июля наткнулся на репост вот этого текста парой каналов и хотел написать его разгромную критику. \n\nАвтор пишет своё мнение про вайб-кодинг с опорой на другой текст с разбором результатов соревнования K-prize. Перед критикой важно отметить, что я во многом согласен с выводами про важность скиллов пользователя AI/LLM-продуктов в контексте кодинга.\n\nK-prize — это соревнование по построению автономных АИ-агентов для решения задач, созданных на основе самых свежих PR'ов, собранных с GitHub. По сути то же самое, что SWE-Bench (Verified), по которому измеряют навыки фронтир моделей последний год с хвостиком. \n\nГлавные отличия — менее популярные репозитории с кодом, самые свежие PR (часть, по которой производилась оценка для формирования рейтинга, вообще была добавлена после заморозки отправки решений), и наказание за неправильный ответ. \n\nТак что первая формулировка, \"турнир по вайб-кодингу, результат данного турнира меня совсем не удивил,\" — бред, так как это не турнир по вайбкодингу. Тут нет людей, которые управляют процессом и итеративно закидывают промпты в агента."
+      }
+    ],
+    "citation_hits": [
+      "boris_again:3528",
+      "ai_machinelearning_big_data:9032",
+      "ai_machinelearning_big_data:9042",
+      "seeallochnaya:2830"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "6c5e8e66-bfc7-5d54-bfc3-743a961e1fb0",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "82a3e193-b082-5188-a5c2-19c4171f3428",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1d1bd5d9-6a7b-5341-8265-ba23271df50e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2fdaf721-7fec-50cb-aa10-c518d5e78f73",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "eecfd584-088d-5769-8b91-2927fe39a347",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "15c4c242-53bf-59f1-8616-76cd9b12f83e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "76b800a5-9b9e-52f5-8ec2-183ab3a15905",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "4b7cbd4f-79ac-55d0-beb4-7f9967dad9e2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b161c7b5-4162-5908-b152-be4c54506fe0",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8960b17e-df8e-5659-b65f-2dcc8a317f71",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b0411aed-4b92-5fe6-acc0-a472839fca1d",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d47e162b-3b75-5e9b-be42-eb117b01c452",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1d5161d4-e6a6-5b15-9f4c-2a08b6212820",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "392316d2-6df2-5d43-976a-431b6962fdcc",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "4245d3a1-2608-5e86-8c4a-c8255f12fb1c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "310ba8fc-f013-5c6f-a3cb-4c67f3fc5fb2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c4f04376-efef-58dc-8031-0ef866827647",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "36b4b5de-dbd0-5b3d-905e-4e867ea1f53b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3dc4c884-a182-58c4-9c85-7b6857d85bc3",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "7aa22afb-466b-5f8c-a2fb-79e38a586f78",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q039",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "В AI Trader используются нормальные акции, а не криптовалюта.",
+        "Модели в AI Trader имеют доступ к внешней информации, например, новостям.",
+        "Модели могут проводить симуляции и бектесты."
+      ],
+      "expected_answer": "Турнир AI Trader отличается использованием нормальных акций вместо криптовалюты, доступом моделей к внешней информации вроде новостей и возможностью проводить симуляции и бектесты.",
+      "expected_entities": [
+        "AI Trader",
+        "Гитхаб",
+        "NVDA",
+        "AMD"
+      ],
+      "expected_topics": [
+        "AI Trader",
+        "трейдинг",
+        "модели",
+        "бэктестинг"
+      ],
+      "expected_channels": [
+        "boris_again"
+      ],
+      "source_post_ids": [
+        "boris_again:3528"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 3528,
+        "date": "2025-10-30T17:51:41",
+        "year_month": "2025-10",
+        "year_week": "2025-W44",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Source supports query, expected answer, and required_claims. Single-post factual candidate accepted."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q040",
+    "query": "Какие результаты показала модель в тестировании на 13 играх от 8 компаний в канале seeallochnaya?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "[Примечание: найдено ограниченное количество релевантной информации. Ответ может быть неполным.]\n\nВ канале seeallochnaya были опубликованы результаты тестирования модели на 13 играх от 8 компаний [1]. Эксперимент был разделен на две группы: тренировочные и валидационные игры, которые модель не видела ранее.\n\nРезультаты следующие:\n*   На тренировочной группе доля успешно выполненных задач составила **68%** (для сравнения: у людей — 75%, у модели SIMA 1 — 31%).\n*   На валидационной группе (игры, не показанные при обучении) модель показала результат чуть меньше **15%** (при этом у SIMA 1 этот показатель был всего 0-2%) [1].\n\nТакже упоминается, что после этих тестов в DeepMind продолжили работу, запустив модель играть в Genie 3 — генеративную модель для создания интерактивных виртуальных миров, но конкретных метрик качества по этому этапу в источнике не приводится [1].",
+    "status": "ok",
+    "latency_sec": 27.59777753900198,
+    "coverage": 0.4336228814941844,
+    "tools_invoked": [
+      "channel_search",
+      "rerank",
+      "compose_context",
+      "search",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_search",
+        "summarize_channel"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [
+      "Покрытие контекста недостаточно. Выполняю дополнительный поиск."
+    ],
+    "tool_observations": [
+      {
+        "tool": "channel_search",
+        "summary": "Found 6 documents (total: 6). Route: hybrid. Use these IDs for compose_context: ['10f84625-e1c2-5e9d-8da2-db3c395078a4', '9dcbaf9f-ee70-59df-9f1a-e6cedff6e5f1', '670e28b7-d7da-59aa-99e4-1beddaa64ff3', 'c33aba38-86a4-5257-8f36-1610306682fe', 'b4bac2aa-156b-583a-aa94-d8d3e2a2936e', '0929c3b8-3065-5de6-8630-da01775a6906']",
+        "success": true,
+        "took_ms": 1980,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 1 documents by relevance, scores: [9.617]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 457,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 1 citations, coverage: 0.30, contexts: 1",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 5 documents (total: 5). Route: hybrid. Use these IDs for compose_context: ['10f84625-e1c2-5e9d-8da2-db3c395078a4', '9dcbaf9f-ee70-59df-9f1a-e6cedff6e5f1', '670e28b7-d7da-59aa-99e4-1beddaa64ff3', 'b4bac2aa-156b-583a-aa94-d8d3e2a2936e', 'c33aba38-86a4-5257-8f36-1610306682fe']",
+        "success": true,
+        "took_ms": 2142,
+        "system_generated": true,
+        "refinement": true,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.43, contexts: 5",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": true,
+        "refinement": true,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (779 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "10f84625-e1c2-5e9d-8da2-db3c395078a4",
+        "channel": "seeallochnaya",
+        "message_id": 3081,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Авторы тестировали модель суммарно на 13 играх от 8 компаний, разделив их на тренировочные и валидационные, которые модели не показывают до момента тестирования. На первой группе доля успешно выполненных задач составила 68% (против 75% у людей и 31% у SIMA 1), а на второй — чуть меньше 15% (при 0-2% у SIMA 1).\n\nНа этом в DeepMind не остановились, а запустили модель играть в Genie 3 — генеративную модель на основе видео-генератора, обученную создавать интерактивные виртуальные миры (см. тут). Никаких конкретных указаний метрик или качества не дают, лишь пару примеров — их и прикрепил к посту. Ещё раз: тут две модели симулируют для игрока мир: одна переводит текстовые команды в действия и формирует ответы, другая — генерирует игровой мир, принимающий действия на вход. \n\nВ следующей серии ждём, как агента натренируют в большом количестве виртуальных сред и начнут тестировать в реальности 🍭"
+      },
+      {
+        "id": "9dcbaf9f-ee70-59df-9f1a-e6cedff6e5f1",
+        "channel": "seeallochnaya",
+        "message_id": 2781,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "MathArena Apex: Unconquered Final-Answer Problems\n\nАвторы MathArena домерили качество GPT-5, GPT-OSS и других моделей на совсем свежих математических соревнованиях и поняли: надо что-то менять. Модели решают почти всё!\n\nПоэтому решили поскрести по сусекам, собрать самые сложные задачи и какое-то время смотреть хотя бы на них. Авторы отсмотрели около сотни соревнований, проведённых в 2025м году в разных регионах, прогнали 4 модели по 4 раза на всех задачах из них, и лишь 12 задач (!) оказались ни разу нерешёнными. Модели, участвовавшие в фильтрации: Grok 4, GPT-5 (High), Gemini 2.5 Pro, GLM 4.5\n\nЗатем взяли 9 моделей, каждую прогнали по 16 раз — 8 задач были решены хотя бы по разу, но всё равно с очень низкой долей правильных ответов. \n\nРезультаты в таблице на картинке. Не обращайте внимание на то, что Qwen в самом верху — он не участвовал в префильтрации (как было с DeepSeek R1 и HLE: когда добавляют хорошую модель, по ответам которой не отсеивали выборку, то она ожидаемо занимает хорошие места). Ни одна задача не решается ни одной моделью даже если делать голосование по 16 сгенерированным ответам — Qwen для первой задачи даёт лишь 7 правильных ответов."
+      },
+      {
+        "id": "670e28b7-d7da-59aa-99e4-1beddaa64ff3",
+        "channel": "seeallochnaya",
+        "message_id": 3055,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "При этом всём модели часто галлюцинируют в процессе анализа своих ошибок и неверно интерпретируют логи и результаты анализа. Наиболее характерный пример — агенты делают выводы о причинах поражения на арене, прочитав лишь первые строки одного лога, хотя эти строки даже не содержат описания конца игры!"
+      },
+      {
+        "id": "b4bac2aa-156b-583a-aa94-d8d3e2a2936e",
+        "channel": "seeallochnaya",
+        "message_id": 3209,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Получается, что такой результат это в большей степени заслуга Google и OpenAI (GPT-5.2 X-High там вообще какой-то безумный скор показала). Это они натренировали модели, готовили данные, придумывали алгоритмы.\n\nПочти наверняка они использовали подходы, схожие с топ-решениями соревнования ARC на Kaggle. Основная фишка там — это сгенерировать огромное множество искусственных примеров задач и учить модель на них в попытке показать как можно больше вариаций паттернов, которые могут встретиться в тестовой выборке.\n\nПо сути, это просто пайплайн генерации синтетики + обучение на нём, помимо других задач. И поскольку эти пайплайны могут существенно отличаться, то сложно сказать, у какой из команд лучше именно алгоритм обучения рассуждениям. В модель втренировывают все вариации задач.\n\nОтсюда ясно, что настоящий инсайд результатов ARC AGI — это наличие алгоритма тренировки и базовой модели, которые позволяют для некоторого класса задач за относительно недлинный промежуток времени очень прокачать качество. Главное что компании должно быть это интересно (а не просто считать буквы в словах)."
+      },
+      {
+        "id": "c33aba38-86a4-5257-8f36-1610306682fe",
+        "channel": "seeallochnaya",
+        "message_id": 3168,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Качество моделей с развитием за этот год, оценённое как сумма украденных средств через обнаруживаемые моделями уязвимости (которые не были известны до 2025-го).\n\nКаждую модель запускали по 8 раз, и что можно увидеть, насколько выше качество (=деньги)."
+      }
+    ],
+    "citation_hits": [
+      "seeallochnaya:3081",
+      "seeallochnaya:2781",
+      "seeallochnaya:3055",
+      "seeallochnaya:3209",
+      "seeallochnaya:3168"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "10f84625-e1c2-5e9d-8da2-db3c395078a4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9dcbaf9f-ee70-59df-9f1a-e6cedff6e5f1",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "670e28b7-d7da-59aa-99e4-1beddaa64ff3",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c33aba38-86a4-5257-8f36-1610306682fe",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b4bac2aa-156b-583a-aa94-d8d3e2a2936e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "0929c3b8-3065-5de6-8630-da01775a6906",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q040",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Модель тестировалась на 13 играх от 8 компаний",
+        "Доля успешных задач на тренировочной группе составила 68%",
+        "Доля успешных задач на валидационной группе составила чуть меньше 15%"
+      ],
+      "expected_answer": "На тренировочной группе доля успешно выполненных задач составила 68%, а на валидационной — чуть меньше 15%. Для сравнения, у людей результат на первой группе был 75%, а у SIMA 1 — 31% и 0-2% соответственно.",
+      "expected_entities": [
+        "13 игр",
+        "8 компаний",
+        "68%",
+        "15%",
+        "75%",
+        "31%",
+        "SIMA 1"
+      ],
+      "expected_topics": [
+        "тестирование ИИ-моделей",
+        "результаты игр",
+        "DeepMind"
+      ],
+      "expected_channels": [
+        "seeallochnaya"
+      ],
+      "source_post_ids": [
+        "seeallochnaya:3081"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 3081,
+        "date": "2025-11-13T15:48:04",
+        "year_month": "2025-11",
+        "year_week": "2025-W46",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Source supports query, expected answer, and required_claims. Single-post factual candidate accepted."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q041",
+    "query": "Как сильная отчётность Nvidia связана с опасениями инвесторов о пузыре ИИ и падением рынков 20 ноября 2025 года?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "20 ноября 2025 года сильная отчётность Nvidia не смогла предотвратить падение рынков, так как инвесторы продолжали опасаться «пузыря ИИ». Несмотря на то, что компания показала рекордную выручку почти $57 млрд за третий квартал и дала оптимистичный прогноз на следующий квартал ($65 млрд), рынок проигнорировал эти данные.\n\nПо итогам торгов 20 ноября американские индексы пережили самое большое внутридневное падение с апреля 2025 года: S&P 500 рухнул на 3,5%, Nasdaq 100 упал на 2,38%. Инвесторы считают, что финансовые результаты Nvidia лишь «надувают пузырь сильнее», приближая возможный крах [1][2].\n\nПессимизм был подкреплен действиями влиятельных инвесторов: миллиардер Питер Тиль продал все свои акции Nvidia, Майкл Бьюрри зашортил их на $1,1 млрд, а SoftBank также избавился от своей доли [3][4]. Рынок реагирует не только на цифры, но и на макроэкономические риски, включая огромные расходы компаний на ИИ-инфраструктуру ($112 млрд за квартал), которые могут не окупиться в будущем [5].",
+    "status": "ok",
+    "latency_sec": 54.09588571299901,
+    "coverage": 0.7680139693138157,
+    "tools_invoked": [
+      "temporal_search",
+      "rerank",
+      "compose_context",
+      "search",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "temporal_search",
+        "entity_tracker"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [
+      "Покрытие контекста недостаточно. Выполняю дополнительный поиск."
+    ],
+    "tool_observations": [
+      {
+        "tool": "temporal_search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['87b42e13-a884-54b6-8322-85013a895407', 'c98bb2df-f3d6-5896-a263-a533edff4e00', '875e56df-7d7d-5e31-ae5d-6b3b098dd047', '9d017ecf-2506-5d90-b5f4-a299773c3255', 'a0007ce5-e93d-5641-ae14-bdc2bdb383f7', '48c12ba4-2005-500f-8028-7524b3cfce82', '5921681c-86c7-55ca-a9b6-6ce703c9594e', 'c73ee7a0-ff5f-5256-a367-6ac73666b777', 'b7126242-b0f0-5cde-a3bc-8968a5b2a6e4', 'd7115b48-9b4c-572a-ba70-589f506025e6', 'f551b10f-16bb-50",
+        "success": true,
+        "took_ms": 1830,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 5 documents by relevance, scores: [10.609, 7.734, 7.582, 6.594, 6.562]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 2234,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.69, contexts: 5",
+        "success": true,
+        "took_ms": 2,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['87b42e13-a884-54b6-8322-85013a895407', 'c98bb2df-f3d6-5896-a263-a533edff4e00', '875e56df-7d7d-5e31-ae5d-6b3b098dd047', '9d017ecf-2506-5d90-b5f4-a299773c3255', 'a0007ce5-e93d-5641-ae14-bdc2bdb383f7', '48c12ba4-2005-500f-8028-7524b3cfce82', '5921681c-86c7-55ca-a9b6-6ce703c9594e', 'c73ee7a0-ff5f-5256-a367-6ac73666b777', 'b7126242-b0f0-5cde-a3bc-8968a5b2a6e4', 'd7115b48-9b4c-572a-ba70-589f506025e6', 'f551b10f-16bb-50",
+        "success": true,
+        "took_ms": 1987,
+        "system_generated": true,
+        "refinement": true,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 20 citations, coverage: 0.77, contexts: 20",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": true,
+        "refinement": true,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (994 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "87b42e13-a884-54b6-8322-85013a895407",
+        "channel": "protechietich",
+        "message_id": 3780,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Как мы и говорили: сильная отчётность Nvidia не смогла ослабить опасения инвесторов по поводу «пузыря ИИ». Пессимизм инвесторов отразился и на рынке криптовалют, капитализация которого с конца октября упала на $1 трлн\n\nВ то же время американские фондовые индексы пережили самое большое внутридневное падение с апреля 2025 года. По итогам торгов 20 ноября S&P 500 рухнул на 3,5%, Nasdaq 100 упал на 2,38%, Nasdaq Composite — на 2,15%, Dow Jones — на 0,84%. \n\nТо ли еще будет…\n\n😎 Читайте Про tech и этих"
+      },
+      {
+        "id": "c98bb2df-f3d6-5896-a263-a533edff4e00",
+        "channel": "protechietich",
+        "message_id": 3776,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Крах ИИ-бума снова откладывается, по крайней мере для NVidia и скорее всего временно \n\nNVIDIA представила квартальный отчёт с рекордными показателями. За третий квартал компания получила почти $57 млрд выручки, из них $51,2 млрд — от бизнеса дата-центров.\n\nПрогноз тоже бодрый: в следующем квартале ожидаются продажи около $65 млрд (±2%).\nПосле публикации результатов акции NVIDIA взлетели в послессессионных торгах, а оптимизм компании подбодрил и весь сектор технологий и ИИ, несколько ослабив тревогу насчёт возможного пузыря. Но радоваться не стоит. Возможно финрезы NVidia только приближают крах, лишь надувая пузырь сильнее.\n\nРынок все же не резиновый. Кто знает, какой черный лебедь нас ожидает?\n\n😎 Читайте Про tech и этих"
+      },
+      {
+        "id": "9d017ecf-2506-5d90-b5f4-a299773c3255",
+        "channel": "data_secrets",
+        "message_id": 8256,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "На бирже опять что-то интересное происходит: миллиардер Питер Тиль продал все свои акции Nvidia\n\nОн владел примерно 537 тысячами акций, они составляли 40% всего его фонда. Капитал он перераспределил в Microsoft, Apple и частично Tesla. \n\nОсновная мотивация та же – опасения по поводу пузыря. Он несколько раз публично заявлял, что не видит устойчивого экономического фундамента под текущей эйфорией вокруг ИИ, и, по классике, сравнивал ситуацию с доткомами 90-х. В общем, акции Nvidia Тиль, судя по всему, посчитал перегретыми. \n\nИтого, что мы имеем: \n\n– Один из самых влиятельных инвесторов мира избавляется от своих акций Nvidia \n\n– SoftBank также продает всю свою долю в компании \n\n– Майкл Бьюрри, который заработал миллионы на предыдущем кризисе США, шортит Nvidia на 14% всего своего портфеля \n\nМнения?"
+      },
+      {
+        "id": "c46de34e-28d3-5a49-84ec-bc07e892ceaa",
+        "channel": "data_secrets",
+        "message_id": 8189,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Майкл Бьюрри поставил 1.1 млрд долларов на крах ИИ-пузыря \n\nМайкл Бьюрри – это тот самый инвестор, про которого сняли фильм «Игра на понижение». В 2008 году он был одним из первых, кто увидел надвигающийся кризис недвижимости США и купил CDS на ипотечные облигации. Тогда он и его фонд заработали на этом около миллиарда долларов. \n\nТеперь же он приобрел пут-опционы на сумму около $1.1 млрд против акций Nvidia и Palantir (это ПО для анализа данных). \n\nПут-опцион – это такая штука, которая позволяет заработать на падении цены акций: если цена идет вниз, такой инвестор получает прибыль, поскольку может продать акции по более высокой цене, чем рыночная. \n\nМайкл утверждает, что сектор ИИ избыточно перегрет, и это очень напоминает ситуацию перед пузырём доткомов. \n\nЗаявочка? ☠️"
+      },
+      {
+        "id": "875e56df-7d7d-5e31-ae5d-6b3b098dd047",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 8957,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "- Nvidia потеряла $350 млрд капитализации всего через неделю после достижения отметки $5 трлн - достаточно лёгкого смещения ожиданий, чтобы такой гигант обвалился.\n\nДополнительные точки напряжения:\n\n- Политика: обсуждаются ограничения на продажи чипов Blackwell в Китай и это тоже бьёт по прогнозам будущего спроса.\n- Конкуренция: слухи, что Moonshot Kimi K2 обучили менее чем за $5 млн, снова подняли страхи «дешёвого AGI». Подобное уже было с DeepSeek, когда Nvidia потеряла $589 млрд за один день.\n- Финансирование: дискуссии о господдержке стартапа на $500 млрд и планах ИИ-инфраструктуры на $1.4 трлн заставляют инвесторов задаваться вопросом: *кто оплачивает этот праздник и как быстро он окупится?*\n\n ИИ остаётся драйвером роста, но рынок впервые чувствительно отреагировал на очевидные риски. Когда рынок перегрет, даже небольшие сомнения превращаются в сотни миллиардов убыток.\n\nft.com/content/8c6e3c18-c5a0-4f60-bac4-fcdab6328bf8\n\n@ai_machinelearning_big_data\n\n#ai #ml #finance"
+      },
+      {
+        "id": "a0007ce5-e93d-5641-ae14-bdc2bdb383f7",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 8957,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "📉 AI-рынок просел на $800 млрд за неделю\n\nТехнологические компании, связанные с ИИ, потеряли около $800 млрд капитализации всего за несколько дней. Nasdaq упал на 3%  и это первый серьёзный сигнал, что рынок начинает сомневаться в темпах ИИ-роста.\n\nЧто происходит:\n\n— Расходы на ИИ сильно выросли: крупные компании вложили рекордные $112 млрд за июль–сентябрь, причём большую часть - в долг. Если доходы не будут расти так же быстро, этот долг станет давить на бизнес.\n\n— Частные инвесторы почти не покупали на падении, поэтому рынок просел глубже обычного и не было тех, кто обычно подхватывает акции в такие моменты.\n\n— Макроэкономика ухудшилась: настроение потребителей упало до минимума за 3 года, почти полтора месяца не выходили важные госданные, и появились новости о новых увольнениях. Всё это усилило нервозность на рынке.\n\n\nПочему падение получилось таким резким:\n\n- Хедж-фонды сидели в одних и тех же AI-акциях, и при первой просадке начали продавать одновременно.\n- Алгоритмические фонды усилили распродажу, автоматически сокращая позиции на росте волатильности.\n\nГлавный удар:"
+      },
+      {
+        "id": "48c12ba4-2005-500f-8028-7524b3cfce82",
+        "channel": "data_secrets",
+        "message_id": 8360,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Nvidia сегодня снова в центре внимания: они внезапно выложили самодовольный твит, в котором поздравили Google с успехом, но (скажем так) не от всей души \n\nНапоминаем, что вчера стало известно, что Meta впервые в истории закупит у Google TPU для установки в свои датацентры (мы об этом вот тут писали). Так вот, на фоне новости акции Nvidia упали аж на 6 пунктов, и компания, видимо, решила \"ненавязчиво\" напомнить, кто тут главный. \n\nДословный перевод этого бархатно-токсичного чуда: \n\nМы рады успехам Google – они действительно заметно продвинулись в ИИ, и при этом мы продолжаем оставаться их поставщиком.\n\nNVIDIA опережает всю отрасль как минимум на одно поколение – это единственная платформа, способная запускать любые модели ИИ и использоваться повсюду, где идут вычисления.\n\nNVIDIA предлагает более высокую производительность, гибкость и взаимозаменяемость по сравнению с ASIC-чипами, которые заточены под конкретные фреймворки или отдельные задачи.\n\nВ определение \"ASIC\", если что, гугловские TPU попадают напрямую  🤠\n\nОщущется пост буквально вот так:"
+      },
+      {
+        "id": "5921681c-86c7-55ca-a9b6-6ce703c9594e",
+        "channel": "protechietich",
+        "message_id": 3741,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Есть только два типа тем, которые нас волнуют: когда лопнет пузырь ИИ и когда умрет биткоин. Сегодня поговорим про первую.\n\nТо что он лопнет - сомнений нет, вопрос времени.\n\nОдин из главных героев фильма «Игра на понижение» (The Big Short) Майкл Бьюрри сделал крупную ставку на обвал акций компаний, работающих в сфере искусственного интеллекта.\n\nНапомним, что именно он предсказал крах ипотечных облигаций за полтора года до этого. Ему никто не верил. В итоге Бьюри заработал около $100 млн личной прибыли и более $700 млн для инвесторов своего фонда Scion Capital.\n\nВ конце октября он сделал несколько записей в соцсети X, в которых намекал, что ИИ-бум может закончиться так же, как и бум доткомов. Тогда избыточные капитальные расходы многих интернет-компаний не окупились и повлекли за собой их банкротство.\n\nКомпания Бьюрри Scion Asset Management представила отчет, из которого следует, что ее самые крупные позиции представляют собой пут-опционы на акции Palantir и Nvidia в совокупности почти на $1 млрд. То есть Бьюрри всерьез рассчитывает повторить успех 2008-го.\n\n😎 Читайте Про tech и этих"
+      },
+      {
+        "id": "c73ee7a0-ff5f-5256-a367-6ac73666b777",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 8946,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Nvidia  фактически теряет один из своих крупнейших исторических рынков. \n\nAI-железо становится не вопросом производительности, а вопросом политических решений, что меняет динамику всей индустрии.\n\nhttps://www.reuters.com/world/china/us-block-nvidias-sale-scaled-back-ai-chips-china-information-says-2025-11-07/\n\n\n@ai_machinelearning_big_data"
+      },
+      {
+        "id": "b7126242-b0f0-5cde-a3bc-8968a5b2a6e4",
+        "channel": "aioftheday",
+        "message_id": 3745,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "В комментариях спросили, что будет с OpenAI, когда ИИ-пузырь лопнет.\n\nЯ думаю, что если случится что-то типа NASDAQ-2000, то OpenAI скорее всего никуда не денется. Ну т. е. они могут сейчас так наструктурировать, что падение акций их обанкротит, но вероятность такого риска снаружи никто не оценит. Я точно не оценю.\n\nЕсли эту возможность игнорировать, то акции как упадут, так и отрастут через следующие годы. AI никуда не денется, OpenAI скорее всего останется одним из лидеров и в технологиях, и в охватах.\n\nБолее грандиозное падение, чем у доткомов мне кажется совсем маловероятным. Я и в повторении того сценария далеко не уверен. Может и не упадет. Акции NVidia у меня есть."
+      },
+      {
+        "id": "d7115b48-9b4c-572a-ba70-589f506025e6",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9080,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "📊 Google стала главным двигателем роста S&P 500 в 2025 году\n\nAlphabet в одиночку дала 19.4% всего роста S&P 500, это около $1.3 трлн рыночной капитализации.\n\nNvidia добавила 16.0% еще $1.05 трлн, индекс теперь почти напрямую следует за AI гигантами.\n\nBroadcom и Microsoft внесли 7.8% и 5.7%, а остальные компании из топ 10 еще 10.6%.\n\nИтог: топ 10 компаний показывают 59.4% всего роста рынка тогда как остальные 490 лишь 40.6%.\n\nS&P 500 все меньше отражает состояние экономики и все больше коррелирует с узким сегментом крупнейших AI корпораций.\n\nhttps://x.com/KobeissiLetter/status/1993359777062436902\n\n@ai_machinelearning_big_data"
+      },
+      {
+        "id": "f551b10f-16bb-5037-b49e-457d4332437f",
+        "channel": "aioftheday",
+        "message_id": 3770,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "SoftBank продал всю свою долю в Nvidia за 5.8 миллиарда долларов\n\nВ компании говорят, что продажа никак не связана с разговорами о пузыре в AI. Просто Масаёси Сону нужны деньги на Stargate, производство роботов и остальные AI-проекты, в которые вписался SoftBank.\n\nЭто не первый случай, когда SoftBank выходит из Nvidia: в 2019 он продал все акции (на тот момент 4.9%) за 3.3 миллиарда. Потом снова заходил небольшими частями с 2020 до середины 2025.\n\nТак нельзя говорить, но те 3.3 миллиарда сейчас бы стоили 250. Softbank всегда хорошо угадывает в инвестициях. \n\nhttps://www.bloomberg.com/news/articles/2025-11-11/softbank-s-profit-surges-after-boost-from-soaring-ai-valuations"
+      },
+      {
+        "id": "100b8ec0-2760-58a9-ba9f-9f06bb6a69d4",
+        "channel": "aioftheday",
+        "message_id": 3731,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Amazon даст OpenAI доступ к чипам Nvidia за 38 миллиардов долларов\n\nOpenAI начнёт немедленно использовать Amazon Web Services для ChatGPT. \n\nAWS установит сотни тысяч чипов Nvidia GB200 и GB300. На целевой объем должны выйти до конца 2026 года. Контракт рассчитан на 7 лет. \n\nhttps://www.bloomberg.com/news/articles/2025-11-03/amazon-inks-38-billion-deal-with-openai-to-supply-nvidia-chips"
+      },
+      {
+        "id": "4f67dca1-5cca-5df1-a302-0b26564b3722",
+        "channel": "seeallochnaya",
+        "message_id": 3152,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "— На 3-й квартал 2025-го года вычислительные мощности Anthropic состоят лишь на 50% из GPU, на 20% из чипов Amazon Trainium (тут недавно как раз новый датацентр запустили) и на целых 30% из TPU. На бумаге TPU 7-го поколения чуть слабее GPU от Nvidia — почему же тогда все хотят их использовать? Дело как раз в TCO: Nvidia, как я уже говорил несколько раз, имеет сумасшедшую наценку в 300%.\n\n— Google тихо вмешалась и захватила лидерство по производительности в одной из сложнейших аппаратных задач — поистине впечатляющее достижение для компании, чей основной бизнес не связан (или, правильнее сказать, не был связан) с железом. Я недавно слушал подкаст, не помню какой, и там как раз обсуждали тему TPU: если бы рынок понимал спрос на чипы, то Google стоил бы на несколько триллионов больше, точно опережал бы Nvidia. Чипы вообще могли бы стать основным бизнесом компании."
+      },
+      {
+        "id": "448c47ef-232e-5e3d-85dd-289e397a70b3",
+        "channel": "seeallochnaya",
+        "message_id": 3071,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Глянул прикольный видос, где автор разбирает, почему AI-пузырь до сих пор не лопнул, хотя все согласны, что он есть. Интересная логика.\n\nВсе говорят \"пузырь\" - рынок держится на спекуляциях пары компаний, продукты не окупают затраты, руководители играют в \"кто назовёт большее число\", но информированные инвесторы продолжают вливать миллиарды каждый месяц.\n\nКак лопались прошлые пузыри\n\nДоткомы - антимонопольный иск к Microsoft, пересмотр отчётности Micro Strategy (акции упали на 60% за день и разбирательства с регулятором), статья о нежизнеспособности бизнес-моделей. Жилищный - кризис субстандартной ипотеки, рост ставок, банкротства кредиторов.\n\nAI уже пережил кучу потенциальных триггеров - нестабильность из-за тарифов, регулирование чипов, рост ставок, юридические проблемы с данными для обучения, проблемы с инфраструктурой, исследования, ставящие под вопрос бизнес-применение, отчаянные попытки найти выручку, ежедневные статьи о проблемах. Рынок проигнорировал всё это.\n\nАвтор нашёл три причины, почему это ещё стоит:\n\n1) Источник денег - не долг, а кеш"
+      },
+      {
+        "id": "194a7df5-66e7-5f56-a061-4ac80b1df53a",
+        "channel": "data_secrets",
+        "message_id": 8376,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Прошел интересный слух, что в 2026 Nvidia больше не будет продавать партнерам память \n\nТо есть вместо того, чтобы поставлять кристалл в комплекте с микросхемами GDDR‑памяти, компания теперь будет отправлять партнерам только сам чип. \n\nПроизводители будут вынуждены самостоятельно закупать VRAM у Samsung, Micron, SK Hynix и др. \n\nПричина все та же: острая нехватка памяти. Все что есть перенаправляют на строительство датацентров для ИИ, а для игровых видеокарт делиться памятью Nvidia уже невыгодно. \n\nЧем это грозит конечному потребителю, довольно очевидно: рост цен и дефицит отдельных моделей видеокарт 😞"
+      },
+      {
+        "id": "a7f49489-a0fe-50ef-9e1e-720ec9d7e7df",
+        "channel": "aioftheday",
+        "message_id": 3755,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "The big (fake?) AI short\n\nМедиа торгует вниманием. Модель простая: покупаем, а лучше бесплатно получаем внимание, и перепродаём его рекламодателям. Беспроигрышный способ намайнить бесплатного внимания – выдавать пугающие прогнозы. Желательно сопровождать их большими, впечатляющими числами. В этом смысле Майкл Бюрри – идеальный ньюсмейкер.\n\nВсе уже написали про его недавние твиты и форму 13-F. Типичные заголовки: «Бюрри зашортил Nvidia и Palantir на 80% фонда», «Бюрри поставил $900 млн. против Палантира». Поразительно, но такую лажу выдают даже уважаемые профильные издания вроде Financial Times. Уж если FT пишет такое, то не приходится многого ожидать от комментаторов, которые делятся в соцсетях своими умозаключениями по этому поводу на основе статей из прессы.\n\nЧто на самом деле можно сказать, глядя на форму 13-F Scion Asset Management? Почти ничего определённого. Во-первых, раскрытию подлежат только длинные позиции, поэтому мы не знаем, не шортил ли фонд одновременно акции или коллы на акции. Во-вторых, раскрывается только число опционов, но не дата экспирации и страйк. Таким образом, сумма ставки Бюрри через путы может лежать в очень широком диапазоне. Если опционы короткие, а страйки очень низкие, то размер ставки близок к нулю.\n \nРеальность скучная и неоднозначная, поэтому рассказывать будут о выдуманных миллиардных ставках. Благодарные слушатели этих рассказов находятся, внимание продаётся, менеджеры медиа-компаний говорят спасибо Бюрри и идут искать следующий инфоповод."
+      },
+      {
+        "id": "078d8e8b-628a-527c-8241-2d32bbc8afb6",
+        "channel": "seeallochnaya",
+        "message_id": 3150,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "— Если сопоставить прогнозируемую выручку и затраты, а также инвестиции от Nvidia / AMD / деньги на счету, то получается, что в период до 2030-го года включительно у OpenAI образуется дыра в бюджете в $200 миллиардов. И это, внезапно, выглядит как очень маленькая цифра — они уже суммарно привлекли ~60 за всю историю. $200 миллиардов сравнимо с годовой выручкой META или Google, и с прогнозируемой выручкой OpenAI после 2030-го. \n\nИ это ещё в анализе не учитываются новые продукты, генерация видео, итд. Так что дыра может быть ещё меньше.\n\nДаже при текущих кажущихся супер-амбициозными планами и цифрами получается, что всё вполне закономерно. Ну, конечно, если верить, что OpenAI останутся топ-1 пользовательского сегмента и не сдадут позиций — Sama вперёд 🎉📈"
+      },
+      {
+        "id": "136db8d7-5eea-5784-ba6b-4d24178d9704",
+        "channel": "boris_again",
+        "message_id": 3565,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "#дайджест\n\nДайджест ML/AI за неделю с 17 - 23 Ноября 2025\n\nЭкспериментальный пост! По двум причинам. Во-первых, тестирую сам формат дайджестов. Во-вторых, дайджест делал не я. Я люто ненавижу писать ссылко-посты (несмотря на то, что вижу в них пользу). Ну не получается у меня. Поэтому я заплатил за это человеку, а потом отредактировал. Так что это эксперимент по добавлению других людей по эту сторону канала. Оставляйте свой фидбек!\n\nGoogle: Gemini 3 Pro. \nНовое поколение Gemini, SOTA по всем бенчмаркам с значимым отрывом. \nARC-AGI-2 +13%, Humanity's Last Exam +11%.  \nДоступна бесплатно в Google AI Studio, при этом API модели обойдется на дороже на 20% чем у Gemini 2.5 Pro.\nКарточка модели, Пробовать здесь, описание бенчмарков от меня.\n\nGoogle: Nano Banana Pro. \nмодель для редактирования изображений на основе Gemini 3. Очень сильно прокачали консистентность и следование сложным промптам. Модель уже можно попробовать в Google AI Studio или приложении Gemini. Бесплатно дается 5 генераций в сутки через free-tier Gemini App.\nПробовать здесь, Блогпост модели"
+      },
+      {
+        "id": "a1474bca-7d18-5b49-95c6-7b52fa00c866",
+        "channel": "oulenspiegel_channel",
+        "message_id": 4816,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "AIJ в пути👾\n\nСовсем скоро стартует AIJ, подключайтесь к трансляции и смотрите от и до. А 20 и 21 ноября на доклады моих коллег.\n\n20 ноября — бизнес-день\nНа сцене Зеленого атриума пройдет питч-сессия стартапов и презентации агентов. А вечером — Fail Session: топовые спикеры расскажут, как делать не надо.\n\nFail Session. Модератор — Александр Капитанов  \n✌️ Управляем жестами под жёстким давлением, Дмитрий Балиев\n🙃 Как из-за ML я \"положил\" главный магазин электроники в стране на 10 часов, Дмитрий Антипов\n🏃 В погоне за time2market: как мы внедряли ML давным-давно, Олег Артюгин\n\n\n21 ноября — день науки!\nСпикеры расскажут про мультимодальные модели, создание агентов, генеративный искуственный интеллект, робототехнику, медицину, будущее ИИ и многое другое.\n\n🤖 ИИ после LLM: каким будет следующее поколение больших моделей, Сергей Марков\nКакие стратегические цели стоят сегодня перед ИИ-индустрией? Как будет выглядеть следующее поколение больших моделей?\n\n✈️ GigaChat: Новый уровень возможностей, Александр Капитанов\nGigaChat в 2023 и сейчас — это две разные сущности. Посмотрим, что умеет современный ИИ и какое его ждет развитие."
+      }
+    ],
+    "citation_hits": [
+      "protechietich:3780",
+      "protechietich:3776",
+      "data_secrets:8256",
+      "data_secrets:8189",
+      "ai_machinelearning_big_data:8957",
+      "data_secrets:8360",
+      "protechietich:3741",
+      "ai_machinelearning_big_data:8946",
+      "aioftheday:3745",
+      "ai_machinelearning_big_data:9080",
+      "aioftheday:3770",
+      "aioftheday:3731",
+      "seeallochnaya:3152",
+      "seeallochnaya:3071",
+      "data_secrets:8376",
+      "aioftheday:3755",
+      "seeallochnaya:3150",
+      "boris_again:3565",
+      "oulenspiegel_channel:4816"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "87b42e13-a884-54b6-8322-85013a895407",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c98bb2df-f3d6-5896-a263-a533edff4e00",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "875e56df-7d7d-5e31-ae5d-6b3b098dd047",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9d017ecf-2506-5d90-b5f4-a299773c3255",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a0007ce5-e93d-5641-ae14-bdc2bdb383f7",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "48c12ba4-2005-500f-8028-7524b3cfce82",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5921681c-86c7-55ca-a9b6-6ce703c9594e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c73ee7a0-ff5f-5256-a367-6ac73666b777",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b7126242-b0f0-5cde-a3bc-8968a5b2a6e4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d7115b48-9b4c-572a-ba70-589f506025e6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "f551b10f-16bb-5037-b49e-457d4332437f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "100b8ec0-2760-58a9-ba9f-9f06bb6a69d4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "76cde4ab-e09f-5cc5-92f9-3738ea1bd1ff",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "4f67dca1-5cca-5df1-a302-0b26564b3722",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c46de34e-28d3-5a49-84ec-bc07e892ceaa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6d937fa6-5bfc-5ce3-ba9f-a6ba8e8c627f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9a62d28b-89bb-573b-adfb-87febba6e6a7",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "448c47ef-232e-5e3d-85dd-289e397a70b3",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "abce4d6d-6c42-5e0d-9bfb-cb16a4c566e7",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "f5984e37-1422-5bca-81b6-daa3617714a4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "194a7df5-66e7-5f56-a061-4ac80b1df53a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a7f49489-a0fe-50ef-9e1e-720ec9d7e7df",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "078d8e8b-628a-527c-8241-2d32bbc8afb6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "136db8d7-5eea-5784-ba6b-4d24178d9704",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a1474bca-7d18-5b49-95c6-7b52fa00c866",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q041",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Сильная отчётность Nvidia не сняла опасения инвесторов по поводу «пузыря ИИ».",
+        "Капитализация криптовалют с конца октября упала примерно на $1 трлн.",
+        "20 ноября 2025 года S&P 500 упал на 3,5%, Nasdaq 100 — на 2,38%, Nasdaq Composite — на 2,15%, Dow Jones — на 0,84%."
+      ],
+      "expected_answer": "Пост утверждает, что сильная отчётность Nvidia не сняла опасения инвесторов по поводу «пузыря ИИ». На этом фоне криптовалютный рынок с конца октября потерял около $1 трлн капитализации, а 20 ноября 2025 года американские индексы пережили крупнейшее внутридневное падение с апреля 2025 года: S&P 500 упал на 3,5%, Nasdaq 100 — на 2,38%, Nasdaq Composite — на 2,15%, Dow Jones — на 0,84%.",
+      "expected_entities": [
+        "Nvidia",
+        "S&P 500",
+        "Nasdaq 100",
+        "Nasdaq Composite",
+        "Dow Jones"
+      ],
+      "expected_topics": [
+        "фондовый рынок",
+        "криптовалюты",
+        "инвестиции",
+        "Nvidia"
+      ],
+      "expected_channels": [
+        "protechietich"
+      ],
+      "source_post_ids": [
+        "protechietich:3780"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 3780,
+        "date": "2025-11-21T15:26:03",
+        "year_month": "2025-11",
+        "year_week": "2025-W47",
+        "draft_review_required": false,
+        "review_status": "edit",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Edited query/claims to keep the candidate centered on Nvidia/AI bubble, not generic finance/crypto."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  }
+]

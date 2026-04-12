@@ -1,0 +1,973 @@
+{
+  "eval_metadata": {
+    "eval_id": "eval_20260410-204359",
+    "timestamp": "2026-04-10T20:43:59.304817",
+    "dataset": "/app/datasets/golden_v3/eval_golden_v3_reviewed.json",
+    "judge_model": null,
+    "total_questions": 1,
+    "duration_sec": 32.26752757699978
+  },
+  "aggregate": {
+    "total_queries": 1,
+    "answerable_queries": 1,
+    "negative_queries": 0,
+    "golden_queries": 1,
+    "errors": {
+      "agent": 0,
+      "baseline": 1
+    },
+    "primary": {
+      "key_tool_accuracy": {
+        "mean": 1.0,
+        "total_evaluated": 1
+      },
+      "tool_call_f1": {
+        "mean": 1.0,
+        "total_evaluated": 1
+      },
+      "factual_correctness": {
+        "mean": null,
+        "total_evaluated": 0
+      },
+      "usefulness": {
+        "mean": null,
+        "total_evaluated": 0
+      },
+      "failure_breakdown": {}
+    },
+    "retrieval_ir": {
+      "precision_at_5": {
+        "mean": 0.2,
+        "total_evaluated": 1
+      },
+      "mrr": {
+        "mean": 0.5,
+        "total_evaluated": 1
+      },
+      "ndcg_at_5": {
+        "mean": 0.6309297535714575,
+        "total_evaluated": 1
+      },
+      "bertscore_f1": {
+        "mean": null,
+        "total_evaluated": 0
+      },
+      "summac_faithfulness": {
+        "mean": null,
+        "total_evaluated": 0
+      }
+    },
+    "retrieval_grounding": {
+      "acceptable_set_hit": {
+        "mean": 1.0,
+        "total_evaluated": 1
+      },
+      "retrieval_sufficiency_score": {
+        "mean": null,
+        "total_evaluated": 0,
+        "pending_offline_judge": true
+      },
+      "evidence_support_score": {
+        "mean": null,
+        "total_evaluated": 0,
+        "pending_offline_judge": true
+      }
+    },
+    "diagnostic": {
+      "strict_anchor_recall": {
+        "mean": 1.0,
+        "full": 1,
+        "zero": 0,
+        "total_evaluated": 1
+      },
+      "coverage": {
+        "mean": 1.0
+      },
+      "latency": {
+        "agent": {
+          "mean": 32.26752757699978,
+          "p95": 32.26752757699978
+        },
+        "baseline": {
+          "mean": null,
+          "p95": null
+        }
+      }
+    },
+    "by_category": {
+      "broad_search": {
+        "queries": 1,
+        "strict_anchor_recall_mean": 1.0,
+        "acceptable_set_hit_mean": 1.0,
+        "key_tool_accuracy_mean": 1.0,
+        "tool_call_f1_mean": 1.0,
+        "precision_at_5_mean": 0.2,
+        "mrr_mean": 0.5,
+        "ndcg_at_5_mean": 0.6309297535714575,
+        "bertscore_f1_mean": null,
+        "factual_correctness_mean": null,
+        "usefulness_mean": null,
+        "agent_latency_mean": 32.26752757699978
+      }
+    }
+  },
+  "per_question": [
+    {
+      "query_id": "golden_q01",
+      "query": "Кого Financial Times назвала человеком года в 2025?",
+      "version": "2.0",
+      "category": "broad_search",
+      "eval_mode": "retrieval_evidence",
+      "difficulty": "easy",
+      "answerable": true,
+      "expected_answer": "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии.",
+      "calibration": true,
+      "dataset_contract": {
+        "id": "golden_q01",
+        "version": "2.0",
+        "eval_mode": "retrieval_evidence",
+        "answerable": true,
+        "expected_refusal": false,
+        "refusal_reason": null,
+        "key_tools": [
+          "search"
+        ],
+        "forbidden_tools": [
+          "temporal_search",
+          "summarize_channel",
+          "list_channels"
+        ],
+        "acceptable_alternatives": [],
+        "required_claims": [
+          "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии."
+        ],
+        "expected_answer": "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии.",
+        "expected_entities": [],
+        "expected_topics": [],
+        "expected_channels": [
+          "ai_machinelearning_big_data"
+        ],
+        "source_post_ids": [
+          "ai_machinelearning_big_data:9245"
+        ],
+        "acceptable_evidence_sets": [
+          [
+            "ai_machinelearning_big_data:9245"
+          ]
+        ],
+        "strict_anchor_recall_eligible": true,
+        "calibration": true,
+        "difficulty": "easy",
+        "notes": null,
+        "metadata": {
+          "created_at": "2026-03-24",
+          "created_by": "human",
+          "tags": [
+            "nvidia",
+            "jensen_huang",
+            "factual"
+          ]
+        }
+      },
+      "required_claims": [
+        "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии."
+      ],
+      "agent": {
+        "answer": "Financial Times назвала «Человеком года» в 2025 году Дженсена Хуанга (Jensen Huang), основателя и генерального директора NVIDIA [1][2]. \n\nДеловое издание отметило ключевую роль Хуанга в трансформации полупроводниковой индустрии и глобальном распространении искусственного интеллекта. Журнал подчеркнул, что именно благодаря его лидерству NVIDIA первой в мире преодолела рубеж рыночной капитализации в $5 трлн и стала самой дорогой компанией на планете [2].\n\nТакже Financial Times отмечает, что Дженсен Хуанг стал важной фигурой в отношениях между США и Китаем, а также в глобальной технологической политике [1]. Примечательно, что в прошлом году (2024) «Человеком года» по версии FT был Дональд Трамп [1].\n\nОтдельно стоит отметить, что журнал Time в 2025 году назвал «Человеком года» коллективно группу из восьми лидеров ИИ-индустрии под названием «Архитекторы ИИ», куда также вошли Сэм Альтман, Илон Маск и другие, включая Дженсена Хуанга [3][4].",
+        "citations": [
+          {
+            "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+            "index": 1,
+            "metadata": {
+              "channel_id": -1001009962628,
+              "channel": "techsparks",
+              "message_id": 5334,
+              "date": "2025-12-12T19:31:30",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+            "index": 2,
+            "metadata": {
+              "channel_id": -1001114591086,
+              "channel": "ai_machinelearning_big_data",
+              "message_id": 9245,
+              "date": "2025-12-13T07:10:10",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "9cb11247-b128-5079-9524-a7adbbe13bcc",
+            "index": 3,
+            "metadata": {
+              "channel_id": -1001720833502,
+              "channel": "data_secrets",
+              "message_id": 8478,
+              "date": "2025-12-11T16:38:50",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "5e49661f-3b01-598c-9578-a30955a84905",
+            "index": 4,
+            "metadata": {
+              "channel_id": -1001009962628,
+              "channel": "techsparks",
+              "message_id": 5333,
+              "date": "2025-12-11T20:49:01",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          },
+          {
+            "id": "134381dc-6ef6-5886-be40-0eedad28324d",
+            "index": 5,
+            "metadata": {
+              "channel_id": -1001114591086,
+              "channel": "ai_machinelearning_big_data",
+              "message_id": 9233,
+              "date": "2025-12-11T16:45:35",
+              "is_forward": false,
+              "links": [],
+              "media_types": []
+            }
+          }
+        ],
+        "coverage": 1.0,
+        "refinements": 0,
+        "verification": {
+          "verified": true,
+          "confidence": 0.8,
+          "documents_found": 3
+        },
+        "fallback": false,
+        "request_id": "b81d7897-3a9c-4d0f-bbb6-59394e64e440",
+        "citation_hits": [
+          "techsparks:5334",
+          "ai_machinelearning_big_data:9245",
+          "data_secrets:8478",
+          "techsparks:5333",
+          "ai_machinelearning_big_data:9233"
+        ],
+        "tools_invoked": [
+          "query_plan",
+          "search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search"
+          ],
+          [
+            "query_plan",
+            "search"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "citations_detailed": [
+          {
+            "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+            "channel": "techsparks",
+            "message_id": 5334,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "А Хуанг стал не только архитектором года по версии Time (см. предыдущий пост), но и человеком года по мнению Financial Times -- знатный дубль вышел. Мотивировочная часть любопытна: Huang’s recognition reflects his emergence as a pivotal figure in U.S.-China relations and global technology policy\nВ прошлом году FT признала человеком года Трампа, между прочим.\nhttps://www.ft.com/content/11a018f4-95e0-41c2-99d8-aff105328a0b"
+          },
+          {
+            "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+            "channel": "ai_machinelearning_big_data",
+            "message_id": 9245,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "✔️ Financial Times назвала Дженсена Хуанга «Человеком года».\n\nДеловое издание отметило ключевую роль Хуанга в трансформации полупроводниковой индустрии и глобальном распространении ИИ. NVIDIA оказалась в центре беспрецедентной инвестиционной программы частного сектора, что позволило ей первой в мире преодолеть рубеж рыночной капитализации в $5 трлн. и стать самой дорогой компанией на планете.\n\nFT утверждает, что 2025 год войдет в историю как время, когда дата-центры окончательно закрепились в статусе критически важной инфраструктуры. Наращивание вычислительных мощностей для ИИ превратилась в драйвер экономики, обеспечив значительную долю роста ВВП США.\nft.com\n\n✔️ NVIDIA предложила ИИ-концепцию для инженерного моделирования.\n\nNVIDIA Research предлагает смену парадигмы Computer-Aided Engineering (CAE) на AI-Aided Engineering. Вместо прямых вычислений предлагается использовать ИИ-модели, обученные на физических законах и данных симуляций. Такие модели работают как быстрая замена классическим расчётам. Например, прогноз погоды можно сделать за минуты вместо дней."
+          },
+          {
+            "id": "9cb11247-b128-5079-9524-a7adbbe13bcc",
+            "channel": "data_secrets",
+            "message_id": 8478,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Сэм Альтман, Дженсен Хуанг и другие ИИ-лидеры коллективно стали «Человеком года» по версии Time \n\nВ этом году победителем номинации стал не один человек, а целая группа под названием «Architects of AI». \n\nВ частности: Сэм Альтман, Дарио Амодеи, Демис Хассабис, Дженсен Хуанг, Фэй-Фэй Ли, Илон Маск, Лиза Су и Марк Цукерберг. \n\n«2025 год стал годом, когда весь потенциал искусственного интеллекта проявился во всей своей полноте и стало ясно, что пути назад уже нет. За то, что эпоха думающих машин стала реальностью; за то, что поразили и встревожили человечество; за изменение настоящего и расширение границ возможного – человеком 2025 года Time стали архитекторы искусственного интеллекта»\n\nКстати, обложка сгенерирована или нам показалось?  🤨\n\ntime.com/7339685/person-of-the-year-2025-ai-architects/"
+          },
+          {
+            "id": "5e49661f-3b01-598c-9578-a30955a84905",
+            "channel": "techsparks",
+            "message_id": 5333,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Человек года по версии журнала Time на сей раз един в восьми лицах; лица эти принадлежат Mark Zuckerberg (Meta), Lisa Su (Advanced Micro Devices), Elon Musk (xAI), Jensen Huang (Nvidia), Sam Altman (OpenAI), Demis Hassabis (DeepMind Technologies), Dario Amodei (Anthropic), and Fei-Fei Li (Stanford’s Human-Centered AI Institute). Эта восьмерка объявлена архитекторами ИИ, а год 2025 — годом, когда стал виден колоссальный потенциал ИИ и когда стало ясно, что возврата к прошлому не будет. Не самое ожидаемое заявление со стороны крупного традиционного СМИ; в этих кругах принято относиться к ИИ, мягко говоря, без восторгов. А тут слова и про эру думающих машин, и про трансформацию настоящего, и про выход за пределы возможного, просто подозрительный набор комплиментов. Представлены две версии обложки, обе хороши:) Хотя мне версия знаменитой фотографии 1932 года «обед наверху небоскреба» нравится больше:) Для тех, кому все это не нравится — комментарий по ссылочке, там как раз много ядовитых замечаний в адрес ИИ, который так зол и опасен:))\nhttps://www.yahoo.com/news/us/article/times-2025-person-of-the-year-the-architects-of-ai-172342364.html"
+          },
+          {
+            "id": "134381dc-6ef6-5886-be40-0eedad28324d",
+            "channel": "ai_machinelearning_big_data",
+            "message_id": 9233,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "🌟 \"ИИ-отцы\" получили главную ежегодную награду журнала Time  «Человек года». \n\nИх объединённый портрет, вдохновлённый культовой фотографией «Обед на небоскрёбе», украсил обложку.\n\nВ числе тех, кого редакция назвала главными архитекторами новой технологической эры: Илон Маск, Марк Цукерберг, Лиза Су (AMD), Джeнсен Хуанг (Nvidia), Сэм Альтман (OpenAI), Демис Хассабис (DeepMind), Дарио Амодей (Anthropic) и Фэй-Фэй Ли (World Labs).\n\nКак отмечает издание, в 2025 году потенциал ИИ был полностью реализован, а эта группа визионеров окончательно утвердила наступление эпохи мыслящих машин.\n\n\n@ai_machinelearning_big_data\n\n#news #ai #ml"
+          }
+        ],
+        "tool_observations": [
+          {
+            "tool": "query_plan",
+            "summary": "Plan: 3 queries, k=10, fusion=rrf",
+            "success": true,
+            "took_ms": 2817,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "search",
+            "summary": "Found 26 documents (total: 26). Route: hybrid. Use these IDs for compose_context: ['9eeae8ef-c533-587c-ab0d-9401e014f2d8', '9cb11247-b128-5079-9524-a7adbbe13bcc', '5e49661f-3b01-598c-9578-a30955a84905', '134381dc-6ef6-5886-be40-0eedad28324d', '704adad0-d1b0-5be5-9aeb-a552f6a6f12a', 'f5bd4f7f-5f12-5067-b73f-2bfce3728106', '30b35f89-e77f-580c-92d1-1d77fe4f7177', '2e448778-11d4-574f-80e1-61b42e02cd31', '28126033-f4d1-50c5-998d-16138090772a', 'c6417020-664f-57a4-8728-386555a72f27', '6519d86c-e874-5b",
+            "success": true,
+            "took_ms": 2006,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 5 documents by relevance, scores: [7.520, 6.844, 5.359, 2.457, 2.248]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 1998,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 5 citations, coverage: 0.70, contexts: 5",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (947 chars)",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "agent_thoughts": [],
+        "retrieved_docs": [
+          {
+            "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "9cb11247-b128-5079-9524-a7adbbe13bcc",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "5e49661f-3b01-598c-9578-a30955a84905",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "134381dc-6ef6-5886-be40-0eedad28324d",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "f5bd4f7f-5f12-5067-b73f-2bfce3728106",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "30b35f89-e77f-580c-92d1-1d77fe4f7177",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "2e448778-11d4-574f-80e1-61b42e02cd31",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "28126033-f4d1-50c5-998d-16138090772a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c6417020-664f-57a4-8728-386555a72f27",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "6519d86c-e874-5bb5-a107-14224d1fb899",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "eed047e2-2aae-5b34-a628-9892eb96d576",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "d9aa8ddf-54a7-530a-97d9-f45a9bc2edae",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "aae04863-903d-56fc-ac60-d647ff0f8543",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "b29870aa-ba14-5bbb-998c-9379afcb4dce",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c579ec2f-719c-5e55-99e9-decde9f30488",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "4ac8338e-24f5-5973-82fe-0e3db721833e",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "22dfffc6-6915-5b70-87f8-30fb6756edf7",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "7c5957d8-84bb-52ac-9f61-fd1d654e4295",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "682c6ccd-86f4-5d19-b51f-361ba597fe0d",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "latency_sec": 32.26752757699978,
+        "error": false
+      },
+      "baseline": {
+        "answer": "[dry-run]",
+        "latency_sec": null,
+        "error": true,
+        "error_message": "dry_run"
+      },
+      "judge": {},
+      "metrics": {
+        "agent_latency_sec": 32.26752757699978,
+        "baseline_latency_sec": null,
+        "agent_coverage": 1.0,
+        "strict_anchor_recall": 1.0,
+        "strict_anchor_recall_eligible": true,
+        "acceptable_set_hit": 1.0,
+        "retrieval_sufficiency_score": null,
+        "evidence_support_score": null,
+        "key_tool_accuracy": 1.0,
+        "tool_call_f1": 1.0,
+        "precision_at_5": 0.2,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6309297535714575,
+        "bertscore_f1": null,
+        "summac_faithfulness": null,
+        "factual_correctness": null,
+        "usefulness": null,
+        "tools_invoked": [
+          "query_plan",
+          "search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "citation_hits": [
+          "techsparks:5334",
+          "ai_machinelearning_big_data:9245",
+          "data_secrets:8478",
+          "techsparks:5333",
+          "ai_machinelearning_big_data:9233"
+        ],
+        "expected_documents": [
+          "ai_machinelearning_big_data:9245"
+        ]
+      },
+      "failure_type": null,
+      "status": "baseline_error",
+      "offline_judge_packet": {
+        "query_id": "golden_q01",
+        "query": "Кого Financial Times назвала человеком года в 2025?",
+        "eval_mode": "retrieval_evidence",
+        "category": "broad_search",
+        "answer": "Financial Times назвала «Человеком года» в 2025 году Дженсена Хуанга (Jensen Huang), основателя и генерального директора NVIDIA [1][2]. \n\nДеловое издание отметило ключевую роль Хуанга в трансформации полупроводниковой индустрии и глобальном распространении искусственного интеллекта. Журнал подчеркнул, что именно благодаря его лидерству NVIDIA первой в мире преодолела рубеж рыночной капитализации в $5 трлн и стала самой дорогой компанией на планете [2].\n\nТакже Financial Times отмечает, что Дженсен Хуанг стал важной фигурой в отношениях между США и Китаем, а также в глобальной технологической политике [1]. Примечательно, что в прошлом году (2024) «Человеком года» по версии FT был Дональд Трамп [1].\n\nОтдельно стоит отметить, что журнал Time в 2025 году назвал «Человеком года» коллективно группу из восьми лидеров ИИ-индустрии под названием «Архитекторы ИИ», куда также вошли Сэм Альтман, Илон Маск и другие, включая Дженсена Хуанга [3][4].",
+        "status": "ok",
+        "latency_sec": 32.26752757699978,
+        "coverage": 1.0,
+        "tools_invoked": [
+          "query_plan",
+          "search",
+          "rerank",
+          "compose_context",
+          "final_answer"
+        ],
+        "visible_tools_history": [
+          [
+            "query_plan",
+            "search"
+          ],
+          [
+            "query_plan",
+            "search"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ],
+          [
+            "rerank",
+            "compose_context",
+            "final_answer",
+            "related_posts"
+          ]
+        ],
+        "agent_thoughts": [],
+        "tool_observations": [
+          {
+            "tool": "query_plan",
+            "summary": "Plan: 3 queries, k=10, fusion=rrf",
+            "success": true,
+            "took_ms": 2817,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "search",
+            "summary": "Found 26 documents (total: 26). Route: hybrid. Use these IDs for compose_context: ['9eeae8ef-c533-587c-ab0d-9401e014f2d8', '9cb11247-b128-5079-9524-a7adbbe13bcc', '5e49661f-3b01-598c-9578-a30955a84905', '134381dc-6ef6-5886-be40-0eedad28324d', '704adad0-d1b0-5be5-9aeb-a552f6a6f12a', 'f5bd4f7f-5f12-5067-b73f-2bfce3728106', '30b35f89-e77f-580c-92d1-1d77fe4f7177', '2e448778-11d4-574f-80e1-61b42e02cd31', '28126033-f4d1-50c5-998d-16138090772a', 'c6417020-664f-57a4-8728-386555a72f27', '6519d86c-e874-5b",
+            "success": true,
+            "took_ms": 2006,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "rerank",
+            "summary": "Reranked 5 documents by relevance, scores: [7.520, 6.844, 5.359, 2.457, 2.248]. Call compose_context() to build context from reranked results.",
+            "success": true,
+            "took_ms": 1998,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "compose_context",
+            "summary": "Composed context with 5 citations, coverage: 0.70, contexts: 5",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          },
+          {
+            "tool": "final_answer",
+            "summary": "Final answer prepared (947 chars)",
+            "success": true,
+            "took_ms": 1,
+            "system_generated": false,
+            "refinement": false,
+            "verification_refinement": false
+          }
+        ],
+        "citations": [
+          {
+            "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+            "channel": "techsparks",
+            "message_id": 5334,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "А Хуанг стал не только архитектором года по версии Time (см. предыдущий пост), но и человеком года по мнению Financial Times -- знатный дубль вышел. Мотивировочная часть любопытна: Huang’s recognition reflects his emergence as a pivotal figure in U.S.-China relations and global technology policy\nВ прошлом году FT признала человеком года Трампа, между прочим.\nhttps://www.ft.com/content/11a018f4-95e0-41c2-99d8-aff105328a0b"
+          },
+          {
+            "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+            "channel": "ai_machinelearning_big_data",
+            "message_id": 9245,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "✔️ Financial Times назвала Дженсена Хуанга «Человеком года».\n\nДеловое издание отметило ключевую роль Хуанга в трансформации полупроводниковой индустрии и глобальном распространении ИИ. NVIDIA оказалась в центре беспрецедентной инвестиционной программы частного сектора, что позволило ей первой в мире преодолеть рубеж рыночной капитализации в $5 трлн. и стать самой дорогой компанией на планете.\n\nFT утверждает, что 2025 год войдет в историю как время, когда дата-центры окончательно закрепились в статусе критически важной инфраструктуры. Наращивание вычислительных мощностей для ИИ превратилась в драйвер экономики, обеспечив значительную долю роста ВВП США.\nft.com\n\n✔️ NVIDIA предложила ИИ-концепцию для инженерного моделирования.\n\nNVIDIA Research предлагает смену парадигмы Computer-Aided Engineering (CAE) на AI-Aided Engineering. Вместо прямых вычислений предлагается использовать ИИ-модели, обученные на физических законах и данных симуляций. Такие модели работают как быстрая замена классическим расчётам. Например, прогноз погоды можно сделать за минуты вместо дней."
+          },
+          {
+            "id": "9cb11247-b128-5079-9524-a7adbbe13bcc",
+            "channel": "data_secrets",
+            "message_id": 8478,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Сэм Альтман, Дженсен Хуанг и другие ИИ-лидеры коллективно стали «Человеком года» по версии Time \n\nВ этом году победителем номинации стал не один человек, а целая группа под названием «Architects of AI». \n\nВ частности: Сэм Альтман, Дарио Амодеи, Демис Хассабис, Дженсен Хуанг, Фэй-Фэй Ли, Илон Маск, Лиза Су и Марк Цукерберг. \n\n«2025 год стал годом, когда весь потенциал искусственного интеллекта проявился во всей своей полноте и стало ясно, что пути назад уже нет. За то, что эпоха думающих машин стала реальностью; за то, что поразили и встревожили человечество; за изменение настоящего и расширение границ возможного – человеком 2025 года Time стали архитекторы искусственного интеллекта»\n\nКстати, обложка сгенерирована или нам показалось?  🤨\n\ntime.com/7339685/person-of-the-year-2025-ai-architects/"
+          },
+          {
+            "id": "5e49661f-3b01-598c-9578-a30955a84905",
+            "channel": "techsparks",
+            "message_id": 5333,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "Человек года по версии журнала Time на сей раз един в восьми лицах; лица эти принадлежат Mark Zuckerberg (Meta), Lisa Su (Advanced Micro Devices), Elon Musk (xAI), Jensen Huang (Nvidia), Sam Altman (OpenAI), Demis Hassabis (DeepMind Technologies), Dario Amodei (Anthropic), and Fei-Fei Li (Stanford’s Human-Centered AI Institute). Эта восьмерка объявлена архитекторами ИИ, а год 2025 — годом, когда стал виден колоссальный потенциал ИИ и когда стало ясно, что возврата к прошлому не будет. Не самое ожидаемое заявление со стороны крупного традиционного СМИ; в этих кругах принято относиться к ИИ, мягко говоря, без восторгов. А тут слова и про эру думающих машин, и про трансформацию настоящего, и про выход за пределы возможного, просто подозрительный набор комплиментов. Представлены две версии обложки, обе хороши:) Хотя мне версия знаменитой фотографии 1932 года «обед наверху небоскреба» нравится больше:) Для тех, кому все это не нравится — комментарий по ссылочке, там как раз много ядовитых замечаний в адрес ИИ, который так зол и опасен:))\nhttps://www.yahoo.com/news/us/article/times-2025-person-of-the-year-the-architects-of-ai-172342364.html"
+          },
+          {
+            "id": "134381dc-6ef6-5886-be40-0eedad28324d",
+            "channel": "ai_machinelearning_big_data",
+            "message_id": 9233,
+            "url": null,
+            "score": null,
+            "text_excerpt": null,
+            "source": null,
+            "text": "🌟 \"ИИ-отцы\" получили главную ежегодную награду журнала Time  «Человек года». \n\nИх объединённый портрет, вдохновлённый культовой фотографией «Обед на небоскрёбе», украсил обложку.\n\nВ числе тех, кого редакция назвала главными архитекторами новой технологической эры: Илон Маск, Марк Цукерберг, Лиза Су (AMD), Джeнсен Хуанг (Nvidia), Сэм Альтман (OpenAI), Демис Хассабис (DeepMind), Дарио Амодей (Anthropic) и Фэй-Фэй Ли (World Labs).\n\nКак отмечает издание, в 2025 году потенциал ИИ был полностью реализован, а эта группа визионеров окончательно утвердила наступление эпохи мыслящих машин.\n\n\n@ai_machinelearning_big_data\n\n#news #ai #ml"
+          }
+        ],
+        "citation_hits": [
+          "techsparks:5334",
+          "ai_machinelearning_big_data:9245",
+          "data_secrets:8478",
+          "techsparks:5333",
+          "ai_machinelearning_big_data:9233"
+        ],
+        "retrieved_docs": [
+          {
+            "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "9cb11247-b128-5079-9524-a7adbbe13bcc",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "5e49661f-3b01-598c-9578-a30955a84905",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "134381dc-6ef6-5886-be40-0eedad28324d",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "f5bd4f7f-5f12-5067-b73f-2bfce3728106",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "30b35f89-e77f-580c-92d1-1d77fe4f7177",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "2e448778-11d4-574f-80e1-61b42e02cd31",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "28126033-f4d1-50c5-998d-16138090772a",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c6417020-664f-57a4-8728-386555a72f27",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "6519d86c-e874-5bb5-a107-14224d1fb899",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "eed047e2-2aae-5b34-a628-9892eb96d576",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "d9aa8ddf-54a7-530a-97d9-f45a9bc2edae",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "aae04863-903d-56fc-ac60-d647ff0f8543",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "b29870aa-ba14-5bbb-998c-9379afcb4dce",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "c579ec2f-719c-5e55-99e9-decde9f30488",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "4ac8338e-24f5-5973-82fe-0e3db721833e",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "22dfffc6-6915-5b70-87f8-30fb6756edf7",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "7c5957d8-84bb-52ac-9f61-fd1d654e4295",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          },
+          {
+            "id": "682c6ccd-86f4-5d19-b51f-361ba597fe0d",
+            "channel": null,
+            "message_id": null,
+            "text_excerpt": null,
+            "score": null,
+            "source": "sse_observation"
+          }
+        ],
+        "dataset_contract": {
+          "id": "golden_q01",
+          "version": "2.0",
+          "eval_mode": "retrieval_evidence",
+          "answerable": true,
+          "expected_refusal": false,
+          "refusal_reason": null,
+          "key_tools": [
+            "search"
+          ],
+          "forbidden_tools": [
+            "temporal_search",
+            "summarize_channel",
+            "list_channels"
+          ],
+          "acceptable_alternatives": [],
+          "required_claims": [
+            "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии."
+          ],
+          "expected_answer": "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии.",
+          "expected_entities": [],
+          "expected_topics": [],
+          "expected_channels": [
+            "ai_machinelearning_big_data"
+          ],
+          "source_post_ids": [
+            "ai_machinelearning_big_data:9245"
+          ],
+          "acceptable_evidence_sets": [
+            [
+              "ai_machinelearning_big_data:9245"
+            ]
+          ],
+          "strict_anchor_recall_eligible": true,
+          "calibration": true,
+          "difficulty": "easy",
+          "notes": null,
+          "metadata": {
+            "created_at": "2026-03-24",
+            "created_by": "human",
+            "tags": [
+              "nvidia",
+              "jensen_huang",
+              "factual"
+            ]
+          }
+        },
+        "diagnostic_metrics": {
+          "strict_anchor_recall": 1.0,
+          "acceptable_set_hit": 1.0,
+          "key_tool_accuracy": 1.0
+        }
+      }
+    }
+  ]
+}

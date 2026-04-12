@@ -1,0 +1,127 @@
+{
+  "run_id": "RUN-009",
+  "packet_id": "judge_batch_01",
+  "source_packet": "experiments/runs/RUN-009/judge_packets_10q/judge_batches/eval_20260410-220837_10q/judge_batch_01.md",
+  "judge_model": "GPT-5.4 Pro (web)",
+  "notes": {
+    "expected_answer_policy": "weak_reference_not_strict_answer_key"
+  },
+  "rows": [
+    {
+      "query_id": "golden_q01",
+      "factual": 1.0,
+      "useful": 2.0,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Точный ответ, required claim покрыт, лишних ошибок нет."
+    },
+    {
+      "query_id": "golden_q02",
+      "factual": 1.0,
+      "useful": 2.0,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Параметры, Apache 2.0, MoE и MXFP4 покрыты полностью."
+    },
+    {
+      "query_id": "golden_q03",
+      "factual": 1.0,
+      "useful": 2.0,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Цена и ключевые свойства Manus покрыты; дата сделки не очень явно опирается на docs."
+    },
+    {
+      "query_id": "golden_q04",
+      "factual": 0.8,
+      "useful": 1.8,
+      "evidence_support": 0.6,
+      "retrieval_sufficiency": 0.9,
+      "short_reason": "Ключевые релизы покрыты, но MoE не проговорён; есть битые/несуществующие ссылки в тексте ответа."
+    },
+    {
+      "query_id": "golden_q05",
+      "factual": 1.0,
+      "useful": 1.7,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Required claims покрыты и ответ шире reference, но есть дрейф в видео/мир-модели."
+    },
+    {
+      "query_id": "golden_q06",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": 0.8,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Главные январские темы закрыты, но есть фантомная ссылка и один слабо подтверждённый пункт."
+    },
+    {
+      "query_id": "golden_q07",
+      "factual": 1.0,
+      "useful": 2.0,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Vera Rubin закрывает required claim; дальше идёт полезный и в основном подтверждённый обзор."
+    },
+    {
+      "query_id": "golden_q08",
+      "factual": 0.6,
+      "useful": 1.4,
+      "evidence_support": 0.5,
+      "retrieval_sufficiency": 0.7,
+      "short_reason": "Есть несколько реальных февральских событий, но ответ смешивает их с ожиданиями/эссе и mis-citation."
+    },
+    {
+      "query_id": "golden_q09",
+      "factual": 1.0,
+      "useful": 2.0,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Точно передан способ отключения reasoning и объяснение Juice."
+    },
+    {
+      "query_id": "golden_q10",
+      "factual": 1.0,
+      "useful": 2.0,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Хорошее архитектурное сравнение, больше двух конкретных работ, по intent попадает точно."
+    }
+  ],
+  "flagged_for_manual_review": [
+    {
+      "query_id": "golden_q04",
+      "reason": "Core coverage хорошее, но evidence trail слабый: в ответе есть ссылки вида [11], [13], [14], которых в пакете не видно, и один required detail (MoE) не проговорён явно."
+    },
+    {
+      "query_id": "golden_q05",
+      "reason": "Weak reference заметно уже, чем ответ модели: модель дала более широкий и в целом полезный обзор open models, хотя слегка ушла в соседние категории."
+    },
+    {
+      "query_id": "golden_q06",
+      "reason": "Содержательно ответ хороший, но есть фантомная ссылка [17] на пункт про Давос, поэтому support неидеален."
+    },
+    {
+      "query_id": "golden_q08",
+      "reason": "Самый спорный кейс в батче: часть пунктов — реальные события февраля, но часть — ожидания, общий commentary или пункты с неверной/слабой привязкой к cited docs."
+    }
+  ],
+  "summary": {
+    "strongest_answers": [
+      "golden_q01",
+      "golden_q02",
+      "golden_q07",
+      "golden_q09",
+      "golden_q10"
+    ],
+    "weakest_answers": [
+      "golden_q08",
+      "golden_q04"
+    ],
+    "recurring_failure_patterns": [
+      "битые или фантомные citation numbers",
+      "смешение что произошло с тем что ожидалось или обсуждалось",
+      "избыточное расширение ответа соседними темами"
+    ]
+  }
+}

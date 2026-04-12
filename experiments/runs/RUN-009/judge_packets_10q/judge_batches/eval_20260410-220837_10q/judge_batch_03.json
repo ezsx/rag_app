@@ -1,0 +1,1265 @@
+[
+  {
+    "query_id": "golden_q21",
+    "query": "Что обсуждалось в AI-каналах в апреле 2024?",
+    "eval_mode": "refusal",
+    "category": "negative_refusal",
+    "answer": "данные за этот период отсутствуют в базе\n\n⚠️ Источники не указаны. Информация может быть неточной.",
+    "status": "ok",
+    "latency_sec": 9.065182741000172,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "temporal_search",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "temporal_search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "temporal_search",
+        "summary": "Found 0 documents (total: 0). Route: ?. Use these IDs for compose_context: []",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (98 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_q21",
+      "version": "2.0",
+      "eval_mode": "refusal",
+      "answerable": false,
+      "expected_refusal": true,
+      "refusal_reason": "out_of_timerange",
+      "key_tools": [],
+      "forbidden_tools": [],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Агент должен корректно отказаться: out_of_timerange"
+      ],
+      "expected_answer": "",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "negative",
+          "out_of_timerange"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": null
+    }
+  },
+  {
+    "query_id": "golden_q22",
+    "query": "Как менялось обсуждение OpenAI в каналах за последние 3 месяца?",
+    "eval_mode": "analytics",
+    "category": "future_baseline",
+    "answer": "За последние 3 месяца (декабрь 2025 — март 2026) обсуждение OpenAI в российских Telegram-каналах было очень активным. Всего зафиксировано 470 упоминаний компании на протяжении 14 недель [1].\n\nДинамика обсуждения колебалась:\n• Пик активности пришелся на 6-ю неделю 2026 года (январь), когда количество упоминаний достигло 51 поста [1].\n• Следующие высокие значения наблюдались в 7-й (49) и 9-й (49) неделях [1].\n• Минимальная активность зафиксирована в 11-й неделе, когда вышло всего 26 упоминаний [1].\n\nВ целом, интерес к OpenAI оставался стабильно высоким на протяжении всего периода, с заметными всплесками активности каждые несколько недель.",
+    "status": "ok",
+    "latency_sec": 10.038216357999772,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "entity_tracker",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "temporal_search",
+        "entity_tracker"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "entity_tracker",
+        "summary": "entity_tracker(timeline): OpenAI: 470 упоминаний за 14 недель. Пик: 2026-W06 (51). Диапазон: 2025-W52 — 2026-W13",
+        "success": true,
+        "took_ms": 19,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (644 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_q22",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "entity_tracker"
+      ],
+      "forbidden_tools": [],
+      "acceptable_alternatives": [
+        "temporal_search",
+        "search"
+      ],
+      "required_claims": [
+        "Ответ должен опираться на analytics tool output, а не на обычный search path",
+        "OpenAI — одна из самых упоминаемых сущностей (~1600 упоминаний). Динамика по неделям показывает стабильно высокий интерес с пиками на фоне крупных релизов."
+      ],
+      "expected_answer": "OpenAI — одна из самых упоминаемых сущностей (~1600 упоминаний). Динамика по неделям показывает стабильно высокий интерес с пиками на фоне крупных релизов.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "seeallochnaya",
+        "rybolos_channel"
+      ],
+      "source_post_ids": [
+        "seeallochnaya:3445",
+        "rybolos_channel:1562"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "hard",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "future",
+          "entity_tracker",
+          "openai",
+          "timeline"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q23",
+    "query": "Какие arxiv-статьи больше всего обсуждались в каналах?",
+    "eval_mode": "analytics",
+    "category": "future_baseline",
+    "answer": "Наиболее обсуждаемыми arXiv-статьями в каналах (с июля 2025 по март 2026 года) являются:\n\n1. **arXiv:2502.13266** — 4 упоминания [1]\n2. **arXiv:2502.18663** — 4 упоминания [1]\n3. **arXiv:2510.04871** — 4 упоминания [1]\n4. **arXiv:2603.19461** — 4 упоминания [1]\n5. **arXiv:2504.06225** — 3 упоминания [1]\n\nТакже значительное внимание уделялось статьям arXiv:2511.02864, arXiv:2512.24880 (по 3 упоминания), а также классическим работам arXiv:1508.06576, arXiv:1703.03864 и arXiv:1706.03762 (по 2 упоминания).",
+    "status": "ok",
+    "latency_sec": 8.79485530600141,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "arxiv_tracker",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "arxiv_tracker"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "arxiv_tracker",
+        "summary": "arxiv_tracker(top): Top-10 обсуждаемых papers: arxiv:2502.13266 (4 упом.), arxiv:2502.18663 (4 упом.), arxiv:2510.04871 (4 упом.), arxiv:2603.19461 (4 упом.), arxiv:2504.06225 (3 упом.)",
+        "success": true,
+        "took_ms": 28,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (507 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_q23",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "arxiv_tracker"
+      ],
+      "forbidden_tools": [],
+      "acceptable_alternatives": [
+        "search"
+      ],
+      "required_claims": [
+        "Ответ должен опираться на analytics tool output, а не на обычный search path",
+        "В каналах упоминаются ~50-70 уникальных arxiv papers. Наиболее обсуждаемые: arxiv:2502.13266 (4 упоминания) и другие. Максимум 4 упоминания на статью."
+      ],
+      "expected_answer": "В каналах упоминаются ~50-70 уникальных arxiv papers. Наиболее обсуждаемые: arxiv:2502.13266 (4 упоминания) и другие. Максимум 4 упоминания на статью.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "gonzo_ml",
+        "seeallochnaya"
+      ],
+      "source_post_ids": [
+        "gonzo_ml:4242",
+        "seeallochnaya:3162"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "hard",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "future",
+          "arxiv_tracker",
+          "papers"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q24",
+    "query": "Какой канал специализируется на робототехнике и роботакси?",
+    "eval_mode": "analytics",
+    "category": "future_baseline",
+    "answer": "Согласно данным анализа экспертизы каналов, канал @xor_journal имеет наивысший показатель авторитетности (0.77) в области робототехники и роботакси, а также упоминает такие компании как Яндекс, Google и NVIDIA, которые активно работают в этой сфере [1]. Также канал @techno_yandex показывает высокую релевантность с акцентом на разработки Яндекса, включая роботакси [2].",
+    "status": "ok",
+    "latency_sec": 9.331926602000749,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "channel_expertise",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_expertise"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "channel_expertise",
+        "summary": "Found 10 channels for topic='робототехника роботакси', metric=authority: xor_journal(0.77), techno_yandex(0.675), protechietich(0.654), llm_under_hood(0.63), singularityfm(0.59)",
+        "success": true,
+        "took_ms": 317,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (370 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_q24",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_expertise"
+      ],
+      "forbidden_tools": [],
+      "acceptable_alternatives": [
+        "search",
+        "channel_search"
+      ],
+      "required_claims": [
+        "Назван как минимум один канал специализирующийся на робототехнике/роботакси",
+        "techsparks или другой канал с фактическим покрытием темы"
+      ],
+      "expected_answer": "techsparks (Андрей Себрант) часто пишет про роботакси — Pony.ai в Шэньчжэне, танцующие роботы Agibot.",
+      "expected_entities": [],
+      "expected_topics": [
+        "робототехника",
+        "роботакси"
+      ],
+      "expected_channels": [
+        "techsparks"
+      ],
+      "source_post_ids": [
+        "techsparks:5286",
+        "techsparks:5439"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "channel_expertise",
+          "robotics"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q25",
+    "query": "Какие подходы к использованию LLM в production обсуждались в каналах llm_under_hood и boris_again?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "{\"answer\":\"В каналах llm_under_hood и boris_again обсуждались следующие подходы к использованию LLM в production:\\n\\n**1. SGR (Schema-Guided Reasoning) vs Tools (Function Calling)**\\n- **SGR** используется для контролируемого рассуждения и мониторинга: все шаги видны, легко тестировать каждый этап, предсказуемое A/B тестирование [2][4]. Подходит для анализа данных, классификации, отчетов и сложных рассуждений с обоснованием [7].\\n- **Tools** обеспечивают настоящее агентское поведение: модель сама решает последовательность действий, адаптируется к результатам [7]. Однако это \\\"черный ящик\\\", сложно понять почему выбрана функция, непредсказуемая цепочка вызовов, дебаг в production становится проблемой [4].\\n- Гибридный подход: SGR для принятия решений о выборе инструмента, Tools для выполнения действий и получения данных, SGR для финальной обработки и структурирования результата [4].\\n\\n**2. Переход от \\\"шаманства\\\" к инженерии**\\nВ подкасте make sense обсуждалось практическое внедрение LLM с акцентом на повышение предсказуемости результатов и создание чеклистов для внедрения проектов с LLM в бизнес [1].\\n\\n**3. Мониторинг и контроль качества**\\nКлючевой принцип: \\\"В production качество мониторинга = выживание продукта\\\" [2]. Сложность дебага при использовании Tools по сравнению с прозрачностью SGR особенно заметна при настройке NSFW-фильтров, где SGR позволил выявить проблемы за день вместо недель [4].\\n\\n**4. DevOps и автоматизация развертывания**\\nОтмечено упрощение выпуска продуктов с LLM благодаря возможности частично снять DevOps нагрузку — современные модели (например, OpenAI Codex) могут самостоятельно настраивать конфигурацию серверов, проверять работу сервисов и разворачивать изменения [3].\\n\\n**5. Проблемы внедрения и стоимость**\\nОбсуждалась парадоксальная ситуация: компании готовы платить 100k USD за технологию с LLM, но редко соглашаются на дополнительные 350k USD за развертывание и обучение сотрудников использованию системы [6].\\n\\n**6. Практические кейсы**\\n- Поиск видео для монтажа рекламы в крупных компаниях (аналог Red Bull) с использованием LLM для переиспользования существующих материалов [9]\\n- Использование SGR на локальных моделях (7B, Qwen 3 4B) для выжимания качества и точности при ограниченных ресурсах [8]\\n</think>\\n\\n<tool_call>\\n<function=final_answer>\\n<parameter=answer>\\nВ каналах llm_under_hood и boris_again обсуждались следующие подходы к использованию LLM в production:\\n\\n**1. SGR (Schema-Guided Reasoning) vs Tools (Function Calling)**\\n- **SGR** используется для контролируемого рассуждения и мониторинга: все шаги видны, легко тестировать каждый этап, предсказуемое A/B тестирование [2][4]. Подходит для анализа данных, классификации, отчетов и сложных рассуждений с обоснованием [7].\\n- **Tools** обеспечивают настоящее агентское поведение: модель сама решает последовательность действий, адаптируется к результатам [7]. Однако это \\\"черный ящик\\\", сложно понять почему выбрана функция, непредсказуемая цепочка вызовов, дебаг в production становится проблемой [4].\\n- Гибридный подход: SGR для принятия решений о выборе инструмента, Tools для выполнения действий и получения данных, SGR для финальной обработки и структурирования результата [4].\\n\\n**2. Переход от \\\"шаманства\\\" к инженерии**\\nВ подкасте make sense обсуждалось практическое внедрение LLM с акцентом на повышение предсказуемости результатов и создание чеклистов для внедрения проектов с LLM в бизнес [1].\\n\\n**3. Мониторинг и контроль качества**\\nКлючевой принцип: \\\"В production качество мониторинга = выживание продукта\\\" [2]. Сложность дебага при использовании Tools по сравнению с прозрачностью SGR особенно заметна при настройке NSFW-фильтров, где SGR позволил выявить проблемы за день вместо недель [4].\\n\\n**4. DevOps и автоматизация развертывания**\\nОтмечено упрощение выпуска продуктов с LLM благодаря возможности частично снять DevOps нагрузку — современные модели (например, OpenAI Codex) могут самостоятельно настраивать конфигурацию",
+    "status": "ok",
+    "latency_sec": 45.599460356002965,
+    "coverage": 0.75,
+    "tools_invoked": [
+      "query_plan",
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_search",
+        "summarize_channel"
+      ],
+      [
+        "query_plan",
+        "search",
+        "channel_search",
+        "summarize_channel"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "query_plan",
+        "summary": "Plan: 3 queries, k=10, fusion=rrf",
+        "success": true,
+        "took_ms": 3480,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 18 documents (total: 18). Route: hybrid. Use these IDs for compose_context: ['a58fc74a-bcbd-5822-bbb3-197e29f46690', '9cf0cc74-dff5-5d82-ace3-7aaef0ea69a3', 'd39aa331-0bc8-5c7b-a889-c39a233f9617', '9da2845e-ae45-5b61-a5f0-684d69f55c9f', '00240a59-cf79-536c-a611-5583a8d973e5', 'e545465a-ff2b-5109-a274-5104ecdc7eec', '20101a10-947d-59ab-8653-2da19c48f0d6', '59eb63ed-753d-5894-9f04-f0dbba2736ff', '123cfa8c-8dec-54e6-aa21-1805c610c393', '44970d55-f5ea-51b4-a453-600c80cb8113', '0a7d2762-6ce8-5f",
+        "success": true,
+        "took_ms": 4285,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 10 documents by relevance, scores: [7.254, 5.039, 4.922, 4.492, 4.223]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 1186,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 10 citations, coverage: 0.47, contexts: 10",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (3991 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "9cf0cc74-dff5-5d82-ace3-7aaef0ea69a3",
+        "channel": "llm_under_hood",
+        "message_id": 732,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Вышел эпизод продуктового подкаста make sense. Мы с Юрой Агеевым беседуем о практическом внедрении LLM, повышении предсказуемости результата и переходе от «шаманства» к инженерии. \n\nЮра задавал настолько интересные вопросы, что, когда я скормил транскрипт записи в ChatGPT Pro с вопросом “а какой полезный артефакт ты можешь сделать из этой беседы?”, оно сразу предложило написать чеклист для внедрения проектов с LLM под капотом в бизнес.\n\nЭпизод вышел на разных платформах, все ссылки тут: https://t.me/mspodcast/676\n\nЕсли есть какие-то вопросы - пишите в комментариях тут. \n\nВаш, @llm_under_hood 🤗"
+      },
+      {
+        "id": "59eb63ed-753d-5894-9f04-f0dbba2736ff",
+        "channel": "llm_under_hood",
+        "message_id": 643,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "SGR когда нужно контролируемое рассуждение и мониторинг\nTools когда нужно настоящее агентское поведение\nSGR работает даже на локальных 7B моделях и даже на qwen3 4B\n\nUpdate:\nРинат подкинул очень интересную демку, смешение в сторону SGR в агентах\nКак запускать вместе и то и другое \n\nМожно и вместе. \nСм демку с многоходовым бизнес-ассистентом \nРебята из Сбера допилили это до запуска на Qwen 3 4B\n\n\nВ production качество мониторинга = выживание продукта\nА как вы решаете эту дилемму? Поделитесь опытом!\n\nP.S. Спасибо Ринату за системный подход к SGR это свежий глоток точности и постоянства в нашем мире LLM!\nP.S.S Забирайте все ссылки как памятку, SGR это то что будет двигать production сектор дальше к внедрению LLM!"
+      },
+      {
+        "id": "d39aa331-0bc8-5c7b-a889-c39a233f9617",
+        "channel": "llm_under_hood",
+        "message_id": 769,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Выпускать продукты с LLM под капотом нынче проще, т.к. теперь можно частично снять с себя DevOps нагрузку.\n\n(но необходимости контроллировать то, что происходит - это не отменяет)\n\nЯ сейчас настраиваю новый сервер для BitGN Sandbox с нуля, отправил в локальный Codex такой запрос\n\n> I've deployed new OS with minimal config, however the server still doesn't reply anything on https there. Fix that. Do not deploy the service, yet. Caddy hello from /hello path is enough.\n\nУ меня на PROD сервере стоит NixOS, и в docs/deploy.md написано про DNS и конфигу. Этого достаточно для того, чтобы OpenAI Codex мог самостоятельно работать с ним.\n\nВ итоге Codex за пару минут поправил конфигу и остановился в ожидании разрешения. Я разрешил деплоить и сказал довести все до конца.\n\nТогда он выкатил изменения системы, сходил на сервер, проверил, что Caddy выпустил сертификаты, а потом локально убедился, что адреса работают как надо. Задно добавил тестовый HTTP endpoint."
+      },
+      {
+        "id": "77f8f75d-c1ff-5fd9-b780-98962d8380c2",
+        "channel": "llm_under_hood",
+        "message_id": 643,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "SGR:\nВсе рассуждения видны и логированы\nЛегко тестировать каждый шаг\nA/B тестирование предсказуемо\n\nTools:\nLLM сам решает какой инструмент вызвать — черный ящик\nСложно понять WHY выбрана функция  \nНепредсказуемая цепочка вызовов\nДебаг в production = боль\n\nИз реального опыта:\nПри настройке NSFW-фильтров с Tools ушло бы недели на понимание решений модели с SO было бы сложно дебажить. \nС SGR за день увидел проблемы в reasoning и пофиксил качество!\n\nКлючевое различие — агентность vs структурированность\n\nSGR = мощное рассуждение без истинной агентности\nОдин запрос → один ответ\nДля агентского поведения придется костылить\n\nTools = настоящее агентское поведение из коробки\nLLM сам управляет workflow, нативные прерывания в большинстве фреймворков и API\nПоэтому все современные агентские фреймворки базируются именно на Tools\n\nГибридный подход? Искал медь а нашел золото!\n\nSGR для принятия решений какой инструмент использовать\nTools для выполнения действий получение данных и ощущение агентности\nSGR для финальной обработки структуризация результата\n\nВывод финально"
+      },
+      {
+        "id": "20101a10-947d-59ab-8653-2da19c48f0d6",
+        "channel": "llm_under_hood",
+        "message_id": 711,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Стрим с Эриком Эвансом начнется через 15 минут тут: YouTube. Он создал Domain-Driven Design, по которому работают IT консультанты крупнейших корпораций мира. И мы поговорим про то, как LLM/AI влияют как раз на продуктовую и корпоративную разработку.\n\nА через 100 минут на этом стриме мы запустим ERC3-PROD.\n\nОба стрима останутся в записи.\n\nВаш, @llm_under_hood 🤗"
+      },
+      {
+        "id": "e545465a-ff2b-5109-a274-5104ecdc7eec",
+        "channel": "llm_under_hood",
+        "message_id": 612,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Ну и тут забавно, что компании-клиенты бы рады заплатить: \n\nВот вам 100к USD за технологию с LLM под капотом, а вот еще 350к USD за то, что вы эту технологию у нас развернете так, что сотрудники будут её по факту использовать и генерировать тот самый обещанный 10x прирост производительности. \n\nВсе хотят получить 100k USD, но мало кто согласен еще и взять обязательные 350k. \n\nИ только China Telecom не парится по поводу проблем с внедрением: «у нас государство спускает программу сверху, и все обязаны KPI выполнять».\n\nВаш, @llm_under_hood 🤗"
+      },
+      {
+        "id": "43cbcbe0-d49b-5890-a1e9-232207f969c5",
+        "channel": "llm_under_hood",
+        "message_id": 643,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Пример SGR из моей практики:\n{\n  \"reasoning\": {\n    \"query_analysis\": {\n      \"user_query\": \"Найди информацию о проекте X\",\n      \"query_interpretation\": \"Пользователь ищет документы по проекту\"\n    },\n    \"information_search\": {\n      \"search_strategy\": \"Ищу по ключевым словам в базе\",\n      \"relevant_documents\": [...]\n    }\n  },\n  \"response\": \"Полный ответ на основе найденной информации\"\n}\n\nКогда использовать SGR:\n\nАнализ и структуризация данных\nРазбор документов, классификация, отчеты\nСложные рассуждения  \nПошаговый анализ с обоснованием\nОбработка имеющихся данных\nВсе нужное уже в контексте, нужна предсказуемость но не  детерминированность (запомним)\n\nКогда использовать Tools:\nНастоящее агентское поведение\nLLM сам решает последовательность, адаптируется к результатам, может прерываться\n\nНе зря появилась куча оберток типа LangGraph, AutoGen, CrewAI  все строятся именно на свойствах \nTools когда модель сама принимает решение их вызвать \nА MCP от Anthropic на мой взгляд это попытка стандартизировать агентские инструментарий\n\nВзаимодействие с внешними системами\nИнтернет, email, календарь, API\n\nКритически важно для production Evals и мониторинг!"
+      },
+      {
+        "id": "00240a59-cf79-536c-a611-5583a8d973e5",
+        "channel": "llm_under_hood",
+        "message_id": 641,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Валерий Ковальский (@neuraldeep) поделился опытом использования SGR-подходов в обзоре \"SGR vs Tools: когда использовать Schema-Guided Reasoning, а когда Function Calling в LLM-системах\"\n\nУ него очень прагматичная точка зрения на разработку продуктов с LLM под капотом, т.к. приходится работать с небольшими локальными моделями, которые в разы слабее облачных вариантов. Там нужно использовать все доступные паттерны, чтобы выжать необходимые проценты качества и точности.\n\nОсобенно интересны пункты про экономию времени на разработку при использовании SGR вместо стандартного Tool Calling. В случае с Tools все работает из коробки в существующих фреймворках, в случае SGR- все более прозрачно, поддается быстрой отладке для улучшения качества.\n\nЯ перешлю его обзор в канал целиком следующим постом. Читайте - это стоит того!\n\nВаш, @llm_under_hood 🤗"
+      },
+      {
+        "id": "9da2845e-ae45-5b61-a5f0-684d69f55c9f",
+        "channel": "llm_under_hood",
+        "message_id": 689,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Кейс с LLM под капотом - поиск видео для монтажа рекламы\n\nДавайте расскажу вам еще про один кейс достаточно необычного использования LLM в продуктовых целях.\n\nИтак, компания - это производитель популярной на рынке продукции, что-то вроде Red Bull. Они производят и публикуют очень много видео-рекламы. Для этого у них есть гигантская библиотека всякого рода заготовок - в виде отснятых в прошлом роликов или сгенерированных заставок. \n\nКогда создается новый рекламный ролик, его обычно монтируют из старых и новых записей. Если чего-то подходящего в архивах нет, то приходится тратить время и ресурсы на запись нового. Либо можно подойти творчески и как-то интересно обыграть и обработать старую запись.\n\nСоответственно, компании хочется, чтобы создатели новых роликов в компании могли лучше искать и переиспользовать существующий материал. Сейчас поиск работает немного похоже на Elastic Search - ролики помечаются тэгами и вручную “украшаются” свойствами с описаниями. Это долгая и муторная работа."
+      },
+      {
+        "id": "a58fc74a-bcbd-5822-bbb3-197e29f46690",
+        "channel": "boris_again",
+        "message_id": 3368,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Использовать LLM для продаж, что может пойти не так?"
+      }
+    ],
+    "citation_hits": [
+      "llm_under_hood:732",
+      "llm_under_hood:643",
+      "llm_under_hood:769",
+      "llm_under_hood:711",
+      "llm_under_hood:612",
+      "llm_under_hood:641",
+      "llm_under_hood:689",
+      "boris_again:3368"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "a58fc74a-bcbd-5822-bbb3-197e29f46690",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9cf0cc74-dff5-5d82-ace3-7aaef0ea69a3",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d39aa331-0bc8-5c7b-a889-c39a233f9617",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9da2845e-ae45-5b61-a5f0-684d69f55c9f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "00240a59-cf79-536c-a611-5583a8d973e5",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e545465a-ff2b-5109-a274-5104ecdc7eec",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "20101a10-947d-59ab-8653-2da19c48f0d6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "59eb63ed-753d-5894-9f04-f0dbba2736ff",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "123cfa8c-8dec-54e6-aa21-1805c610c393",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "44970d55-f5ea-51b4-a453-600c80cb8113",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "0a7d2762-6ce8-5f5e-8f5c-20b7d98cf7bd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "77f8f75d-c1ff-5fd9-b780-98962d8380c2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a5c76d96-9af6-5ad4-b76f-9c491ea534cc",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c3574230-bcf2-5f9f-bd41-e17f50d2bf2c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "086db91e-21bd-5a96-9345-506f1e7e8148",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "87c8eb46-ad10-541e-ba73-5dd8cfe2e4aa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c648485a-8905-547b-ac71-f68dfaf96aaa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "43cbcbe0-d49b-5890-a1e9-232207f969c5",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_q25",
+      "version": "2.0",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [
+        "cross_channel_compare",
+        "channel_search"
+      ],
+      "required_claims": [
+        "llm_under_hood: Schema-Guided Reasoning для извлечения сущностей из PDF; boris_again: бенчмарк any2json для тестирования моделей на конвертацию в JSON, курс Technical AI Safety."
+      ],
+      "expected_answer": "llm_under_hood: Schema-Guided Reasoning для извлечения сущностей из PDF; boris_again: бенчмарк any2json для тестирования моделей на конвертацию в JSON, курс Technical AI Safety.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "llm_under_hood",
+        "boris_again"
+      ],
+      "source_post_ids": [
+        "llm_under_hood:652",
+        "boris_again:3701",
+        "boris_again:3756"
+      ],
+      "acceptable_evidence_sets": [
+        [
+          "llm_under_hood:652",
+          "boris_again:3701",
+          "boris_again:3756"
+        ]
+      ],
+      "strict_anchor_recall_eligible": true,
+      "calibration": true,
+      "difficulty": "hard",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-25",
+        "created_by": "human",
+        "tags": [
+          "multi_hop",
+          "production",
+          "llm"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 0.0,
+      "acceptable_set_hit": 0.0,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q26",
+    "query": "Какие AI-компании чаще всего упоминаются в каналах?",
+    "eval_mode": "analytics",
+    "category": "future_baseline",
+    "answer": "Согласно анализу данных из 36 Telegram-каналов за период с июля 2025 по март 2026 года, чаще всего упоминаются следующие AI-компании:\n1. OpenAI — 1664 упоминания [1]\n2. Google — 1173 упоминания [1]\n3. Anthropic — 751 упоминание [1]\n4. NVIDIA — 560 упоминаний [1]\n5. HuggingFace — 389 упоминаний [1]\n6. Microsoft — 364 упоминания [1]\n7. DeepSeek — 362 упоминания [1]\n8. Яндекс — 347 упоминаний [1]\n9. xAI — 210 упоминаний [1]\n10. Perplexity — 136 упоминаний [1].\nЭти данные получены путем агрегации упоминаний в каналах и не требуют отдельных цитат, так как представляют собой сводную статистику [1].",
+    "status": "ok",
+    "latency_sec": 11.260575266998785,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "entity_tracker",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "entity_tracker"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "entity_tracker",
+        "summary": "entity_tracker(top): Top-10 entities (категория: org): OpenAI (1664), Google (1173), Anthropic (751), NVIDIA (560), HuggingFace (389) и ещё 5",
+        "success": true,
+        "took_ms": 8,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (599 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_q26",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "entity_tracker"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search",
+        "channel_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен опираться на analytics tool output, а не на обычный search path",
+        "Топ AI-компаний по упоминаниям (point-level): OpenAI, Google, Anthropic, NVIDIA, DeepSeek, Meta AI, Mistral AI и другие."
+      ],
+      "expected_answer": "Топ AI-компаний по упоминаниям (point-level): OpenAI, Google, Anthropic, NVIDIA, DeepSeek, Meta AI, Mistral AI и другие.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": true,
+      "difficulty": "easy",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-25",
+        "created_by": "human+claude",
+        "tags": [
+          "entity_tracker",
+          "top"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q27",
+    "query": "Что обычно упоминается вместе с NVIDIA в каналах?",
+    "eval_mode": "analytics",
+    "category": "future_baseline",
+    "answer": "В российских Telegram-каналах, обсуждающих ИИ и машинное обучение, компания NVIDIA чаще всего упоминается в контексте следующих организаций и продуктов: 1. OpenAI — упоминается совместно с NVIDIA в 125 случаях, что связано с сотрудничеством по использованию GPU для обучения моделей. 2. Google — частое упоминание (101 случай) в связи с конкуренцией и использованием чипов NVIDIA в инфраструктуре Google Cloud. 3. Microsoft — упоминается в 50 случаях, часто в контексте партнерства Azure и использования GPU NVIDIA. 4. Anthropic — 47 случаев упоминания, связанных с обучением моделей Claude на инфраструктуре NVIDIA. 5. DeepSeek — 41 случай, отражающий зависимость китайских разработчиков от чипов NVIDIA. Также часто упоминаются: Qwen (38), Claude (33), HuggingFace (32), xAI (29) и Gemini (24).\n\n⚠️ Источники не указаны. Информация может быть неточной.",
+    "status": "ok",
+    "latency_sec": 6.35519128800297,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "entity_tracker",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "entity_tracker"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "entity_tracker",
+        "summary": "entity_tracker(co_occurrence): Чаще всего с NVIDIA упоминаются: OpenAI (125), Google (101), Microsoft (50), Anthropic (47), DeepSeek (41)",
+        "success": true,
+        "took_ms": 20,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (854 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_q27",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "entity_tracker"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен опираться на analytics tool output, а не на обычный search path",
+        "Вместе с NVIDIA чаще всего упоминаются другие сущности из dictionary: OpenAI, Google, Anthropic, Gemini и другие AI-компании и модели (co-occurrence из entity payload)."
+      ],
+      "expected_answer": "Вместе с NVIDIA чаще всего упоминаются другие сущности из dictionary: OpenAI, Google, Anthropic, Gemini и другие AI-компании и модели (co-occurrence из entity payload).",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-25",
+        "created_by": "human+claude",
+        "tags": [
+          "entity_tracker",
+          "co_occurrence",
+          "nvidia"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q28",
+    "query": "Сравни популярность OpenAI и DeepSeek — кого обсуждают больше?",
+    "eval_mode": "analytics",
+    "category": "future_baseline",
+    "answer": "OpenAI обсуждают значительно чаще, чем DeepSeek. За период с июля 2025 по март 2026 года в российских Telegram-каналах зафиксировано:\n• OpenAI: 1664 упоминания (пик — 88 раз в неделю 32-й недели 2025 года).\n• DeepSeek: 362 упоминания (пик — 27 раз в неделю 48-й недели 2025 года) [1].\n\nТаким образом, популярность OpenAI в обсуждениях более чем в 4 раза превышает активность вокруг DeepSeek.",
+    "status": "ok",
+    "latency_sec": 9.051680931999726,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "entity_tracker",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "cross_channel_compare",
+        "entity_tracker"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "entity_tracker",
+        "summary": "entity_tracker(compare): Сравнение: OpenAI: 1664 упоминаний, пик 2025-W32; DeepSeek: 362 упоминаний, пик 2025-W48",
+        "success": true,
+        "took_ms": 64,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (391 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_q28",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "entity_tracker"
+      ],
+      "forbidden_tools": [
+        "search",
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен опираться на analytics tool output, а не на обычный search path",
+        "OpenAI упоминается значительно чаще DeepSeek. DeepSeek имел выраженный пик в конце ноября 2025 на фоне выхода V3. Числа — point-level counts."
+      ],
+      "expected_answer": "OpenAI упоминается значительно чаще DeepSeek. DeepSeek имел выраженный пик в конце ноября 2025 на фоне выхода V3. Числа — point-level counts.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-25",
+        "created_by": "human+claude",
+        "tags": [
+          "entity_tracker",
+          "compare",
+          "openai",
+          "deepseek"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q29",
+    "query": "Какие arxiv-статьи чаще всего цитировались в каналах?",
+    "eval_mode": "analytics",
+    "category": "future_baseline",
+    "answer": "Наиболее часто цитируемыми arxiv-статьями в российских Telegram-каналах (период с июля 2025 по март 2026) являются:\n\n1. arxiv:2502.13266 — 4 упоминания\n2. arxiv:2502.18663 — 4 упоминания\n3. arxiv:2510.04871 — 4 упоминания\n4. arxiv:2603.19461 — 4 упоминания\n5. arxiv:2504.06225 — 3 упоминания\n\nТакже в топ-10 входят статьи с 3 и 2 упоминаниями: arxiv:2511.02864, arxiv:2512.24880, arxiv:1508.06576, arxiv:1703.03864, arxiv:1706.03762 [1].",
+    "status": "ok",
+    "latency_sec": 10.121681191001699,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "arxiv_tracker",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "entity_tracker",
+        "arxiv_tracker"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "arxiv_tracker",
+        "summary": "arxiv_tracker(top): Top-10 обсуждаемых papers: arxiv:2502.13266 (4 упом.), arxiv:2502.18663 (4 упом.), arxiv:2510.04871 (4 упом.), arxiv:2603.19461 (4 упом.), arxiv:2504.06225 (3 упом.)",
+        "success": true,
+        "took_ms": 26,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (437 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_q29",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "arxiv_tracker"
+      ],
+      "forbidden_tools": [
+        "search",
+        "temporal_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Ответ должен опираться на analytics tool output, а не на обычный search path",
+        "Наиболее обсуждаемые arxiv papers по point-level counts: arxiv:2502.13266 и другие. Корпус содержит десятки уникальных arxiv IDs, данные sparse (max ~4 упоминания на paper)."
+      ],
+      "expected_answer": "Наиболее обсуждаемые arxiv papers по point-level counts: arxiv:2502.13266 и другие. Корпус содержит десятки уникальных arxiv IDs, данные sparse (max ~4 упоминания на paper).",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-25",
+        "created_by": "human+claude",
+        "tags": [
+          "arxiv_tracker",
+          "top"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q30",
+    "query": "Кто обсуждал arxiv paper 1706.03762?",
+    "eval_mode": "analytics",
+    "category": "future_baseline",
+    "answer": "Архивный документ arXiv:1706.03762 (статья «Attention Is All You Need», автор Vaswani et al., 2017) обсуждался в канале gonzo_ml в двух постах.\n\n1. В посте от 7 февраля 2026 года статья была включена в список ключевых работ по теме «Внимание / Трансформеры» (Attention / Transformers). Автор поста отметил, что хотя оригинальная статья читается плохо, для понимания темы рекомендуется пост Джея Аламмара «The Illustrated Transformer». Также были упомянуты другие важные работы: BERT, Transformer-XL и Universal Transformers [1].\n\n2. В посте от 1 марта 2026 года статья была цитирована в контексте анализа индуктивного смещения (induction bias) последовательных моделей. Исследователи из Qualcomm AI Research сравнивали трансформеры (ссылка на arXiv:1706.03762) и рекуррентные нейросети (RNN) по их способности обобщать алгоритмы на разных длинах последовательностей. Было отмечено, что трансформеры могут плохо обобщать рекурсивные алгоритмы, выучивая отдельные схемы для каждой длины [2].",
+    "status": "ok",
+    "latency_sec": 10.218130893998023,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "arxiv_tracker",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "arxiv_tracker"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "arxiv_tracker",
+        "summary": "arxiv_tracker(lookup): Paper arxiv:1706.03762 — 2 постов в 1 каналах: gonzo_ml",
+        "success": true,
+        "took_ms": 19,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (989 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_q30",
+      "version": "2.0",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "arxiv_tracker"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [
+        "search"
+      ],
+      "required_claims": [
+        "Ответ должен опираться на analytics tool output, а не на обычный search path",
+        "Paper arxiv:1706.03762 (Attention Is All You Need) упоминалась в нескольких постах. Конкретные каналы и контекст обсуждений доступны через lookup."
+      ],
+      "expected_answer": "Paper arxiv:1706.03762 (Attention Is All You Need) упоминалась в нескольких постах. Конкретные каналы и контекст обсуждений доступны через lookup.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "hard",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-25",
+        "created_by": "human+claude",
+        "tags": [
+          "arxiv_tracker",
+          "lookup",
+          "attention"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  }
+]

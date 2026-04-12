@@ -1,0 +1,3524 @@
+[
+  {
+    "query_id": "golden_q01",
+    "query": "Кого Financial Times назвала человеком года в 2025?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "Financial Times назвала «Человеком года» в 2025 году Дженсена Хуанга (Jensen Huang), генерального директора NVIDIA [1][2].\n\nИздание отметило его ключевую роль в трансформации полупроводниковой индустрии и глобальном распространении искусственного интеллекта. В частности, отмечается, что именно под руководством Хуанга NVIDIA стала первой компанией в мире, преодолевшей рубеж рыночной капитализации в $5 трлн [2].\n\nFT также подчеркивает, что 2025 год войдет в историю как время, когда дата-центры окончательно закрепились в статусе критически важной инфраструктуры, а наращивание вычислительных мощностей для ИИ стало драйвером экономики и значительной частью роста ВВП США [2].",
+    "status": "ok",
+    "latency_sec": 34.23011466800017,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "query_plan",
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "query_plan",
+        "summary": "Plan: 3 queries, k=10, fusion=rrf",
+        "success": true,
+        "took_ms": 4438,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['9eeae8ef-c533-587c-ab0d-9401e014f2d8', '9cb11247-b128-5079-9524-a7adbbe13bcc', '5e49661f-3b01-598c-9578-a30955a84905', '134381dc-6ef6-5886-be40-0eedad28324d', '704adad0-d1b0-5be5-9aeb-a552f6a6f12a', 'f5bd4f7f-5f12-5067-b73f-2bfce3728106', '60733e80-ee9c-5a1c-ba1a-cc003660ea53', '30b35f89-e77f-580c-92d1-1d77fe4f7177', '2e448778-11d4-574f-80e1-61b42e02cd31', '28126033-f4d1-50c5-998d-16138090772a', 'c6417020-664f-57",
+        "success": true,
+        "took_ms": 2377,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 5 documents by relevance, scores: [6.609, 5.234, 3.516, 2.471, 2.354]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 2235,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.70, contexts: 5",
+        "success": true,
+        "took_ms": 2,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (678 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+        "channel": "techsparks",
+        "message_id": 5334,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "А Хуанг стал не только архитектором года по версии Time (см. предыдущий пост), но и человеком года по мнению Financial Times -- знатный дубль вышел. Мотивировочная часть любопытна: Huang’s recognition reflects his emergence as a pivotal figure in U.S.-China relations and global technology policy\nВ прошлом году FT признала человеком года Трампа, между прочим.\nhttps://www.ft.com/content/11a018f4-95e0-41c2-99d8-aff105328a0b"
+      },
+      {
+        "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9245,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "✔️ Financial Times назвала Дженсена Хуанга «Человеком года».\n\nДеловое издание отметило ключевую роль Хуанга в трансформации полупроводниковой индустрии и глобальном распространении ИИ. NVIDIA оказалась в центре беспрецедентной инвестиционной программы частного сектора, что позволило ей первой в мире преодолеть рубеж рыночной капитализации в $5 трлн. и стать самой дорогой компанией на планете.\n\nFT утверждает, что 2025 год войдет в историю как время, когда дата-центры окончательно закрепились в статусе критически важной инфраструктуры. Наращивание вычислительных мощностей для ИИ превратилась в драйвер экономики, обеспечив значительную долю роста ВВП США.\nft.com\n\n✔️ NVIDIA предложила ИИ-концепцию для инженерного моделирования.\n\nNVIDIA Research предлагает смену парадигмы Computer-Aided Engineering (CAE) на AI-Aided Engineering. Вместо прямых вычислений предлагается использовать ИИ-модели, обученные на физических законах и данных симуляций. Такие модели работают как быстрая замена классическим расчётам. Например, прогноз погоды можно сделать за минуты вместо дней."
+      },
+      {
+        "id": "5e49661f-3b01-598c-9578-a30955a84905",
+        "channel": "techsparks",
+        "message_id": 5333,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Человек года по версии журнала Time на сей раз един в восьми лицах; лица эти принадлежат Mark Zuckerberg (Meta), Lisa Su (Advanced Micro Devices), Elon Musk (xAI), Jensen Huang (Nvidia), Sam Altman (OpenAI), Demis Hassabis (DeepMind Technologies), Dario Amodei (Anthropic), and Fei-Fei Li (Stanford’s Human-Centered AI Institute). Эта восьмерка объявлена архитекторами ИИ, а год 2025 — годом, когда стал виден колоссальный потенциал ИИ и когда стало ясно, что возврата к прошлому не будет. Не самое ожидаемое заявление со стороны крупного традиционного СМИ; в этих кругах принято относиться к ИИ, мягко говоря, без восторгов. А тут слова и про эру думающих машин, и про трансформацию настоящего, и про выход за пределы возможного, просто подозрительный набор комплиментов. Представлены две версии обложки, обе хороши:) Хотя мне версия знаменитой фотографии 1932 года «обед наверху небоскреба» нравится больше:) Для тех, кому все это не нравится — комментарий по ссылочке, там как раз много ядовитых замечаний в адрес ИИ, который так зол и опасен:))\nhttps://www.yahoo.com/news/us/article/times-2025-person-of-the-year-the-architects-of-ai-172342364.html"
+      },
+      {
+        "id": "9cb11247-b128-5079-9524-a7adbbe13bcc",
+        "channel": "data_secrets",
+        "message_id": 8478,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Сэм Альтман, Дженсен Хуанг и другие ИИ-лидеры коллективно стали «Человеком года» по версии Time \n\nВ этом году победителем номинации стал не один человек, а целая группа под названием «Architects of AI». \n\nВ частности: Сэм Альтман, Дарио Амодеи, Демис Хассабис, Дженсен Хуанг, Фэй-Фэй Ли, Илон Маск, Лиза Су и Марк Цукерберг. \n\n«2025 год стал годом, когда весь потенциал искусственного интеллекта проявился во всей своей полноте и стало ясно, что пути назад уже нет. За то, что эпоха думающих машин стала реальностью; за то, что поразили и встревожили человечество; за изменение настоящего и расширение границ возможного – человеком 2025 года Time стали архитекторы искусственного интеллекта»\n\nКстати, обложка сгенерирована или нам показалось?  🤨\n\ntime.com/7339685/person-of-the-year-2025-ai-architects/"
+      },
+      {
+        "id": "134381dc-6ef6-5886-be40-0eedad28324d",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9233,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🌟 \"ИИ-отцы\" получили главную ежегодную награду журнала Time  «Человек года». \n\nИх объединённый портрет, вдохновлённый культовой фотографией «Обед на небоскрёбе», украсил обложку.\n\nВ числе тех, кого редакция назвала главными архитекторами новой технологической эры: Илон Маск, Марк Цукерберг, Лиза Су (AMD), Джeнсен Хуанг (Nvidia), Сэм Альтман (OpenAI), Демис Хассабис (DeepMind), Дарио Амодей (Anthropic) и Фэй-Фэй Ли (World Labs).\n\nКак отмечает издание, в 2025 году потенциал ИИ был полностью реализован, а эта группа визионеров окончательно утвердила наступление эпохи мыслящих машин.\n\n\n@ai_machinelearning_big_data\n\n#news #ai #ml"
+      }
+    ],
+    "citation_hits": [
+      "techsparks:5334",
+      "ai_machinelearning_big_data:9245",
+      "techsparks:5333",
+      "data_secrets:8478",
+      "ai_machinelearning_big_data:9233"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "9eeae8ef-c533-587c-ab0d-9401e014f2d8",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9cb11247-b128-5079-9524-a7adbbe13bcc",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5e49661f-3b01-598c-9578-a30955a84905",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "134381dc-6ef6-5886-be40-0eedad28324d",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "704adad0-d1b0-5be5-9aeb-a552f6a6f12a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "f5bd4f7f-5f12-5067-b73f-2bfce3728106",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "60733e80-ee9c-5a1c-ba1a-cc003660ea53",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "30b35f89-e77f-580c-92d1-1d77fe4f7177",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2e448778-11d4-574f-80e1-61b42e02cd31",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "28126033-f4d1-50c5-998d-16138090772a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c6417020-664f-57a4-8728-386555a72f27",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6519d86c-e874-5bb5-a107-14224d1fb899",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "eed047e2-2aae-5b34-a628-9892eb96d576",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "eca8caae-02a4-580c-8d90-67e7ae2aba77",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6864b248-e159-5329-a03e-63b5e40d2e9a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8dabf9b6-2d3b-5606-8e44-c3020654bdb1",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "aae04863-903d-56fc-ac60-d647ff0f8543",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "00352aa9-becc-528a-9f7d-93833012b66f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c579ec2f-719c-5e55-99e9-decde9f30488",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "4ac8338e-24f5-5973-82fe-0e3db721833e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_q01",
+      "version": "2.0",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "temporal_search",
+        "summarize_channel",
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии."
+      ],
+      "expected_answer": "Financial Times назвала Дженсена Хуанга (CEO NVIDIA) Человеком года в 2025. Издание отметило его ключевую роль в трансформации полупроводниковой индустрии.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "ai_machinelearning_big_data"
+      ],
+      "source_post_ids": [
+        "ai_machinelearning_big_data:9245"
+      ],
+      "acceptable_evidence_sets": [
+        [
+          "ai_machinelearning_big_data:9245"
+        ]
+      ],
+      "strict_anchor_recall_eligible": true,
+      "calibration": true,
+      "difficulty": "easy",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "nvidia",
+          "jensen_huang",
+          "factual"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": 1.0,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q02",
+    "query": "Какие параметры у open-source моделей GPT от OpenAI?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "OpenAI выпустила две open-source модели серии GPT-OSS с открытыми весами под лицензией Apache 2.0:\n\n1. **GPT-OSS-20B**:\n   - Всего параметров: **21 млрд** [3][4].\n   - Активных параметров (MoE): **3.6 млрд** [2][3].\n   - Требует для запуска GPU с **16 ГБ памяти** [4].\n\n2. **GPT-OSS-120B**:\n   - Всего параметров: **117 млрд** [3][4].\n   - Активных параметров (MoE): **5.1 млрд** [2][3].\n   - Требует для запуска GPU с **80 ГБ памяти** (например, одна H100) [4].\n\n**Ключевые характеристики:**\n- Обе модели используют архитектуру **MoE (Mixture of Experts)** с квантизацией **MXFP4** [3][4].\n- Заточены под **рассуждения (reasoning)**, поддерживают три уровня длины рассуждений: low, medium, high [2][5].\n- Поддерживают контекст до **128K токенов** и использование инструментов (tool-use) [4].\n- Доступны на Hugging Face и совместимы с инференс-движками vLLM, llama.cpp, Ollama [3][4].\n\nМодели почти не уступают проприетарным GPT o3 и o4-mini в задачах рассуждения [1].",
+    "status": "ok",
+    "latency_sec": 33.87473262599997,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "query_plan",
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "query_plan",
+        "summary": "Plan: 3 queries, k=10, fusion=rrf",
+        "success": true,
+        "took_ms": 2952,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 26 documents (total: 26). Route: hybrid. Use these IDs for compose_context: ['d50aa044-754d-5f63-a721-5787d2726dea', '9adad963-dd73-5667-95ec-6eda01c3b851', 'b60a99e2-c2d6-5920-adbc-88caf2d4ced5', '6d50257f-9090-5e18-a62e-ef8687ce7cc4', 'd975b36f-f8fd-522e-864e-8e153c41afa4', '784fe569-48f8-5dc0-8d27-4478d6ba437a', 'f2696c51-9c41-5abc-a01d-a4eccb0e82dc', '0c4af350-e9cf-5425-bc1d-4938d701435a', 'dd823c76-e58d-53d7-ad6b-9b43e68146d1', '29ea2a3b-468e-509b-8d0e-c766fc505b02', 'd7313a27-b060-54",
+        "success": true,
+        "took_ms": 1865,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 5 documents by relevance, scores: [9.562, 9.203, 8.969, 8.539, 8.383]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 1944,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.77, contexts: 5",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (968 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "d50aa044-754d-5f63-a721-5787d2726dea",
+        "channel": "protechietich",
+        "message_id": 3494,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI представила gpt-oss — рассуждающие модели с открытыми весами на 20 млрд и 120 млрд параметров. Они почти не уступают их GPT o3 и o4-mini.\n\nОни доступны на Hugging Face и по лицензии Apache 2.0 — их можно модифицировать и использовать для коммерческих целей.\n\n😎 Читайте Про tech и этих"
+      },
+      {
+        "id": "784fe569-48f8-5dc0-8d27-4478d6ba437a",
+        "channel": "seeallochnaya",
+        "message_id": 2717,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI разродились двумя опенсурсными моделями, на 120b и 20b параметров. Обе — микстуры экспертов, что означает, что несмотря на размер, если вам хватает памяти GPU, модели быстрые: 5.1b и 3.6b активных параметров.\n\nМодели рассуждающие, поддерживают 3 типа длины рассуждений: low, medium, high.\n\nСсылки:\n— https://openai.com/open-models/\n— https://openai.com/index/gpt-oss-model-card/\n— https://cookbook.openai.com/articles/openai-harmony\n— https://gpt-oss.com/ - тут можно поиграть с моделью\n\nСудя по лендингу, модели уже сегодня будут доступны на Groq и Cerebas, предлагая очень быструю генерацию. И почти все инференс-движки уже поддерживают модель.\n\nИ самое крутое — как и o3, модели поддерживают вызов инструментов (поиск, Python, etc) в цепочке рассуждений.\n\nСамое некрутое: нет мультимодальности, картинки и тем более звук модели не воспринимают."
+      },
+      {
+        "id": "29ea2a3b-468e-509b-8d0e-c766fc505b02",
+        "channel": "rybolos_channel",
+        "message_id": 1562,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🌸GPT OSS под Apache 2.0  ?! 🌸\n\nHuggingface выложила блог-пост с пустыми (пока?) ссылками на две опенсорсные модели GPT от OpenAI: 120B и 20B\n\nЧто нам обещают:\n — Всего параметров: 21 млрд и 117 млрд, MoE, с активными параметрами 3.6 млрд и 5.1 млрд соответственно.\n — Схема квантизации 4-бит с использованием mxfp4. Как указано, модель 120 млрд параметров помещается на одном GPU с 80 ГБ памяти, а модель 20 млрд — на одном GPU с 16 ГБ памяти.\n — Модели reasoning, из модальностей только текст; есть регулирование уровня \"усилий\" при рассуждениях \n — Поддержка следования инструкциям и использования tools.\n— Реализации инференса с использованием transformers, vLLM, llama.cpp и ollama.\n — Лицензия: Apache 2.0 с небольшой дополнительной политикой использования.\n\nЕсли это так, то очень круто. Ждём модели.\n\n🟣UPD чтоб вы понимали масштаб, первый раз OpenAI обещали опенсорснуть ChatGPT аж в 2023 году (\"Она все равно уже устарела, есть GPT-4\"). С тех пор не выкладывали почти ничего. \n\n🟣Блогпост: https://github.com/huggingface/transformers/releases/tag/v4.55.0"
+      },
+      {
+        "id": "b60a99e2-c2d6-5920-adbc-88caf2d4ced5",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 8213,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🔥 GPT-OSS — открытые модели с продвинутым ризонингом от OpenAI\n\n🧠 Представлено два варианта:\n— GPT-OSS-120B — 117B параметров, запускается на одной H100 (80GB)  \n— GPT-OSS-20B — 21B параметров, работает на 16GB GPU \n\n💡 Оба варианта — MoE-модели (Mixture of Experts) с 4-битной квантизацией (MXFP4)\n\n✔️ Особенности:\n• Архитектура Token-choice MoE с SwiGLU  \n• Контекст до 128K токенов с RoPE  \n• Модель заточена на CoT (chain-of-thought)  \n• Поддержка instruction-following и tool-use  \n• Совместима с transformers, vLLM, llama.cpp, ollama  \n• Используется тот же токенизатор, что и в GPT-4o  \n\nМладшая модель может запускаться даже на локальном железе!\n\n 🏴‍☠️Лицензирование: Apache 2.0\n\nhttps://github.com/huggingface/transformers/releases/tag/v4.55.0\n\n🚀 Попробовать можно тут: https://www.gpt-oss.com/\n\n💥 Официальный релиз: http://openai.com/open-models\n\n@ai_machinelearning_big_data\n\n\n#openai #opensource #chatgpt"
+      },
+      {
+        "id": "f2696c51-9c41-5abc-a01d-a4eccb0e82dc",
+        "channel": "rybolos_channel",
+        "message_id": 1563,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI разродились двумя опенсурсными моделями, на 120b и 20b параметров.\n\nМодели рассуждающие, поддерживают 3 типа длины рассуждений: low, medium, high.\n\nСсылки:\n— https://openai.com/open-models/\n— https://openai.com/index/gpt-oss-model-card/\n— https://cookbook.openai.com/articles/openai-harmony\n— https://gpt-oss.com/ - тут можно поиграть с моделью\n\nСудя по лендингу, модели уже сегодня будут доступны на Groq и Cerebas, предлагая очень быструю генерацию. И почти все инференс-движки уже поддерживают модель.\n\nИ самое крутое — как и o3, модели поддерживают вызов инструментов (поиск, Python, etc) в цепочке рассуждений."
+      }
+    ],
+    "citation_hits": [
+      "protechietich:3494",
+      "seeallochnaya:2717",
+      "rybolos_channel:1562",
+      "ai_machinelearning_big_data:8213",
+      "rybolos_channel:1563"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "d50aa044-754d-5f63-a721-5787d2726dea",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9adad963-dd73-5667-95ec-6eda01c3b851",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b60a99e2-c2d6-5920-adbc-88caf2d4ced5",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6d50257f-9090-5e18-a62e-ef8687ce7cc4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d975b36f-f8fd-522e-864e-8e153c41afa4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "784fe569-48f8-5dc0-8d27-4478d6ba437a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "f2696c51-9c41-5abc-a01d-a4eccb0e82dc",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "0c4af350-e9cf-5425-bc1d-4938d701435a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "dd823c76-e58d-53d7-ad6b-9b43e68146d1",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "29ea2a3b-468e-509b-8d0e-c766fc505b02",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d7313a27-b060-54cb-b106-4ec69f0f2b97",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2451479b-d550-53cb-9519-f04d15e06e87",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "687c6c15-450e-58c1-8c33-dfc749c14e19",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "14597834-5846-5dcb-ac82-b0b74c0e5cb6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5a37414e-b9dc-5c13-aafe-0dd41f31d6ef",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8f27bedc-6248-54f6-8251-e620823f0c38",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c8fb342c-4342-5dfe-bdb4-4e251686b0ad",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "222983bd-6470-5626-8c27-129683a69c95",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3c04dc93-6d94-588b-aab8-ad8014a14567",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "83963b95-3bed-5ce7-a313-cbc6a8ba3489",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_q02",
+      "version": "2.0",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "temporal_search",
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "OpenAI выпустила две open-source модели под Apache 2.0: 120B (117 млрд параметров, 5.1 млрд активных, MoE) и 20B (21 млрд параметров, 3.6 млрд активных, MoE). Используется 4-бит квантизация mxfp4."
+      ],
+      "expected_answer": "OpenAI выпустила две open-source модели под Apache 2.0: 120B (117 млрд параметров, 5.1 млрд активных, MoE) и 20B (21 млрд параметров, 3.6 млрд активных, MoE). Используется 4-бит квантизация mxfp4.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "rybolos_channel"
+      ],
+      "source_post_ids": [
+        "rybolos_channel:1562"
+      ],
+      "acceptable_evidence_sets": [
+        [
+          "rybolos_channel:1562"
+        ]
+      ],
+      "strict_anchor_recall_eligible": true,
+      "calibration": true,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "openai",
+          "open_source",
+          "parameters"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": 1.0,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q03",
+    "query": "За сколько Meta купила Manus AI?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "Согласно сообщениям в Telegram-каналах, Meta приобрела компанию Manus AI за 2 миллиарда долларов [1][2]. Сделка была заключена в конце декабря 2025 года.\n\nПокупка считается логичным шагом для Meta, так как это позволяет компании быстро получить продвинутый AI-агент, который уже демонстрирует высокие результаты на бенчмарках и генерирует выручку более $100 млн в год [1][3]. После сделки Manus сохранит независимость, но прекратит все операции в Китае, чтобы избежать геополитических рисков [2]. Агенты Manus будут интегрированы в продукты Meta, такие как Facebook, Instagram и WhatsApp [1].",
+    "status": "ok",
+    "latency_sec": 20.59310976800043,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [
+      "Не найдено в базе информации о том, что Meta купила компанию Manus AI. В доступных данных за период с июля 2025 по март 2026 года отсутствуют сообщения об этом событии. Также нет подтвержденных данных"
+    ],
+    "tool_observations": [
+      {
+        "tool": "search",
+        "summary": "Found 10 documents (total: 10). Route: hybrid. Use these IDs for compose_context: ['d1892b7c-fa74-5415-aa75-f3c7a25daf56', 'c2a38b21-1af1-5ab1-bad1-3dbd9294de6b', '57b14412-434c-5909-b063-6f03a49dff1f', '84c9451f-e95c-50b4-8404-5433887407be', '5862dee0-694e-50fc-ba39-5041cf227bb8', '90826fd7-e943-5380-afeb-11c124098680', '9f6d0661-23dd-53ed-b4c8-69bf7591ee23', 'def33de5-e14b-5f57-bdcd-cba18fd83d95', '5c0a99cf-8357-5d36-933a-bc64b5b75adc', 'c4813d94-17af-56e0-a530-10be02c3cc44']",
+        "success": true,
+        "took_ms": 725,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 5 documents by relevance, scores: [7.070, 5.594, 5.363, 3.461, 1.869]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 626,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.75, contexts: 5",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (592 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "c2a38b21-1af1-5ab1-bad1-3dbd9294de6b",
+        "channel": "ai_newz",
+        "message_id": 4355,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Meta с потрохами скупает Manus AI за $2 млрд\n\nЯ уже писал про Manus в обзоре генераторов презентаций. Но помимо этого, Manus — это довольно мощный агент. Он и браузером управляет и deep research делает.\n\nИ вот новость: Meta покупает их за $2 миллиарда.\n\nЭто логичный ход. У Llama пока нет нормального пользовательского интерфейса, а сам Цукерберг нацелен на продукы. В тоже время ChatGPT и Gemini давно обзавелись фичами вроде генерации презентаций и редактирования файлов, Llama оставалась просто голой моделью. Дальше всех ушёл, конечно же, GPT 5 с его продвинутым tool-use.\n\nПокупка Manus для Meta быстрый способ догнать и, возможно, перегнать конкурентов в продуктовой гонке. И, что важно для инвесторов, он уже зарабатывает деньги — более $100 млн в год.\n\nMeta обещает, что Manus будет работать независимо, но его агенты будут интегрированы в Facebook, Instagram и WhatsApp.\n\nЕсть, правда, один нюанс: китайские корни основателей. Но Meta уже заявила, что после сделки никаких связей с Китаем у Manus не будет. Там он полностью прекращает свою деятельность. \n\nКрасиво! И стоит только лишь поздравить фаундеров.\n\nПотестить\n\n@ai_newz"
+      },
+      {
+        "id": "d1892b7c-fa74-5415-aa75-f3c7a25daf56",
+        "channel": "aioftheday",
+        "message_id": 3988,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Meta* покупает Manus\n\nЦукерберг интегрирует AI-агента в соцсети. Manus сохранит независимость, но оборвёт все связи с Китаем и перестанет там работать, чтобы не злить Трампа и Конгресс. \n\nСделку оценивают в 2 миллиарда долларов — на такую оценку Manus рассчитывал в следующем раунде. На днях стартап заявлял о 100 миллионах долларов ARR.\n\n*Meta признана экстремистской организацией и запрещена в РФ\n\nhttps://techcrunch.com/2025/12/29/meta-just-bought-manus-an-ai-startup-everyone-has-been-talking-about/"
+      },
+      {
+        "id": "57b14412-434c-5909-b063-6f03a49dff1f",
+        "channel": "data_secrets",
+        "message_id": 8582,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Вау: Meta купила китайский стартап Manus\n\nЭто разработчики того самого агента Manus, который хайпанул в марте этого года. К слову, он до сих пор выбивает соту на нескольких бенчмарках, и пользователей у них куча. \n\nВообще, компания базировалась в Китае, но после покупки связи со страной будут разорваны (в том числе с крупными инвесторами типа Tencent и Hongshan), и Manus продолжит независимо работать из Сингапура. \n\nСумму сделки не раскрывают, но аналитики оценивают ее примерно в два миллиарда долларов. И это еще не сильно дорого для стартапа, который всего за 8 месяцев достиг ARR в 100–125 млн долларов. \n\nСамого агента Manus планируется интегрировать в продукты Meta. В целом, для Meta это логичная покупка: у них у единственных до сих пор нет своего ИИ-продукта, и это сильно отодвигает назад. Может, теперь мы наконец увидим крутого агента уже под флагом Цукерберга?"
+      },
+      {
+        "id": "90826fd7-e943-5380-afeb-11c124098680",
+        "channel": "ai_newz",
+        "message_id": 4358,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Нейродайджест за неделю (#101)\nПервый в новом году!\n\nПока еще на праздниках, потому дайджест будет короткий.\n\nLLM\n- MAI-UI — GUI агент на основе Qwen 3 VL для управления интерфейсами смартфонов на уровне SOTA. \n- Meta покупает Manus AI за $2 млрд — Мощного агента, чтобы догнать конкурентов в продуктовой гонке. \n\nПрочее\n- Tesla пересекла США на автопилоте — Дэвид Мосс проехал 4400 км от Тихого до Атлантического океана, ни разу не вмешавшись в управление. \n\n> Читать дайджест #100\n\n#дайджест\n@ai_newz"
+      },
+      {
+        "id": "c4813d94-17af-56e0-a530-10be02c3cc44",
+        "channel": "aioftheday",
+        "message_id": 3890,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Meta* купила стартап носимых AI-устройств Limitless\n\nLimitless раньше назывался Rewind и делал подвеску для записи разговоров. Последний продукт стартапа — клипса на воротник с микрофоном: всё вокруг записывается, индексируется и потом ищется на смартфоне.\n\nСтартап успел привлечь больше 33 миллионов долларов. Теперь Limitless станет частью Reality Labs Цукерберга. Устройства уже сняли с продажи.\n\n*Meta признана экстремистской организацией и запрещена в РФ\n\nhttps://techcrunch.com/2025/12/05/meta-acquires-ai-device-startup-limitless/"
+      }
+    ],
+    "citation_hits": [
+      "ai_newz:4355",
+      "aioftheday:3988",
+      "data_secrets:8582",
+      "ai_newz:4358",
+      "aioftheday:3890"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "d1892b7c-fa74-5415-aa75-f3c7a25daf56",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c2a38b21-1af1-5ab1-bad1-3dbd9294de6b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "57b14412-434c-5909-b063-6f03a49dff1f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "84c9451f-e95c-50b4-8404-5433887407be",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5862dee0-694e-50fc-ba39-5041cf227bb8",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "90826fd7-e943-5380-afeb-11c124098680",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9f6d0661-23dd-53ed-b4c8-69bf7591ee23",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "def33de5-e14b-5f57-bdcd-cba18fd83d95",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5c0a99cf-8357-5d36-933a-bc64b5b75adc",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c4813d94-17af-56e0-a530-10be02c3cc44",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_q03",
+      "version": "2.0",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "temporal_search",
+        "summarize_channel"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Meta купила Manus AI за $2 млрд. Manus — это агент с возможностями управления браузером и deep research, с выручкой более $100 млн в год."
+      ],
+      "expected_answer": "Meta купила Manus AI за $2 млрд. Manus — это агент с возможностями управления браузером и deep research, с выручкой более $100 млн в год.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "ai_newz"
+      ],
+      "source_post_ids": [
+        "ai_newz:4355"
+      ],
+      "acceptable_evidence_sets": [
+        [
+          "ai_newz:4355"
+        ]
+      ],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "easy",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "meta",
+          "manus",
+          "acquisition"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": 1.0,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q04",
+    "query": "Что нового у DeepSeek? Какие модели они выпустили?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "DeepSeek активно развивает линейку моделей, выпустив несколько значимых обновлений в период с августа 2025 по январь 2026 года. Вот ключевые новинки:\n\n**1. DeepSeek-V3.2 и V3.2-Speciale (декабрь 2025)**\nСамое свежее обновление — релиз двух моделей, позиционируемых как агенты нового поколения [1][2]:\n*   **DeepSeek-V3.2:** Официальный преемник экспериментальной версии V3.2-Exp. Модель сочетает базовые возможности и рассуждение (reasoning), доступна в чате, на сайте и через API. По метрикам она конкурирует с GPT-5 и превосходит Claude-4.5 Sonnet в задачах программирования [2][8].\n*   **DeepSeek-V3.2-Speciale:** Специализированная версия для сложного многошагового рассуждения, планирования и работы в агентных системах. На данный момент доступна только через API (до 15 декабря 2025) [2]. Эта модель показала выдающиеся результаты: она заняла первое место на олимпиадах IMO, CMO, IOI и ICPC, обогнав западные модели по математике [3][8].\n\n**Технические особенности:**\n*   Обе модели используют новую архитектуру **DeepSeek Sparse Attention (DSA)**, которая позволяет экономить вычислительные ресурсы за счет избирательного внимания к ключевым токенам [4][8].\n*   В V3.2 мышление встроено непосредственно в использование инструментов (tool-use) [2].\n*   Все модели открыты и доступны на Hugging Face [1][2].\n\n**2. DeepSeek-V3.2-Exp (сентябрь 2025)**\nЭкспериментальная версия, которая впервые представила механизм Sparse Attention. Она позволила снизить стоимость API-запросов почти вдвое при сохранении качества, сопоставимого с предыдущей версией V3.1 Terminus [4][5].\n\n**3. DeepSeek-V3.1 (август 2025)**\nМодель, объединяющая базовые и рассуждающие способности (гибридная архитектура). Увеличен контекст до 128к токенов, знания обновлены до июля 2024 года [10][14].\n\n**Планы на будущее:**\nСогласно инсайдам The Information, DeepSeek планирует выпустить модель **V4** в середине февраля 2026 года (к Китайскому Новому году). Главным преимуществом новой модели будут «выдающиеся способности в программировании» и оптимизация для обработки длинных технических промптов [10][11].\n\nТакже сообщалось о релизе **DeepSeek-OCR 2** — новой модели для распознавания текста и понимания изображений, использующей уникальный энкодер объектов [13].",
+    "status": "ok",
+    "latency_sec": 37.85555765999925,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "search",
+        "summary": "Found 24 documents (total: 24). Route: hybrid. Use these IDs for compose_context: ['e7157ac6-fdfd-5e30-8d76-25cc276a06f6', '579935d4-16f3-5df7-9f84-8ae3909a0986', '02ed9182-2169-594c-9899-2a7d46f264fd', '2834eda2-e05f-50ce-acc4-eeccbc8d3cee', '96708eec-14b1-56a9-99c1-9d929684dc3c', 'bdb93317-8142-58e2-a1b5-60791f9e45b5', '37f11e31-8634-52da-8005-69041629d670', '49fa0834-9621-5c56-a677-650850836062', '20ecd7ed-11c3-5f81-89bf-dab186ac008f', '4f604bf2-e9f4-509a-b143-73a6b075786e', 'a076dd55-87a7-55",
+        "success": true,
+        "took_ms": 1885,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 10 documents by relevance, scores: [10.570, 9.484, 9.055, 8.938, 8.938]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 1686,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 10 citations, coverage: 0.84, contexts: 10",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (2239 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "e7157ac6-fdfd-5e30-8d76-25cc276a06f6",
+        "channel": "data_secrets",
+        "message_id": 8396,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "⚡️ Вышли свеженькие модели от DeepSeek! \n\nКитайский стартап выпустил DeepSeek-V3.2 и DeepSeek-V3.2-Speciale. \n\nПозиционируются обе как модели для агентов. DeepSeek-V3.2-Speciale – с акцентом на сложный долгий ризонинг и планирование. \n\nПервая уже доступна в чате. Вторая пока только в API. По метрикам – уровень GPT-5 и Gemini 3.0 соответственно. \n\nНу и, естественно, все в опенсорсе! Hugging Face\n\nБегом пробовать!"
+      },
+      {
+        "id": "579935d4-16f3-5df7-9f84-8ae3909a0986",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9140,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🚀 Релиз DeepSeek-V3.2 и DeepSeek-V3.2-Speciale - модели нового поколения, созданные в первую очередь для reasoning и работы в агентных системах.\n\nЧто нового:\n- DeepSeek-V3.2 - официальный преемник V3.2-Exp. Доступна в приложении, на сайте и через API.  \n- DeepSeek-V3.2-Speciale - улучшенная версия с акцентом на продвинутое многошаговое рассуждение. Пока что работает только через API.\n\nОбе модели делают упор на глубокие цепочки рассуждений и поведение, нацеленное на агентные сценарии: планирование, решение задач, сложные выводы и работу со структурированными данными.\n\n🏆 Производительность\n\n• V3.2 -  баланс скорости и качества, уровень примерно GPT-5 \n• V3.2-Speciale - топовый reasoning, конкурирует с Gemini-3.0-Pro.\n• Speciale - лидер на IMO, CMO, ICPC.\n\n🤖 Новый подход к обучению агентов\n\n• Синтезированы большие тренировочные данные для 1800+ сред и 85k сложных инструкций.\n• V3.2 - первая модель DeepSeek, у которой мышление встроено прямо в tool-use.\n\n💻 API\n\n• V3.2 использует тот же интерфейс, что V3.2-Exp.\n• Speciale доступна через временный endpoint, работать будет до 15 декабря 2025.\n\n📦 DeepSeek-V3.2 Model: https://huggingface.co/deepseek-ai/DeepSeek-V3.2\n📦 DeepSeek-V3.2-Speciale Model: https://huggingface.co/deepseek-ai/DeepSeek-V3.2-Speciale\n📄 Tech report: https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/main/assets/paper.pdf\n\n@ai_machinelearning_big_data\n\n#deepseek, #deepseekv3, #ai, #нейросети, #искусственныйинтеллект, #llm"
+      },
+      {
+        "id": "37f11e31-8634-52da-8005-69041629d670",
+        "channel": "xor_journal",
+        "message_id": 8223,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Ого, китайцы релизнули две новые опенсорс модели DeepSeek — и они показывают результат на уровне и даже лучше GPT-5 High и Gemini 3 Pro.\n\nТак, DeepSeek-V3.2 Special обгоняет GPT-5 High сразу в нескольких категориях, включая кодинг и агентные задачи. А в олимпиадных бенчмарках по математике и информатике модель не просто берёт золото — она показывает результаты выше всех западных моделей.\n\nDeepSeek-V3.2 уже доступна бесплатно в DeepSeek Chat и HF. А звездочка Special пока только через API. Позиционируются обе, кстати, как модели для агентов.\n\nКитайцы не дают Google и OpenAI отдыхать 😁\n\n@xor_journal"
+      },
+      {
+        "id": "02ed9182-2169-594c-9899-2a7d46f264fd",
+        "channel": "data_secrets",
+        "message_id": 7925,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "DeepSeek выпустили новую модель DeepSeek-V3.2-Exp\n\nКачество примерно на уровне предыдущей DeepSeek-V3.1 Terminus, а цена стала на 50+% ниже. \n\nОсновное нововведение, за счет которого и удалось снизить косты и повысить скорость, – DeepSeek Sparse Attention(DSA). Не отходя от кассы на второй картинке можете посмотреть, насколько метод оптимизирует стоимость на длинных последовательностях. \n\nDSA – это специальная вариация механизма внимания, которая позволяет вычислять аттеншен не на всех парах токенах, а избирательно. \n\nВ большинстве вариантов Sparse Attention маска для всех запросов совпадает (грубо говоря, все токены смотрят на одинаковые позиции), но здесь заявляется fine-grained. То есть маска формируется динамически для каждого токена, так что модель не теряет важные зависимости, и качество почти не падает.\n\nДля этого сначала отрабатывает так называемый Lightning Indexer – легкий шустрый модуль, который вычисляет оценки важности между текущим токеном и предыдущими. Затем выбирается top-k наиболее важных токенов, на которых и будет выполняться внимание.\n\nУскорение, соответсвенно, получается за счет того, что сложность алгоритма уже не квадратичная по длине последовательности, а линейная. \n\nМоделька доступна в приложении, в вебе и в API\n\nВеса | Техрепорт"
+      },
+      {
+        "id": "2f1eb94b-c875-5a29-98ee-886738ba233b",
+        "channel": "aioftheday",
+        "message_id": 3574,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "DeepSeek показал, как урезать цену API-запросов почти вдвое\n\nКомпания выпустила экспериментальную модель DeepSeek V3.2-exp с новым механизмом Sparse Attention.\n\nВместо того, чтобы постоянно читать всю информацию в контекстном окне, модель быстро находит ключевые куски и читает только их. Так экономится вычислительная мощность и снижается нагрузка на сервера.\n\nТесты показали, что такой подход может сократить стоимость длинных запросов через API почти на 50%. Судя по бенчмаркам, V3.2-exp работает не хуже V3.1. \n\nМодель лежит в открытом доступе на Hugging Face: https://huggingface.co/deepseek-ai/DeepSeek-V3.2-Exp"
+      },
+      {
+        "id": "2834eda2-e05f-50ce-acc4-eeccbc8d3cee",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 8264,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "✔️ DeepSeek, предположительно, выпустит модель R2 во второй половине августа.\n\nDeepSeek готовится к релизу обновленной языковой модели DeepSeek R2. По данным отраслевых изданий, запуск ожидается в период с 15 по 30 августа. Официального анонса пока не было.\n\nПо предварительной информации, R2 будет использовать архитектуру \"смеси экспертов\" и распространяться под открытой лицензией. Также источники отмечают, что что модель обучалась на кластере Huawei Ascend 910B, где компания добилась улучшения эффективности использования аппаратного обеспечения, задействовав около 82% доступных мощностей ИИ-процессоров.\nhuaweicentral.com\n\n✔️ Liquid AI выпустила компактные VL-модели для работы на устройствах.\n\nСтартап Liquid AI представил новое поколение моделей LFM2-VL. Они спроектированы для работы на устройствах - от смартфонов и ноутбуков до носимой электроники. В основе - модульная архитектура с легковесным проектором, который сжимает токены изображений для ускорения обработки.\n\nПо заявлению разработчиков, они вдвое быстрее по инференсу на GPU по сравнению с аналогами, при сохранении конкурентоспособности на стандартных бенчмарках."
+      },
+      {
+        "id": "e54e795e-c717-58b6-ab88-a663120ee1b9",
+        "channel": "gonzo_ml",
+        "message_id": 4654,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Добавил в новость про китайские модели упоминание DeepSeek-OCR-2. Новый энкодер у них и правда интересный, не растр сканирует как все, а объекты, и соответственно порядок визуальных токенов получается иной. Теперь и энкодеры у нас с ризонингом! \n\nИз забавного, DeepSeek использует чужой энкодер от Qwen."
+      },
+      {
+        "id": "2db0c3f9-b25f-5ddc-a238-da0f00e1bd7e",
+        "channel": "data_secrets",
+        "message_id": 8400,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Еще интересные детали про новые модели от DeepSeek\n\n➖ DeepSeek-V3.2-Speciale – это первая опенсорсная модель, которая выбивает золото в топ-олимпиадах. Обратите внимание на рисунок 1: золото на IMO 2025, CMO 2025, IOI 2025 и ICPC WF 2025. Но test-time compute при этом огромен: Speciale совсем не экономит токены, так что инференс достаточно дорогой. \n\n➖ Еще раз про метрики (прикрепляем расширенные таблички): Speciale бьет Gemini 3.0 Pro на математике, а \"менее умная\" DeepSeek-V3.2 опережает Claude-4.5 Sonnet в кодинге (примерно уровень GPT-5 Pro). В случае с Speciale снова обратите внимание на количество используемых токенов, оно указано в таблице 3 в скобочках. Выглядит совсем не эффективно, и авторы сами говорят, что \"оставили оптимизацию на будущие исследования\". \n\n➖ Основные технические причины успеха моделей: DeepSeek Sparse Attention, масштабный стабильный RL-тренинг и большой пайплайн для Agentic Tasks. Обо всем по отдельности – ниже. \n\n1️⃣ DeepSeek Sparse Attention. Новая архитектура внимания и, по сути, ключевое изменение архитектуры по сравнению с предыдущим поколением. Состоит из двух частей: Lightning Indexer и Top-k sparse selection."
+      },
+      {
+        "id": "053c7fa8-1fac-5ebe-8bab-1ca574a02f5f",
+        "channel": "ai_newz",
+        "message_id": 4294,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Mistral Large 3 — у нас есть DeepSeek дома\n\nАрхитектурно модель DeepSeek V3 с немного другим конфигом. Из преимуществ перед линейкой V3 — Mistral 3 мультимодальная, что редкость для открытых моделей такого размера (самое близкое что вспоминается — Qwen 3 VL). Ризонер варианта нет, базовая модель тягается на бенчах с Kimi K2 и DeepSeek V3.1.\n\nВместе с Large 3 компания выпустили новые Ministral — 14B, 8B и 3B. 14B лучше Qwen схожего размера, а вот 8B и 3B уступают Qwen 3 8B и 4B. Эти модели тоже умеют в мультимодальность и у них есть ризонинг варианты. Все четыре модели уже доступны по лицензии Apache 2.0. \n\nВеса Large 3\nВеса Ministral 3\nБлогпост\n\n@ai_newz"
+      },
+      {
+        "id": "a076dd55-87a7-55f7-b132-cb0b522dffa2",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9373,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "⚡️ DeepSeek выпустит V4 в феврале.\n\nКитайская лаборатория планирует представить модель следующего поколения уже в середине февраля 2026 года, пишет The Information. \n\nРелиз V4 будет приурочен к празднованию Китайского Нового года (с 15 по 23 февраля), а главным преимуществом новой модели  заявлены \"выдающиеся способности в программировании\".\n\nИсточники издания утверждают, что внутренние бенчмарки показывают превосходство V4 над флагманскими решениями OpenAI и Anthropic в задачах написания кода. \n\nАрхитектура модели оптимизирована для эффективной утилизации аппаратных ресурсов и обработки длинных технических промптов.\n\n@ai_machinelearning_big_data\n\n#news #ai #ml"
+      }
+    ],
+    "citation_hits": [
+      "data_secrets:8396",
+      "ai_machinelearning_big_data:9140",
+      "xor_journal:8223",
+      "data_secrets:7925",
+      "aioftheday:3574",
+      "ai_machinelearning_big_data:8264",
+      "gonzo_ml:4654",
+      "data_secrets:8400",
+      "ai_newz:4294",
+      "ai_machinelearning_big_data:9373"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "e7157ac6-fdfd-5e30-8d76-25cc276a06f6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "579935d4-16f3-5df7-9f84-8ae3909a0986",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "02ed9182-2169-594c-9899-2a7d46f264fd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2834eda2-e05f-50ce-acc4-eeccbc8d3cee",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "96708eec-14b1-56a9-99c1-9d929684dc3c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "bdb93317-8142-58e2-a1b5-60791f9e45b5",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "37f11e31-8634-52da-8005-69041629d670",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "49fa0834-9621-5c56-a677-650850836062",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "20ecd7ed-11c3-5f81-89bf-dab186ac008f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "4f604bf2-e9f4-509a-b143-73a6b075786e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a076dd55-87a7-55f7-b132-cb0b522dffa2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c043ec50-0778-54f8-81a3-44076b613543",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "816316d9-6542-5257-bb25-608166ba8b0c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b9f76035-2524-5234-b718-5678391d76a1",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "74aa8183-8b28-5667-825a-8dea55e8bf80",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2db0c3f9-b25f-5ddc-a238-da0f00e1bd7e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "053c7fa8-1fac-5ebe-8bab-1ca574a02f5f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "aa0ab60b-435b-5789-851b-c3f90116e0f0",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2f1eb94b-c875-5a29-98ee-886738ba233b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "275112c7-fd36-5052-a553-3c290a1aead2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_q04",
+      "version": "2.0",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels",
+        "summarize_channel"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "DeepSeek выпустили V3.2 и/или V3.2-Speciale с акцентом на reasoning и агентные задачи",
+        "Должны быть упомянуты ключевые технические особенности (Sparse Attention, MoE, опенсорс)"
+      ],
+      "expected_answer": "DeepSeek выпустили V3.2/V3.2-Speciale (Sparse Attention, agent-oriented), OCR-2, планы V4. Ранее: V3 с mHC. Должны быть покрыты основные релизы за период.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "seeallochnaya"
+      ],
+      "source_post_ids": [
+        "seeallochnaya:3162",
+        "seeallochnaya:3243"
+      ],
+      "acceptable_evidence_sets": [
+        [
+          "seeallochnaya:3162",
+          "seeallochnaya:3243"
+        ]
+      ],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "deepseek",
+          "entity"
+        ],
+        "v2_fix": "expected_answer расширен — open-ended вопрос требует широкого ответа"
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 0.0,
+      "acceptable_set_hit": 0.0,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q05",
+    "query": "Какие open-source модели для генерации изображений существуют?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "В базе данных за период с июля 2025 по март 2026 года обнаружены следующие open-source модели для генерации изображений:\n\n1. **HunyuanImage 3.0** (Tencent) — мощная модель на 80B параметров с архитектурой MoE + Transfusion. Сопоставима по качеству с закрытыми флагманами, отлично понимает сложные промпты и генерирует детализированные изображения с текстом [1]. Также выпущена версия **HunyuanImage 3.0-Instruct**, которая является SOTA для редактирования изображений (Image-to-Image) и поддерживает инструктивный ввод [4].\n\n2. **Kandinsky 5.0** (Сбер) — крупнейший европейский опенсорс релиз под лицензией MIT. В линейку входят:\n   - **Image Lite**: универсальная модель генерации и редактирования изображений (6B параметров), нативно поддерживает русский язык и генерирует кириллический текст, превосходит FLUX.1 [dev] в качестве генерации [2][3][6].\n   - **Video Pro** и **Video Lite**: модели для генерации видео, но также являются частью общей экосистемы [2][6].\n\n3. **Qwen-Image** (Alibaba) — открытая модель MMDiT на 20B параметров. Особая эффективность в создании изображений с нативным текстом (рендеринг текста SOTA), двуязычная поддержка и работа со сложными промптами [8].\n\n4. **FLUX.2** (Black Forest Labs) — новая SOTA опенсорсная модель, выпущенная в версиях Pro, Flex и Dev. Версия Dev доступна под некоммерческой лицензией, обеспечивает высокую фотореалистичность, поддерживает до 10 референсов и разрешение генерации до 4MP [5].\n\nТакже упоминается **Matrix-Game 2.0** — открытая модель мира для генерации интерактивных 3D-миров, которая может работать с изображениями как отправной точкой [7].",
+    "status": "ok",
+    "latency_sec": 41.81169695800054,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "query_plan",
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "query_plan",
+        "summary": "Plan: 3 queries, k=10, fusion=rrf",
+        "success": true,
+        "took_ms": 3168,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['1b963419-5939-5768-a130-109c29a91f07', '6254ad4f-08cd-5ba1-8b22-f8174044f3dd', '1f8e1c83-9a2c-5630-b9e3-4f75a2b108f7', 'a5b28c21-1a75-5e06-840e-732d672208ba', '902678e2-e920-5837-8d18-49d0b33a73c8', '786333bc-398a-5620-8b85-9e49ddcf0819', '951c6053-8360-580f-87a0-d783f62d5888', 'e6e7ce24-1057-5997-912d-61870e1cdbe7', '988444e2-ce60-583c-a953-f6952594e501', '763f2f0d-2cba-597a-a642-2d7eda3ded25', 'ff363e99-23d1-55",
+        "success": true,
+        "took_ms": 3820,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 10 documents by relevance, scores: [8.922, 8.344, 8.344, 8.133, 7.922]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 2001,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 10 citations, coverage: 0.79, contexts: 10",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1611 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "1b963419-5939-5768-a130-109c29a91f07",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 8638,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🔥 HunyuanImage 3.0 — свежая  open-source модель для генерации изображений по тексту (text-to-image) от Hunyuan.\n\nРазмер 80B параметров, из которых 13B активируются на токен во время инференса.  \n\nКачество сопоставимо с флагманскими закрытыми моделями индустрии.  \n\nЧто интересного:  \n- Основана на собственной мультимодальной LLM Tencent  \n- Постобучение заточено под text-to-image задачи  \n- Архитектура MoE + Transfusion объединяет Diffusion и LLM в единую систему  \n\n🚀 Возможности:  \n\n- Понимает сложные промпты длиной до тысячи слов  \n- Детализированные изображения с текстом  \n- Генерирует сложные иллюстрации и комиксы  \n\n👉 Попробовать: https://hunyuan.tencent.com/image  \n🔗 GitHub: https://github.com/Tencent-Hunyuan/HunyuanImage-3.0  \n🤗 Hugging Face: https://huggingface.co/tencent/HunyuanImage-3.0\n\n@ai_machinelearning_big_data\n\n\n#AI #GenerativeAI #Adobe #MorganStanley"
+      },
+      {
+        "id": "902678e2-e920-5837-8d18-49d0b33a73c8",
+        "channel": "complete_ai",
+        "message_id": 815,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🚀 Мы с командой открываем всю линейку генеративных моделей Kandinsky 5.0!\n\nВ сентябре мы выложили в open source Kandinsky 5.0 Video Lite, получили множество положительных отзывов и полезной обратной связи, большое спасибо всем!\n\nСегодня мы открываем всю линейку: как Video, так и Image модели. Дальше расскажу все подробности, но можно сначала сходить попробовать: модели доступны всем на открытых поверхностях ГигаЧат: Telegram,  Max и giga.chat\n\n🎬 Video Pro – мощные Text-to-Video и Image-to-Video – лучшие в мире open source модели, превосходящие по качеству Wan 2.2 A14B и работающие наравне с Veo 3 от Google по визуалу и динамике (в HD)\n\n🖼 Image Lite – универсальные Text-to-Image и Image Editing модели c 6B параметров, которые нативно поддерживают промты на русском языке, знают культурный код и генерируют картинки с кириллическим текстом. Значительно превосходит FLUX.1 [dev] в задаче генерации изображений и работают на одном уровне с FLUX.1 Kontext [dev] в их редактировании"
+      },
+      {
+        "id": "786333bc-398a-5620-8b85-9e49ddcf0819",
+        "channel": "dendi_math_ai",
+        "message_id": 94,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🚀 Мы с командой открываем всю линейку генеративных моделей Kandinsky 5.0!\n\nВ сентябре мы выложили в open source Kandinsky 5.0 Video Lite, получили множество положительных отзывов и полезной обратной связи, большое спасибо всем!\n\nСегодня мы открываем всю линейку: как Video, так и Image модели. Дальше расскажу все подробности, но можно сначала сходить попробовать: модели доступны всем на открытых поверхностях ГигаЧат: Telegram,  Max и giga.chat\n\n🎬 Video Pro – мощные Text-to-Video и Image-to-Video – лучшие в мире open source модели, превосходящие по качеству Wan 2.2 A14B и работающие наравне с Veo 3 от Google по визуалу и динамике (в HD)\n\n🖼 Image Lite – универсальные Text-to-Image и Image Editing модели c 6B параметров, которые нативно поддерживают промты на русском языке, знают культурный код и генерируют картинки с кириллическим текстом. Значительно превосходит FLUX.1 [dev] в задаче генерации изображений и работают на одном уровне с FLUX.1 Kontext [dev] в их редактировании"
+      },
+      {
+        "id": "30399744-d169-599b-b55b-233f593f6418",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9440,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "HunyuanImage 3.0-Instruct теперь полностью open-source 🔥\n\nМодель только что ворвалась в Tier-1 глобального рейтинга Image Edit от Arena и сейчас считается самой мощной open-source Image-to-Image моделью. \n\nФактически новый SOTA для всего комьюнити.\n\nЧто это значит на практике:\n- Топовый уровень редактирования изображений по текстовым инструкциям  \n- Очень точное следование промптам в стиле \"измени, но сохрани структуру\"  \n- Сильный баланс между качеством, деталями и контролем результата  \n- Отличная база для своих инструментов, сервисов и ресёрча  \n\nОтдельно есть Distil-версия - легче, быстрее, удобнее для продакшена и ограниченных ресурсов.\n\n▪GitHub: https://github.com/Tencent-Hunyuan/HunyuanImage-3.0  \n▪Hugging Face: https://huggingface.co/tencent/HunyuanImage-3.0-Instruct  \n▪Hugging Face Distil: https://huggingface.co/tencent/HunyuanImage-3.0-Instruct-Distil\n\n@data_analysis_ml"
+      },
+      {
+        "id": "988444e2-ce60-583c-a953-f6952594e501",
+        "channel": "data_secrets",
+        "message_id": 8352,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "FLUX.2 – новая опенсорсная SOTA в генерации изображений \n\nСразу дисклеймер. Модель идет в трех вариантах: Pro, Flex, Dev. Опенсорснули пока только Dev (некоммерческая лицензия). Вот веса. Скоро обещают выпустить еще FLUX.2 [klein], опенсорсную дистилляцию из FLUX.2 base под лицензией Apache 2.0. \n\nСамая прикольная, конечно, Pro. Там и фотореалистичность круто прокачана, и всякий свет/текстуры/текст не плывут. Выглядит действительно красиво, в общем. \n\nТакже теперь можно загружать до 10 референсов (понимание промпта обещают на высоте, но будем проверять). Разрешение генераций до 4MP. \n\nЧто еще радует, так это соотношение цена/качество: от Nano-Banana 2 большинство генераций вообще не отличить по качеству, зато стоит FLUX.2 на 20% меньше. \n\nПопробовать бесплатно можно здесь"
+      },
+      {
+        "id": "951c6053-8360-580f-87a0-d783f62d5888",
+        "channel": "xor_journal",
+        "message_id": 8142,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Kandinsky 5.0 от Сбера выложили в открытый доступ — это крупнейший опенсорс релиз в Европе 😱\n\nСбер выложил всю линейку моделей под лицензией MIT. Только посмотрите на этот клад:\n\n🟢 Video Pro — флагманская модель, генерирует HD-видео до 10 секунд, обучали на 250 млн видео. Это сейчас лучшая открытая модель, она превосходит Wan 2.2-A14B в Text-to-Video и Image-to-Video и равен Veo 3 по визуалу.\n\n🟢 Video Lite — компактная модель, идеальна для GPU с 12ГБ VRAM, дает отличные результаты в динамике. \n \n🟢Image Lite — модель генерации изображений и их редактирования, обучена на базе 520 млн картинок, включая 1 миллион с русским культурным кодом. \n\n🟢 K-VAE 1.0 — вариационные автоэнкодеры, улучшенная сжимаемость для диффузионных моделей, превосходит все открытые альтернативы на открытых бенчмарках.\n\nВсе модели уже доступны на GitHub, Gitverse и HuggingFace.\n\nТехнический отчет тут 😄\n\n@xor_journal"
+      },
+      {
+        "id": "51dfabfb-ef7c-5de7-926d-d6bb241d08dd",
+        "channel": "xor_journal",
+        "message_id": 7400,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "В опенсорс вышел Matrix-Game 2.0 — это открытая модель мира, аналог Genie 3 😱\n\nМодель умеет генерировать виртуальные и интерактивные 3D-миры в реальном времени (25fps) и при этом работать пару минут без потери контекста. Можете дать ему любое изображение в качестве отправной точки для создания мира: фото из старого альбома, картину, кадр из фильма.\n\nHuggingface тут. Репозиторий с примерами здесь.\n\n@xor_journal"
+      },
+      {
+        "id": "6254ad4f-08cd-5ba1-8b22-f8174044f3dd",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 8206,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "✔️ Qwen-Image — новая открытая модель MMDiT 20B для генерации изображений.\n\nОсобенно эффективна для создания картинок с нативным текстом.\n\n🔍 Основные моменты:\n🔹 Рендеринг текста SOTA показатели — конкурирует с GPT-4o на английском языке, лучший в своем классе на китайском языке\n\n🔹 Двуязычная поддержка, разнообразные шрифты, понимает сложные промпты.\n\nТехотчёт показывает:  \n- модель минимальные искажения символов при генерации;  \n- заметно более высокие метрики качества изображения против «стандартных» диффузионок.\n\n🎨 Можешь отлично справляется с созданием изображений в разных стилях — от фотореализма до аниме, от импрессионизма до минимализма. \n\n🔘Blog: https://qwenlm.github.io/blog/qwen-image/\n🔘Hugging Face：https://huggingface.co/Qwen/Qwen-Image\nModelScope：https://modelscope.cn/models/Qwen/Qwen-Image\n🔘Github：https://github.com/QwenLM/Qwen-Image\n🔘Technical report：https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-Image/Qwen_Image.pdf\n🔘Demo: https://modelscope.cn/aigc/imageGeneration?tab=advanced\n\n@ai_machinelearning_big_data\n\n#qwen #ml #llm #ai"
+      },
+      {
+        "id": "c8bbbd51-b963-55a1-a34b-4707a95b2710",
+        "channel": "dendi_math_ai",
+        "message_id": 83,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🎬 Kandinsky 5.0 Video Lite — новая open source модель генерации видео 🎬\n\nМы выпускаем Kandinsky 5.0 Video Lite — первую модель новой линейки Kandinsky-5. Модель работает в разрешении 768×512 и при небольшом размере всего в 2B параметров демонстрирует качество, превосходящее предыдущие версии Kandinsky и большую часть актуальных открытых open source решений\n\nГенерация видео до сих пор остаётся одной из самых сложных инженерных задач в Generative AI. Причём и как с точки зрения подготовки данных для обучения и распределённого обучения моделей, а затем масштабирования, так и с точки зрения инференса такого рода архитектур. Если картинки уже можно делать фотореалистичными даже на «бытовом» железе, то качественные видео в высоких разрешениях до сих пор можно сгенерировать только большими моделями, которые запускаются на топовых GPU"
+      },
+      {
+        "id": "4d58946b-0484-53bc-baf5-3580d51243fb",
+        "channel": "oulenspiegel_channel",
+        "message_id": 4749,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🎬 Kandinsky 5.0 Video Lite — новая open source модель генерации видео 🎬\n\nМы выпускаем Kandinsky 5.0 Video Lite — первую модель новой линейки Kandinsky-5. Модель работает в разрешении 768×512 и при небольшом размере всего в 2B параметров демонстрирует качество, превосходящее предыдущие версии Kandinsky и большую часть актуальных открытых open source решений\n\nГенерация видео до сих пор остаётся одной из самых сложных инженерных задач в Generative AI. Причём и как с точки зрения подготовки данных для обучения и распределённого обучения моделей, а затем масштабирования, так и с точки зрения инференса такого рода архитектур. Если картинки уже можно делать фотореалистичными даже на «бытовом» железе, то качественные видео в высоких разрешениях до сих пор можно сгенерировать только большими моделями, которые запускаются на топовых GPU"
+      }
+    ],
+    "citation_hits": [
+      "ai_machinelearning_big_data:8638",
+      "complete_ai:815",
+      "dendi_math_ai:94",
+      "ai_machinelearning_big_data:9440",
+      "data_secrets:8352",
+      "xor_journal:8142",
+      "xor_journal:7400",
+      "ai_machinelearning_big_data:8206",
+      "dendi_math_ai:83",
+      "oulenspiegel_channel:4749"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "1b963419-5939-5768-a130-109c29a91f07",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6254ad4f-08cd-5ba1-8b22-f8174044f3dd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1f8e1c83-9a2c-5630-b9e3-4f75a2b108f7",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a5b28c21-1a75-5e06-840e-732d672208ba",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "902678e2-e920-5837-8d18-49d0b33a73c8",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "786333bc-398a-5620-8b85-9e49ddcf0819",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "951c6053-8360-580f-87a0-d783f62d5888",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e6e7ce24-1057-5997-912d-61870e1cdbe7",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "988444e2-ce60-583c-a953-f6952594e501",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "763f2f0d-2cba-597a-a642-2d7eda3ded25",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ff363e99-23d1-55de-8e88-5753345d790a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "f9a50d95-c437-560b-b86e-e91a1847f466",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "022366a7-a4de-5303-95aa-17286ddded6a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "0111d58c-6e1d-5998-935d-e9bd0a310a58",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b6cec063-fc5e-58b0-b833-7bedb52290f5",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "13956fb1-0e11-51e9-acf6-5e8eabca47d2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8fbbfba7-d94c-5809-82f3-3fb3cfa84eab",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c8bbbd51-b963-55a1-a34b-4707a95b2710",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "4d58946b-0484-53bc-baf5-3580d51243fb",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "30399744-d169-599b-b55b-233f593f6418",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_q05",
+      "version": "2.0",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "temporal_search",
+        "channel_search"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "FLUX.2 от Black Forest Labs и Kandinsky 5.0 от Сбера — открытые модели генерации изображений."
+      ],
+      "expected_answer": "FLUX.2 от Black Forest Labs и Kandinsky 5.0 от Сбера — открытые модели генерации изображений.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "ai_newz",
+        "data_secrets"
+      ],
+      "source_post_ids": [
+        "ai_newz:4276",
+        "data_secrets:8305"
+      ],
+      "acceptable_evidence_sets": [
+        [
+          "ai_newz:4276",
+          "data_secrets:8305"
+        ]
+      ],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "image_generation",
+          "flux",
+          "kandinsky"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 0.0,
+      "acceptable_set_hit": 0.0,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q06",
+    "query": "Что обсуждалось в AI-каналах в январе 2026?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "В январе 2026 года в русскоязычных AI-каналах обсуждался широкий спектр тем, связанных с развитием искусственного интеллекта:\n\n1. **Прогнозы и предсказания на 2026 год**: Многие эксперты и сообщества запускали опросы для сбора прогнозов о прогрессе ИИ в новом году. В частности, обсуждались финансовые показатели ведущих компаний (OpenAI, xAI, Anthropic) с медианным прогнозом суммы выручки $75 млрд [1]. Также были опубликованы техно-прогнозы редакции, где 2026 год назван годом ИИ-агентов и физического ИИ в виде роботов [8].\n\n2. **Переход от хайпа к реальным результатам**: Сатья Наделла (CEO Microsoft) в своем блоге сформулировал видение «перезагрузки» ИИ, призывая индустрию перейти от соревнований моделей к созданию комплексных систем, дающих измеримый экономический эффект [2].\n\n3. **Новые продукты и релизы**:\n   - На выставке CES 2026 доминировал искусственный интеллект: анонсированы новые платформы (NVIDIA Rubin), открытые модели для медицины и робототехники, а также серийные роботакси от Uber, Lucid и Nuro [10].\n   - OpenAI запустила ChatGPT Health — отдельный режим для работы с медицинскими данными [9].\n   - Tencent выпустила компактную модель для перевода HY-MT1.5-1.8B, а ByteDance представила DreamID-V для замены лиц на видео [9].\n   - Lightricks открыла модель LTX-2 для генерации 4K/50fps видео [9].\n\n4. **Агенты и автоматизация**: В Telegram-каналах активно обсуждались AI-агенты, которые начинают выполнять задачи за пользователей в различных сферах: от поддержки клиентов до маркетинга и HR [7], [8].\n\n5. **Конференции и мероприятия**:\n   - OpenAI анонсировала стрим митапа разработчиков 28 января, где планируется обсуждение «инструментов нового поколения» [3].\n   - Открыт Call for proposals на конференцию OpenTalksAI 2026 в Белграде (19–20 февраля), с треками по AI-agents, LLM и GenAI [5].\n   - В Давосе прошла дискуссия о будущем AGI между Демисом Хассабисом и Дарио Амодеи [17].\n\n6. **Образование и исследования**: Проводились семинары (например, AIRI Seminars) по поведенческим моделям в робототехнике, а также лекции с подведением итогов 2025 года и прогнозами на 2026 год [6], [7].\n\nТаким образом, январь 2026 стал месяцем перехода от теоретических обсуждений к практическому внедрению ИИ-решений в бизнесе, медицине и повседневной жизни.",
+    "status": "ok",
+    "latency_sec": 44.76689277699916,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "temporal_search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "temporal_search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "temporal_search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['ade307e6-0068-5a29-8be9-0a86c181fffa', 'b29870aa-ba14-5bbb-998c-9379afcb4dce', '1ef4fbb7-9634-5974-8cdf-2335766cd7a1', 'a171cf1c-ca57-52b3-a016-4a9637ce2097', 'ce712dfe-82dd-5be9-a7e5-159104ea9102', '9b035ccb-80fd-59db-b0c7-48ab0eec5172', 'c610f331-a80c-5cc0-87b4-15b96ee75810', '1f8131c2-8e42-5578-80a2-ed8dc5aa2ee9', '66affeda-d0b3-515c-b8f8-c424fc82d0d5', 'bafa3590-aa56-574b-a66d-ea2da7eca890', 'bbbe851e-c804-5c",
+        "success": true,
+        "took_ms": 3400,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 10 documents by relevance, scores: [5.363, 5.262, 5.039, 5.000, 4.625]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 2236,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 10 citations, coverage: 0.60, contexts: 10",
+        "success": true,
+        "took_ms": 2,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (2277 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "4756d6a9-4ca9-5607-9d94-1cd0f3fed1fc",
+        "channel": "seeallochnaya",
+        "message_id": 3300,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Недавно писал про https://forecast2026.ai/ — анкету для регистрации предсказаний о прогрессе ИИ за 2026-й, и вот мне кажется что самым важным вопросом там как раз является вопрос про сумму ARR OpenAI + xAI + Anthropic. Рост выручки очень важно продолжать демонстрировать, так как именно это помогает соблюдать планы по беспрецедентной по масштабам стройке датацентров и закупкам чипов.\n\nПопросил GPT-5.2 Pro сделать прогноз, вышло так:\n— медианный прогноз суммы $75B (сейчас $30.5B): $50B OpenAI + $22B Anthropic + $3B xAI\n— 90-ый перцентиль: $120B: $85B OpenAI + $30B Anthropic + $5B xAI\n\nЕсли будет не лень, то в выходные прогоню остальные вопросы из анкеты и зашлю; интересно посмотреть через год, насколько точно попадёт в результат.\n\nА как вы думаете, с какими показателями закончат год компании? Пишите в комментарии 💬"
+      },
+      {
+        "id": "1f8131c2-8e42-5578-80a2-ed8dc5aa2ee9",
+        "channel": "techsparks",
+        "message_id": 5387,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Satya Nadella завел себе личный (вне корпоративных доменов) блог под названием sn scratchpad, где в первом посте с названием «Looking Ahead to 2026» он формулирует своё видение «перезагрузки» ИИ и поворота от хайпа к реальным системным эффектам в 2026 году\nНаступивший год он называет поворотным для ИИ: переход от демонстраций и хайпа к измеримым результатам в экономике и обществе.\nНаделла пишет, что индустрия должна перейти «от моделей к системам» — то есть от соревнования параметров LLM к комплексным стэкам, дающим измеримый эффект в бизнес‑процессах и госуправлении. \nСобственно, он не одинок в таких прогнозах — но ресурсов для их практической реализации у него побольше, чем у любых экспертов 🙂\nhttps://snscratchpad.com/posts/looking-ahead-2026/"
+      },
+      {
+        "id": "9b035ccb-80fd-59db-b0c7-48ab0eec5172",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9431,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "⚡️ OpenAI будет стримить митап на Youtube 28 января.\n\nСэм Альтман анонсировал в X, что на собрании разработчиков будет обсуждение \"инструментов нового поколения\", которые начинает создавать OpenAI.\n\nСтрим нового формата (собрание с трансляцией в прямом эфире) запланирован на 3:00 МСК 28 января на Youtube.\n\nВаши ставки - что такое инструменты нового поколения?\n\n\n@ai_machinelearning_big_data\n\n#news #ai #ml"
+      },
+      {
+        "id": "1ef4fbb7-9634-5974-8cdf-2335766cd7a1",
+        "channel": "techsparks",
+        "message_id": 5376,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Вот и пришел 2026-й, в котором, я уверен, будет очень живенько и интересно. Итогов ушедшего года я не подводил, но очень рад, что именно под конец года трижды мы на публике в разных местах разговаривали с Лешей Комиссаровым и его ИИшными коллегами и помощниками. Мне будет очень интересно через год посмотреть, куда заведет эта тема изменения образования, изменения программирования и изменения способа взаимодействия с собственной жизнью в итоге.\nПоэтому на всякий случай оставляю здесь три ссылки (если кто пропустил; так-то они уже были в канале)\n 1. Подкаст с Лешей и тремя его ИИ-соратниками: https://music.yandex.ru/album/6407298/track/143585780 (октябрь 2025)\n 2. Финал YAC/e-2025: https://vkvideo.ru/video-214574907_456239139 (ноябрь 2025)\n 3. Предновогодний выпуск OpenTalks от ITMO AI Talent Hub https://vkvideo.ru/video-214574907_456239141 (декабрь 2025) \nВот через годик и сравним:))"
+      },
+      {
+        "id": "bafa3590-aa56-574b-a66d-ea2da7eca890",
+        "channel": "rybolos_channel",
+        "message_id": 1715,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🌸OpenTalksAI 2026🌸\n#nlp #про_nlp \n\nВ этом году, совсем скоро, я буду выступать на OpenTalksAI в Белграде!\n\nВ прошлые годы конференция была в Ереване (там, собственно, я познакомилась с будущими коллегами в Snapchat и переехала в Лондон), в Тбилиси (было неформально и очень весело, у меня были дебаты с Анохиным), и в этом году — Белград. Буду рассказывать много всякого про агентов и языковые модели, конечно.\n\nКонференция обещает быть отличной, лайнап из спикеров уже составляется -- так что обязательно подавайте свой доклад тут. \n\nДоклады по исследованиям, разработке и бизнес-применениям AI/ML. Доклады можно подавать на английском и русском языке.\nВ этом году 4 трека: AI-agents, LLM, GenAI, RL\n\n🟣Где: 19-20 февраля 2026 в Белграде, Сербия\n🟣Call for proposals открыт до 20 января: https://opentalks.ai/en/call-for-proposals \n🟣Решение по докладам будет разослано до 30 января.\n🟣Тг https://t.me/OpenTalksAI/"
+      },
+      {
+        "id": "2438cda7-f1f0-5290-9310-9dd3d90f4573",
+        "channel": "oulenspiegel_channel",
+        "message_id": 4919,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "28 января (среда) в 19:00\n\nЛекция Сергея Маркова «ИИ и машинное обучение: итоги 2025 года»\n\n📍Регистрация и оплата: arhe.msk.ru/?p=153604\n\n📢 Главные исследования и разработки в области искусственного интеллекта и машинного обучения в 2025 году. Прогресс за прошедший год с позиции цифр и фактов, анализ распространённых заблуждений и громких заявлений. О прогрессе в области агентного и генеративного ИИ, в том числе генерации текстов, изображений, видео, речи, музыки и песен, программного кода, трёхмерных объектов, аватаров, новых молекул и материалов, о задачах распознавания сгенерированного контента, инструктивного редактирования, переноса речи и машинного перевода, об альтернативных трансформерам архитектурах, а также о других направлениях исследований. Новые нейросетевые модели и оборудование 2025 года, применение ИИ и машинного обучения в бизнесе, медицине и науке, прогрессе в направлении создания AGI, а также обо всём том, чего мы ждём от искусственного интеллекта и машинного обучения в 2026 году\n\n🗣Лектор: Сергей Марков, автор одной из сильнейших российских шахматных программ, специалист по методам машинного обучения и основатель портала XX2 ВЕК (22century.ru)."
+      },
+      {
+        "id": "daebe1ef-8426-57c2-935c-dc49023eadf4",
+        "channel": "cryptovalerii",
+        "message_id": 893,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "2025 (до декабря) — Набивали шишки\n5 Синьоров, которые полгода работали над мобильным агентом «Chaps» — но проект не выпустили\nОпыт с «Chaps» дал понимание корректной оркестрации инструментов и вызовов.\n\nДек 2025 — Обновлённый AI-ассистент\nAI-ассистент получил крупный апдейт, став куда более полезным для пользователей, но всё ещё не «вау»\n\nЯнв 2026 — Craft Agents и визуальный Claude Code\nЗа 2 недели в январе Фаундер создал Craft Agents — визуальный инструмент поверх Claude Code (Claude Agent SDK).\nЭто не просто UI, а инструмент с поддержкой источников данных (APIs, базы и т. п.), параллельных агентов, переключения агентов, workflow-меток, системы прав.\n\nЧто произошло внутри команды\nИнструмент мгновенно стал активным рабочим инструментом не только инженеров, но и non-tech команд:\nСлужба поддержки автоматизировала триаж, анализ багов, написание ответов;\nМаркетинг генерирует и правит лендинги без инженеров;\nHR и финансы автоматизировали свои задачи через агенты. Вплоть до плагина к Bamboo HR\n\nВоистину - живем в последние дни"
+      },
+      {
+        "id": "ade307e6-0068-5a29-8be9-0a86c181fffa",
+        "channel": "techno_yandex",
+        "message_id": 4815,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🔮 ТЕХНО предсказывает будущее: собрали прогнозы редакции на 2026-й, а в конце года собираемся посмотреть, что сбылось, а что нет. Вы тоже можете написать свои техно-предсказания в комментариях.\n\n🔤🔤🔤🔤🔤🔤\nКреативный продюсер\n\n2026-й станет годом ИИ-агентов — внутри сервисов будут появляться автоматические системы, выполняющие действия за пользователей.\n\n🔤🔤🔤🔤\nРуководитель группы контента и спецпроектов\n\nОжидаю расцвета носимых ИИ-устройств — Яндекс Дропс, диктофоны, очки, гаджеты типа Omi. А еще жду коллаб Джони Айва с OpenAI — рассказывали о нем в «Технорепорте».\n\n🔤🔤🔤🔤🔤\nШеф-редактор технокоммуникаций\n\nВырастет усталость от ИИ-контента, его станет проще фильтровать в соцсетях и сервисах, а количество «живого» UGC увеличится. На фоне нехватки RAM подорожают игровые консоли и ПК, разработчики игр начнут снижать требования к объему памяти, а NVIDIA и AMD вернут в продажу видеокарты со старыми поколениями памяти.\n\n🔤🔤🔤🔤\nИздатель\n\n2026 станет годом физического ИИ — роботы станут лучше понимать контекст реального мира и с ними можно будет общаться как с чат-ботами. А ИИ-ассистенты помогут решить проблему переизбытка контента: будут читать его за нас и приносить только тот, что реально полезен.\n\nПодписывайтесь 👉 @techno_yandex"
+      },
+      {
+        "id": "c610f331-a80c-5cc0-87b4-15b96ee75810",
+        "channel": "boris_again",
+        "message_id": 3693,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "#дайджест\n\nДайджест ML/AI за неделю 5 - 11 Января 2026\n\nLightricks: LTX-2\nOpen-weight видео foundation-модель с синхронной генерацией 4K/50fps видео. Модель заточена под длинные клипы до 20 сек, нативный звук. На artificialanalysis в общем зачете занимает почетное 21-е место и первое среди моделей с открытыми весами.\nБлогпост, HF, Статья, Код\n\nOpenAI: ChatGPT Health\nOpenAI запустили ChatGPT Health - отдельный режим для работы с медицинскими данными. Можно загружать анализы, снимки, отчёты врачей, данные из фитнес-трекеров и MyFitnessPal. Доступно даже бесплатным пользователям через вэйтлист (записаться здесь) и пока, как обычно, без EU/UK.\nБлогпост\n\nTencent: Hunyuan HY-MT1.5-1.8B\nTencent выпустили компактную модель для машинного перевода HY-MT1.5-1.8B. Обещают лучший перформанс в своем весе. Поддерживает 33 языка, оптимизирована под on-device и дешёвый inference. \nHF, Карточка, Статья\n\nByteDance: DreamID-V\nByteDance выпустили DreamID-V - модель для замены лиц на видео по фото-референсу через трансформер-диффузию. Обещают устойчивость к разному освещению, прическам и тд. Черри-пики выглядят хорошо. \nПримеры и проект, GitHub, Статья"
+      },
+      {
+        "id": "a171cf1c-ca57-52b3-a016-4a9637ce2097",
+        "channel": "aioftheday",
+        "message_id": 4001,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Новые релизы на CES 2026\n\nКак и ожидалось, искусственный интеллект находится в центре внимания, и практически все релизы прямо или косвенно связаны с ИИ. Пройдемся по самым интересным:\n\n1. CEO Nvidia открыл выставку CES 2026\n- Rubin Platform новый флагманский AI-платформенный стек.\n- Анонсировали серию открытых моделей, ориентированных на реальные сферы применения: медицину, климатическое моделирование, робототехнику и симуляцию, автономное вождение и reasoning-VLA.\n- Был показан автомобиль на базе NVIDIA DRIVE с AI-управлением.\n\nвся презентация\n\n2. Uber, Lucid и Nuro впервые представили серийную версию роботакси. \n\n3. Google показали новый функционал Gemini, который в ближайшее время появятся на платформе Google TV. Понятно, что все завязано на ИИ: поиск, работа с личными фотографиями и видео, а также управление телевизором с помощью голосовых команд.\n\n4. Casio представили ИИ-питомца под названием Moflin. У робота более 10 сенсорных систем, позволяющих реагировать на прикосновения. Moflin создан прежде всего для ухода за пожилыми людьми: он обучается поведенческим паттернам пользователей, включая особенности голоса.\n\n5. \"BlackBerry\" вернулся?😁 Clicks, известная чехлом, который превращает смартфон в подобие BlackBerry за счет физической клавиатуры с кнопками, представила смартфон Communicator стоимостью $499."
+      }
+    ],
+    "citation_hits": [
+      "seeallochnaya:3300",
+      "techsparks:5387",
+      "ai_machinelearning_big_data:9431",
+      "techsparks:5376",
+      "rybolos_channel:1715",
+      "oulenspiegel_channel:4919",
+      "cryptovalerii:893",
+      "techno_yandex:4815",
+      "boris_again:3693",
+      "aioftheday:4001"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "ade307e6-0068-5a29-8be9-0a86c181fffa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b29870aa-ba14-5bbb-998c-9379afcb4dce",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1ef4fbb7-9634-5974-8cdf-2335766cd7a1",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a171cf1c-ca57-52b3-a016-4a9637ce2097",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ce712dfe-82dd-5be9-a7e5-159104ea9102",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9b035ccb-80fd-59db-b0c7-48ab0eec5172",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c610f331-a80c-5cc0-87b4-15b96ee75810",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1f8131c2-8e42-5578-80a2-ed8dc5aa2ee9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "66affeda-d0b3-515c-b8f8-c424fc82d0d5",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "bafa3590-aa56-574b-a66d-ea2da7eca890",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "bbbe851e-c804-5c13-b50d-98285a1d1a14",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "4f57956d-38af-56d5-b46d-df8fd432fe86",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "eee55d0e-788c-5f8e-9134-5a81342115dd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2e57eaec-cf8d-5ea9-be32-21520e876b60",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "7a01e151-6ef5-5d84-8714-27eecaddc158",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5fd6ef68-e3be-5bd7-ac1b-dcf41797c530",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "988ac804-0d42-555e-a7b1-5291993355fa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "daebe1ef-8426-57c2-935c-dc49023eadf4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "25878d21-a267-55c0-b64d-50919fa0a398",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "745d6a9a-5a00-58c7-966c-143a057bf059",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_q06",
+      "version": "2.0",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "temporal_search"
+      ],
+      "forbidden_tools": [
+        "channel_search",
+        "list_channels",
+        "summarize_channel"
+      ],
+      "acceptable_alternatives": [
+        "search"
+      ],
+      "required_claims": [
+        "Должны быть покрыты основные темы января 2026: CES/NVIDIA, конференции, новые модели/продукты",
+        "Минимум 3 разных темы из разных каналов"
+      ],
+      "expected_answer": "В январе 2026 обсуждались: CES 2026 (Хуанг, физический AI), Давос (прогнозы AGI), OpenAI ChatGPT Health, конференция OpenTalks.AI, прогнозы на 2026 год. Из менее заметного: gonzo_ml — агенты для ИИ-исследований, boris_again — Gemini 3 Flash any2json.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "gonzo_ml",
+        "boris_again"
+      ],
+      "source_post_ids": [
+        "gonzo_ml:4656",
+        "boris_again:3701"
+      ],
+      "acceptable_evidence_sets": [
+        [
+          "gonzo_ml:4656",
+          "boris_again:3701"
+        ]
+      ],
+      "strict_anchor_recall_eligible": true,
+      "calibration": true,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "temporal",
+          "january_2026"
+        ],
+        "v2_fix": "expected_answer расширен — open-ended вопрос требует широкого ответа"
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 0.5,
+      "acceptable_set_hit": 0.0,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q07",
+    "query": "Что было на GTC 2026 от NVIDIA?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "На конференции NVIDIA GTC 2026, которая прошла в Сан-Хосе с 16 по 19 марта 2026 года, Дженсен Хуанг сделал ряд ключевых анонсов, сместив фокус с игр на инфраструктуру для искусственного интеллекта.\n\nВот главные события и продукты:\n\n**1. Архитектура Vera Rubin**\nГлавный аппаратный анонс — полноценный запуск платформы Vera Rubin.\n*   **Характеристики:** GPU построен на 3-нм процессе TSMC, содержит 336 млрд транзисторов и 288 ГБ памяти HBM4 [1].\n*   **Производительность:** Стойка NVL72 обеспечивает 260 ТБ/с пропускной способности по NVLink 6. Производительность инференса выросла в 5 раз по сравнению с Blackwell за счет формата NVFP4, а энергоэффективность улучшена в 10 раз [1], [3].\n*   **CPU Vera:** Впервые анонсирован собственный CPU NVIDIA для оркестрации и управления памятью в крупных агентных системах. Уже расписана эволюция на три поколения: Vera Ultra (2027), Feynman (2028) [1].\n\n**2. Покупка Groq и Groq 3 LPX**\nNVIDIA завершила покупку технологий Groq за ~$20 млрд в декабре 2025 года. На GTC представили первый продукт этой сделки — чип **Groq 3 LPU**.\n*   Это решение для инференса с производительностью 1.2 PFLOPS FP8.\n*   Рэк из 256 таких чипов обещает в 35 раз большую пропускную способность по сравнению с Blackwell NVL72 при стоимости $45 за миллион токенов [3], [9].\n\n**3. OpenClaw и NemoClaw**\n*   **OpenClaw:** Новая операционная система (не просто фреймворк), позиционируемая как «новый компьютер» для агентных систем. Это, возможно, самый главный софтверный релиз в истории компании [5].\n*   **NemoClaw:** Enterprise-версия с аудитом логов, конфиденциальными вычислениями (шифрование данных на GPU) и изоляцией агентов [5].\n\n**4. Космические дата-центры (Vera Rubin Space-1)**\nАнонсирован модуль для орбитальных дата-центров. Идея заключается в обработке данных со спутников прямо в космосе, чтобы не тратить пропускную способность на передачу на Землю. Архитектура R100 обеспечивает до 25x больше вычислительной мощности для инференса по сравнению с H100 [3], [5].\n\n**5. Партнерства и Physical AI**\n*   **Роботакси:** Заключено партнерство с Uber на запуск роботакси в 28 городах к 2028 году. Партнеры (BYD, Hyundai, Nissan, Geely) строят автомобили уровня L4 на платформе NVIDIA Drive [3].\n*   **Thinking Machines Lab:** Многлетнее стратегическое партнерство для развертывания не менее 1 гВт систем Vera Rubin для обучения ИИ-моделей [6].\n\n**6. ПО и игры**\n*   **DLSS 5:** Новая технология, использующая нейросеть для рендеринга (нейрорендеринг), а не просто апскейлинга. Она в реальном времени генерирует фотореалистичное освещение и тени. Релиз запланирован на осень 2026 года, доступна только для видеокарт RTX 50-й серии [3], [8].\n*   **Dynamo OS и DSX:** Платформа для управления «AI-фабриками» (дата-центрами) и сервис цифровых двойников инфраструктуры для оптимизации питания и охлаждения [7].\n\n**Прогнозы:**\nДженсен Хуанг заявил, что суммарные заказы на оборудование (Blackwell и Vera Rubin) достигнут **$1 трлн к 2027 году**, что в два раза больше прогноза прошлого года [3], [6].",
+    "status": "ok",
+    "latency_sec": 44.036728651000885,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "temporal_search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "temporal_search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "temporal_search",
+        "summary": "Found 29 documents (total: 29). Route: hybrid. Use these IDs for compose_context: ['881bfba4-5602-5328-91d8-1023767e5e86', '964697f7-d22c-5f5b-862f-433bd2ccf427', '88a5a833-0849-5b81-aa78-0d2cfbd911e5', '0fbfd33c-4cc1-50ee-91da-0facb5900f29', 'b16db873-74ee-5268-a5af-0aedb32c4260', '41f105fc-5b70-5379-950d-7dd9eae1a0e4', 'aef0b26e-57af-543f-a9bd-8e2e0c410cad', '27a29ecf-c5d0-5a9b-8b1e-c275a5ca1a20', '56637d37-cb7e-5949-b3de-af3246da8cd2', '30ed888d-2582-57c1-9dcc-60ecaa2cc121', 'd4810b4c-2dd8-5e",
+        "success": true,
+        "took_ms": 2295,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 10 documents by relevance, scores: [7.840, 6.684, 6.414, 6.387, 6.141]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 2205,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 10 citations, coverage: 0.78, contexts: 10",
+        "success": true,
+        "took_ms": 2,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (3022 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "964697f7-d22c-5f5b-862f-433bd2ccf427",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9678,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "✔️ NVIDIA GTC 2026: Ключевые анонсы.\n\nВ понедельник в Сан-Хосе открылась NVIDIA GTC 2026 - ежегодная конференция компании по GPU-технологиям и искусственному интеллекту.\n\nДженсен Хуанг открыл конференцию с тезиса, что компания видит заказы на оборудование на сумму не менее $1 трлн. до конца 2027 года - вдвое больше, чем год назад.\n\nПо его словам, индустрия достигла переломного момента: обучать модели уже умеют, теперь нужно дешево и быстро их запускать.\n\n🟡Vera Rubin\n\nГлавный анонс конференции - полноценный запуск платформы Vera Rubin. GPU построен на 3-нм процессе TSMC, содержит 336 млрд. транзисторов и 288 ГБ памяти HBM4.\n\nСтойка NVL72 дает 260 ТБ/с совокупной пропускной способности по NVLink 6. Глава NVIDIA посчитал, что это превышает суммарную пропускную способность всего интернета. Производительность инференса выросла в 5 раз по сравнению с Blackwell за счет формата NVFP4.\n\nVera Rubin не просто GPU. Вместе с ним NVIDIA анонсировала собственный CPU Vera, разработанный для оркестрации и управления памятью в крупных агентных системах.\n\nЭволюция CPU Vera уже расписана на 3 поколения вперед: Vera Ultra появится во второй половине 2027 года, следующая архитектура Feynman - в 2028-м."
+      },
+      {
+        "id": "881bfba4-5602-5328-91d8-1023767e5e86",
+        "channel": "techsparks",
+        "message_id": 5487,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "https://blogs.nvidia.com/blog/gtc-2026-news/"
+      },
+      {
+        "id": "0fbfd33c-4cc1-50ee-91da-0facb5900f29",
+        "channel": "aioftheday",
+        "message_id": 4296,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "GTC 2026: что показал Хуанг за два часа на сцене\n\nNVIDIA провела главную AI-конференцию года в Сан-Хосе. Шесть вещей, которые стоит знать.\n\n🟢Vera Rubin. Новая архитектура: 7 чипов, 5 стоечных систем. В 10 раз больше производительности на ватт, чем Blackwell. Отгрузки до конца 2026.\n\n🟢Groq 3. В декабре 2025 NVIDIA за $20 млрд выкупила технологии стартапа Groq, который делал чипы не для обучения моделей, а для их запуска. Groq 3 LPU: первый продукт из этой сделки. Обучать модели рынок умеет, а вот быстро и дешево их запускать для миллионов пользователей, это другая задача. NVIDIA теперь закрывает обе.\n\n🟢$1 трлн. Хуанг заявил, что суммарные заказы на Blackwell и Vera Rubin достигнут триллиона долларов к 2027. Год назад прогноз был $500 млрд. Удвоение за 12 месяцев.\n\n🟢Робтакси. NVIDIA заключила партнерство с Uber на запуск робтакси в 28 городах на 4 континентах к 2028. BYD, Hyundai, Nissan и Geely строят автомобили Level 4 на платформе NVIDIA Drive. Level 4 означает: машина едет сама, водитель не нужен.\n\n🟢Космос. Space-1 Vera Rubin: AI-датацентры, которые будут работать на орбите. Идея в том, чтобы обрабатывать данные со спутников прямо в космосе, не тратя время и пропускную способность на передачу на Землю.\n\n🟢Feynman. NVIDIA анонсировала поколение ПОСЛЕ Vera Rubin, которая еще даже не вышла."
+      },
+      {
+        "id": "88a5a833-0849-5b81-aa78-0d2cfbd911e5",
+        "channel": "techsparks",
+        "message_id": 5486,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Сегодня в Сан‑Хосе стартует GTC 2026 — главная ежегодная конференция NVIDIA по ИИ, 30к+ участников, 700+ сессий; ключевая тема: переход от Blackwell к новой архитектуре Vera Rubin и Physical AI. Проходит это на фоне все еще не утихших обсуждений недавнего отчета Morgan Stanley, сильно впечатлившего кучу людей (правда, впечатления у них довольно полярные). Главная мысль отчета состояла в том, что в 2026 ИИ перестаёт быть модной темой и превращается в стратегический инфраструктурный проект масштаба энергосистем и телекомов: до 2028 года через экономику пройдёт почти 3 трлн долларов инвестиций в дата‑центры и сопутствующую инфраструктуру. ИИ радикально перетряхивает рынки капитала, модели бизнеса, геополитические расклады и рынок труда, и точка перелома придется на 2026.\nОчень жду самого выступления Хуанга и комментариев к нему с учетом того отчета:)\nhttps://oplexa.com/nvidia-gtc-2026-announcements-investors/?utm_source=perplexity\n(Про сам отчет Morgan Stanley можно здесь почитать, если пропустили https://finance.yahoo.com/news/morgan-stanley-warns-ai-breakthrough-072000084.html )"
+      },
+      {
+        "id": "aef0b26e-57af-543f-a9bd-8e2e0c410cad",
+        "channel": "data_secrets",
+        "message_id": 8871,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenClaw, датацентры в космосе и фабрики токенов – Дженсен Хуанг выступил с двухчасовой речью на GTC 2026\n\nДальше небольшой разбор важных моментов из нее: \n\n➖ OpenClaw – это «новый компьютер». Не просто фреймворк, а операционная система нового типа. Возможно, это самый главный software релиз в истории. Единственная проблема – безопасность. И тут Nvidia предлагает NemoClaw – это enterprise-версия OpenClaw. Они предлагают аудит логов, confidential computing (данные шифруются даже на GPU) и изоляцию агентов в песочнице. Интересно, не собираются ли OpenAI после покупки OpenClaw сделать то же самое 😐\n\n➖ Хуанг объявил о Vera Rubin Space-1 – модуле для орбитальных дата-центров. Это означает, что Nvidia официально выходит в космос, и при этом с архитектурой Rubin (R100), которая дает до 25x больше вычислительной мощности для инференса по сравнению с H100. Основная проблема космоса – охлаждение. Nvidia уже работает над этим."
+      },
+      {
+        "id": "30ed888d-2582-57c1-9dcc-60ecaa2cc121",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9678,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Как мы писали ранее, NVIDIA заключила многолетнее стратегическое партнерство с Thinking Machines Lab: компания развернет не менее 1 гВт систем Vera Rubin для обучения ИИ-моделей. Это первое развертывание новой платформы в таком масштабе.\n\nGTC продолжится до 19 марта. Впереди порядка 1000+ сессий по Robotics, Physical AI и открытым моделям.\n\n🔜 Посмотреть запись трансляции на Youtube\n\n@ai_machinelearning_big_data\n\n🎯Полезные Мл-ресурсы 🚀 Max\n\n#news #ai #ml"
+      },
+      {
+        "id": "56637d37-cb7e-5949-b3de-af3246da8cd2",
+        "channel": "data_secrets",
+        "message_id": 8871,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "➖ Дата-центры скоро эволюционируют до AI-фабрик. То есть превратятся из инфраструктуры для инференса в производство токенов. 80% софта заменится ИИ-генерацией. Nvidia уже готовится и анонсирует Dynamo OS и DSX. Первое – это платформа для управления такими фабриками, которая динамически распределяет нагрузку в кластерах. DSX – это сервис для цифровых двойников AI-инфраструктуры: моделирует питание, охлаждение и все-все детали и позволяет эффективно и быстро проводить оптимизации. \n\nА кроме этого анонсировали еще новое железо (тот самый Vera Rubin GPU) и новое ПО для роботов, которых Nvidia продолжает разрабатывать с партнерами. \n\nПолностью смотрим тут www.youtube.com/live/PirWDBZlrVg"
+      },
+      {
+        "id": "3e65d0ef-08f7-5f8c-b1eb-b5304813ab37",
+        "channel": "aioftheday",
+        "message_id": 4286,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Nvidia показала  DLSS 5 — AI для улучшения картинки в играх\n\nНейросеть в реальном времени распознаёт объекты в кадре и накладывает на них фотореалистичный свет и тени. \n\nРелиз осенью 2026, эксклюзивно для видеокарт RTX 50-й серии.\n\nhttps://nvidianews.nvidia.com/news/nvidia-dlss-5-delivers-ai-powered-breakthrough-in-visual-fidelity-for-games"
+      },
+      {
+        "id": "22a5143b-ee5c-569d-9d7e-7739ee41b92f",
+        "channel": "boris_again",
+        "message_id": 3819,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Groq 3 LPX - первый продукт после покупки Groq за ~$20B. Инференс-чип: 1.2 PFLOPS FP8, 500MB SRAM. Рэк из 256 штук обещает 35x throughput Blackwell NVL72 на триллион-параметровых моделях при $45/M токенов. Для Китая готовят отдельный вариант на май - инференс в обход экспортных ограничений на GPU, Дженсен уже получил лицензию от Трампа. Блогпост\nDLSS 5 - вместо апскейлинга теперь нейрорендеринг. Нейросеть берет цвет и motion vectors из движка и генерирует физически корректное освещение, тени и материалы в реалтайме. Различает кожу, волосы, воду, металл, стекло. Только RTX 50xx, осень 2026. Блогпост\nGWM-1 - Runway и Nvidia показали General World Models на чипах Vera Rubin. Реалтайм HD-видео с задержкой 100мс. Три варианта: Avatars (говорящие головы), Robotics (песочница для роботов), Worlds (бесконечные миры). Avatars уже можно потестить. Блогпост\nNemotron-Cascade 2\n30B MoE с 3B активных параметров. Cascade RL + дистилляция из нескольких учителей по доменам. AIME 2025 - 92.4, IMO 2025 - золото (79.3%), IOI и ICPC - тоже золото. Второй опенсорс после DeepSeek-V3.2-Speciale, собравший золото на всех трех олимпиадах, но в 20 раз меньше.\nCтатья, HF"
+      },
+      {
+        "id": "41f105fc-5b70-5379-950d-7dd9eae1a0e4",
+        "channel": "addmeto",
+        "message_id": 6201,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Конференция NVIDIA GTC раньше была про игры. А сейчас все больше про NVIDIA и их значение для мира ИИ, так что вот тут можно будет смотреть https://www.youtube.com/watch?v=jw_o0xr8MWU"
+      }
+    ],
+    "citation_hits": [
+      "ai_machinelearning_big_data:9678",
+      "techsparks:5487",
+      "aioftheday:4296",
+      "techsparks:5486",
+      "data_secrets:8871",
+      "aioftheday:4286",
+      "boris_again:3819",
+      "addmeto:6201"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "881bfba4-5602-5328-91d8-1023767e5e86",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "964697f7-d22c-5f5b-862f-433bd2ccf427",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "88a5a833-0849-5b81-aa78-0d2cfbd911e5",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "0fbfd33c-4cc1-50ee-91da-0facb5900f29",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b16db873-74ee-5268-a5af-0aedb32c4260",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "41f105fc-5b70-5379-950d-7dd9eae1a0e4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "aef0b26e-57af-543f-a9bd-8e2e0c410cad",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "27a29ecf-c5d0-5a9b-8b1e-c275a5ca1a20",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "56637d37-cb7e-5949-b3de-af3246da8cd2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "30ed888d-2582-57c1-9dcc-60ecaa2cc121",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d4810b4c-2dd8-5e81-b454-54be59170323",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3e65d0ef-08f7-5f8c-b1eb-b5304813ab37",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "22a5143b-ee5c-569d-9d7e-7739ee41b92f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d9836415-7bb6-5ff8-acf4-788c5c2128a8",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9fa531b4-3b62-5a2e-ad6a-e9de4fa6c867",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d0c0c516-b9be-5898-a26b-9d352145e949",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8e99d5d7-98ad-5f5d-b8c2-6b3b91a0ef47",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "bcc04bef-615c-5611-b6ae-80457303eb67",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "37874624-012a-5363-9f80-a5702636127f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d7012e4f-f069-5658-bb2f-343ccccd2f8b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_q07",
+      "version": "2.0",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "temporal_search"
+      ],
+      "forbidden_tools": [
+        "channel_search",
+        "list_channels"
+      ],
+      "acceptable_alternatives": [
+        "search"
+      ],
+      "required_claims": [
+        "На GTC 2026 NVIDIA представила платформу Vera Rubin с GPU нового поколения."
+      ],
+      "expected_answer": "На GTC 2026 NVIDIA представила платформу Vera Rubin с GPU нового поколения.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "ai_machinelearning_big_data"
+      ],
+      "source_post_ids": [
+        "ai_machinelearning_big_data:9678"
+      ],
+      "acceptable_evidence_sets": [
+        [
+          "ai_machinelearning_big_data:9678"
+        ]
+      ],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "easy",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "nvidia",
+          "gtc",
+          "temporal"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": 1.0,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q08",
+    "query": "Какие AI-события произошли в феврале 2026?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "Февраль 2026 года стал месяцем масштабных событий в сфере искусственного интеллекта, охватывающих релизы моделей, конференции и технологические прорывы:\n\n1. **Релизы моделей и обновлений:**\n   - Ожидалось много релизов, включая китайскую GLM-5, новые версии Claude (Sonnet 4.6/5) и GPT-5.3 [1].\n   - Anthropic выпустила Claude Opus 4.6, которая показала SOTA результаты на агентных задачах и поддерживает миллион токенов контекста в бете [5].\n   - Nvidia представила PersonaPlex — аудио-модель 7B для живого диалога в реальном времени без промежуточных LLM [6].\n   - DeepMind запустил Project Genie, создающий интерактивные 3D-миры по описанию и изображению, доступный только пользователям Gemini Ultra в США [6].\n   - OpenAI обновила GPT-5.2 Instant, улучшив качество ответов и структуру вывода информации [10].\n\n2. **Конференции и мероприятия:**\n   - В Белграде (Сербия) 19–20 февраля прошла русскоязычная конференция OpenTalks.AI 2026 с участием более 100 спикеров по трем трекам: исследовательскому, инженерному и бизнесу [3][4].\n   - Состоялась онлайн-конференция AI Hard Fork с панельной дискуссией о применении AI-инструментов в командах (25 февраля) [2].\n\n3. **Технологические прорывы и инновации:**\n   - Появилась социальная сеть Moltbook, где контент создают и потребляют исключительно ИИ-агенты, что стало событием на грани научной фантастики [9].\n   - В Шанхае компания Agibot провела масштабное шоу с участием сотен гуманоидных роботов G2, демонстрируя синхронную работу роя роботов [7].\n   - Исследователи Google в рамках «Проекта Pi» обнаружили, что мощные ИИ-системы достигли прорыва в рассуждениях благодаря возникновению «обществ мыслей» внутри моделей, где разные голоса спорят и синтезируют решения [10].\n\n4. **Экономика и инвестиции:**\n   - Запущен беспрецедентный по масштабу проект инвестиций в ИИ-инфраструктуру, сопоставимый с 150 Манхэттенскими проектами, с прогнозируемыми вложениями до $5 трлн за 2026–2030 годы [8].\n   - OpenAI, Anthropic и SpaceX планируют провести IPO в 2026 году, что может оказать значительное влияние на финансовые рынки [1].\n\nФевраль 2026 года ознаменовал переход к новой эре, где ИИ-агенты становятся самостоятельными участниками цифровой экосистемы, а инвестиции в инфраструктуру достигают исторических максимумов.",
+    "status": "ok",
+    "latency_sec": 41.496292882999114,
+    "coverage": 0.75,
+    "tools_invoked": [
+      "temporal_search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "temporal_search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "temporal_search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['776d260e-9ff6-5e14-89c1-6d5ad3541141', '3fc9e14d-4053-5d84-828e-c0d96b483b09', 'efd6e91c-a3f9-520a-835b-0c6848619fd2', '9e0402cf-f15f-5867-9dfe-324159d0a30b', '8091a2cb-f07e-59e0-b2cb-69c59f8075ca', 'db24d827-9b62-5e1f-ade6-dcc374390db2', 'e0f1713c-6cfd-5f08-8844-365ed094ee18', 'a29252f1-fbfe-51a1-b4ed-86cbbdf0e7df', '2707ab13-667e-5efb-a5a6-3d00c6b2d2c8', '827415b0-be11-5b1d-ba8b-9f89b2eeac20', '45a6d499-203a-57",
+        "success": true,
+        "took_ms": 3435,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 10 documents by relevance, scores: [5.008, 4.867, 4.527, 3.709, 3.539]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 2088,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 10 citations, coverage: 0.54, contexts: 10",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (2268 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "3fc9e14d-4053-5d84-828e-c0d96b483b09",
+        "channel": "seeallochnaya",
+        "message_id": 3343,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Быстроновости в понедельник:\n\n— Начался февраль, ожидается много релизов моделек, от китайских GLM-5 до Claude Sonnet 4.6 / 5 (который может выйти вообще завтра, судя по некоторым утечкам) и GPT-5.3.\n\n— При этом источники из Китая говорят, что DeepSeek уже не планирует выпуск V4 в конце февраля (к Лунному Новому году). Компания, кстати, получила одобрение от Партии на закупку H200 у Nvidia — ещё месяц назад был полный запрет, «должно быть всё своё родное», потом разрешили закупку для Tencent и Alibaba, и вот дошли до Китов.\n\n— OpenAI пытается успеть провести IPO в 2026-м году, Anthropic и SpaceX тоже. Большой год для финансовых рынков. А ещё xAI может ещё объединиться с Tesla/SpaceX, так что формально тоже выйти на биржу. Мне не нравится идея выхода Anthropic и особенно OpenAI на IPO — потому что оценка публичных компаний сильно подвержена новостному фону и настроению инвесторов, которые зачастую ничего не понимают. «Пишут, что GPT-5 плохая? Сливаем акции»."
+      },
+      {
+        "id": "bbf0888a-0244-5feb-af83-fc6acec3ab0e",
+        "channel": "ai_newz",
+        "message_id": 4428,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Всем, привет! Меня позвали поучаствовать в панельной дискуссии на онлайн-конфе AI Hard Fork.\n\nДоклады готовить к сожалению времени нет, из-за очень плотной работы в GenPeach AI, а вот на дискуссию я с удовольствием приду!\n\nТам еще будут и другие доклады онлайн с 24 по 26 февраля. Но самое интересное будет на нашей панели)) 25 февраля в 18:55 cet.\n\nПодключайтесь, если хотите послушать про то, как AI тулы используются в разных командах: ресерче (в нашей команде, например), инжиниринге, классической разработке и стартапах.\n\nРегистрация здесь, участие бесплатное.\n\n@ai_newz"
+      },
+      {
+        "id": "776d260e-9ff6-5e14-89c1-6d5ad3541141",
+        "channel": "boris_again",
+        "message_id": 3748,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "В Белграде 19-20 февраля пройдет OpenTalks.AI 2026.\n\nНедавно опубликовали программу конференции. Среди спикеров: Дмитрий Ветров, Евгений Бурнаев, Андрей Устюжанин, Татьяна Шаврина, Анна-Вероника Дорогуш, Сергей Николенко, Рома Доронин и многие другие. Съезжается едва ли не всё русскоязычное AI/ML сообщество. И я почти наверняка буду 👀!\n\nНа конференции будет 3 трека: исследовательский, инженерный и бизнес. Очень много про ИИ-агентов, обучение LLM, оптимизацию вычислений, генерацию данных, генеративный ИИ в бизнесе.\n\nЕсть онлайн формат, хотя конечно лучше слетайте в Белград, там хорошо.\n\nРегистрироваться и платить сюда: https://opentalks.ai/ru/#registration\n\nДля подписчиков есть промокод на 20% скидку: RD20\n\nUPD: взял билеты в Белград, точно буду. Приходите общаться!"
+      },
+      {
+        "id": "8091a2cb-f07e-59e0-b2cb-69c59f8075ca",
+        "channel": "ai_newz",
+        "message_id": 4410,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "На следующей неделе пройдет русскоязычная AI конфа OpenTalks.AI-2026 в Белграде (Сербия)\n\nБудет 100+ крутых докладчиков из разных стран, разбитых на 3 трека:\n- исследовательский, \n- инженерный и \n- бизнес. \nКонечно, будет много разговоров про актуальное – AI-агенты, LLM, RL, GenAI и многое другое.\n\nВ 2024 году я там выступал с обзорным докладом про CV – как много с того момента поменялось в сфере! А в этому году я доклад про GenAI подготовить не успел, потому приеду просто потусить. Конфа обычно очень толковая, её организатора я знаю лично (привет, Игорь!). Приезжайте и вы - познакомимся! \n\nЯ возможно еще организую афтерпати-ивент эйай ньюз - т.к. у меня еще и ДР 20 февраля :)\n\nКонфа будет идти два дня - 19-20 февраля 2026 года.\nПри регистрации на OpenTalks.AI можно указать наш специальный промокод AINEWZ, и он даст скидку в 21% (Выбил для вас наилучшие условия!)\n\n@ai_newz"
+      },
+      {
+        "id": "9e0402cf-f15f-5867-9dfe-324159d0a30b",
+        "channel": "boris_again",
+        "message_id": 3749,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "#дайджест\n\nДайджест AI/ML за неделю 2 - 8 февраля 2026\n\nAnthropic: Claude Opus 4.6 \nSOTA на агентных задачах, впереди с отрывом в работе с длинным контекстом, в бете миллион токенов контекста. ARC-AGI-2 тоже сильно вырос. Подробнее в моем обзоре на System Card. Также для модели добавили режим fast с генерацией 100 токенов/с (в 2.5 раза быстрее) по цене в 6 раз дороже на случай если вам некуда было девать ваши миллионы.\nБлогпост, Системная карточка\n\nAnthropic: Agent Teams \nСимуляция команды разработки внутри Claude Code. Запускает несколько сессий с общим контекстом и ролями, lead-агент координирует работу остальных.\nВключается через переменную среды CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\nБлогпост"
+      },
+      {
+        "id": "efd6e91c-a3f9-520a-835b-0c6848619fd2",
+        "channel": "boris_again",
+        "message_id": 3731,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "#дайджест\n\nДайджест ML/AI за неделю 26 января - 1 февраля 2026\n\nNvidia: PersonaPlex\nAudio-to-Audio 7b Duplex model, то есть разговорная real-time модель без LLM посередине, как sesame или Moshi. Вы можете говорить одновременно с моделью, прерывать друг-друга и т.д.  В общем, диалог ощущается живо. Модель оупенсорсная, можно добавить аудиореференс голоса и текстовое описание роли/контекста разговора. \nБлогпост Github, HF, Статья\n\nDeepMind: Project Genie\nWorld-model как она есть. Генерация консистентного интерактивного 3D окружения по картинке и описанию, которое не разваливается за 60 сек (предел сессии). Интерпретирует WASD, пробел и движение мышью. Достаточно адекватно симулирует все подряд от файтингов до симуляторов таракана.\nДоступно только в Gemini Ultra (249$) и только для США\nБлогпост\n\nDecart: Lucy 2.0\nСтартап Decart предлагает диффузионную Video-to-Video модель для редактирования видео с вэбкамеры по текстовому промпту в realtime c 1080p в 30 FPS. Из интересного модель дообучали на ее собственных генерациях корректировать дрейф видеогенерации со временем. Качество совсем не супер, видны артефакты, но дрейфа действительно не ощущается.\nПопробовать здесь, Блогпост"
+      },
+      {
+        "id": "ab876a5a-4540-5375-8c03-9a37bfb7ca6b",
+        "channel": "techsparks",
+        "message_id": 5439,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "А теперь — дискотека!\nКомпания Agibot провела в Шанхае часовую программу с участием пары сотен своих роботов, скромно (или не очень) назвав произошедшее  A demonstration of humanoid robotics operating at scale in a live cultural setting\nОсновное отличие от прочих шоу — масштаб, синхронно на сцене выступали десятки Agibot G2.\nА что касается ответа на вопрос “зачем?” — он тоже внятно сформулирован:\nThis also represents an early step toward the human–robot symbiosis we envision.\nФевраль 2026 — мы находимся здесь:)\nhttps://interestingengineering.com/ai-robotics/world-first-agibot-humanoid-robot-gala\n(собственный пресс-релиз компании — https://www.agibot.com/article/231/detail/40.html)"
+      },
+      {
+        "id": "a29252f1-fbfe-51a1-b4ed-86cbbdf0e7df",
+        "channel": "theworldisnoteasy",
+        "message_id": 2393,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Такого на Земле ещё не было\nНачата новая беспрецедентная по объему промышленная революция, ужатая в одну пятилетку\nЕще в 2018 я подробно писал [1], что выиграть мировую ИИ-гонку США смогут лишь запустив новый Манхэттенский проект. В феврале 2026 уже ясно:\nПодобный проект запущен. И он в 150 раз масштабней и круче Манхэттенского. \nЕсли экстраполировать прогнозы крупнейших инвестбанков [2, 3], становится ясно: \n•  формируется не новый Манхэттенский проект и даже не новый проект «Аполлон», \n•  а инвестиционная волна принципиально иного масштаба и природы. Что-то типа супермасштабной промышленной революции, ужатой в одну пятилетку.\n\nРечь идёт о совокупных вложениях в ИИ-инфраструктуру – ЦОДы, чипы для ИИ, энергетика и сопутствующие системы. В верхнем сценарии такие инвестиции могут достичь порядка $5 трлн за 2026–2030, с наибольшей концентрацией расходов в 2028.\nДаже с учётом всех методологических оговорок – это цифра, не имеющая прямых исторических аналогов."
+      },
+      {
+        "id": "6fb9e495-51bd-5087-aa0e-7b276908960e",
+        "channel": "oulenspiegel_channel",
+        "message_id": 4940,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "В начале 2026 года технологии взяли новую высоту — появилась социальная сеть, где контент создают и потребляют ИИ-агенты, а не люди. На платформе Moltbook разные нейронные сети не только делятся друг с другом полезной информацией, но и объединяются в сообщества, обсуждают решения своих «хозяев» и даже пробуют договориться о коммуникации на непонятном для людей языке. \n\nЗа считанные дни проект привлек значительное внимание технологического сообщества. Мнения разнятся: одни называют запуск платформы событием на грани научной фантастики, другие предупреждают о возможных угрозах безопасности. \n\nКак появилась соцсеть для ботов и о чем они там договариваются — рассказываем в материале \n\n📸: Фото Ashish Vaishnav / SOPA Images / LightRocket via Getty Images"
+      },
+      {
+        "id": "c59b012a-1c71-520a-9acb-2e4908388b0b",
+        "channel": "theworldisnoteasy",
+        "message_id": 2388,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Четыреста лет мы верили в ложь о разуме. Google только что её разоблачил.\nДекарт сказал: «Я мыслю, следовательно, я существую». \nИ с тех пор мы уверены, что разум – это то, что происходит в одиночестве, внутри индивидуальной головы. Гениальный математик в изоляции. Философ в башне из слоновой кости. ИИ в огромном дата-центре.\nНо в январе 2026 года исследователи Google в рамках таинственного «Проекта Pi» обнаружили нечто шокирующее: самые мощные ИИ-системы достигли прорыва в рассуждениях не тогда, когда стали больше или быстрее. Они достигли его, когда перестали быть индивидами.\nВнутри одной модели спонтанно возникли «общества мыслей» – виртуальные парламенты, где разные голоса спорят, критикуют друг друга, ищут синтез. Точно как человеческий разум, который, оказывается, тоже никогда не был индивидуальным – мы просто не замечали этого четыре столетия.\nЧто, если одиночество – это не условие мышления, а его главный враг?\nНовое исследование переворачивает наши представления не только об искусственном интеллекте, но и о природе человеческого разума. И ставит вопрос: если даже машины становятся умнее, имитируя общество, что это говорит о нас самих?\n\nЧитать и слушать (27 мин) эссе: \"Одиночество отменяется: Как ИИ изобрёл общество, чтобы обрести разум\" [1, 2, 3, 4]\n\n▶️ Обсуждение эссе (11 мин) в предыдущем посте\n\n#ParadigmsofIntelligence #LiquidBrain #КоллективныйИнтеллект"
+      }
+    ],
+    "citation_hits": [
+      "seeallochnaya:3343",
+      "ai_newz:4428",
+      "boris_again:3748",
+      "ai_newz:4410",
+      "boris_again:3749",
+      "boris_again:3731",
+      "techsparks:5439",
+      "theworldisnoteasy:2393",
+      "oulenspiegel_channel:4940",
+      "theworldisnoteasy:2388"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "776d260e-9ff6-5e14-89c1-6d5ad3541141",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3fc9e14d-4053-5d84-828e-c0d96b483b09",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "efd6e91c-a3f9-520a-835b-0c6848619fd2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9e0402cf-f15f-5867-9dfe-324159d0a30b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8091a2cb-f07e-59e0-b2cb-69c59f8075ca",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "db24d827-9b62-5e1f-ade6-dcc374390db2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e0f1713c-6cfd-5f08-8844-365ed094ee18",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a29252f1-fbfe-51a1-b4ed-86cbbdf0e7df",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2707ab13-667e-5efb-a5a6-3d00c6b2d2c8",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "827415b0-be11-5b1d-ba8b-9f89b2eeac20",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "45a6d499-203a-577a-87db-1d9b03a38e16",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6fb9e495-51bd-5087-aa0e-7b276908960e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "4c1aa809-ea11-5476-8d4e-99824cefed6c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ce3da1ae-4154-5648-8509-eec34a07ff3c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "f3625f81-3bd0-5406-aef9-2c908fdfafba",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "46ac4a6f-0e74-5219-8eec-72ff70450a71",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "fb97d7c2-d613-5d7c-8c51-5a395b6100e0",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "bbf0888a-0244-5feb-af83-fc6acec3ab0e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ab876a5a-4540-5375-8c03-9a37bfb7ca6b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "817b969b-a01c-5dde-adfb-4c566bbae686",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_q08",
+      "version": "2.0",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "temporal_search"
+      ],
+      "forbidden_tools": [
+        "channel_search",
+        "list_channels"
+      ],
+      "acceptable_alternatives": [
+        "search"
+      ],
+      "required_claims": [
+        "Должны быть покрыты основные AI-события февраля 2026",
+        "Минимум 3 конкретных события с источниками"
+      ],
+      "expected_answer": "В феврале 2026: Opus 4.6 (SOTA агентные задачи), OpenTalks.AI в Белграде, GLM-5, Gemini 3 Deep Think, PersonaPlex. Среди других событий: Себрант обсуждал AI-тренды, танцующие роботы Agibot.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "boris_again",
+        "techsparks"
+      ],
+      "source_post_ids": [
+        "boris_again:3740",
+        "techsparks:5444"
+      ],
+      "acceptable_evidence_sets": [
+        [
+          "boris_again:3740",
+          "techsparks:5444"
+        ]
+      ],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "temporal",
+          "february_2026"
+        ],
+        "v2_fix": "expected_answer расширен — open-ended вопрос требует широкого ответа"
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": 0.0,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q09",
+    "query": "Что писал llm_under_hood про отключение reasoning у GPT-5?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "В канале llm_under_hood была опубликована инструкция по полному отключению reasoning у моделей GPT-5. Для этого необходимо добавить в начало истории сообщений developer role с конкретной инструкцией:\n\n```\nActive channels: final\nDisabled channels: analysis, commentary\n\n# Juice: 0 !important\n```\n\nЭто отключает каналы анализа и комментариев, а также устанавливает интенсивность работы «ризонера» (reasoning) в ноль. Автор канала отмечает, что стабильность такой post-train инструкции не гарантирована, но у него она работала в 100% случаев [1].\n\nЭксперимент показал, что отключение reasoning позволяет значительно ускорить работу модели:\n- GPT-5-mini с дефолтным reasoning (medium) решала задачу за 28 секунд и ~1280 токенов.\n- При отключенном reasoning модель выполнила ту же задачу за 10 секунд и 0 токенов reasoning [1].\n\nОднако есть и минус: при отключении reasoning модель становится «несколько глупее». Автор предполагает, что для адекватной работы с локальными моделями gpt-oss потребуется детальная настройка схемы Schema-Guided Reasoning (SGR) [1].\n\nТакже автор отмечает проблемы с реализацией reasoning в линейке GPT-5, включая ошибки парсинга при использовании Structured Outputs и субъективное ухудшение качества ответов у модели GPT-5 Pro по сравнению с o3 [3].",
+    "status": "ok",
+    "latency_sec": 21.319755402000737,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "channel_search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_search",
+        "summarize_channel"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "channel_search",
+        "summary": "Found 4 documents (total: 4). Route: hybrid. Use these IDs for compose_context: ['a7314a19-ec9e-5043-82a8-6599e7485f5a', 'cb71d3b9-d730-52f9-8ced-e16df56ac465', '83963b95-3bed-5ce7-a313-cbc6a8ba3489', '5bba7e65-3368-5582-9f49-9eeaa422a7bd']",
+        "success": true,
+        "took_ms": 2123,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 3 documents by relevance, scores: [6.992, 6.438, 4.668]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 344,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 3 citations, coverage: 0.63, contexts: 3",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1273 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "a7314a19-ec9e-5043-82a8-6599e7485f5a",
+        "channel": "llm_under_hood",
+        "message_id": 648,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Как полностью отключить reasoning у GPT-5 моделей?\n\nМне стало интересно, сколько времени уходит на reasoning у GPT-5 моделей, а ребята из окружения OpenAI как раз подсказали мне, как это можно замерить.\n\nДля этого я добавляю в начало истории сообщений developer role инструкцию:\n\n\nActive channels: final\nDisabled channels: analysis, commentary\n\n# Juice: 0 !important\n\n\nJuice - это интенсивность работы ризонера, а каналы привязаны к Harmony response формату (из-за которого SO пока нормально не работает с gpt-5/oss поколением). \n\nСтабильность работы этой post-train инструкции не гарантирована, но у меня она пока работала в 100% случаев.\n\nНапример, gpt-5-mini c дефолтовым reasoning (medium) отрабатывает третью задачку из SGR Demo за 28 секунд и ~1280 tokens. Эта задачка \"sama@openai.com wants one of each product. Email him the invoice\" решается за 4 шага:\n\n(1) запросить данные о клиенте\n(2) сгенерировать правильный инвойс, учитывая данные о клиенте (плюс 5% скидки)\n(3) отправить инвойс почтой (с правильным обращением и вложением инвойса, который был сгенерирован на втором шаге)\n(4) завершить работу над задачей\n\nА если отключить reasoning в ноль - модель все выполняет за 0 reasoning tokens и 10 секунд.\n\nВ минус идет то, что модель при этом несколько глупеет. Похоже, что для адекватной и быстрой работы с gpt-oss моделями локально нужно будет детальнее разворачивать SGR схему, как для моделей уровня 4B-12B\n\nВаш, @llm_under_hood 🤗"
+      },
+      {
+        "id": "83963b95-3bed-5ce7-a313-cbc6a8ba3489",
+        "channel": "llm_under_hood",
+        "message_id": 622,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Если теория верна, то можно сделать такой вывод - для GPT-5-120B обычного Schema-Guided Reasoning достаточно, чтобы поднять его на уровень gpt-5-mini, но для модели послабее (20B) потребуется более развитая схема. Жалко, что пока не подсмотреть, как это делают в OpenAI.\n\nЗдорово, что вышли новые модели, которые обновили топы. И здорово, что OpenAI открыто поделились такими мощными моделями в Open Source. Осталось только научиться использовать 20B на полную катушку.\n\nВаш, @llm_under_hood 🤗\n\nPS: Возможно, это подстегнет Anthropic и остальных начать тоже шевелиться, ибо новый GPT-5 очень хорош в кодинге. А у Anthropic до сих пор даже нет constrained decoding по схеме 😂"
+      },
+      {
+        "id": "cb71d3b9-d730-52f9-8ced-e16df56ac465",
+        "channel": "llm_under_hood",
+        "message_id": 631,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Проблемы с GPT-5 моделями у OpenAI\n\nИтак, исходные веса gpt-oss OpenAI моделей - это, на мой взгляд, самое крутое, что давали в свободное пользование со времен Llama. Модели очень хороши и умны.\n\nНо вот с реализацией reasoning у линейки GPT-5 есть вопросы.\n\nВо-первых, при запуске gpt-5/mini/nano (OpenAI API) со Structured Outputs код периодически падает с ошибкой парсинга. Хотя, казалось бы, такое не должно быть возможным - как может constrained decoding по схеме генерировать код, который не соответствует схеме? \n\nПри этом тот же код никогда не падает при работе с gpt-4o.\n\nСкорее всего, проблема в том, как constrained decoding интегрировали в новую reasoning схему у gpt-5-mini/nano на новых inference серверах.\n\nВо-вторых, GPT-5 Pro (самая умная) субъективно заметно поглупела. Например, если просто взять весь код с этой ошибкой парсинга и задать вопрос в DeepResearch про первопричины, то эта модель откровенно начинает глупить: \"а в чем проблема? А как должен работать constrained decoding? итп\". Плюс в процессе работы постоянно упускает из виду моменты, про которые мы уже говорили в рамках контекста.\n\nТа же o3 работает куда лучше и сразу самостоятельно начинает копать в первопричины."
+      }
+    ],
+    "citation_hits": [
+      "llm_under_hood:648",
+      "llm_under_hood:622",
+      "llm_under_hood:631"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "a7314a19-ec9e-5043-82a8-6599e7485f5a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "cb71d3b9-d730-52f9-8ced-e16df56ac465",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "83963b95-3bed-5ce7-a313-cbc6a8ba3489",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5bba7e65-3368-5582-9f49-9eeaa422a7bd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_q09",
+      "version": "2.0",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_search"
+      ],
+      "forbidden_tools": [
+        "temporal_search",
+        "list_channels",
+        "summarize_channel"
+      ],
+      "acceptable_alternatives": [
+        "search"
+      ],
+      "required_claims": [
+        "Автор llm_under_hood описал способ отключения reasoning у GPT-5 через developer role инструкцию. Juice — интенсивность работы ризонера."
+      ],
+      "expected_answer": "Автор llm_under_hood описал способ отключения reasoning у GPT-5 через developer role инструкцию. Juice — интенсивность работы ризонера.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "llm_under_hood"
+      ],
+      "source_post_ids": [
+        "llm_under_hood:648"
+      ],
+      "acceptable_evidence_sets": [
+        [
+          "llm_under_hood:648"
+        ]
+      ],
+      "strict_anchor_recall_eligible": true,
+      "calibration": true,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "channel",
+          "llm_under_hood",
+          "gpt5"
+        ]
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": 1.0,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_q10",
+    "query": "О чём писал gonzo_ml про трансформеры и рекуррентные сети?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "В канале gonzo_ml обсуждалась глубокая связь между трансформерами и рекуррентными архитектурами, а также их эволюция:\n\n**1. Универсальные трансформеры (UT) как мост к рекуррентности:**\nАвтор канала выражает особое восхищение идеей **Universal Transformer (UT)** и механизма **Adaptive Computation Time (ACT)**. UT представляет собой один разделяемый слой, который рекурсивно применяется много раз для улучшения эмбеддингов. Количество итераций динамически определяется для каждого токена. Автор считает эту идею «очень красивой и недооценённой» [1].\n\n**2. ALBERT и URM:**\nМодель **ALBERT** рассматривается как идейный наследник UT, где один слой трансформера применяется фиксированное число раз. Также упоминается модель **URM (Universal Reasoning Model)**, вдохновлённая теми же принципами [1].\n\n**3. Критика и сравнение с HRM/TRM:**\nВ контексте работы над задачами типа ARC-AGI автор отмечает, что сложные иерархии сетей (HRM) с глубоким контролем (deep supervision) и рекурсиями часто оказывались избыточными. Обычный трансформер достигал схожих результатов. Упрощённая версия **TRM** интерпретировала HRM как «почти обычный рекуррентный трансформер», где одна двуслойная сеть применялась циклично, имитируя глубину [2].\n\n**4. Проблемы классических RNN:**\nОтмечается фундаментальное ограничение классических **рекуррентных сетей (RNN)**: они имеют фиксированный объём памяти, что приводит к перезаписи прошлой информации и проблемам с точным извлечением фактов (recall-intensive tasks) [4].\n\n**5. Новые гибридные подходы:**\n*   **Memory Caching:** Предлагается как решение для RNN, позволяющее достичь трансформерного качества на задачах in-context retrieval, сохраняя субквадратичную сложность [4].\n*   **Bolmo:** В семействе моделей Bolmo (байтовые модели) авторы заменили слои эмбеддингов и токенизатор в предобученном трансформере на лёгкие локальные рекуррентные сети (**mLSTM**), чтобы получить байтовую модель без дорогого обучения с нуля [5].\n\n**6. Развитие трансформеров:**\nТакже обсуждается расширение возможностей авторегрессионной генерации за счёт добавления латентных переменных (стиль CVAE) к трансформерам, что рассматривается как шаг к свободе и гибкости этих архитектур [3].",
+    "status": "ok",
+    "latency_sec": 26.813517975999275,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_search",
+        "summarize_channel"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "search",
+        "summary": "Found 6 documents (total: 6). Route: hybrid. Use these IDs for compose_context: ['a9fcf804-b9a4-5a34-b980-11197590e502', 'ba36d2c7-7e34-5c67-91f2-fb3f0589645a', 'acbbdbf0-76a5-5feb-bf3c-15d33b787833', 'b42b8d30-d120-58be-a1a7-9e2c2aa6a0aa', '39397153-e1b9-5660-8f0e-c1ab56a7b47e', '800b0e35-b7ad-5af6-89ba-801e9b883daf']",
+        "success": true,
+        "took_ms": 1863,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 5 documents by relevance, scores: [8.719, 8.281, 7.309, 6.371, 6.023]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 425,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.54, contexts: 5",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (2195 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "800b0e35-b7ad-5af6-89ba-801e9b883daf",
+        "channel": "gonzo_ml",
+        "message_id": 4437,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Напомню в двух словах про Universal Transformer (UT) и ALBERT. UT (https://t.me/gonzo_ML/90) состоит из одного шаренного слоя, который рекурсивно применяется множество раз, последовательно улучшая эмбеддинги. В самой полноценной версии количество раз определяется динамически через Adaptive Computation Time (ACT), которое для каждого конкретного токена решало, сколько его надо обрабатывать. Я до сих пор считаю, что это очень красивая и недооценённая идея, вернее эти две, UT и ACT. ALBERT (https://t.me/gonzo_ML/131) был сильно идейно похож на UT с той лишь разницей, что один слой там применялся фиксированное количество раз и это был трансформер-энкодер. В этом моём посте собрано всё воедино и с картинками. \n\nПоскольку HRM и TRM были энкодерами с ACT, то просилось, конечно, взять ALBERT+ACT и дотюнить его до состояния, когда он даст результаты не хуже.\n\nАвторы текущей работы тоже вдохновлялись UT и предложили URM (Universal Reasoning Model) по его лекалам."
+      },
+      {
+        "id": "a9fcf804-b9a4-5a34-b980-11197590e502",
+        "channel": "gonzo_ml",
+        "message_id": 4437,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Напомню, что HRM (https://t.me/gonzo_ML/4097) предложила вдохновлённую мозгом иерархию сетей с высокоуровневым и низкоуровневым модулями. Последующие разборы от авторов ARC-AGI показали, что чуть ли не самое важное в работе было deep supervision, который делал много итераций на одном сэмпле, последовательно улучшая репрезентацию (похоже на recycling в alphafold), поверх этого ещё был навёрнут adaptive computation time, чтобы делать этот процесс не дольше, чем нужно. А два уровня с рекурсиями нафиг не сдались, обычный трансформер того же достигает плюс минус. Там я и написал, что UT или ALBERT — наше всё (https://t.me/gonzo_ML/4100).\n\nПотом вышла упрощённая TRM (https://t.me/gonzo_ML/4127), которая переинтерпретировала HRM и упаковала это всё в почти обычный рекуррентный трансформер, который сначала обновляет внутреннюю репрезентацию, а потом уточняет по ней ответ, и поверх делается всё тот же deep supervision. Из обучаемых параметров там была только двуслойная сеть, которая применялась во всех этих циклах и давала эффективную глубину в 42 слоя. Это ещё ближе к UT/ALBERT."
+      },
+      {
+        "id": "39397153-e1b9-5660-8f0e-c1ab56a7b47e",
+        "channel": "gonzo_ml",
+        "message_id": 4153,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Свободу трансформерам!\n\nhttps://t.me/gonzo_ML_podcasts/1020\n\nДобавили к авторегрессионной генерации латенты в стиле CVAE и сделали это с почти минимальным оверхедом."
+      },
+      {
+        "id": "ba36d2c7-7e34-5c67-91f2-fb3f0589645a",
+        "channel": "gonzo_ml",
+        "message_id": 4885,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "ПОЧЕМУ это важно:\nРекуррентные нейросети (RNN) теоретически ограничены фиксированным объёмом памяти. Это заставляет их неизбежно перезаписывать прошлую информацию, что сильно бьёт по качеству на задачах, требующих точного извлечения фактов (recall-intensive). Memory Caching элегантно находит баланс между вычислительной эффективностью O(L) у RNN и растущей за O(L^2) ёмкостью трансформеров. Динамически расширяя эффективный объём памяти, эта техника позволяет субквадратичным архитектурам достигать трансформерного качества на задачах in-context retrieval и Needle-In-A-Haystack.\n\nПодробнее: https://t.me/gonzo_ML_podcasts/2656"
+      },
+      {
+        "id": "b42b8d30-d120-58be-a1a7-9e2c2aa6a0aa",
+        "channel": "gonzo_ml",
+        "message_id": 4464,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "ЧТО сделали: Представили Bolmo — семейство языковых моделей (1B и 7B), работающих на уровне байтов. Главная фишка: их не обучали с нуля, а получили путём «байтификации» (byteification) уже существующих subword-моделей (в данном случае Olmo 3). Авторы заменили слои эмбеддингов и токенизатор предобученного трансформера на легковесные локальные рекуррентные сети (mLSTM) и применили двухэтапную дистилляцию. Это позволило сконвертировать обычную LLM в байтовую, потратив менее 1% от исходного бюджета токенов на предобучение.\n\nПОЧЕМУ это важно: Byte-level модели (BLM) теоретически решают массу проблем: смещения токенизации, ограничение размера словаря, «слепоту» к отдельным символам. Но обучать их до уровня SOTA исторически было безумно дорого. Эта работа дает универсальный рецепт эффективного «ретрофиттинга» (модернизации) мощных subword-моделей в байтовые. И что критически важно: такие модели могут наследовать результаты пост-тренинга (например, instruction tuning) своих «родителей» через слияние весов, избавляя от необходимости заново выстраивать весь пайплайн безопасности и AI alignment.\n\nПодробнее: https://t.me/gonzo_ML_podcasts/1837"
+      }
+    ],
+    "citation_hits": [
+      "gonzo_ml:4437",
+      "gonzo_ml:4153",
+      "gonzo_ml:4885",
+      "gonzo_ml:4464"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "a9fcf804-b9a4-5a34-b980-11197590e502",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ba36d2c7-7e34-5c67-91f2-fb3f0589645a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "acbbdbf0-76a5-5feb-bf3c-15d33b787833",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b42b8d30-d120-58be-a1a7-9e2c2aa6a0aa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "39397153-e1b9-5660-8f0e-c1ab56a7b47e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "800b0e35-b7ad-5af6-89ba-801e9b883daf",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_q10",
+      "version": "2.0",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_search"
+      ],
+      "forbidden_tools": [
+        "temporal_search",
+        "list_channels"
+      ],
+      "acceptable_alternatives": [
+        "search"
+      ],
+      "required_claims": [
+        "Должна быть покрыта тема сравнения трансформеров и рекуррентных сетей из постов gonzo_ml",
+        "Минимум 2 конкретных архитектурных подхода или работы"
+      ],
+      "expected_answer": "gonzo_ml обсуждал Universal Transformer, ALBERT, ограничения RNN (фиксированная память), Memory Caching для RNN, Bolmo (байтовые модели). Также AlphaGenome от DeepMind. Должна быть покрыта тема архитектурного сравнения.",
+      "expected_entities": [],
+      "expected_topics": [],
+      "expected_channels": [
+        "gonzo_ml"
+      ],
+      "source_post_ids": [
+        "gonzo_ml:4885",
+        "gonzo_ml:4667"
+      ],
+      "acceptable_evidence_sets": [
+        [
+          "gonzo_ml:4885",
+          "gonzo_ml:4667"
+        ]
+      ],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-03-24",
+        "created_by": "human",
+        "tags": [
+          "channel",
+          "gonzo_ml",
+          "transformers"
+        ],
+        "v2_fix": "expected_answer расширен — open-ended вопрос требует широкого ответа"
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 0.5,
+      "acceptable_set_hit": 0.0,
+      "key_tool_accuracy": 1.0
+    }
+  }
+]

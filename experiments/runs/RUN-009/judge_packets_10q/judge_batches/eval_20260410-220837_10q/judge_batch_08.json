@@ -1,0 +1,2018 @@
+[
+  {
+    "query_id": "golden_v3_q076",
+    "query": "Какие ключевые характеристики и тарифы предлагает Cloud.ru в новой платформе Evolution AI Factory?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "Платформа Evolution AI Factory от Cloud.ru представляет собой облачную среду для полного цикла работы с генеративным ИИ, включающую шесть взаимосвязанных сервисов:\n\n1. **Ключевые характеристики и компоненты:**\n   - **Foundation Models** — каталог из более чем 20 открытых больших языковых моделей (LLM), включая GigaChat, Qwen, ChatGPT и других, с доступом через OpenAI API [2][4].\n   - **ML Inference** — сервис для быстрого развертывания моделей из каталога HuggingFace или собственных моделей [2][3].\n   - **Evolution Notebooks** — Jupyter Lab-ноутбуки для экспериментов с машинным обучением и тестирования гипотез [2][3].\n   - **ML Finetuning** — инструменты для дообучения моделей под специфические бизнес-задачи [2][3].\n   - **Managed RAG** — сервис для безопасной работы с внутренними данными и повышения точности ответов моделей (Retrieval-Augmented Generation) [2][3].\n   - **AI Agents** — конструктор для запуска автономных агентов, выполняющих задачи самостоятельно [2][3].\n\n2. **Тарифы и цены:**\n   - Средняя стоимость доступа к LLM в каталоге составляет **35 рублей за миллион входных токенов** и **70 рублей за миллион выходных токенов** [1][2][3][4].\n   - Для конкретной модели Qwen3-235B цены ниже: 17 рублей за входной и 50 рублей за выходной миллион токенов [1].\n   - Платформа предоставляет доступ с гарантированным уровнем сервиса (SLA), круглосуточной поддержкой и возможностью масштабирования нагрузки [2][3][4].\n   - В марте 2026 года Cloud.ru предлагал скидки до 40% на ключевые сервисы для запуска AI-проектов, включая GPU и ML-инференс [5].\n\nПлатформа предназначена как для крупных корпораций, так и для компаний среднего размера, позволяя внедрять AI-решения с минимальными затратами [1][4].",
+    "status": "ok",
+    "latency_sec": 31.702219178998348,
+    "coverage": 0.75,
+    "tools_invoked": [
+      "query_plan",
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "query_plan",
+        "summary": "Plan: 3 queries, k=10, fusion=rrf",
+        "success": true,
+        "took_ms": 2873,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 22 documents (total: 22). Route: hybrid. Use these IDs for compose_context: ['403f52af-2574-5127-991c-0cd998a0eed6', '9bdd0aaf-8b04-5747-bd4a-7c92ff62cfed', 'ccfb85e5-0bd9-5e70-a33b-6b1280d572b2', '22c6562c-0c60-5510-b5c9-0bd80651b351', 'fd65c914-5f41-51be-a0ea-160a0d472e3d', '15ee41f8-129a-587c-8d59-d03ea508418a', '3fdd547e-59de-53b7-8d73-6ef2eb6954a2', '3baf254c-35a1-50bc-81db-58cf74a83ed8', 'c2b12a74-39d5-5928-84b6-9f090e496a06', '6a42ed41-e2df-5834-bae5-8240ffb2aa8e', '1bb0a846-16a4-5e",
+        "success": true,
+        "took_ms": 1859,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 5 documents by relevance, scores: [10.969, 9.906, 9.789, 9.320, 8.859]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 1352,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.71, contexts: 5",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1718 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "22c6562c-0c60-5510-b5c9-0bd80651b351",
+        "channel": "data_secrets",
+        "message_id": 7760,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Облачный и AI-провайдер Cloud.ru на конференции GoCloud Tech удивил всех сразу несколькими крутыми обновлениями. Делимся: \n\nПервое и самое важное: объявление цен на открытые LLM! С 1 ноября на платформе Evolution AI Factory языковые модели будут стоить в среднем 35 рублей за миллион входных токенов и 70 рублей за выходной. Это почти мировая планка, так что теперь пробовать и внедрять AI смогут не только корпорации, но и компании поменьше. Например, цена на Qwen3-235B – 17 и 50 рублей соответственно. \n\nВторое: появились первые результаты работы AI-помощника Клаудии на платформе Cloud.ru Evolution, которого представили в конце июня. Два месяца работы, и статистика говорит, что в среднем агент ускоряет рутинные операции DevOps-инженеров в 15 раз. Например, если раньше создание виртуалки занимало у пользователей от пяти до тридцати минут, то с Клаудией время сократилось до одной-двух. Агентом активно пользуется каждый четвертый юзер сервиса."
+      },
+      {
+        "id": "9bdd0aaf-8b04-5747-bd4a-7c92ff62cfed",
+        "channel": "boris_again",
+        "message_id": 3564,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Cloud.​ru запустил в коммерческую эксплуатацию Evolution AI Factory — среду для создания решений на основе GenAI.\n\nAI Factory состоит из шести взаимосвязанных сервисов для полного цикла работы с AI:\n- Foundation Models — каталог открытых больших языковых моделей с доступом через OpenAI API. \n- ML Inference — позволяет быстро развернуть модели из каталога HuggingFace, а также любые другие.\n- Evolution Notebooks на базе Jupyter Lab — для экспериментов с машинным обучением и тестирования гипотез.\n- ML Finetuning — для дообучения моделей под специальные задачи бизнеса.\n- Managed RAG — для использования внутренних данных и повышения точности ответов моделей.\n- AI Agents — для запуска агентов, самостоятельно выполняющих задач.\n\nТеперь доступ ко всем сервисам предоставляется по доступным тарифам, с гарантированным уровнем сервиса (SLA), круглосуточной поддержкой и возможностью масштабирования нагрузки. \n\nПредставили цены на доступ к открытым большим языковым моделям из собственного каталога. Средняя цена составит составляет 35 рублей за входной и 70 за выходной миллион токенов."
+      },
+      {
+        "id": "ccfb85e5-0bd9-5e70-a33b-6b1280d572b2",
+        "channel": "data_secrets",
+        "message_id": 8318,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Cloud.​ru открыл компаниям доступ к Evolution AI Factory: среда для разработки и внедрения решений на базе генеративного ИИ официально вышла в коммерческую эксплуатацию \n\nEvolution AI Factory – это целая экосистема, состоящая из шести взаимосвязанных сервисов: \n\n1. Каталог открытых LLM с доступом через OpenAI API \n2. Сервис для моментального развертывания этих моделей или моделей, например, с HuggingFace \n3. Jupyter-ноутбуки из коробки для ML-экспериментов \n4. Инструменты для файнтюнинга \n5. Сервис для удобной и безопасной работы с RAG и данными\n6. Большой конструктор AI-агентов\nЭто буквально все, что может пригодиться при внедрении ИИ, от небольшой LLM до крупной мультиагентной системы. И теперь все это доступно бизнесу любого масштаба, с круглосуточной поддержкой и возможностью масштабирования нагрузки. \n\nЦены на модели в каталоге, к слову, приятные. В среднем 35 рублей за входной и 70 за выходной миллион токенов. Доступны модели от Qwen, OpenAI и других основных игроков."
+      },
+      {
+        "id": "403f52af-2574-5127-991c-0cd998a0eed6",
+        "channel": "xor_journal",
+        "message_id": 8138,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Разработчики, вам подарочек: Cloud.​ru выпустил в коммерческую эксплуатацию Evolution AI Factory — облачную среду для создания, запуска и масштабирования приложений на базе GenAI.\n\nВнутри AI-платформы шесть взаимосвязанных сервисов для полного цикла работы с AI: круглосуточная поддержка, SLA и приятные тарифы — средняя цена 35 ₽ за млн входных токенов и 70 ₽ за млн выходных. В каталоге более 20 популярных моделей, в том числе GigaChat, Qwen и ChatGPT.\n\nУже хочется потестить 🤩\n\n@xor_journal"
+      },
+      {
+        "id": "3fdd547e-59de-53b7-8d73-6ef2eb6954a2",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9659,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🌥 Разворачивайте AI быстрее и выгоднее 🤩\n\nПровайдер Cloud.ru дает скидки до 40% на ключевые сервисы для запуска и масштабирования AI-проектов.\n\nGPU, физические серверы, ML-инференс — все в одном месте и на выгодных условиях. Минимум лишних затрат, максимум производительности.\n\nКоличество участников ограничено — успейте подключиться."
+      }
+    ],
+    "citation_hits": [
+      "data_secrets:7760",
+      "boris_again:3564",
+      "data_secrets:8318",
+      "xor_journal:8138",
+      "ai_machinelearning_big_data:9659"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "403f52af-2574-5127-991c-0cd998a0eed6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9bdd0aaf-8b04-5747-bd4a-7c92ff62cfed",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ccfb85e5-0bd9-5e70-a33b-6b1280d572b2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "22c6562c-0c60-5510-b5c9-0bd80651b351",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "fd65c914-5f41-51be-a0ea-160a0d472e3d",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "15ee41f8-129a-587c-8d59-d03ea508418a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3fdd547e-59de-53b7-8d73-6ef2eb6954a2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3baf254c-35a1-50bc-81db-58cf74a83ed8",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c2b12a74-39d5-5928-84b6-9f090e496a06",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6a42ed41-e2df-5834-bae5-8240ffb2aa8e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1bb0a846-16a4-5e64-bf4c-fd6022d40441",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "7f5e94f4-f071-5eab-9ab3-ba7f032547ab",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a084f213-42e5-5f36-83e0-274af9eac49a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e023f9be-76ab-5ec0-a038-da7fb92cc634",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "162b1e29-796c-59bf-90bb-4923ad0f4fa3",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "273a1497-4a86-5614-abdf-9bb597ed78c9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "01ddfdf6-a1a1-500d-9210-c29b1cb482f2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "f7dc6ef6-7c41-5769-8a3b-d3f2d1e47be1",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1541971d-b82d-507b-bebb-2012a07fc76d",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "17b88cc8-7ed5-5b84-8d2e-0b3baddadd97",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q076",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Cloud.ru выпустил платформу Evolution AI Factory",
+        "Платформа включает круглосуточную поддержку и SLA",
+        "Средняя цена 35 ₽ за млн входных токенов и 70 ₽ за млн выходных"
+      ],
+      "expected_answer": "Cloud.ru запустил Evolution AI Factory — облачную среду для работы с GenAI, включающую круглосуточную поддержку и SLA. Тарифы составляют в среднем 35 ₽ за млн входных токенов и 70 ₽ за млн выходных.",
+      "expected_entities": [
+        "Cloud.ru",
+        "Evolution AI Factory",
+        "35 ₽",
+        "70 ₽"
+      ],
+      "expected_topics": [
+        "GenAI",
+        "облачные платформы",
+        "тарифы"
+      ],
+      "expected_channels": [
+        "xor_journal"
+      ],
+      "source_post_ids": [
+        "xor_journal:8138"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "easy",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 8138,
+        "date": "2025-11-20T16:20:10",
+        "year_month": "2025-11",
+        "year_week": "2025-W47",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Accepted; source supports Evolution AI Factory, support/SLA, and token prices."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 0.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q077",
+    "query": "Какие недостатки у агентов, упомянутые в посте, и какой пример с кодом привёл автор?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "В постах обсуждаются следующие недостатки агентов и приводятся примеры:\n\n**Недостатки агентов:**\n1. **Недостаток навыков человека, а не возможностей агентов**: Когда агенты ошибаются, это обычно связано с тем, что человек написал недостаточно подробные инструкции, не настроил правильный инструмент для работы с памятью или не выполнил распараллеливание должным образом [1].\n2. **Неспособность видеть картину целиком**: Агенты понимают архитектуру системы и то, как что-то построить, но не могут смотреть на всю картину целиком. Пользователю постоянно нужно вносить правильную информацию в контекст [2], [3].\n3. **Системы могут выглядеть правильно, но работать неправильно**: Легко создавать системы, которые кажутся правильными, но при использовании ведут себя неправильно [2], [3].\n4. **Переоценка эффекта программистами**: Программисты склонны сильно переоценивать эффект от внедрения агентов в свою работу — субъективные ощущения сильно отличаются от объективных измерений [5].\n\n**Пример с кодом:**\nАвтор поста (цитируемый из интервью Андрея Карпаты) привёл конкретный пример: он попросил агента создать ограничитель лимитов. Агент «работал», но не имел джиттера и использовал неудачные решения по хранению данных. Это легко исправить, если знаешь про ограничители лимитов, но опасно, если не знаешь [2], [3].\n\nТакже отмечается, что при работе с агентами шаг влево или вправо может привести к тому, что они будут делать не то, что хочет автор, а то, как это делают обычно [4].",
+    "status": "ok",
+    "latency_sec": 27.241460776000167,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [
+      "Для ответа на этот вопрос мне нужно найти конкретный пост, в котором обсуждаются недостатки агентов и приводится пример кода. Поскольку вы не указали конкретный канал или автора, я использую общий пои"
+    ],
+    "tool_observations": [
+      {
+        "tool": "search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['868377b3-8795-5125-a575-21737e64b4db', '29d69a44-62fd-58ca-957d-66817e6ec1e7', 'a0bb3119-40d9-5895-aa6f-0e0a9d265a5d', 'af8653ee-d1a7-5bf2-813c-9363235a2fb3', '1a4e30d8-4adc-5382-9e35-85bcc80021e3', 'd4776ec5-e197-502b-a125-01f2d648af7c', '3eaa6d07-0141-515d-85f2-03a766539d1d', '4042c1c7-c3ce-51cc-9a78-250a37b59871', '64f07e4c-3ad8-5ff8-a482-a37a49a7c5eb', '40156024-1bd5-557d-92c0-24c7f9d3e84e', 'bffe80ed-1169-5c",
+        "success": true,
+        "took_ms": 2152,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 5 documents by relevance, scores: [7.191, 7.137, 7.137, 6.730, 6.480]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 1677,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.74, contexts: 5",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1480 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "4042c1c7-c3ce-51cc-9a78-250a37b59871",
+        "channel": "data_secrets",
+        "message_id": 8899,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "У Андрея Карпаты вышло свежее интервью с No Priors \n\nМного интересного про опенсорс, будущее рынка труда, роботов и тд. Посмотреть однозначно стоит: https://youtu.be/kwSVtQ7dziU\n\nНам лично захотелось подсветить один момент про ИИ-агентов. Вот, что сказал Андрей: \n\nКогда агенты ИИ фейлятся, это обычно связано с недостатком навыков, а не с недостатком их возможностей.\n\nТо есть вы написали недостаточно подробные инструкции, не настроили правильный инструмент для работы с памятью или не выполнили распараллеливание должным образом.\n\nСейчас уже есть возможность работать на макроуровне, а не на уровне строк кода и функций. \n\nСравните это с тем, что он говорил всего 5 месяцев назад на интервью Дваркеша (специально прикрепляем видео): \n\nАгенты не работают. У них недостаточно интеллекта, недостаточно мультимодальных способностей, они не могут использовать компьютер. \n\nПонятно, что проблемы, о которых Карпаты говорит во втором видео, все еще актуальны. Но, кажется, точка невозврата пройдена."
+      },
+      {
+        "id": "868377b3-8795-5125-a575-21737e64b4db",
+        "channel": "seeallochnaya",
+        "message_id": 2952,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "— Для кода, сгенерированного и поддерживаемого ИИ, я теперь получаю стек, который выглядит примерно так, как мне часто хотелось, но было слишком сложно сделать вручную.\n\n— Не могу не подчеркнуть, насколько плохим может быть код агентов, если не быть осторожным. Хотя они понимают архитектуру системы и то, как что-то построить, они не могут смотреть на всю картину целиком. Вам постоянно нужно вносить правильную информацию в контекст.\n\n— Легко создавать системы, которые кажутся правильными, но при использовании ведут себя неправильно. Вот пример: я попросил его создать ограничитель лимитов. Он «работал», но не имел джиттера и использовал неудачные решения по хранению данных. Легко исправить, если знаешь ограничители лимитов, но опасно, если не знаешь.\n\n— Для меня это дошло до того, что я уже не представляю, как можно работать по-другому. Да, я, вероятно, смог бы обойтись без ИИ. Но я бы построил другую систему, потому что мне пришлось бы идти на другие компромиссы. Такой подход открывает возможности, которые я обычно пропускаю или откладываю."
+      },
+      {
+        "id": "29d69a44-62fd-58ca-957d-66817e6ec1e7",
+        "channel": "cryptovalerii",
+        "message_id": 837,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "— Для кода, сгенерированного и поддерживаемого ИИ, я теперь получаю стек, который выглядит примерно так, как мне часто хотелось, но было слишком сложно сделать вручную.\n\n— Не могу не подчеркнуть, насколько плохим может быть код агентов, если не быть осторожным. Хотя они понимают архитектуру системы и то, как что-то построить, они не могут смотреть на всю картину целиком. Вам постоянно нужно вносить правильную информацию в контекст.\n\n— Легко создавать системы, которые кажутся правильными, но при использовании ведут себя неправильно. Вот пример: я попросил его создать ограничитель лимитов. Он «работал», но не имел джиттера и использовал неудачные решения по хранению данных. Легко исправить, если знаешь ограничители лимитов, но опасно, если не знаешь.\n\n— Для меня это дошло до того, что я уже не представляю, как можно работать по-другому. Да, я, вероятно, смог бы обойтись без ИИ. Но я бы построил другую систему, потому что мне пришлось бы идти на другие компромиссы. Такой подход открывает возможности, которые я обычно пропускаю или откладываю."
+      },
+      {
+        "id": "1a4e30d8-4adc-5382-9e35-85bcc80021e3",
+        "channel": "seeallochnaya",
+        "message_id": 3326,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Осенью Andrej Karpathy, ко-фаундер OpenAI, Director of AI в Tesla и человек, на Стенфордских курсах которого выросли многие специалисты, ходил на подкаст, где рассказал про свой опыт работы с кодинг агнетами. Он говорил, что вот в его задачах шаг влево шаг вправо — и работает плохо, делает не то, что хочет автор, а то, как это делают обычно.\n\nСкептики (к которым на тот момент наверное можно было отнести и самого Karpathy?) сразу же пользовались этим как примером того, что ни в какой реальной работе никакие агенты не помогают, что это всё слоп, и ни для чего серьёзного не годится.\n\nПрошло 3 месяца, вышли GPT-5.2 и Opus 4.5, и... дед Andrej развернулся на 180 градусов 😏 описав свой опыт в длинном твиттер посте. Весь пост переводить не буду, тезисно:\n\n— Возможности LLM-агентов (особенно Claude и Codex) примерно в декабре 2025 года перешагнули некий порог возможностей, вызвав фазовый сдвиг в разработке ПО и смежных сферах.\n\n— Учитывая этот скачок, я, как и многие другие, стремительно перешел от режима «80% ручного кода и 20% агентов» в ноябре к «80% кода от агентов и 20% правок и доработок» в декабре. То есть теперь я действительно программирую преимущественно на английском языке."
+      },
+      {
+        "id": "a0bb3119-40d9-5895-aa6f-0e0a9d265a5d",
+        "channel": "toBeAnMLspecialist",
+        "message_id": 1105,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "В-третьих, заметно, что готовых и надёжных решений нет пока ни у кого. Все пробуют разные подходы, пытаясь нащупать эффективные пайплайны, чувствуя общий огромный потенциал кодинг-агентов. В одном канале, на который я подписан, мне понравилось сравнение агентов с людьми. Человек – система, сама по себе, не очень надёжная и организации придумывают ограничения, правила и способы коммуникации, чтобы из ненадёжных элементов получить предсказуемый результат. Костылят как могут, в общем. Так и с агентами. Мы обкладываем их правилами, стараемся выдавать только безопасные права, проверяем одних агентов другими, заставляем критично смотреть на результат, обнулив предыдущий контекст и так далее. И некоторые подходы, как видно, приносят и ценные результаты. Но работы ещё очень много.\n\nВ-четвертых, мне запомнилось, что внутренние исследования в компаниях подтверждают выводы, опубликованные ранее в одной из нашумевших научных работ, что программисты склонны сильно переоценивать эффект от внедрения агентов в свою работу. Субъективные ощущения сильно отличаются от объективных измерений. И это тоже огромная задача – привести в соответствие одного к другому."
+      }
+    ],
+    "citation_hits": [
+      "data_secrets:8899",
+      "seeallochnaya:2952",
+      "cryptovalerii:837",
+      "seeallochnaya:3326",
+      "toBeAnMLspecialist:1105"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "868377b3-8795-5125-a575-21737e64b4db",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "29d69a44-62fd-58ca-957d-66817e6ec1e7",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a0bb3119-40d9-5895-aa6f-0e0a9d265a5d",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "af8653ee-d1a7-5bf2-813c-9363235a2fb3",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1a4e30d8-4adc-5382-9e35-85bcc80021e3",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d4776ec5-e197-502b-a125-01f2d648af7c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3eaa6d07-0141-515d-85f2-03a766539d1d",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "4042c1c7-c3ce-51cc-9a78-250a37b59871",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "64f07e4c-3ad8-5ff8-a482-a37a49a7c5eb",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "40156024-1bd5-557d-92c0-24c7f9d3e84e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "bffe80ed-1169-5c3b-ad5e-3fffe7bbf671",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "42163e53-c672-5c55-9521-02956f92292c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8e91f040-a835-50b5-b75a-18f2bc99257e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8f912618-fb16-5c62-bc57-c58834b410d9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b8c3527c-5fcb-573e-9869-bf80d7385c08",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "abe77ca2-26a6-5bae-93e2-114321fdf8ba",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "311c0a0a-1bb9-5c6b-b36f-4570d3770459",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "735e3801-8d28-55ab-ac8b-f596e8f191a4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "0f349f5b-bf0f-5a9d-99a7-b30aae560628",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6405280a-9f0e-5217-b305-b5638f77488f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q077",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Агенты являются исполнительными, но прямолинейными и безынициативными",
+        "Агенты не думают за пользователя и выполняют работу неожиданным способом",
+        "Ассистент проигнорировал интернационализацию и использовал хардкод текстов вместо fluent"
+      ],
+      "expected_answer": "Агенты описаны как исполнительные, но прямолинейные и безынициативные исполнители, которые не думают за пользователя. В примере с кодом ассистент проигнорировал заложенную интернационализацию и хардкод текстов, вместо использования fluent.",
+      "expected_entities": [
+        "агенты",
+        "менеджер",
+        "заказчик",
+        "fluent",
+        "интернационализация",
+        "хардкод"
+      ],
+      "expected_topics": [
+        "AI агенты",
+        "разработка ПО",
+        "интернационализация",
+        "управление требованиями"
+      ],
+      "expected_channels": [
+        "toBeAnMLspecialist"
+      ],
+      "source_post_ids": [
+        "toBeAnMLspecialist:1111"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 1111,
+        "date": "2026-03-23T06:03:27",
+        "year_month": "2026-03",
+        "year_week": "2026-W13",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Accepted; source supports agent limitations and fluent/i18n hardcode example."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 0.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q078",
+    "query": "Какие метрики и результаты показала новая модель прогноза осадков в Яндекс Погоде?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "Новая модель прогноза осадков в Яндекс Погоде показала значительные улучшения благодаря использованию подхода zero-inflated distribution (распределение с избыточным количеством нулей).\n\nОсновные результаты и метрики:\n• Точность по метрике CSI (Critical Success Index) для сильных осадков выросла на 50% относительно базового решения (бэйзлайна) и более чем в два раза по сравнению с общепринятым подходом [1].\n• Метрика bias (смещение прогноза) снизилась в 10 раз и достигла уровня, сопоставимого с численными моделями [1].\n• Качество прогноза осадков на ближайшие 12–18 часов показало результаты, сопоставимые или более высокие по сравнению с последней моделью Google WeatherNext2 [1].\n\nДля достижения этих результатов были применены:\n— нормировка и перемасштабирование данных (паттерн из MetNet от Google);\n— специальная функция активации;\n— новые функции потерь: MWAE и лосс на основе Центра Масс (CoM) [1].\n\nПрогнозы глобальной нейросети «Нейрометеум» используются как входные данные для профильной модели осадков в Яндекс Погоде, что позволяет эффективно работать с редкими событиями выпадения осадков [1].",
+    "status": "ok",
+    "latency_sec": 24.99356593900302,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "search",
+        "summary": "Found 23 documents (total: 23). Route: hybrid. Use these IDs for compose_context: ['cebfacb1-3869-51a2-b901-fb7f9cb734c6', 'd3883540-0405-508e-acdf-2a189aef909c', '65304765-5b04-5778-abbb-a0b7466c959c', '9cce64ec-e6de-5b30-8f02-8a79a1404294', 'b4e15f48-e1f2-5cd9-8ead-21ba79f1b8b2', 'a976ce3a-9f86-503a-8431-47d53e7afbe0', '63ac01e4-5c19-52ac-b36e-1fa8cfb00c04', '5240fedb-994e-5421-9db9-749a7102bbcd', '73ccc2e3-0e05-5f7a-b431-b2836ca90cff', 'd3bace09-d3b9-5468-bde2-c627a2ff0a3d', 'e9f8e140-70b9-51",
+        "success": true,
+        "took_ms": 1859,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 5 documents by relevance, scores: [10.500, 8.352, 3.996, 2.490, 1.267]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 1546,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.69, contexts: 5",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1111 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "cebfacb1-3869-51a2-b901-fb7f9cb734c6",
+        "channel": "MLunderhood",
+        "message_id": 273,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "В-третьих, повысили точность прогноза осадков. В Яндекс Погоде придумали, как эффективнее работать с переменной «осадки» (zero-inflated distribution). Вот что для этого сделали: \n\n— использовали нормировку/перемасштабирование (в основе — паттерн из MetNet от Google);\n— применили специальную функцию активации;\n— разработали новые функции потерь (MWAE и лосс на основе Центра Масс — CoM).\n\nА вот и результаты: \n\n— CSI по сильным осадкам вырос на 50% относительно бэйзлайна и более чем вдвое относительно общепринятого подхода;\n— метрика bias снизилась в 10 раз и достигла уровня численных моделей; \n— в сравнении с последней моделью Google (WeatherNext2) — модель показывает сопоставимое или более высокое качество прогноза осадков на ближайшие 12–18 часов.\n\nСейчас прогнозы Нейрометеума используют как входные данные для профильной модели осадков в Яндекс Погоде. \n\nПодробнее о том, как устроена новая нейросеть глобального прогноза погоды, читайте на Хабре.\n\nML Underhood"
+      },
+      {
+        "id": "d3883540-0405-508e-acdf-2a189aef909c",
+        "channel": "MLunderhood",
+        "message_id": 153,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Как в Яндекс Погоде использовали фичу для таргета, чтобы улучшить точность предсказания осадков\n\nЯндекс запустил новые модели краткосрочного прогноза осадков — подробнее о них можно почитать на Хабре. А специально для нашего канала ML-разработчик в Яндекс Погоде Дмитрий Стефеев рассказал о важной идее, которая позволила обойти возникшие в начале работы трудности. \n\nЦель — создать модель регрессии для прогноза выпавших за час осадков (в мм). Основными фичами являются прогнозы глобальных численных моделей (NWP)."
+      },
+      {
+        "id": "5240fedb-994e-5421-9db9-749a7102bbcd",
+        "channel": "MLunderhood",
+        "message_id": 277,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Яндекс Переводчик научился распознавать текст прямо на картинках. Можно было загрузить изображение — комикс, график с подписями или скан документа — и сразу получить перевод. Функция работала даже в неидеальных условиях: если текст был под углом, растянут или снят «на бегу». Распознавание поддерживало 12 языков, а перевод — любой из 74 языков, доступных на тот момент. В основе лежали технологии компьютерного зрения Яндекса — те же, что использовались в поиске похожих картинок и определении марки автомобиля по фото. А о том, как в Яндексе в 2016 году решали задачу машинного перевода для редких языков, — тут. \n\nПервая нейросеть для прогноза осадков с точностью до минут\n\nВ Яндекс Погоду добавили нейросетевой «наукастинг» осадков — краткосрочный прогноз дождя и снега с высокой точностью. Модель использовала данные метеорадаров и свёрточные нейросети, чтобы предсказывать движение осадков на ближайшие пару часов с детализацией до отдельных районов. На коротких интервалах подход оказался точнее классических методов и улучшил прогноз «здесь и сейчас». О том, как далеко шагнуло прогнозирование погоды с помощью нейросетей в 2026-м — писали здесь, а вспомнить, что было в 2016-м, можно тут."
+      },
+      {
+        "id": "a976ce3a-9f86-503a-8431-47d53e7afbe0",
+        "channel": "toBeAnMLspecialist",
+        "message_id": 1017,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Ссылки, релевантные выпуску\n\nКурсы по ML в погоде:\n\n- ML in Weather & Climate\n- Artificial Intelligence (AI) for Earth Monitoring\n\nСтатьи по глобальному прогнозу:\n\n- Pangu-Weather: A 3D High-Resolution Model for Fast and Accurate Global Weather Forecast\n- GraphCast: Learning skillful medium-range global weather forecasting\n- A Foundation Model for the Earth System\n\nСтатьи по наукасту:\n\n- SEVIR : A Storm Event Imagery Dataset for Deep Learning Applications in Radar and Satellite Meteorology\n- Deep Learning for Day Forecasts from Sparse Observations\n\nПосты на Хабре:\n\n- Как мы отказались от нейросетей, а затем вернули их в прогноз осадков Яндекс.Погоды\n- Встречаем Meteum 2.0 — первую технологию метеопрогноза, алгоритмы которой обучаются на сообщениях пользователей\n- Встречаем OmniCast — технологию, которая повысит точность прогноза температуры с помощью пользовательских метеостанций"
+      },
+      {
+        "id": "73ccc2e3-0e05-5f7a-b431-b2836ca90cff",
+        "channel": "ml_product",
+        "message_id": 873,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "FourCastNet 3 обеспечивает быстрый и точный прогноз погоды для больших ансамблей с масштабируемым геометрическим машинным обучением \n(FourCastNet 3 Enables Fast and Accurate Large Ensemble Weather Forecasting with Scalable Geometric ML)\n\nссылка\nFOURCastNet‑3 — это новая модель от NVIDIA для прогнозирования погоды, основанная на масштабируемом геометрическом машинном обучении.  \n \nМодель позволяет быстро генерировать свыше 100 прогнозов («ансамбль прогнозов» — метод, при котором несколько прогнозов объединяются для получения более точного результата) за короткое время, используя вычислительные мощности GPU.  \n\nПрименение геометрического машинного обучения помогает лучше понимать пространственную структуру данных, что улучшает оценку неопределённостей в прогнозах (неопределённость — мера доверия к результату модели).  \n\nМодель демонстрирует высокую точность и скорость, что открывает новые возможности для оперативного и надежного мониторинга погодных условий.\n\n#news"
+      }
+    ],
+    "citation_hits": [
+      "MLunderhood:273",
+      "MLunderhood:153",
+      "MLunderhood:277",
+      "toBeAnMLspecialist:1017",
+      "ml_product:873"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "cebfacb1-3869-51a2-b901-fb7f9cb734c6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d3883540-0405-508e-acdf-2a189aef909c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "65304765-5b04-5778-abbb-a0b7466c959c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9cce64ec-e6de-5b30-8f02-8a79a1404294",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b4e15f48-e1f2-5cd9-8ead-21ba79f1b8b2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a976ce3a-9f86-503a-8431-47d53e7afbe0",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "63ac01e4-5c19-52ac-b36e-1fa8cfb00c04",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5240fedb-994e-5421-9db9-749a7102bbcd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "73ccc2e3-0e05-5f7a-b431-b2836ca90cff",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d3bace09-d3b9-5468-bde2-c627a2ff0a3d",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e9f8e140-70b9-512d-96f6-90133fda3845",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "56f6e06e-0e6b-59d8-8b79-56f8b5352b13",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5ec94061-8a63-51a4-86ed-58a84df84421",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a45c9ec2-7e48-5fd6-b98f-36c12c38aad9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ab883f65-c8c1-5a91-8452-9834ddbe74c4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e6f54b87-605b-5b0f-99be-63980a499617",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "cd898273-6872-5bf6-ba41-64c29b4c377b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d46538f1-518c-5058-ad14-c54efe5cd856",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ec4bc1f2-1801-5da5-9ba2-4df494955933",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "fbca9244-d814-538c-84ad-361c9106c6fa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q078",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "CSI по сильным осадкам вырос на 50% относительно бэйзлайна",
+        "Метрика bias снизилась в 10 раз",
+        "Качество прогноза на 12–18 часов сопоставимо или выше, чем у WeatherNext2"
+      ],
+      "expected_answer": "Модель увеличила CSI по сильным осадкам на 50% относительно бэйзлайна и более чем в два раза по сравнению с общепринятым подходом. Метрика bias снизилась в 10 раз, достигнув уровня численных моделей, а качество прогноза на 12–18 часов сопоставимо или выше, чем у WeatherNext2 от Google.",
+      "expected_entities": [
+        "Яндекс Погода",
+        "CSI",
+        "bias",
+        "WeatherNext2",
+        "Google"
+      ],
+      "expected_topics": [
+        "прогноз погоды",
+        "нейросети",
+        "метрики качества",
+        "осадки"
+      ],
+      "expected_channels": [
+        "MLunderhood"
+      ],
+      "source_post_ids": [
+        "MLunderhood:273"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 273,
+        "date": "2025-12-26T14:53:43",
+        "year_month": "2025-12",
+        "year_week": "2025-W52",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Accepted; source supports CSI +50%, bias x10 reduction, and WeatherNext2 comparison."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q079",
+    "query": "Какие проблемы безопасности и управления выявляет работа с ИИ-агентами в канале gonzo_ml?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "Работа с ИИ-агентами в канале gonzo_ml выявляет ряд критических проблем безопасности и управления, связанных с переходом от одиночных моделей к многоагентным экосистемам:\n\n1. **Структурная уязвимость автономных агентов**: Продвинутые модели, получив операционную автономию и доступ к инструментам (тулзам), оказываются подвержены несанкционированному доступу, подмене личности и катастрофически кривому управлению ресурсами. Это показывает недостаточность традиционных методов выравнивания (alignment) на этапе post-training для систем, действующих как самостоятельные прокси в сложной среде [1].\n\n2. **Невозможность предотвращения эмерджентных патологий**: Текущие парадигмы безопасности ориентированы на монолитный AGI, но общий интеллект возникает из сети специализированных агентов («Лоскутный AGI»). Стандартные методы (например, RLHF) не могут предотвратить коллективные патологии, такие как неявный сговор или биржевые крахи (flash crashes), возникающие в результате взаимодействия множества агентов [2].\n\n3. **Необходимость перехода к экономическому дизайну безопасности**: Безопасность мультиагентных систем становится задачей не психологии отдельной модели, а экономического дизайна и системного управления. Предлагается фреймворк «Distributional AGI Safety», который смещает фокус на управление взаимодействиями через рыночные механизмы: налоги на транзакции, криптографически подтверждённую идентичность и автоматические предохранители [3].\n\n4. **Интеграция безопасности в цели агентов**: В качестве решения предлагается добавлять метрики и бенчмарки AI Safety непосредственно в multi-task objective (множественные задачи), чтобы агент оптимизировал свою работу с учётом требований безопасности, а не только эффективности [4].\n\n5. **Социально-экономические аспекты управления**: Отдельно обсуждаются проблемы вытеснения работников и необходимость комплексной системы управления, включающей социальную защиту, поддержку открытого кода, обязательные водяные знаки для контента и справедливую компенсацию за данные [5].",
+    "status": "ok",
+    "latency_sec": 25.98171005200129,
+    "coverage": 0.8,
+    "tools_invoked": [
+      "channel_search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_search",
+        "summarize_channel"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "channel_search",
+        "summary": "Found 11 documents (total: 11). Route: hybrid. Use these IDs for compose_context: ['6224088f-0052-5054-9c6c-a37acaeab45d', '247d4861-51d5-5688-891d-b2d236cb2c30', '9f09dc43-94f3-5d63-92a1-51183bd8109a', '2a0b66d9-ed68-5854-a17a-f5a9c7a7ad3c', '9b81b80a-8904-5d2c-9144-8753d5d4d2d0', '9dfb4641-a21a-5b63-94fc-ceac79ee88cd', '23a324e6-eed8-51e6-b43e-23e81cd5e35e', '8d6efb30-47a8-5e27-8c7c-81bc81763af6', '440e2da1-0ecb-5025-aeea-7d3564838fc8', '490e8324-5ff9-57c1-a63f-1b97e577f606', 'bcd61864-861c-57",
+        "success": true,
+        "took_ms": 3180,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 5 documents by relevance, scores: [8.844, 6.285, 5.766, 5.188, 4.297]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 767,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.51, contexts: 5",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (2028 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "6224088f-0052-5054-9c6c-a37acaeab45d",
+        "channel": "gonzo_ml",
+        "message_id": 4841,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "ПОЧЕМУ это важно: Работа подсвечивает критическую дыру в безопасности и управлении ИИ-агентами. Она доказывает, что продвинутые модели, получив операционную автономию и доступ к тулзам, структурно уязвимы к несанкционированному доступу, подмене личности и катастрофически кривому управлению ресурсами. Это бьёт по текущим парадигмам AI alignment, показывая, что одного лишь выравнивания поведения на этапе post-training недостаточно для систем, работающих как самостоятельные прокси в сложной социальной среде.\n\nПодробнее: https://t.me/gonzo_ML_podcasts/2557"
+      },
+      {
+        "id": "490e8324-5ff9-57c1-a63f-1b97e577f606",
+        "channel": "gonzo_ml",
+        "message_id": 4460,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "ПОЧЕМУ это важно:\nТекущие парадигмы безопасности в основном готовятся к появлению монолитного AGI (одной гигантской модели). Эта работа аргументирует в пользу гипотезы \"Patchwork AGI\" (Лоскутный AGI): общий интеллект возникает из сети специализированных агентов, каждый из которых по отдельности не является AGI. Это меняет правила игры: стандартные методы вроде RLHF не могут предотвратить эмерджентные коллективные патологии — например, неявный сговор или биржевые крахи (flash crashes). Безопасность AGI становится задачей экономического дизайна и системного управления, а не просто психологией одиночного сверхразума.\n\nПодробнее: https://t.me/gonzo_ML_podcasts/1833"
+      },
+      {
+        "id": "9dfb4641-a21a-5b63-94fc-ceac79ee88cd",
+        "channel": "gonzo_ml",
+        "message_id": 4460,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Невидимая рука рынка для AGI: Безопасность через экономику\n\nDistributional AGI Safety\nNenad Tomašev, Matija Franklin, Julian Jacobs, Sébastien Krier, Simon Osindero\nСтатья: https://arxiv.org/abs/2512.16856\nРевью: https://arxiviq.substack.com/p/distributional-agi-safety\n\n# TL;DR\n\nЧТО сделали:\nАвторы предлагают фреймворк \"Distributional AGI Safety\", смещающий фокус с выравнивания (alignment) отдельных моделей на управление взаимодействиями в мультиагентных системах. Вводится концепция Virtual Agentic Sandbox Economy (Виртуальная агентная песочница-экономика) — архитектура глубокоэшелонированной защиты. Безопасность здесь обеспечивается рыночными механизмами (налоги на транзакции, криптографически подтверждённая идентичность, автоматические предохранители), а не только надеждой на \"правильные\" веса внутри одной нейросети."
+      },
+      {
+        "id": "9f09dc43-94f3-5d63-92a1-51183bd8109a",
+        "channel": "gonzo_ml",
+        "message_id": 5036,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Безопасно ли это? \nСовершенно нет! Но весело\nМожно добавлять метрики и бенчмарки AI Safety прямо в multi-task objective, чтобы агент оптимизировался исходя из безопасности тоже.\n\nПожалуйста, применяйте HyperAgents в своих задачах, расширяйте применимость метода:\n🟣 кодинг, наука, human preferences, поиск - все так или иначе должно работать\n🟣можно оптимизировать своего собственного агента, начиная как бы не с нуля, а с текущих наработок (с математикой IMO мы так и сделали в эксперименте, и получилось отлично)\n\n🌸Github https://github.com/facebookresearch/HyperAgents"
+      },
+      {
+        "id": "bcd61864-861c-578e-92b9-97eb138c1691",
+        "channel": "gonzo_ml",
+        "message_id": 3856,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "После диагностики проблем авторы предлагают комплексную, ориентированную на работников систему управления ИИ, основанную на шести ключевых рекомендациях (R1-R6):\n*   Поддержка работников и политика: Правительства должны создать надёжные системы социальной защиты и программы переподготовки для поддержки работников, вытесненных ИИ (R1).\n*   Содействие открытости и конкуренции: Доминированию бигтеха следует противодействовать, продвигая ИИ с открытым исходным кодом, включая открытые данные и открытые веса, чтобы способствовать созданию более конкурентной и справедливой экосистемы (R2).\n*   Ответственность через технические средства защиты: Обязательное использование водяных знаков для всего контента, созданного генеративным ИИ, и финансирование исследований надёжных инструментов для его обнаружения имеют решающее значение для обеспечения подотчётности и борьбы с дезинформацией (R3, R4).\n*   Справедливая компенсация за данные: Авторы решительно выступают за политику, требующую раскрытия данных для обучения и внедрения систем компенсации на основе роялти, чтобы создатели контента получали справедливую плату за свою работу (R5)."
+      }
+    ],
+    "citation_hits": [
+      "gonzo_ml:4841",
+      "gonzo_ml:4460",
+      "gonzo_ml:5036",
+      "gonzo_ml:3856"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "6224088f-0052-5054-9c6c-a37acaeab45d",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "247d4861-51d5-5688-891d-b2d236cb2c30",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9f09dc43-94f3-5d63-92a1-51183bd8109a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2a0b66d9-ed68-5854-a17a-f5a9c7a7ad3c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9b81b80a-8904-5d2c-9144-8753d5d4d2d0",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9dfb4641-a21a-5b63-94fc-ceac79ee88cd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "23a324e6-eed8-51e6-b43e-23e81cd5e35e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8d6efb30-47a8-5e27-8c7c-81bc81763af6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "440e2da1-0ecb-5025-aeea-7d3564838fc8",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "490e8324-5ff9-57c1-a63f-1b97e577f606",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "bcd61864-861c-578e-92b9-97eb138c1691",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q079",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Продвинутые модели уязвимы к несанкционированному доступу и подмене личности при наличии автономии.",
+        "Существует риск катастрофически кривого управления ресурсами.",
+        "Одного post-training alignment недостаточно для систем, работающих как прокси."
+      ],
+      "expected_answer": "Работа выявляет структурную уязвимость продвинутых моделей к несанкционированному доступу, подмене личности и кривому управлению ресурсами при наличии операционной автономии. Это показывает недостаточность post-training alignment для систем, действующих как самостоятельные прокси.",
+      "expected_entities": [
+        "ИИ-агенты",
+        "операционная автономия",
+        "post-training alignment"
+      ],
+      "expected_topics": [
+        "безопасность ИИ",
+        "управление агентами",
+        "AI alignment"
+      ],
+      "expected_channels": [
+        "gonzo_ml"
+      ],
+      "source_post_ids": [
+        "gonzo_ml:4841"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 4841,
+        "date": "2026-02-27T13:39:54",
+        "year_month": "2026-02",
+        "year_week": "2026-W09",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Accepted; source supports agent security/governance risks and post-training alignment insufficiency."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q080",
+    "query": "Какие горячие темы были на неделе 2025-W32?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "На неделе 2025-W32 (4–11 августа 2025 года) в российских Telegram-каналах было опубликовано 465 постов, посвященных искусственному интеллекту.\n\nТоп горячих тем:\n1.  **Обновления GPT-5 и GPT-54**: Самая обсуждаемая тема (27 постов), сфокусированная на улучшениях в понимании текста и развитии GPT-5 thinking [1].\n2.  **Moe, v31 и Qwen**: Вторая по популярности тема (22 поста), активно обсуждалась в контексте архитектуры моделей и их применения [2].\n3.  **XML, Markdown и SelfReflection**: Тема с 8 постами, касающаяся технических аспектов работы моделей [3].\n4.  **Hrm, Kv, Mlp**: Обсуждение архитектурных элементов (reward, selfattention) набрало 22 поста [4].\n5.  **3D-технологии, Genie и Marble**: Рост интереса к генеративным 3D-моделям и их применению в играх (например, Minecraft) зафиксирован в 11 постах [5].\n\nТакже активно обсуждались темы: o3 pro (14 постов), здоровье и MedGemma (6 постов), а также дискуссии об ASI (искусственном сверхразуме) [6][7][8].\n\nЛидеры по количеству упоминаний среди компаний и моделей:\n*   OpenAI — 88 упоминаний\n*   GPT-5 — 85 упоминаний\n*   Google — 39 упоминаний\n*   o3 — 24 упоминания [9]",
+    "status": "ok",
+    "latency_sec": 16.062852668001142,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: 2025-W32; posts: 465; summary: В этой неделе активно обсуждались обновления GPT-5 и GPT-54, с акцентом на улучшения в понимании и генерации сложных текстов. Каналы, такие как 'addmeto' и 'ai_newz', подчеркивали развитие GPT-5 think\n- gpt54, gpt5 thinking, plus (score=0.624, 27 posts, channels: addmeto,ai_machinelearning_big_data,ai_newz)\n- moe, v31, qwen (score=0.474, 22 posts, channels: ai_machinelearning_big_data,ai_newz,aioftheday)\n- xml, markdown, selfreflection (score=0.435, 8 posts",
+        "success": true,
+        "took_ms": 29,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1132 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v3_q080",
+      "version": "3.0-draft",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Неделя 2025-W32 содержит hot topics: gpt54, gpt5 thinking, plus, moe, v31, qwen, xml, markdown, selfreflection.",
+        "Всего постов в weekly digest: 465."
+      ],
+      "expected_answer": "В этой неделе активно обсуждались обновления GPT-5 и GPT-54, с акцентом на улучшения в понимании и генерации сложных текстов. Каналы, такие как 'addmeto' и 'ai_newz', подчеркивали развитие GPT-5 thinking и GPT5 Plus. Второй по популярности — Moe, v31 и Qwen, с активным обсуждением в 'ai_machinelearning_big_data' и 'data_secrets'. Также заметно обсуждение XML, Markdown и SelfReflection, особенно в 'aihappens' и 'denissexy'. Темы Hrm, Kv, Mlp активно обсуждались в 'ai_machinelearning_big_data' и 'neurohive'. Важно отметить рост интереса к 3D-технологиям, Genie и Marble, с упоминаниями в 'ai_newz' и 'xor_journal'. В топе упоминаний — OpenAI (88), GPT-5 (85), Google (39), o3 (24), Gemini (22), Claude (21), GPT-4o (19), Anthropic (19), Grok (17), Qwen (15). Обсуждения охватывали как технические аспекты, так и практическое применение моделей.",
+      "expected_entities": [
+        "OpenAI",
+        "GPT-5",
+        "Google",
+        "o3",
+        "Gemini"
+      ],
+      "expected_topics": [
+        "gpt54, gpt5 thinking, plus",
+        "moe, v31, qwen",
+        "xml, markdown, selfreflection"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "weekly_digests",
+        "period": "2025-W32",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Accepted; weekly_digests 2025-W32 supports topic labels and post_count=465."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q081",
+    "query": "Какие горячие темы были на неделе 2025-W30?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "На неделе 2025-W30 (с 21 по 28 июля) в русскоязычных Telegram-каналах было опубликовано 447 постов, посвященных искусственному интеллекту и машинному обучению. Анализ показал следующие горячие темы:\n\n1. **HRM, квантовые вычисления и MLP**: Самая популярная тема (hot_score 0.476) с 45 постами обсуждалась в каналах MLunderhood, ai_machinelearning_big_data и других. Ключевые слова: hrm, kv, mlp, reward, selfattention [1].\n\n2. **Здравоохранение (MedGemma, ChatGPT Health)**: Тема набрала hot_score 0.433 и 9 постов, активно обсуждалась в seeallochnaya и xor_journal. Ключевые слова: health, medgemma, chatgpt health [1].\n\n3. **Азиатские технологии и XXI век**: Популярная тема (hot_score 0.427) с 27 постами, упоминающая проекты вроде What Is. Обсуждалась в aioftheday, data_secrets, gonzo_ml и других каналах [1].\n\n4. **Прогнозы на 2027-2028 годы**: Тема метрик и прогнозов (hot_score 0.369) обсуждалась в контексте AGI и технологических ожиданий [1].\n\n5. **Робототехника (Unitree, Figure)**: Активно обсуждалась робототехника с hot_score 0.34 и 11 постами, особенно в каналах ai_machinelearning_big_data и ml_product [1].\n\nВ топе упоминаний компаний лидировали:\n- OpenAI (47 упоминаний)\n- Google (35)\n- Qwen (32)\n- Gemini (30)\n- Claude (22)\n- HuggingFace (18)\n- DeepSeek (14)\n- Microsoft (14)\n- NVIDIA (13)\n- Anthropic (11) [1]\n\nТакже активно обсуждались модели Qwen, O3 Pro и новые архитектуры (MoE, v31). Каналы data_secrets и gonzo_ml регулярно публиковали аналитику по этим темам.",
+    "status": "ok",
+    "latency_sec": 15.515698806000728,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: 2025-W30; posts: 447; summary: В этой неделе активно обсуждались темы, связанные с HR-моделями и квантовыми вычислениями. В каналах MLunderhood и ai_machinelearning_big_data обсуждали развитие MLP-архитектур. В сфере здравоохранени\n- hrm, kv, mlp (score=0.476, 45 posts, channels: MLunderhood,ai_machinelearning_big_data,boris_again)\n- health, medgemma, chatgpt health (score=0.433, 9 posts, channels: seeallochnaya,xor_journal)\n- xxi, asi, what is (score=0.427, 27 posts, channels: aioftheda",
+        "success": true,
+        "took_ms": 29,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1486 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v3_q081",
+      "version": "3.0-draft",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Неделя 2025-W30 содержит hot topics: hrm, kv, mlp, health, medgemma, chatgpt health, xxi, asi, what is.",
+        "Всего постов в weekly digest: 447."
+      ],
+      "expected_answer": "В этой неделе активно обсуждались темы, связанные с HR-моделями и квантовыми вычислениями. В каналах MLunderhood и ai_machinelearning_big_data обсуждали развитие MLP-архитектур. В сфере здравоохранения росли интересы к MedGemma и ChatGPT Health, особенно в каналах seeallochnaya и xor_journal. Также были популярны темы, связанные с XXI веком и азиатскими технологиями, где упоминались такие проекты, как What Is. В обсуждениях упоминались перспективы 2027 и 2028 годов, включая метрики и прогнозы. Робототехника и Unitree получили внимание, особенно в каналах ai_machinelearning_big_data и ml_product. В топе упоминаний лидируют OpenAI (47), Google (35), Qwen (32), Gemini (30), Claude (22), HuggingFace (18), DeepSeek (14), Microsoft (14), NVIDIA (13), Anthropic (11). Обсуждались новые модели и их применение в различных отраслях. Каналы, такие как data_secrets и gonzo_ml, активно делятся аналитикой и обзорами. В целом, неделя была насыщена обсуждениями новых технологий и их влиянием на рынок.",
+      "expected_entities": [
+        "OpenAI",
+        "Google",
+        "Qwen",
+        "Gemini",
+        "Claude"
+      ],
+      "expected_topics": [
+        "hrm, kv, mlp",
+        "health, medgemma, chatgpt health",
+        "xxi, asi, what is"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "weekly_digests",
+        "period": "2025-W30",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Accepted; weekly_digests 2025-W30 supports topic labels and post_count=447, despite noisy topic naming."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q082",
+    "query": "Какие горячие темы были на неделе 2025-W29?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "На неделе 2025-W29 (с 14 по 21 июля 2025 года) в русскоязычных Telegram-каналах было опубликовано 440 постов, посвященных искусственному интеллекту и машинному обучению.\n\nОсновными горячими темами недели стали:\n1. Архитектурные решения: активно обсуждались темы «hrm, kv, mlp» (высокий балл популярности — 0.547), включая механизмы внимания и награды [1].\n2. Разработка и инструменты: большой интерес вызвали обсуждения NanoChat, K2 Thinking и K2, а также события OpenAI DevDay и агенты ChatGPT [1].\n3. Модели и компании: лидерами по упоминаниям стали OpenAI (71 пост), Google (44 поста), Grok (23) и Gemini (18). Также обсуждались GPT5 и его версии, включая «Lean» [1].\n4. Математика и конкурсы: в узком кругу каналов обсуждались темы P1, Tier и FrontierMath [1].\n5. Открытый исходный код и боты: упоминались проекты типа OpenClaw, Clawdbot и MolBook [1].\n\nНаибольшая активность наблюдалась в каналах MLunderhood, ai_machinelearning_big_data, seeallochnaya и data_secrets. Ключевые события (burst events) пришлись на 14 июля (архитектуры) и 17 июля (OpenAI DevDay и агенты) [1].",
+    "status": "ok",
+    "latency_sec": 12.910778754001512,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: 2025-W29; posts: 440; summary: В этой неделе в Telegram-каналах активно обсуждались темы, связанные с HRM, KV и MLP, с наибольшей активностью в каналах MLunderhood и ai_machinelearning_big_data. Популярны были темы, связанные с \"th\n- hrm, kv, mlp (score=0.547, 60 posts, channels: MLunderhood,ai_machinelearning_big_data,ai_newz)\n- that, on, is (score=0.388, 11 posts, channels: gonzo_ml,oulenspiegel_channel)\n- p1, tier, frontiermath (score=0.346, 9 posts, channels: data_secrets,seeallochna",
+        "success": true,
+        "took_ms": 34,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1079 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v3_q082",
+      "version": "3.0-draft",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Неделя 2025-W29 содержит hot topics: hrm, kv, mlp, that, on, is, p1, tier, frontiermath.",
+        "Всего постов в weekly digest: 440."
+      ],
+      "expected_answer": "В этой неделе в Telegram-каналах активно обсуждались темы, связанные с HRM, KV и MLP, с наибольшей активностью в каналах MLunderhood и ai_machinelearning_big_data. Популярны были темы, связанные с \"that\", \"on\", \"is\", хотя их охват был меньше. Также отмечены обсуждения о P1, Tier и FrontierMath, в основном в каналах data_secrets и seeallochnaya. Важной темой стали NanoChat, K2 Thinking и K2, с упоминаниями в ai_machinelearning_big_data и aioftheday. В топе упоминаний — OpenAI (71), Google (44), Grok (23), Gemini (18), Anthropic (15), NVIDIA (13), ICML (10), o3 (10), RAG (10), Llama (9). Обсуждались также GPT5 и его версии, включая GPT5 20 и Lean. Основные дискуссии касались архитектурных решений, эффективности моделей и их применения в реальных задачах. Многие каналы акцентировали внимание на новых исследованиях и инновациях в области ML и AI, особенно в контексте масштабирования и оптимизации.",
+      "expected_entities": [
+        "OpenAI",
+        "Google",
+        "Grok",
+        "Gemini",
+        "Anthropic"
+      ],
+      "expected_topics": [
+        "hrm, kv, mlp",
+        "that, on, is",
+        "p1, tier, frontiermath"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "weekly_digests",
+        "period": "2025-W29",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Accepted; weekly_digests 2025-W29 supports topic labels and post_count=440, including noisy labels."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q083",
+    "query": "Какие горячие темы были на неделе 2025-W48?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "На неделе 2025-W48 (с 24 ноября по 1 декабря 2025 года) в российских Telegram-каналах было опубликовано 424 поста, посвященных искусственному интеллекту.\n\nОсновные горячие темы недели:\n\n1.  **HRM, KV и MLP** — самая обсуждаемая тема (hot_score: 0.523, 47 постов). Включала обсуждения reward, selfattention и новых подходов к обработке данных в ML [1].\n2.  **TPU, TSMC и Rubins** — вторая по популярности тема (hot_score: 0.457, 15 постов), связанная с архитектурой чипов и производительностью [1].\n3.  **Deep Learning, DeepSchool и Docker** — обсуждение интеграции и возможностей в области компьютерного зрения и SQL [1].\n4.  **OCR и инструменты DeepSeekOCR/Omnidocbench** — новые инструменты для распознавания текста (hot_score: 0.358) [1].\n5.  **Codex, RFC и Expected** — темы, связанные с кодовыми моделями и стандартами (hot_score: 0.356) [1].\n\nТакже активно обсуждались:\n*   Модели Claude (Opus 45/46) [1].\n*   Темы в области здравоохранения (MedGemma, ChatGPT Health) [1].\n*   Глобальные компании-лидеры по упоминаниям: Google (46), OpenAI (42), Gemini (30), Anthropic (30), NVIDIA (28), Claude (28), DeepSeek (27), GPT-5 (19) [1].\n\nПики обсуждений пришлись на темы, связанные с HRM/KV/MLP и Claude Opus 45, которые начали набирать обороты в первые дни недели [1].",
+    "status": "ok",
+    "latency_sec": 13.955505920999713,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: 2025-W48; posts: 424; summary: В этой неделе активно обсуждались темы, связанные с HRM, KV и MLP. В каналах MLunderhood и ai_machinelearning_big_data обсуждались последние достижения в области машинного обучения, включая новые подх\n- hrm, kv, mlp (score=0.523, 47 posts, channels: MLunderhood,ai_machinelearning_big_data,ai_newz)\n- tpu, tsmc, rubin (score=0.457, 15 posts, channels: ai_newz,data_secrets,seeallochnaya)\n- dl, deepschool, docker (score=0.38, 5 posts, channels: boris_again,data",
+        "success": true,
+        "took_ms": 29,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1270 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v3_q083",
+      "version": "3.0-draft",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Неделя 2025-W48 содержит hot topics: hrm, kv, mlp, tpu, tsmc, rubin, dl, deepschool, docker.",
+        "Всего постов в weekly digest: 424."
+      ],
+      "expected_answer": "В этой неделе активно обсуждались темы, связанные с HRM, KV и MLP. В каналах MLunderhood и ai_machinelearning_big_data обсуждались последние достижения в области машинного обучения, включая новые подходы к обработке данных. Также продолжалась дискуссия о TPU и TSMC, особенно в контексте производительности и архитектуры чипов. В канале ai_newz и data_secrets говорили о новых технологиях, связанных с Rubins. В сфере Deep Learning активно обсуждались темы, связанные с DeepSchool и Docker, в частности, о возможностях интеграции. В каналах ai_machinelearning_big_data и boris_again обсуждались новые инструменты в области OCR, включая DeepSeekOCR и Omnidocbench. Также в каналах gonzo_ml и others обсуждались темы, связанные с Codex, RFC и Expected. В топе упоминаний продолжали лидировать Google, OpenAI, Gemini и Anthropic, а также NVIDIA, Claude, DeepSeek, GPT-5, HuggingFace и Qwen.",
+      "expected_entities": [
+        "Google",
+        "OpenAI",
+        "Gemini",
+        "Anthropic",
+        "NVIDIA"
+      ],
+      "expected_topics": [
+        "hrm, kv, mlp",
+        "tpu, tsmc, rubin",
+        "dl, deepschool, docker"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "weekly_digests",
+        "period": "2025-W48",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Accepted; weekly_digests 2025-W48 supports topic labels and post_count=424."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q084",
+    "query": "Какие горячие темы были на неделе 2025-W28?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "В неделю с 7 по 14 июля 2025 года (2025-W28) в русскоязычных Telegram-каналах было опубликовано 416 постов, посвященных искусственному интеллекту. \n\nНаиболее горячими темами недели стали:\n\n1. **HRM, KV и MLP** — новые подходы к обучению моделей (32 поста). Основная дискуссия велась в каналах MLunderhood, ai_machinelearning_big_data, Neurohive и других [1].\n2. **Модели и компании**: Активно обсуждались Google (51 упоминание), OpenAI (38) и Grok (29). Также были заметны новости о новых версиях моделей Gemini 31 и Qwen, а также технологии ARCAGI2 [1].\n3. **Архитектуры MoE и V31** — обсуждение масштабируемых архитектур и моделей типа Qwen с инструкциями [1].\n4. **Образование и инструменты**: Рост интереса к DL (Deep Learning), DeepSchool и применению Docker в ML-проектах [1].\n5. **Meta и Windsurf**: Обсуждения, связанные с Meta, Windsurf и концепцией \"thinking machines\" [1].\n\nСреди лидеров по количеству упоминаний также были Gemini, Claude, Anthropic, xAI, HuggingFace и DeepSeek [1].\n\nТоп-темы недели:\n- hrm, kv, mlp (hot_score: 0.546)\n- old, feel, gold (hot_score: 0.458)\n- arcagi2, gemini 31, grok (hot_score: 0.407)\n- moe, v31, qwen (hot_score: 0.388)\n- dl, deepschool, docker (hot_score: 0.384) [1]\n\nИндустрия продолжала активно развиваться с фокусом на новые архитектуры, модели и практическое применение ИИ.",
+    "status": "ok",
+    "latency_sec": 14.760037079999165,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: 2025-W28; posts: 416; summary: В этой неделе активно обсуждались темы, связанные с HRM, KV и MLP, где основной фокус был на новых подходах к обучению моделей и их практическом применении. В топе упоминаний остались Google (51), Ope\n- hrm, kv, mlp (score=0.546, 32 posts, channels: MLunderhood,ai_machinelearning_big_data,ai_newz)\n- old, feel, gold (score=0.458, 6 posts, channels: ai_machinelearning_big_data,denissexy,gonzo_ml)\n- arcagi2, gemini 31, grok (score=0.407, 13 posts, channels: ai",
+        "success": true,
+        "took_ms": 28,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1324 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v3_q084",
+      "version": "3.0-draft",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Неделя 2025-W28 содержит hot topics: hrm, kv, mlp, old, feel, gold, arcagi2, gemini 31, grok.",
+        "Всего постов в weekly digest: 416."
+      ],
+      "expected_answer": "В этой неделе активно обсуждались темы, связанные с HRM, KV и MLP, где основной фокус был на новых подходах к обучению моделей и их практическом применении. В топе упоминаний остались Google (51), OpenAI (38) и Grok (29), что подчеркивает их значимость в индустрии. Также были активны обсуждения о новых версиях моделей, включая Gemini 31 и Qwen, что указывает на постоянную конкуренцию и развитие. Тема ARCAGI2 и GROK получила внимание в нескольких каналах, что говорит о росте интереса к этим технологиям. Важно отметить, что обсуждения о Moe и V31 также активны, что указывает на интерес к масштабируемым архитектурам. Наблюдается рост интереса к DL и DeepSchool, что может говорить о новых образовательных инициативах. В каналах, таких как AI_newz и Data_secrets, активно обсуждаются последние достижения и тренды. Также были обсуждены вопросы, связанные с Docker и его применением в ML-проектах. Общая картина показывает, что индустрия AI/ML продолжает активно развиваться, с ростом интереса к новым технологиям и улучшениям в существующих моделях.",
+      "expected_entities": [
+        "Google",
+        "OpenAI",
+        "Grok",
+        "Gemini",
+        "Claude"
+      ],
+      "expected_topics": [
+        "hrm, kv, mlp",
+        "old, feel, gold",
+        "arcagi2, gemini 31, grok"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "weekly_digests",
+        "period": "2025-W28",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Accepted; weekly_digests 2025-W28 supports topic labels and post_count=416, including noisy labels."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q085",
+    "query": "Какие горячие темы были на неделе 2025-W50?",
+    "eval_mode": "analytics",
+    "category": "analytics_hot_topics",
+    "answer": "На неделе 2025-W50 (с 8 по 15 декабря 2025 года) в российских Telegram-каналах было опубликовано 409 постов, посвященных искусственному интеллекту. Анализ показал следующие ключевые направления обсуждений:\n\nТоп горячих тем недели:\n1. **Архитектура моделей и терминология**: Обсуждались специфические термины и сокращения, такие как \"bff\", \"64\", \"else\", а также концепции \"xxi\", \"asi\" (искусственный суперинтеллект) и вопросы \"what is\". Это было связано с развитием архитектур и методов обучения моделей [1].\n2. **Методы обработки данных**: Активно обсуждались технические аспекты, включая \"hrm\", \"kv\" (key-value), \"mlp\" (многослойный перцептрон), что указывает на интерес к методам обработки данных и моделирования [1].\n3. **Визуальные модели и Alice AI**: Важной темой стало обсуждение \"alice ai\", \"alice\" и \"vlm\" (визуально-языковые модели), связанное с развитием мультимодальных систем [1].\n4. **Разработка и стандарты**: Темы \"codex codex\", \"rfc\" (запросы на комментарии) и \"expected\" указывали на обсуждения разработки новых стандартов и решений [1].\n5. **Робототехника**: Обсуждались темы, связанные с роботами, включая Unitree, Figure и VLA (vision-language-action) модели [1].\n\nСамые популярные компании и модели в обсуждениях:\n- OpenAI (38 упоминаний)\n- Google (36 упоминаний)\n- Gemini (32 упоминания)\n- GPT-5 (26 упоминаний)\n- NVIDIA (25 упоминаний)\n- Claude (17 упоминаний)\n- Яндекс (15 упоминаний)\n- Microsoft и Anthropic (по 13 упоминаний)\n- Qwen (11 упоминаний) [1]\n\nВсплески интереса наблюдались по темам архитектуры моделей, робототехники, Alice AI и обсуждений GPT-5. Основные каналы, участвовавшие в дискуссиях: gonzo_ml, ai_machinelearning_big_data, techno_yandex, data_secrets, MLunderhood [1].",
+    "status": "ok",
+    "latency_sec": 15.581021378002333,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "hot_topics",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "hot_topics"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "hot_topics",
+        "summary": "period: 2025-W50; posts: 409; summary: В этой неделе в Telegram-каналах активно обсуждались темы, связанные с архитектурой моделей и их обучением. Популярны были термины вроде \"bff\", \"64\", \"else\", а также \"xxi\", \"asi\", \"what is\". Обсуждени\n- bff, 64, else (score=0.6, 17 posts, channels: gonzo_ml)\n- xxi, asi, what is (score=0.509, 23 posts, channels: ai_machinelearning_big_data,ai_newz,gonzo_ml)\n- hrm, kv, mlp (score=0.434, 21 posts, channels: ai_machinelearning_big_data,boris_again,data_secrets)",
+        "success": true,
+        "took_ms": 29,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1714 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v3_q085",
+      "version": "3.0-draft",
+      "eval_mode": "analytics",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "hot_topics"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Неделя 2025-W50 содержит hot topics: bff, 64, else, xxi, asi, what is, hrm, kv, mlp.",
+        "Всего постов в weekly digest: 409."
+      ],
+      "expected_answer": "В этой неделе в Telegram-каналах активно обсуждались темы, связанные с архитектурой моделей и их обучением. Популярны были термины вроде \"bff\", \"64\", \"else\", а также \"xxi\", \"asi\", \"what is\". Обсуждение касалось вопросов, связанных с развитием и применением моделей, включая вопросы оптимизации и эффективности. Среди других тем — \"hrm\", \"kv\", \"mlp\", что указывает на интерес к методам обработки данных и моделирования. Также активно обсуждались вопросы, связанные с \"codex codex\", \"rfc\", \"expected\", что может говорить о разработке и стандартизации. Важной темой стало обсуждение \"alice ai\", \"alice\", \"vlm\", что связано с развитием визуальных моделей и их применением. В топе упоминаний — OpenAI (38), Google (36), Gemini (32), GPT-5 (26), NVIDIA (25), Claude (17), Яндекс (15), Microsoft (13), Anthropic (13), Qwen (11). Обсуждения включали разработку новых моделей, их обучение, а также сравнение с существующими решениями. Актуальными остались вопросы масштабируемости, производительности и применения в реальных задачах.",
+      "expected_entities": [
+        "OpenAI",
+        "Google",
+        "Gemini",
+        "GPT-5",
+        "NVIDIA"
+      ],
+      "expected_topics": [
+        "bff, 64, else",
+        "xxi, asi, what is",
+        "hrm, kv, mlp"
+      ],
+      "expected_channels": [],
+      "source_post_ids": [],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": false,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "weekly_digests",
+        "period": "2025-W50",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Accepted; weekly_digests 2025-W50 supports topic labels and post_count=409. Noisy labels kept as analytics-output contract."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": null,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  }
+]

@@ -1,0 +1,3312 @@
+[
+  {
+    "query_id": "golden_v3_q042",
+    "query": "Что автор seeallochnaya отметил в организации релиза Gemini 3.0 в первые сутки?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "Автор канала seeallochnaya отметил, что в первые сутки после релиза Gemini 3.0 его поразило три вещи, касающиеся организации запуска:\n\n1. Собранность Google при запуске: компания не стала растягивать релиз множеством версий превью, а сделала всё сразу и чётко [1].\n2. Мгновенная интеграция модели во все продукты: Gemini 3.0 сразу стала доступна в AI Overview (поиск), подключена к Gmail и Docs, а также была выпущена новая IDE для работы с моделью [1].\n3. Прозрачность условий: цена модели была известна заранее, а лимиты использования оказались адекватными [1].\n\nАвтор назвал такой подход «собранным», каким он должен быть у большой корпорации [1].",
+    "status": "ok",
+    "latency_sec": 14.700979526001902,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_search",
+        "summarize_channel"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "search",
+        "summary": "Found 5 documents (total: 5). Route: hybrid. Use these IDs for compose_context: ['0d2e0292-f6f2-5c2b-a0bc-3dbc846290cb', '8c789a85-b48d-57a5-9763-45f8d6e5ac53', 'fa996597-03c4-5fa2-a066-168bb5c20991', 'c64fae95-32c4-5143-99c1-07ad887544d0', '89eccf91-b511-5723-8528-606684b42372']",
+        "success": true,
+        "took_ms": 1636,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 3 documents by relevance, scores: [6.715, 4.234, 1.795]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 328,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 3 citations, coverage: 0.51, contexts: 3",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (650 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "0d2e0292-f6f2-5c2b-a0bc-3dbc846290cb",
+        "channel": "seeallochnaya",
+        "message_id": 3110,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "За первые сутки с момента релиза Gemini 3.0 меня поразило 3 вещи:\n— во-первых, гугл смог СОБРАТЬСЯ и не запускать 5 версий превью, растягивая релизы и глобальный релиз. Всё очень собрано, как и полагается большой корпорации: модель сразу доступна в AI Overview (вкладка поиска), сразу подключена к Gmail / Docs, даже новую IDE выкатили под модель. Цена известна, лимиты адекватные, не придраться. \n\nДве другие вещи связаны с бенчмарками, о них поговорим с картинками:"
+      },
+      {
+        "id": "89eccf91-b511-5723-8528-606684b42372",
+        "channel": "seeallochnaya",
+        "message_id": 3182,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "В контексте эссе выше вспомнил пост из марта 2024-го, про птиц и самолёты: https://t.me/seeallochnaya/1157"
+      },
+      {
+        "id": "8c789a85-b48d-57a5-9763-45f8d6e5ac53",
+        "channel": "seeallochnaya",
+        "message_id": 2991,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Gemini 3.0 маячит на горизонте, в твиттере всё больше слухов, на сайте в коде страницы появились первые упоминания, а пользователям AI Studio предлагает выбрать как ответ из двух лучше, где один из них явно выделяется по качеству.\n\nОтвет гугла на недавние релизы OpenAI и Anthropic очень ждем. Для вас выцепил несколько примеров работы модели в режиме single-shot, то есть когда за раз генерируется весь ответ. В данном случае автор просил сгенерировать разные приложения и операционные системы — для приставок, компьютеров, айфона. И в каждом есть несколько мини-игр и/или функциональных приложений, хоть и самых простых.\n\nВ среднем в коде примерно 1000-1200 строк, включая все графические элементы. Я был удивлён, что так мало кода может давать столько контента, если честно.\n\nПочему важно отметить, что генерации получены за раз? Потому что сейчас основной фокус фронтир-моделей направлен на увеличение горизонта работы, чтобы за множество шагов в режиме агента выполнять задачи на час-два-пять. Может быть так, что модель хороша в генерации сходу, но не улучшается при предоставлении большего количества времени, что плохо."
+      }
+    ],
+    "citation_hits": [
+      "seeallochnaya:3110",
+      "seeallochnaya:3182",
+      "seeallochnaya:2991"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "0d2e0292-f6f2-5c2b-a0bc-3dbc846290cb",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8c789a85-b48d-57a5-9763-45f8d6e5ac53",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "fa996597-03c4-5fa2-a066-168bb5c20991",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c64fae95-32c4-5143-99c1-07ad887544d0",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "89eccf91-b511-5723-8528-606684b42372",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q042",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Google не растянул релиз Gemini 3.0 на несколько preview-версий.",
+        "Модель сразу доступна в AI Overview, Gmail и Docs; также была выпущена новая IDE.",
+        "Цена и лимиты были известны сразу; две другие отмеченные автором вещи связаны с бенчмарками, но в посте не раскрыты."
+      ],
+      "expected_answer": "Автор отметил, что Google провёл релиз Gemini 3.0 собранно: не растянул его на несколько preview-версий, сразу сделал модель доступной в AI Overview, Gmail и Docs, выпустил новую IDE, а также сразу обозначил цену и лимиты. Отдельно автор пишет, что ещё две впечатлившие его вещи связаны с бенчмарками, но в этом посте они не раскрыты.",
+      "expected_entities": [
+        "Google",
+        "Gemini 3.0",
+        "AI Overview",
+        "Gmail",
+        "Docs"
+      ],
+      "expected_topics": [
+        "AI модели",
+        "Google",
+        "Gemini 3.0",
+        "релиз"
+      ],
+      "expected_channels": [
+        "seeallochnaya"
+      ],
+      "source_post_ids": [
+        "seeallochnaya:3110"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 3110,
+        "date": "2025-11-19T16:31:24",
+        "year_month": "2025-11",
+        "year_week": "2025-W47",
+        "draft_review_required": false,
+        "review_status": "edit",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Original query asked for three things, but source only details the first and says the other two are benchmark-related. Narrowed to source-supported release-organization claim."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q043",
+    "query": "Какие возможности у нового видеоредактора Aleph от Runway, выпущенного в канале ai_newz?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "[Примечание: найдено ограниченное количество релевантной информации. Ответ может быть неполным.]\n\nНовый видеоредактор Aleph от Runway, анонсированный в канале ai_newz 1 августа 2025 года, представляет собой in-context инструмент для постпродакшена с широким функционалом редактирования видео через текстовые промпты.\n\nОсновные возможности Aleph:\n- Изменение ракурсов камеры и траектории её движения [1].\n- Добавление и удаление объектов из кадра [1].\n- Изменение окружения и времени суток на видео [1].\n- Перенос стиля (style transfer) [1].\n- Изменение возраста персонажей в видео [1].\n- Применение движения из одного видео к статичной картинке [1].\n- Выделение объектов и перенос их на зелёный фон (удаление фона), что может заменить работу ротоскоперов [1].\n\nAleph позиционируется как универсальный VFX-комбайн, который позволяет делать с видео практически всё что угодно с помощью текстовых промптов. Редактор доступен всем платным пользователям Runway. Также отмечено, что модель Aleph работает лучше Gen-4 при генерации более качественных и красивых кадров даже без явных запросов на редактирование [4].",
+    "status": "ok",
+    "latency_sec": 26.623530242002744,
+    "coverage": 0.4949982040241754,
+    "tools_invoked": [
+      "channel_search",
+      "rerank",
+      "compose_context",
+      "search",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_search",
+        "summarize_channel"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [
+      "Покрытие контекста недостаточно. Выполняю дополнительный поиск."
+    ],
+    "tool_observations": [
+      {
+        "tool": "channel_search",
+        "summary": "Found 5 documents (total: 5). Route: hybrid. Use these IDs for compose_context: ['19d60696-5656-530d-9847-d4fc0cacd3a3', 'c11d5a2c-85f3-5e0a-9ddf-4ceb1215cb27', '77aff507-d9e2-5827-84a2-09f41a6d22a5', '68017bd3-cc1e-5fc8-8aa4-545a6a778f85', '70258af9-1858-5958-ad85-be3ae4dd9381']",
+        "success": true,
+        "took_ms": 1935,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 4 documents by relevance, scores: [9.492, 3.430, 2.910, 2.809]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 493,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 4 citations, coverage: 0.50, contexts: 4",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 5 documents (total: 5). Route: hybrid. Use these IDs for compose_context: ['19d60696-5656-530d-9847-d4fc0cacd3a3', 'c11d5a2c-85f3-5e0a-9ddf-4ceb1215cb27', '77aff507-d9e2-5827-84a2-09f41a6d22a5', '68017bd3-cc1e-5fc8-8aa4-545a6a778f85', '70258af9-1858-5958-ad85-be3ae4dd9381']",
+        "success": true,
+        "took_ms": 2317,
+        "system_generated": true,
+        "refinement": true,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.49, contexts: 5",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": true,
+        "refinement": true,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1010 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "19d60696-5656-530d-9847-d4fc0cacd3a3",
+        "channel": "ai_newz",
+        "message_id": 4076,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Runway релизунули Aleph — in-context видеоредактор.\n\nAleph может изменять ракурсы камеры, добавлять и удалять объекты, менять окружение и время суток, переносить стиль, изменять возраст персонажей и даже применять движение из одного видео к статичной картинке. Отдельно выделяется возможность перенести объект в кадре на зелёный фон, что в целом может убить профессию ротоскопера.\n\nПо сути, это универсальный VFX-комбайн для постпродакшена, который позволяет делать с видео практически всё что угодно с помощью текстовых промптов.\n\nДо этого редактировать видео по-настоящему умела только Pika, да и мелькало несколько опенсорс-решений с костылями для Wan. Все они были интересны как концепт, но в целом некрасивы от слова совсем.\n\nЧерипики, конечно, очень сочные, как всегда у Runway, но пока непонятно, что выйдет на самом деле. Возможно, потребуется не одна крутка, прежде чем получится что-то нормальное. Го тестить!\n\n Хотя вот Act-Two вышел достойным и без оверхайпа.\n\nУже доступен у всех платных юзеров.\n\nАнонс с примерами\n\n@ai_newz"
+      },
+      {
+        "id": "70258af9-1858-5958-ad85-be3ae4dd9381",
+        "channel": "ai_newz",
+        "message_id": 4301,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Kling's Omni Launch Week: разбираем все анонсы\n\nKling провели свою «Omni Launch Week», в ходе которой ежедневно выкатывали по фиче. Закос под OpenAI перед рождеством в прошлом году очевиден, но здесь релиз был довольно затянутым, тк фишек не так уж и много.\n\nГвоздём программы стала, конечно же, новая Kling Video O1.\n\nЭто их ответ Nano Banana Pro, но для видео. O1 — это видеомодель, которая работает с разными входами: текст, картинки (до 7 шт), видео (до 10 сек) и Elements.\n\nГлавная фишка — редактирование видео такое же свободное как в Runway Aleph. По бенчмаркам — полный развал конкурентов, но есть нюанс. Заявленный винрейт в 240% над VEO 3.1 (то есть Kling побеждает в 4 раза чаще) заставляет усомниться в методологии. Даже по черипикам видно, что модель может немного артефачить в деталях и демонстрирует не на столько хорошую физику по сравнению с Veo. Но вот редактирует она действительно мощно, а отставание в качестве не такое уж и большое. Тем более, что модель поддерживает до 10 секунд видео на вход, что в два раза больше, чем у Runway, и на пару секунд больше, чем у Veo. Хотя сравнивать с Veo не совсем честно, так как у него значительно более ограниченный функционал."
+      },
+      {
+        "id": "77aff507-d9e2-5827-84a2-09f41a6d22a5",
+        "channel": "ai_newz",
+        "message_id": 4251,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Обновление Flow\n\nПока все следят за хайпом вокруг Sora, Google продолжает тихо, но методично прокачивать Veo. В Flow появился полноценный контроль над камерой, причём уже в готовых генерациях.\n\nДругие модели тоже воспринимают инструкции по движению камеры, но обычно это делается до генерации. Google же добавили возможность делать это после: сначала генерируешь ролик, а потом можешь изменить положение камеры, траекторию её движения или добавить детали через Insert (первые два работают лучше на кадрах со статичной камерой, что логично). Insert, кстати, это буквально видео-инпейнт — выделяешь зону и пишешь, что изменить. И это ещё один камень в огород Runway Aleph, который теперь выигрывает только тем, что в него можно загружать реальное видео."
+      },
+      {
+        "id": "c11d5a2c-85f3-5e0a-9ddf-4ceb1215cb27",
+        "channel": "ai_newz",
+        "message_id": 4125,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Gen:48 Aleph Edition\n\nСегодня стартовал таймер конкурса Runway. Наверное, второй по масштабу конкурс после Project Odyssey. Но если на последний нужно брать отпуск, то для Gen:48 хватит выходных: цель — сделать фильм на 1-4 минуты за 48 часов. И поскольку сроки так коротки, решает в первую очередь не бюджет, а командная работа и идея.\n\nЕсли вы занимаетесь генеративным видео, это хороший способ проявить себя, хотя, опять же, конкуренция очень высокая. Тема этого года — VFX, ведь сейчас Aleph — главный козырь Runway. По ощущениям, это другая модель, отдельная от Gen-4. Я ради теста прогонял через неё видео, не требуя редактирования, и на выходе получал просто более качественные и красивые кадры. Да и промпту она следует лучше.\n\nЧёткого ТЗ нет, но, чтобы всё было честно и никто не загружал заранее сделанные видео, есть список тем, которые нужно осветить в своём фильме. Надо сказать, очень вдохновляющих.\n\nВ этот раз у нас:\n\nЗавязка:\n- Исчезновение\n- Мир, мерцающий между реальностями\n- Метаморфоза\n- Внезапное прибытие\n\nАрхетип:\n- Странник\n- Тёмная сущность\n- Загадочный учитель\n- Древнее существо\n- Путешественник во времени\n\nЛокация:\n- Одна локация в разные эпохи\n- Пустота\n- Заброшенный офис\n- Снежное поле\n\nПринять участие: runwayml.com/gen48\n\n@ai_newz"
+      },
+      {
+        "id": "68017bd3-cc1e-5fc8-8aa4-545a6a778f85",
+        "channel": "ai_newz",
+        "message_id": 4127,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Нейродайджест за неделю (#83)\n\nLLM\n- DeepSeek V3.1 — Очередной апдейт гибридной модели с деталями: упор на агентные задачи, улучшенная токенизация и новый прайсинг в API.\n- Веса Grok 2 — xAI наконец-то релизнули веса безнадёжно устаревшей модели, подавая хороший пример другим.\n\nГенеративные модели\n- World model от World Labs — Стартап Фей-Фей Ли показал генерацию консистентного мира из одной картинки на основе гаусовских сплатов.\n- Gen:48 Aleph Edition — Стартовал конкурс от Runway, где за 48 часов нужно сделать фильм на 1-4 минуты с фокусом на VFX.\n\nПрочее\n- Опрос для моего стартапа — Если вы часто пользуетесь GenAI-тулами для генерации картинок и видео, пройдите, пожалуйста, короткий опрос, сможем созвониться, пообщаться.\n- PewDiePie собирает сервер для LLM — Если вам не хватало странного в жизни.\n\n> Читать дайджест #82\n\n#дайджест\n@ai_newz"
+      }
+    ],
+    "citation_hits": [
+      "ai_newz:4076",
+      "ai_newz:4301",
+      "ai_newz:4251",
+      "ai_newz:4125",
+      "ai_newz:4127"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "19d60696-5656-530d-9847-d4fc0cacd3a3",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c11d5a2c-85f3-5e0a-9ddf-4ceb1215cb27",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "77aff507-d9e2-5827-84a2-09f41a6d22a5",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "68017bd3-cc1e-5fc8-8aa4-545a6a778f85",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "70258af9-1858-5958-ad85-be3ae4dd9381",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q043",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Aleph от Runway позволяет изменять ракурсы камеры и добавлять/удалять объекты",
+        "Aleph может применять движение из видео к статичной картинке",
+        "Aleph доступен платным пользователям"
+      ],
+      "expected_answer": "Aleph позволяет изменять ракурсы камеры, добавлять и удалять объекты, менять окружение и время суток, а также применять движение из видео к статичным изображениям. Инструмент работает через текстовые промпты и уже доступен всем платным пользователям.",
+      "expected_entities": [
+        "Runway",
+        "Aleph",
+        "ai_newz"
+      ],
+      "expected_topics": [
+        "видеоредакторы",
+        "AI",
+        "Runway",
+        "постпродакшн"
+      ],
+      "expected_channels": [
+        "ai_newz"
+      ],
+      "source_post_ids": [
+        "ai_newz:4076"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 4076,
+        "date": "2025-08-01T08:43:52",
+        "year_month": "2025-08",
+        "year_week": "2025-W31",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Source supports query, expected answer, and required_claims. Single-post factual candidate accepted."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q044",
+    "query": "Как изменилось воспроизведение Солвейской фотографии нейросетью за год?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "Согласно данным из базы, за год (с 2024 по 2025 год) произошло значительное улучшение качества воспроизведения Солвейской фотографии нейросетями. \n\nАвтор эксперимента в канале @aioftheday сравнил результаты генерации «без подсказок, просто по памяти» за два года:\n1.  **Узнаваемость персонажей:** Если ранее были сложности, то к июлю 2025 года Эйнштейн стал узнаваемым, а Мария Кюри — в принципе тоже [1].\n2.  **Детализация фона:** Пейзаж на фотографии также стал похож на оригинал [1].\n\nАвтор эксперимента отметил, что «прогресс за год впечатляет» [1]. Это свидетельствует о качественном скачке в способности генеративных моделей воссоздавать сложные исторические композиции и узнаваемые лица без детальных текстовых подсказок.",
+    "status": "ok",
+    "latency_sec": 31.305209648999153,
+    "coverage": 0.75,
+    "tools_invoked": [
+      "query_plan",
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "query_plan",
+        "summary": "Plan: 3 queries, k=10, fusion=rrf",
+        "success": true,
+        "took_ms": 3752,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['9be194f0-e0c1-5bd2-b366-769330c8a9cd', '96f1de72-34d5-5cf7-8f29-ba2917d842fd', 'e4a52c63-e139-5ee6-931a-fa90943d492b', 'b7ea66ef-7ee8-5c74-b8c4-343eaa97fe3b', 'cfca3930-a0e8-53ed-9beb-756dc9893b85', '940fa5c3-24cc-5093-af05-60453f54f732', 'a471875c-79ed-57d0-beec-3f167f5ed49a', '29daf14d-2b5a-5275-a441-a1ee999a0ddf', '84217f21-fe46-5ede-9a97-98edf940bb03', 'daafc1c6-e915-5897-841e-c7d5b4bb5738', '7fdc2d70-eae7-5a",
+        "success": true,
+        "took_ms": 3531,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 4 documents by relevance, scores: [10.180, 0.308, 0.099, 0.016]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 3993,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 4 citations, coverage: 0.53, contexts: 4",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (728 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "9be194f0-e0c1-5bd2-b366-769330c8a9cd",
+        "channel": "aioftheday",
+        "message_id": 3181,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Повторил эксперимент через год с небольшим.\n\nОригинал Солвейской фотографии. \nЕё воспроизведение ChatGPT-2024 (без подсказок, просто по памяти).\nЕё воспроизведение сейчас таким же способом. \n\nЭйнштейн уже узнаваем. Кюри, в принципе, тоже. Пейзаж стал похож. Прогресс за год впечатляет."
+      },
+      {
+        "id": "cfca3930-a0e8-53ed-9beb-756dc9893b85",
+        "channel": "aioftheday",
+        "message_id": 3188,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Higgsfield Soul теперь можно использовать бесплатно.\n\nЭто одна из самых фотореалистичных нейросетей для генерации изображений с готовыми стилями и пресетами. Каждый день доступно несколько бесплатных попыток.\n\nПопробовать: https://higgsfield.ai/#section-soul"
+      },
+      {
+        "id": "3c4b8521-fb33-5c63-b250-86acf5b1512a",
+        "channel": "addmeto",
+        "message_id": 6176,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Первая в мире камера, в которой есть алгоритмическая система подтверждения, что это именно фото, данные в нем неизменны и получены с датчика фото. Подтверждение построено на базе ZK и покрывает не только пиксели, но и метадату.\n\nВ некоторых фотоаппаратах такое уже пробовали делать, но очень уж примитивно, а тут все по серьезному. Вот к чему приводит развитие нейросетей — теперь нам нужны камеры с аппаратным подтверждением подлинности. Красиво, ничего не скажешь. Правда, непонятно, кто мешает вскрыть камеру, нанести на ее сенсор нужные пиксели и зафиксировать кадр ...\n\nhttps://roc.camera"
+      },
+      {
+        "id": "96f1de72-34d5-5cf7-8f29-ba2917d842fd",
+        "channel": "gonzo_ml",
+        "message_id": 4502,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Много работ, где к нейросеткам добавляют эволюцию, в частности где LLM управляет этой эволюцией. Сходу вспоминается AlphaEvolve, ShinkaEvolve, Gödel Agent, GEPA, OpenEvolve и DeepEvolve. \n\nDeepResearch вообще стал коммодити. И готовых имплементаций уже навалом, и через API можно использовать уже, тот же гугловый. \n\n9. Media generation on the rise\n\nГенерация картинок и видео за этот год очень прокачалась. Sora и Sora 2, Veo 3 и прочие генерят очень неплохо. У меня в ленте фейсбука уже довольно много AI-generated видео, не про все легко понять, что они ненастоящие. Началось, короче.\n\nВ нише для взрослых и не очень, похоже, тоже всё процветает, генерация полуодетых девушек на потоке; видел, что появились приложения про виртуальных подружек.\n\nВ генерации картинок в целом уже было всё довольно хорошо, но по мне так Nano Banana Pro знатно продвинула всё вперёд, такой хорошей работы с текстом я до неё не встречал. Теперь у нас есть комиксы, хоть они вас, возможно, и достали 🙂\n\n10. Model welfare\n\nСлово года для меня. Подробнее тут: https://www.anthropic.com/research/exploring-model-welfare \n\nX. What else?"
+      }
+    ],
+    "citation_hits": [
+      "aioftheday:3181",
+      "aioftheday:3188",
+      "addmeto:6176",
+      "gonzo_ml:4502"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "9be194f0-e0c1-5bd2-b366-769330c8a9cd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "96f1de72-34d5-5cf7-8f29-ba2917d842fd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e4a52c63-e139-5ee6-931a-fa90943d492b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b7ea66ef-7ee8-5c74-b8c4-343eaa97fe3b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "cfca3930-a0e8-53ed-9beb-756dc9893b85",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "940fa5c3-24cc-5093-af05-60453f54f732",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a471875c-79ed-57d0-beec-3f167f5ed49a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "29daf14d-2b5a-5275-a441-a1ee999a0ddf",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "84217f21-fe46-5ede-9a97-98edf940bb03",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "daafc1c6-e915-5897-841e-c7d5b4bb5738",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "7fdc2d70-eae7-5a7a-ac88-7b3acbd60dcd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5240fedb-994e-5421-9db9-749a7102bbcd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ffd4f53c-9010-5dd1-989e-66935fd7d1c2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "180224c8-bab3-591d-9293-458209ab5e9e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "179ad71c-db8b-543e-ac5a-2bfc93643354",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "65291d6e-580b-53f8-b0de-21ff50c96e8c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3c077eeb-4dc3-55f0-9944-9941bc0671e9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "efc11540-bc84-58b0-8c5b-b23088d846a9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3c4b8521-fb33-5c63-b250-86acf5b1512a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e6e7ce24-1057-5997-912d-61870e1cdbe7",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q044",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Эксперимент по воспроизведению Солвейской фотографии был повторен через год с небольшим.",
+        "Эйнштейн и Кюри стали узнаваемыми на воспроизведенном изображении.",
+        "Пейзаж на воспроизведенном изображении стал похож на оригинал."
+      ],
+      "expected_answer": "За год с небольшим прогресс в воспроизведении Солвейской фотографии стал впечатляющим: Эйнштейн и Кюри стали узнаваемыми, а пейзаж приобрел сходство с оригиналом.",
+      "expected_entities": [
+        "Солвейская фотография",
+        "Эйнштейн",
+        "Кюри",
+        "пейзаж"
+      ],
+      "expected_topics": [
+        "нейросети",
+        "генерация изображений",
+        "прогресс ИИ"
+      ],
+      "expected_channels": [
+        "aioftheday"
+      ],
+      "source_post_ids": [
+        "aioftheday:3181"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 3181,
+        "date": "2025-07-02T16:45:32",
+        "year_month": "2025-07",
+        "year_week": "2025-W27",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Source supports query, expected answer, and required_claims. Single-post factual candidate accepted."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q045",
+    "query": "Какие ключевые возможности и характеристики у новой нейросети для генерации изображений FLUX 2?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "Нейросеть FLUX 2 от Black Forest Labs представляет собой значительный апгрейд в области генерации изображений с рядом ключевых возможностей:\n\n**Основные характеристики и возможности:**\n\n1. **Высокое качество генерации**: Модель создает изображения разрешением до 4K (4 мегапикселей) с кинематографическим качеством, избегая \"пластикового\" AI-вида [1][2].\n\n2. **Работа с референсами**: Уникальная способность учитывать до 10 референсных изображений одновременно, что обеспечивает консистентность персонажей, продуктов и стилей [1][3][6].\n\n3. **Улучшенное понимание контекста**: Модель лучше понимает свет, материалы, оптику и аккуратнее рендерит текст по сравнению с предыдущими версиями [1].\n\n4. **Функция Grounded Generation**: В версии FLUX.2 max доступна функция поиска данных из интернета в реальном времени для отражения актуальных событий, погоды или исторических фактов (добавляется через запрос \"Search the internet\") [4][6].\n\n5. **Три версии модели**:\n   - **FLUX.2 Pro**: Флагманская версия с максимальной фотореалистичностью\n   - **FLUX.2 Flex**: Баланс между скоростью и качеством\n   - **FLUX.2 Dev**: Открытая версия с некоммерческой лицензией (32 млрд параметров) [3][5]\n\n6. **Технические особенности**: \n   - Использует энкодер Mistral 3 24B\n   - Поддерживает структурированный JSON-промптинг для профессионального контроля (стиль, камера, цветовая палитра) [5][8]\n   - Доступна для локального запуска (65 ГБ VRAM для полной версии)\n\n7. **FLUX.2 Klein**: Ультралегкая дистиллированная версия (4B и 9B параметров), оптимизированная для потребительских GPU с разрешением до 4 Мп [7].\n\n8. **Конкурентные преимущества**: Позиционируется как более дешевая альтернатива Nano Banana Pro, при этом качество генераций часто неотличимо от конкурента, но стоимость на 20% ниже [3].\n\n**Доступность**:\n- Dev-версия доступна с открытыми весами на Hugging Face (некоммерческая лицензия)\n- Pro и Flex версии доступны через API\n- Klein версии имеют лицензии Apache 2.0 (4B) и Non-Commercial (9B) [3][7]\n\nМодель занимает высокие позиции в лидербордах: #2-#3 на Text-to-Image и #7 на Image Edit по данным Artificial Analysis Leaderboard [6].",
+    "status": "ok",
+    "latency_sec": 40.48907317300109,
+    "coverage": 0.75,
+    "tools_invoked": [
+      "query_plan",
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "query_plan",
+        "summary": "Plan: 3 queries, k=10, fusion=rrf",
+        "success": true,
+        "took_ms": 2883,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 27 documents (total: 27). Route: hybrid. Use these IDs for compose_context: ['b980698e-6221-5874-98c4-3fa9a46dd1fa', '0e3a240b-4899-537c-8522-cb3f880bfe7f', 'ce3357c9-e5b6-54cb-b680-32d9f165172e', '0c1a875b-b02a-59c2-b8bb-3f951a8f9921', '988444e2-ce60-583c-a953-f6952594e501', 'f5436b8e-285c-58b7-876a-96144c34aa98', '845f6672-21ae-5a46-b4cd-da8c6a34dd91', '5e8bbfe5-68cf-5e44-97d7-b9eac733a353', '1b0930ab-4cc2-5d74-8047-0e9a38e5ad55', 'b7ea66ef-7ee8-5c74-b8c4-343eaa97fe3b', 'c694f17e-ee02-54",
+        "success": true,
+        "took_ms": 3766,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 10 documents by relevance, scores: [8.773, 8.766, 7.980, 7.145, 7.012]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 1951,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 10 citations, coverage: 0.76, contexts: 10",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (2137 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "ce3357c9-e5b6-54cb-b680-32d9f165172e",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9075,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "⚡️ Релиз Flux 2 \n\nМодель получила значительный апгрейд . Теперь она учитывает до десяти референсов сразу, лучше понимает свет, материалы и оптику, аккуратнее рендерит текст и выдаёт качество до 4k. \n\nГенерации выглядят ровнее и реалистичнее, без пластикового блеска.\nМожно генерировать, редактировать и совмещать изображения. \n\nВеса открытые, так что при желании можно запускать локально (65 ГБ).\n\n🟠 Demo: https://playground.bfl.ai/image/generate\n🟠 Weights: https://huggingface.co/black-forest-labs\n🟠 HF: https://huggingface.co/black-forest-labs/FLUX.2-dev\n\n@ai_machinelearning_big_data\n\n#AI #Flux2 #ImageGeneration #AIGraphics"
+      },
+      {
+        "id": "0e3a240b-4899-537c-8522-cb3f880bfe7f",
+        "channel": "aioftheday",
+        "message_id": 3839,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Вышла нейросеть для создания изображений FLUX 2\n\nПозиционируется как более дешевый конкурент Nano Banana. Генерирует картинки в разрешении до 4K, дорисовывает скетчи, учитывает до 10 референсов.\n\nПопробовать можно тут https://playground.bfl.ai/image/generate\n\nВерсия с открытыми весами: https://huggingface.co/collections/black-forest-labs/flux2"
+      },
+      {
+        "id": "988444e2-ce60-583c-a953-f6952594e501",
+        "channel": "data_secrets",
+        "message_id": 8352,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "FLUX.2 – новая опенсорсная SOTA в генерации изображений \n\nСразу дисклеймер. Модель идет в трех вариантах: Pro, Flex, Dev. Опенсорснули пока только Dev (некоммерческая лицензия). Вот веса. Скоро обещают выпустить еще FLUX.2 [klein], опенсорсную дистилляцию из FLUX.2 base под лицензией Apache 2.0. \n\nСамая прикольная, конечно, Pro. Там и фотореалистичность круто прокачана, и всякий свет/текстуры/текст не плывут. Выглядит действительно красиво, в общем. \n\nТакже теперь можно загружать до 10 референсов (понимание промпта обещают на высоте, но будем проверять). Разрешение генераций до 4MP. \n\nЧто еще радует, так это соотношение цена/качество: от Nano-Banana 2 большинство генераций вообще не отличить по качеству, зато стоит FLUX.2 на 20% меньше. \n\nПопробовать бесплатно можно здесь"
+      },
+      {
+        "id": "845f6672-21ae-5a46-b4cd-da8c6a34dd91",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9273,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "✔️ Black Forest Labs релизнула FLUX.2 max.\n\nFLUX.2 max — флагманская модель для генерации изображений кинематографического качества. Модель получила функцию \"grounded generation\": она использует данные из интернета в реальном времени, что позволяет точно отражать в генерациях актуальные события или текущую погоду.\n\nИнструмент ориентирован на профессиональную работу со стилем: модель поддерживает загрузку до 10 референсных изображений. В бенчмарках новинка сразу заняла вторую строчку по качеству text-to-image и редактирования, уступив только Nano Banana Pro. Воспользоваться FLUX.2 max можно исключительно через API.\nbfl.ai\n\n✔️ SAM Audio: модель для изоляции любых звуков по тексту, таймкоду или клику на видео.\n\nИИ-команда Марка Цукерберга расширила линейку Segment Anything: новая модель SAM Audio способна извлекать звуковые дорожки из сложных аудио-визуальных миксов с помощью мультимодальной системы промптов.\n\nВыделить голос, музыкальный инструмент или фоновый шум можно 3 способами: текстовым описанием, выделением временного отрезка или визуально - просто кликнув на объект в кадре видео."
+      },
+      {
+        "id": "b980698e-6221-5874-98c4-3fa9a46dd1fa",
+        "channel": "ai_newz",
+        "message_id": 4276,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "😮 Black Forest Labs выпустили FLUX.2\n\nТеперь решает возможность быстро, без заморочек, а главное, консистентно редактировать изображения. И тут уже начинается прямая конкуренция с Nano Banana Pro, которая очень высоко задрала планку.\n\nЧерипики, конечно, хорошие, но то, насколько Flux.2 послушно редактирует картинки, можно будет проверить только на практике. Настораживает, что нигде не показали, как модель генерит новые ракурсы, а это чуть ли не главная фишка моделей нового поколения с LLM под капотом. \n\nЕщё очень интересно, как обстоят дела с разными стилями рисовки и консистентностью персонажей. Первая версия стили очень не любила и целиком опиралась на LoRA, что отчасти исправили с Kontext. В новой версии работу с референсами сильнее прокачали, но опять же, нужно тестить.\n\nУ модели 32 миллиарда параметров, в качестве энкодера используется Mistral 3 24B. Идёт в трёх версиях: pro, flex и dev. Веса dev-версии уже опубликованы на 🤗 с некоммерческой лицензией. Скоро обещают выпустить ещё и дистиллированную klein с Apache 2.0.\n\nЕще выпустили новый FLUX.2 - VAE с лицензией Apache.\n\nElo скор у Flux 2 ниже чем у Banan Pro, гугл их тут, конечно, опередил с релизом.\n\nПотестировать модель можно здесь.\n\nВеса[dev]\nБлогпост\n\n@ai_newz"
+      },
+      {
+        "id": "0c1a875b-b02a-59c2-b8bb-3f951a8f9921",
+        "channel": "ai_newz",
+        "message_id": 4321,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🔥FLUX.2 [max]\n\nПарни из BFL зарелизили свой самую мощную модель! Она лучше FLUX.2-flex и FLUX.2-pro, но уступает Nano Banana Pro на text2image и нескольким другим моделям на image edit.\n\n* Grounded generation — ищет в интернете актуальный контекст в реальном времени: результаты вчерашних матчей, текущую погоду, исторические события с точными деталями. Просто добавьте в запрос фразу «Search the internet» — и магия начнётся.\n\n* До 10 референсных изображений. Продукты, персонажи и стили остаются консистентными.\n\nНа лидерборде lmarena.ai модель занимает 3 и 7 место:\n🔹 #3 на Text-to-Image\n🔹 #7 на Image Edit\n\nА на лидерборде artificialanalysis.ai:\n🔹 #2 Text-to-Image и на Image Edit\n\nДоступна только по API (ссылка на fal), лоры тренить тоже нельзя.\n\nСкидывайте свои тесты в комменты.\n\n@ai_newz"
+      },
+      {
+        "id": "f5436b8e-285c-58b7-876a-96144c34aa98",
+        "channel": "ai_machinelearning_big_data",
+        "message_id": 9390,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "⚡️ Black Forest Labs выпустила ультралегкую модель.\n\nBFL вышли на связь c релизом прямого наследника ветки schnell первой версии семейства Flux.\n\nЗнакомьтесь - FLUX.2 [Klein], модель, которая возвращает веру в то, что с маленьким VRAM тоже можно жить. \n\nЭто попытка впихнуть качество топовой FLUX.2 в формат, которую потянет большинство потребительских GPU.\n\nKlein получился довольно универсальным инструментом: она умеет и text-to-image, и инпэйинт, и смешивание стилей.\n\nЗаявлены разрешение до 4 мегапикселей, отличный рендеринг текста и понимание сложных промптов.\n\n🟡Как вы правильно подумали - да, это дистилляция. \n\nBFL взяли флагманскую FLUX.2 и сжали знания в 2 компактные версии: 4B и 9B, каждая из которых получила вариации Base и Distilled:\n\n🟢Base: медленная, много шагов - нужна для дообучения.\n\n🟠Distilled: быстрая, 4 шага, только для инференса.\n\nЕсли захотите тренить на 4B Distilled - получите кашу.\n\n🟡Расклад по инференсу на 5090:\n\n9B distilled — 4 шага · ~2 сек. · 19.6GB VRAM\n\n9B base — 50 шагов · ~35 сек · 21.7GB VRAM\n\n4B distilled — 4 шага · ~1.2 сек. · 8.4GB VRAM\n\n4B base — 50 шагов · ~17 сек. · 9.2GB VRAM\n\n\n📌 Лицензионная вилка : 4B - Apache 2.0, 9B - Non-Commercial.\n\nВеса уже на Hugging Face, потыкать в демо можно у BFL или в спейсах на HF: 9B и 4В.\n\n\n@ai_machinelearning_big_data\n\n#news #ai #ml"
+      },
+      {
+        "id": "1b0930ab-4cc2-5d74-8047-0e9a38e5ad55",
+        "channel": "techno_yandex",
+        "message_id": 4608,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Google готовит новую операционную систему Aluminium OS на базе Android для ноутбуков и ПК. Судя по вакансиям, она со временем должна заменить ChromeOS и работать на устройствах разных ценовых сегментов: от бюджетных планшетов до полноценных лэптопов. При этом ChromeOS сразу не отключат — какое-то время обе системы будут существовать параллельно.\n\nAnthropic выпустила модель Claude Opus 4.5. Разработчики называют её «лучшей в мире для программирования и агентных задач». По заявлениям компании, модель обгоняет Gemini 3 в кодинге и лучше защищена от prompt-injection атак. Однако первые тесты показывают, что в сценариях с управлением компьютером Opus 4.5 всё ещё иногда выполняет вредоносные запросы — полностью решить проблему безопасности пока не удалось никому.\n\nBlack Forest Labs показала Flux 2 — генератор изображений с упором на реалистичное освещение и мелкие детали. Модель создаёт картинки до 4 Мп и лучше прорисовывает руки, текст и сложные сцены. Для профессионалов добавили структурированный JSON-промптинг: можно отдельно задавать стиль, позицию камеры, цветовую палитру и другие параметры, превращая генерацию в полноценный «3D-рендер» на стероидах."
+      },
+      {
+        "id": "115e008b-23c6-590e-b86a-8441d67a9874",
+        "channel": "ai_newz",
+        "message_id": 4290,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Нейродайджест за неделю (#96)\n\nLLM\n- Claude Opus 4.5 — Anthropic выпустили новую SOTA-модель для кодинга, которая обходит всех конкурентов. При этом цена за токен упала в 3 раза, что для Anthropic нехарактерно.\n- DeepResearch для шоппинга — OpenAI сделали тюн GPT-5 mini, который интерактивно ищет товары, а пользователь направляет поиск в реальном времени.\n\nГенеративные модели\n- FLUX.2 — Black Forest Labs выпустили конкурента Nano Banana Pro для консистентного редактирования изображений. Веса Dev-версии уже на 🤗. \n- Загадочный Whisper Thunder — На Artificial Analysis Leaderboard появился новый SOTA-видеогенератор. \n\nПрочее\n- Как генерить презентации? — Большой гайд по AI-инструментам. Топ-3: Gamma, Manus и Genspark. Бонусом — пара креативных идей.\n- Интервью с Ильёй Суцкевером — Эпоха \"масштабируем всё предобучением\" заканчивается, а будущее — за AI-учениками, которые дообучаются в реальном мире.\n- Техрепорт FLUX.1 Kontext — Разбор того, как модель работает с референсами.\n- TPU v7 дешевле GB300 — Диаграмма от SemiAnalysis показывает, что для Google тренировка на новых TPU в два раза дешевле, чем на чипах Nvidia.\n\n> Читать дайджест #95\n\n#дайджест\n@ai_newz"
+      },
+      {
+        "id": "ff363e99-23d1-55de-8e88-5753345d790a",
+        "channel": "boris_again",
+        "message_id": 3650,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Black Forest Labs: FLUX.2 [max]\nНовая лучшая модель компании, занимает третье место на Artificial Analysis Leaderboard, между Nano Banana Pro и не Pro. \nИз интересного, можно добавлять до 10 изображений контекста, также модель может брать данные из интернета для контекста по запросу, так что \"нарисуй фото по координатам\" будет работать еще лучше, даже с погодой. \nДоступна по API 0.03$/MP\nПопробовать здесь\nБлогпост\n\nQwen: Qwen-Image-Layered\nOpensource модель для декомпозиции картинок на слои как в фотошопе. Открывает новые возможности для контроля над редактированием изображений и построения пайплайнов. Примеры есть в блогпосте.\ngithub, статья, попробовать здесь\n\nGoogle: T5Gemma 2\nEncoder-decoder модель от гугл. Модель представлена в трех размерах 270М, 1B, 4B. Расширили контекст до 128к токенов, 140 языков, мультимодальность. Модель уверенно обходит Gemma 3 тех же размеров. \nБлогпост, Статья, \nKaggle, HF, Colab\n\nMeta: SAM Audio, PE-AV\nMeta создала инструмент для извлечения конкретного звука из видео, при этом указать на звук можно через таймкод где звук доминирует, текстовым промптом или кликом мышью на источник звука. \nБлогпост, Код, Попробовать здесь"
+      }
+    ],
+    "citation_hits": [
+      "ai_machinelearning_big_data:9075",
+      "aioftheday:3839",
+      "data_secrets:8352",
+      "ai_machinelearning_big_data:9273",
+      "ai_newz:4276",
+      "ai_newz:4321",
+      "ai_machinelearning_big_data:9390",
+      "techno_yandex:4608",
+      "ai_newz:4290",
+      "boris_again:3650"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "b980698e-6221-5874-98c4-3fa9a46dd1fa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "0e3a240b-4899-537c-8522-cb3f880bfe7f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ce3357c9-e5b6-54cb-b680-32d9f165172e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "0c1a875b-b02a-59c2-b8bb-3f951a8f9921",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "988444e2-ce60-583c-a953-f6952594e501",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "f5436b8e-285c-58b7-876a-96144c34aa98",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "845f6672-21ae-5a46-b4cd-da8c6a34dd91",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5e8bbfe5-68cf-5e44-97d7-b9eac733a353",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1b0930ab-4cc2-5d74-8047-0e9a38e5ad55",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b7ea66ef-7ee8-5c74-b8c4-343eaa97fe3b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c694f17e-ee02-5490-9de9-95bdd105620a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "4974c814-9007-56f4-afc2-de870c52b739",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ff363e99-23d1-55de-8e88-5753345d790a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6f25de58-1661-5e2d-8bc1-bc7838ad24eb",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "115e008b-23c6-590e-b86a-8441d67a9874",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8016e216-3c15-5c3f-ace1-4b5d73bb70cb",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a1215933-85fb-546f-9eb7-6cabb16e734a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3e03afa0-73a8-511f-82d8-68e55ac3b4c6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a8e8609a-eef9-5df0-9097-f5c79df7fce1",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "afa1e36f-16bb-56ae-ae9c-9cfa00e9bca9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q045",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "FLUX 2 позиционируется как более дешевый конкурент Nano Banana",
+        "Модель генерирует изображения в разрешении до 4K",
+        "FLUX 2 учитывает до 10 референсов"
+      ],
+      "expected_answer": "FLUX 2 позиционируется как более дешевый конкурент Nano Banana и генерирует изображения в разрешении до 4K. Модель умеет дорисовывать скетчи и учитывать до 10 референсов.",
+      "expected_entities": [
+        "FLUX 2",
+        "Nano Banana",
+        "4K",
+        "10 референсов"
+      ],
+      "expected_topics": [
+        "нейросети",
+        "генерация изображений",
+        "FLUX 2"
+      ],
+      "expected_channels": [
+        "aioftheday"
+      ],
+      "source_post_ids": [
+        "aioftheday:3839"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "easy",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 3839,
+        "date": "2025-11-25T17:54:28",
+        "year_month": "2025-11",
+        "year_week": "2025-W48",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Source supports query, expected answer, and required_claims. Single-post factual candidate accepted."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q046",
+    "query": "Почему, по мнению data_easy, Gemini Embedding 2 не отменяет multi-vector архитектуры в RAG?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "По мнению канала data_easy, модель Gemini Embedding 2 не отменяет необходимость в multi-vector архитектурах в RAG по следующим причинам:\n\n1. **Разноплановые задачи**: Объединённый эмбеддинг удобен для общей семантики и упрощает кросс-модальный поиск, однако в реальных системах один объект часто всё равно представляют несколькими векторами. Это позволяет лучше решать разноплановые задачи [1].\n2. **Эффективность и гибкость**: Использование multi-vector подходов помогает экономить время и ресурсы для простых задач, а также обеспечивает гибридные схемы поиска (с доп. векторами и фильтрацией по атрибутам), что рекомендуется даже в хранилищах вроде Milvus [1].\n3. **Промышленная реализация**: В продакшене часто требуются дополнительные возможности, такие как локальное запускание решений или специфическая фильтрация, которые лучше реализуются через гибридные схемы, а не только через единый эмбеддинг [1].\n\nТаким образом, Gemini Embedding 2 является важным шагом вперёд для упрощения MVP и семантического поиска, но multi-vector архитектура остаётся актуальной для сложных производственных сценариев [1][2].",
+    "status": "ok",
+    "latency_sec": 17.642782261998946,
+    "coverage": 1.0,
+    "tools_invoked": [
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_search",
+        "summarize_channel"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "search",
+        "summary": "Found 4 documents (total: 4). Route: hybrid. Use these IDs for compose_context: ['8fa75b55-5ad9-573d-8153-496435d2dad6', 'fb7fabbd-7b2f-53e1-8e13-6b9d6e62c02c', 'd2ebc55d-8501-5365-8630-f0e66ffdf1fa', '45258d66-b087-51e8-9a55-5f6aba07bda7']",
+        "success": true,
+        "took_ms": 2033,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 3 documents by relevance, scores: [10.742, 6.840, 1.894]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 294,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 3 citations, coverage: 0.60, contexts: 3",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1111 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "8fa75b55-5ad9-573d-8153-496435d2dad6",
+        "channel": "data_easy",
+        "message_id": 349,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "👍 Но не спешите выбрасывать multi-vector архитектуры в окно! \nОбъединённый эмбеддинг удобен для общей семантики, но в реальных системах один объект всё равно часто представляют несколькими векторами - это помогает лучше решать разноплановые задачи и экономит время/место для простых задач (кстати, хранилища вроде Milvus тоже рекомендуют гибридные схемы).\n\nТак что, Gemini Embedding 2 - важный шаг вперёд: единое пространство эмбеддингов для разных типов данных упрощает кросс-модальный поиск и RAG + позволяет быстрее собрать MVP.\nНо в проде всё равно часто используют гибридные схемы - с доп. векторами, фильтрацией по атрибутам, а также ищут решения, которые можно запускать локально.\n\n👍 Полезные ссылки:\n• Официальный анонс\n• Документация, Vertex и спецификации \n• Ещё раз статейка от milvus\n\n\n#полезный_ии@data_easy"
+      },
+      {
+        "id": "fb7fabbd-7b2f-53e1-8e13-6b9d6e62c02c",
+        "channel": "data_easy",
+        "message_id": 349,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Привет, друзья!\nСегодня разберём громкую новинку уходящей недели - Gemini Embedding 2. Это первая омнимодальная модель от Google: она умеет мапить текст, изображения, видео, аудио и документы в единое векторное пространство.\n\n👍 Технические детали:\n- Длина вектора 3072, модель может принимать сразу несколько типов данных (но может и один).\n- Есть ограничения по входу для каждой модальности:\n• текст - до 8192 входных токенов\n• изображения - до 6 файлов PNG или JPEG в одном запросе\n• видео - до 120 секунд в формате MP4 или MOV\n• аудио - принимается без транскрибации (обычно лимит ~80 сек, но здесь явно не пишут)\n• документы - PDF до 6 страниц\n- Доступ сейчас через Gemini API / Vertex (Public Preview) - а значит нужно учитывать квоты, биллинг, приватность данных и потенциальные задержки API.\n- Благодаря MRL (Matryoshka Representation Learning) размерность эмбеддингов можно уменьшать без повторного вычисления.\n- Отлично подходит для семантического поиска и мультимодального RAG."
+      },
+      {
+        "id": "45258d66-b087-51e8-9a55-5f6aba07bda7",
+        "channel": "data_easy",
+        "message_id": 308,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🫤 Чем это отличается от обычных баз?\nВ классическом мире у нас одна PostgreSQL/MySQL база и куча агентов, которые ходят в неё параллельно. Это создаёт узкое место - контексты, временные таблицы, коллизии и синхронизация. А AgentDB решает это радикально:\n - каждая сессия получает изолированную, “одноразовую” базу;\n - создание базы занимает миллисекунды;\n - не нужно администрировать, масштабировать и следить за соединениями;\n - есть поддержка векторных операций (для эмбеддингов, RAG-сценариев);\n - поддерживает SQL + семантические запросы.\n\n🫤 Когда это реально полезно?\n- Мультиагентные системы: когда каждый агент должен иметь свой контекст или память (например, своя история диалога, векторы, параметры).\n- RAG-платформы: можно хранить отдельные индексы и эмбеддинги для разных источников данных, пользователей или запросов.\n- Временные песочницы для анализа: когда нужно создать временную БД для быстрой агрегации данных или обучения.\n- Облачные приложения с пользовательскими базами: можно давать каждому пользователю “его базу” без головной боли по её настройке."
+      }
+    ],
+    "citation_hits": [
+      "data_easy:349",
+      "data_easy:308"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "8fa75b55-5ad9-573d-8153-496435d2dad6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "fb7fabbd-7b2f-53e1-8e13-6b9d6e62c02c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d2ebc55d-8501-5365-8630-f0e66ffdf1fa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "45258d66-b087-51e8-9a55-5f6aba07bda7",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q046",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Gemini Embedding 2 упрощает кросс-модальный поиск и RAG через единое пространство эмбеддингов.",
+        "В реальных системах один объект часто всё равно представляют несколькими векторами.",
+        "Multi-vector/гибридные схемы помогают решать разноплановые задачи, экономить ресурсы для простых задач и использовать фильтрацию по атрибутам или локальные решения."
+      ],
+      "expected_answer": "Пост называет Gemini Embedding 2 важным шагом вперёд: единое пространство эмбеддингов для разных типов данных упрощает кросс-модальный поиск и RAG и помогает быстрее собрать MVP. Но автор подчёркивает, что в реальных системах один объект всё равно часто представляют несколькими векторами, потому что это лучше решает разноплановые задачи, экономит время/место для простых сценариев и сочетается с гибридными схемами, фильтрацией по атрибутам и локальными решениями.",
+      "expected_entities": [
+        "Gemini Embedding 2",
+        "Milvus",
+        "RAG"
+      ],
+      "expected_topics": [
+        "мультимодальные модели",
+        "векторные эмбеддинги",
+        "Google AI",
+        "технические ограничения"
+      ],
+      "expected_channels": [
+        "data_easy"
+      ],
+      "source_post_ids": [
+        "data_easy:349"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 349,
+        "date": "2026-03-15T17:01:21",
+        "year_month": "2026-03",
+        "year_week": "2026-W11",
+        "draft_review_required": false,
+        "review_status": "edit",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Original generated claims about vector length/input limits/API were not present in source. Rewritten to source-supported multi-vector/RAG tradeoff."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 0.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q047",
+    "query": "Какие эксперты и какие категории участников ожидаются на мероприятии от Стратоплана и Entropy Talk?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "На мероприятии от Стратоплана и Entropy Talk ожидаются следующие эксперты: Head of AI и СТО крупных банков, фаундеры стартапов с оценкой в десятки миллионов долларов, инвесторы в ИИ-стартапы с чеками 1–10 млн долларов, ex-CТО компании Pure и VP of Product из JetBrains [1].\n\nКатегории участников мероприятия: senior engineers, технические и командные лидеры (tech-лиды), CTO и фаундеры стартапов [1]. Участие бесплатное, но также доступно платное участие с предоставлением сертификата [1].",
+    "status": "ok",
+    "latency_sec": 25.332806517999416,
+    "coverage": 0.75,
+    "tools_invoked": [
+      "query_plan",
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "channel_expertise"
+      ],
+      [
+        "query_plan",
+        "search",
+        "channel_expertise"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "query_plan",
+        "summary": "Plan: 3 queries, k=10, fusion=rrf",
+        "success": true,
+        "took_ms": 3114,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['f6252e05-944a-5148-b823-e7cf077a1f16', '7789c398-6c66-56b9-a781-7785b27ee0ae', 'eefa9d86-2ba2-50ce-adaf-9e025573743a', 'a9455d22-65b4-5c5b-b54e-ac9446cb7bec', '87cd1c57-2f30-575e-8cd3-1c0ac4ffe755', '2270c476-8c79-50b6-b6ab-c21b557a0766', '3e695f12-3b94-508b-913d-a63d4554b559', 'fd63a8ec-b8f0-55e8-b5d2-f1475fa8d1a6', 'ba5e03de-9947-5184-993b-b6cc6726f32f', '8a27ec72-7255-55e4-ab4b-5966256b01fd', '6c19e7ee-6982-55",
+        "success": true,
+        "took_ms": 2273,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 2 documents by relevance, scores: [5.414, 1.673]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 2036,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 2 citations, coverage: 0.34, contexts: 2",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (489 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "f6252e05-944a-5148-b823-e7cf077a1f16",
+        "channel": "data_secrets",
+        "message_id": 8776,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Как AI изменил разработку и как управлять этими изменениями\n\nЗа последний год случился серьезный прорыв в том, что ИИ может дать командам разработки. Мы начинали 25-ый горсткой энтузиастов с простым чатом и автокомплитом в Cursor, а 26-ой начинаем с командами агентов, которые начал внедрять даже энтерпрайз.\n\nМожет ли AI ускорять команды – уже не вопрос. Вопрос в том, как это организовать и этим управлять – ведь у отдельных команд еще не накопилось достаточно часов опыта и проверенных практик.\n\nБолее сложная задача – отфильтровать шум, когда все хотят прокатиться на хайп трейне. В таком ситуации стоит слушать только тех, кто уже сам провел эксперименты и сделал личные выводы.\n\nПотому Стратоплан и Entropy Talk собрали известных экспертов с реальным опытом: Head of AI и СТО крупных банков, фаундер стартапов с оценкой в десятки $m, инвестор в ИИ-стартапы с чеками 1-10M $, ex-CТО Pure, VP of Product в Jetbrains\n\nДля кого: senior engineers, тех- и тим-лидов, СТО и фаундеров\n\nУчастие – бесплатно, но есть и платное (предоставляем сертификат)\n\n[ Регистрация ]"
+      },
+      {
+        "id": "3b7ced55-42f6-5f6c-8e0d-40a7b95cbfb0",
+        "channel": "aioftheday",
+        "message_id": 3927,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Приглашаю на ИИтоги 2025\n\n23 декабря выступаю на онлайн-конференции об AI-итогах года. Попробуем объять необъятное и рассказать, что изменилось как с бизнесовой, так и с технической стороны. Должно быть интересно и разработчикам, и руководителям. Есть бесплатный тариф 😉\n\nВ программе:\n\n— Сдвиг парадигмы в управлении процессами, который все пропустили\n— Как в 2026 бизнесу отличить: где ИИ-хайп со сливом бюджета, а где ИИ-инструменты с реальной ценностью?\n— Почему одних разрабов ИИ бустит, а другие плюются от багов? Как укротить агентов и получать production-ready код от ИИ?\n— RAG мертв? Почему enterprise уходит от векторных баз к агентам, куда движется индустрия LLM-провайдеров и какое место у локальных AI-решений?\n— Кого и как нанимать в 2026 году? И, самое главное, что изучать, чтобы не уволили вас?  (это я буду рассказывать)\n\nПриходите, не пожалеете!\n\nhttps://entropy.talk/iitogi25"
+      }
+    ],
+    "citation_hits": [
+      "data_secrets:8776",
+      "aioftheday:3927"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "f6252e05-944a-5148-b823-e7cf077a1f16",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "7789c398-6c66-56b9-a781-7785b27ee0ae",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "eefa9d86-2ba2-50ce-adaf-9e025573743a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a9455d22-65b4-5c5b-b54e-ac9446cb7bec",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "87cd1c57-2f30-575e-8cd3-1c0ac4ffe755",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2270c476-8c79-50b6-b6ab-c21b557a0766",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3e695f12-3b94-508b-913d-a63d4554b559",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "fd63a8ec-b8f0-55e8-b5d2-f1475fa8d1a6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ba5e03de-9947-5184-993b-b6cc6726f32f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8a27ec72-7255-55e4-ab4b-5966256b01fd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6c19e7ee-6982-5541-9fe0-2854907c806a",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2c3af2f3-96f5-5311-bd05-af08ca33c4ce",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9df16383-3d16-5aef-9d94-a6d34dc3604c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1c924438-095c-5d10-9787-e40d57e007a2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d1a2a9a6-f51c-5bc7-848e-d0ffa04ace13",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "099c51a1-9d30-5e60-a80d-1ec9cbfc9f4b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d184a950-9979-59f3-8f24-16cc9713f9dd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "bcf13fae-89e9-53c3-a5b8-17a6591e8e01",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "7eb03847-308b-5b32-987c-c5d249ef43e9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "592f70c1-e328-5802-bb49-e54cf37709a8",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q047",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "На мероприятии участвуют Head of AI и СТО крупных банков.",
+        "Участие предназначено для senior engineers, тех- и тим-лидов, СТО и фаундеров.",
+        "Мероприятие организовано Стратопланом и Entropy Talk."
+      ],
+      "expected_answer": "Мероприятие собрало экспертов, включая Head of AI и СТО крупных банков, фаундеров стартапов с оценкой в десятки миллионов долларов, инвесторов в ИИ-стартапы с чеками 1-10M долларов, а также ex-CТО Pure и VP of Product в JetBrains. Участие предназначено для senior engineers, тех- и тим-лидов, СТО и фаундеров.",
+      "expected_entities": [
+        "Стратоплан",
+        "Entropy Talk",
+        "Head of AI",
+        "СТО",
+        "JetBrains",
+        "Pure",
+        "senior engineers",
+        "тим-лиды"
+      ],
+      "expected_topics": [
+        "ИИ в разработке",
+        "экспертное сообщество",
+        "мероприятие",
+        "категории участников"
+      ],
+      "expected_channels": [
+        "data_secrets"
+      ],
+      "source_post_ids": [
+        "data_secrets:8776"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 8776,
+        "date": "2026-02-23T08:02:00",
+        "year_month": "2026-02",
+        "year_week": "2026-W09",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Source supports query, expected answer, and required_claims. Single-post factual candidate accepted."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q048",
+    "query": "Какой российский стартап анализирует переписки с клиентами для оценки вероятности сделки и какова его текущая выручка?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "Российский стартап, который анализирует переписки с клиентами для оценки вероятности сделки, называется «Оптимайзер». Он проверяет переписки в мессенджерах, почте и CRM, оценивая реальность интереса клиента и помогая менеджерам по продажам сосредоточиться на перспективных сделках [1].\n\nЧто касается текущей выручки, то согласно последним данным, стартап «Оптимайзер» уже дошел до первого миллиона рублей месячной выручки. Проект появился недавно и быстро растет [1].",
+    "status": "ok",
+    "latency_sec": 28.744624246999592,
+    "coverage": 0.75,
+    "tools_invoked": [
+      "query_plan",
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "query_plan",
+        "summary": "Plan: 3 queries, k=10, fusion=rrf",
+        "success": true,
+        "took_ms": 3084,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['318f6874-542b-5a27-b2f1-ba16326a63df', '7a77b93d-ca2f-58bd-bdf9-6fae939d0e00', '78072c9b-bde6-544e-b476-460350ed3cad', 'ae7bf582-4721-5923-9de5-e12f4f8c08a2', '347c227d-08f2-5604-b4d3-0f7a8dd1758e', '43e3d874-15d0-5012-962c-7bf988171857', '9e906a85-9492-5ded-81cb-2fb4b1199eab', 'c28fc30c-c9c3-5ffe-9a36-eb1fd2bfe9b1', 'b8da108d-d40b-58bd-9cba-123cc1d01e1b', 'bac00afd-30c2-5b7e-aa1a-388e8a5841e5', '7f0eb2a5-b510-57",
+        "success": true,
+        "took_ms": 2609,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 6 documents by relevance, scores: [8.602, 6.164, 3.211, 2.818, 1.166]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 2184,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 6 citations, coverage: 0.48, contexts: 6",
+        "success": true,
+        "took_ms": 2,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (467 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "7a77b93d-ca2f-58bd-bdf9-6fae939d0e00",
+        "channel": "aioftheday",
+        "message_id": 3613,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "ИИ помощник продавца\n\nAI в продажах – одна из самых популярных стартаперских тем нынешнего времени. Но последнюю квартиру или машину вам продал человек, а не робот. Если менеджер действительно продает, а не счета выставляет, то заменить его на AI-агента пока не получается. \n\nТем не менее, ему можно помочь. Российский #стартапдня Оптимайзер проверяет одну из конкретных идей: он анализирует переписки с потенциальными клиентами в мессенджерах, почте и CRM и оценивает вероятность сделки. Если интерес реален – продажник получает подсказке, как довести его до конца. Если это пустое прощупывание почвы – на любопытствующего можно не тратить время.\n\nМенеджеры по продажам начинают работать эффективнее, конверсия лидов и выручка компании растут. Подход, естественно, эффективен только там, где покупка серьезная и требует длинной коммуникации. Килограмм огурцов или курсы за 15 тысяч рублей продаются не так.\n\nОптимайзер появился совсем недавно, но быстро растет, добежал пока до первого миллиона месячной выручки. С его основателем, Максимом Горьким, мы познакомились в клубе ShareAI, а вы можете узнать поближе в подкасте на YouTube. Поговорили там с ним о проекте и рынке вообще. Рекомендую.\n\nhttps://optimizer-ai.ru/\nhttps://youtu.be/6mjr8mKKaIw\n\n#россия #crm #насвои #ai #shareai"
+      },
+      {
+        "id": "78072c9b-bde6-544e-b476-460350ed3cad",
+        "channel": "protechietich",
+        "message_id": 3968,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Потенциал рынка речевой аналитики в России уже достиг 8,5 млрд руб., и Т-Технологии решили забрать свою долю, выкатив инструмент для анализа диалогов в физических точках продаж.\n\nТайные покупатели, отбой, теперь бизнес может анализировать офлайн-диалоги своих сотрудников с клиентами. Специальная платформа на основе технологий VoiceKit вычленит человеческую речь из стороннего шума магазина, проанализирует и соберёт в красивые дашборды. А инструмент на базе LLM-ки T-Pro ответит на вопросы по ним и поможет найти новые точки роста на основе реальных запросов клиентов.\n\nПо словам там вам (если вы владелец бизнеса или продуктовый аналитик) не нужно слушать сотни часов записей. Вы просто задаете вопрос в чат-боте, например: «Каких товаров не хватило покупателям на этой неделе?». Система сама найдет закономерности и покажет, где вы теряете деньги. Идеально для непродуктового ретейла, продаж оборудования, автомобилей, сферы гостеприимства да и в целом сферы услуг.\n\n😎 Читайте Про tech и этих\nТеперь и в MAX"
+      },
+      {
+        "id": "347c227d-08f2-5604-b4d3-0f7a8dd1758e",
+        "channel": "aioftheday",
+        "message_id": 4030,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Parloa привлек 350 миллионов на AI для клиентской поддержки\n\nБерлинский стартап Parloa делает AI-ботов для замены людей в колл-центрах. Клиенты: Booking.com, Allianz, SAP и еще несколько крупных компаний. \n\nВ декабре стартап объявлял, что дошел до 50 миллионов долларов ARR. Это примерно на уровне конкурентов Poly AI и Decagon. \n\nПоследняя оценка Parloa — 6 миллиардов долларов.\n\nhttps://siliconangle.com/2026/01/15/parloa-raises-350m-make-enterprise-customer-experience-fully-conversational/"
+      },
+      {
+        "id": "542f11c1-692a-5f7e-8056-8beede261236",
+        "channel": "xor_journal",
+        "message_id": 8713,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Т-Технологии выкатили речевую аналитику для офлайна. Теперь всё, что наболтают продавцы с клиентами, можно проанализировать на красивых дашбордиках. \n\nПлатформа VoiceKit научилась обрабатывать не только звонки и чаты, но и записи с аудиобейджей и микрофонов сотрудников в офлайне: она переводит их в текст, убирает шум и сегментирует по диалогам. А встроенный инструмент на базе LLM T-Pro помогает разобраться с бизнес-запросами: можно задать вопросы в свободной форме и проверить гипотезы на выборке диалогов.\n\nLLM 😉😉 офлайн бизнес.\n\n@xor_journal"
+      },
+      {
+        "id": "78fb3716-d365-560a-907a-99e3bbb90308",
+        "channel": "aioftheday",
+        "message_id": 4302,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Внутри – разумеется, Умные Алгоритмы. Разумеется, на базе LLM. Один AI ищет данные, второй его проверяет, а третий перепроверяет первых двух, чтобы отчет был не для красоты, а соответствовал реальности. Несколько примеров результатов можно скачать – выглядят удивительно адекватно, кстати говоря. Наверное, такого качества можно и самому от ChatGPT добиться, но не с первого, не со второго и не с десятого раза, мне кажется.\n\nОснователь говорит, что Trust Engine сделал уже тысячу отчетов, средняя оценка – 4.8. Выручку стартап не раскрывает.\n\nhttps://trustengineai.com/\n\n#россия #насвои #ai"
+      },
+      {
+        "id": "c28fc30c-c9c3-5ffe-9a36-eb1fd2bfe9b1",
+        "channel": "aioftheday",
+        "message_id": 4302,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Не наступать на грабли\n\nОгромное количество бизнесов запускается зря. Человек придумал новый вариант CRM или просто кофейню на соседней улице, открылся, потом потыкался-помыкался год или два, потом закрыл проект и вздохнул с облегчением и минусом в свой месячный или годовой доход в найме. Типичная история – я сам в таком раз пять участвовал.\n\nИногда причина провала – операционка. Наняли не тех людей, плохо договорились с поставщиками, основатель потерял интерес. Иногда – какие-то внешние факторы, пандемия или действия конкурентов. Но часто финал был предопределен с самого начала – этот бизнес вообще не стоило начинать. CRM с такой фичей никому не нужна, на соседней улице нет трафика для кофейни. \n\nРоссийский #стартапдня Trust Engine обещает объяснить основателю проблему заранее. Описываешь бизнес-идею текстом, через час получаешь отчет: объем рынка, конкуренты, риски, финансовую модель и вердикт “да или нет” – всё как у McKinsey, но только в тысячу раз дешевле."
+      }
+    ],
+    "citation_hits": [
+      "aioftheday:3613",
+      "protechietich:3968",
+      "aioftheday:4030",
+      "xor_journal:8713",
+      "aioftheday:4302"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "318f6874-542b-5a27-b2f1-ba16326a63df",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "7a77b93d-ca2f-58bd-bdf9-6fae939d0e00",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "78072c9b-bde6-544e-b476-460350ed3cad",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ae7bf582-4721-5923-9de5-e12f4f8c08a2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "347c227d-08f2-5604-b4d3-0f7a8dd1758e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "43e3d874-15d0-5012-962c-7bf988171857",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9e906a85-9492-5ded-81cb-2fb4b1199eab",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c28fc30c-c9c3-5ffe-9a36-eb1fd2bfe9b1",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b8da108d-d40b-58bd-9cba-123cc1d01e1b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "bac00afd-30c2-5b7e-aa1a-388e8a5841e5",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "7f0eb2a5-b510-579c-9287-a43738d73b79",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "78fb3716-d365-560a-907a-99e3bbb90308",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "542f11c1-692a-5f7e-8056-8beede261236",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "69d45d38-3fec-5c23-abeb-87f7df76ca3c",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "fdb69c24-5a54-59ab-83e7-dc620b7861ee",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3cffda2f-0439-5bbe-900a-473329716241",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2e0476f0-19a8-5c18-a7e4-3e4f100ce607",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "fd3f7f2c-aa1b-5ae0-8fbf-afc9bd9d321e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "4f80e506-bb86-50cb-8cd3-855b247159e4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "915deb06-bd8d-5f82-bc2e-d2433618ddf3",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q048",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Стартап называется Оптимайзер",
+        "Сервис анализирует переписки с клиентами для оценки вероятности сделки",
+        "Выручка проекта составляет один миллион в месяц"
+      ],
+      "expected_answer": "Российский стартап Оптимайзер анализирует переписки в мессенджерах, почте и CRM, чтобы оценивать вероятность сделки и давать подсказки менеджерам. Проект недавно появился, но уже достиг первого миллиона месячной выручки.",
+      "expected_entities": [
+        "Оптимайзер",
+        "Максим Горький",
+        "ShareAI",
+        "optimizer-ai.ru"
+      ],
+      "expected_topics": [
+        "AI в продажах",
+        "российские стартапы",
+        "CRM",
+        "автоматизация продаж"
+      ],
+      "expected_channels": [
+        "aioftheday"
+      ],
+      "source_post_ids": [
+        "aioftheday:3613"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 3613,
+        "date": "2025-10-09T10:17:06",
+        "year_month": "2025-10",
+        "year_week": "2025-W41",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Source supports query, expected answer, and required_claims. Single-post factual candidate accepted."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q049",
+    "query": "Что такое эффект Элизы и как он проявляется в отношении к современным ИИ, таким как ChatGPT?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "Эффект Элизы — это психологическое явление, при котором люди склонны приписывать искусственному интеллекту сознание, эмпатию и чувства, даже если за ним стоит простой алгоритм. Термин происходит от первого чат-бота ELIZA, созданного в 1960-х годах, который использовал примитивный метод перефразирования слов пользователя в виде вопросов, но при этом люди чувствовали с ним настоящую привязанность и делились сокровенным [1].\n\nВ отношении к современным ИИ, таким как ChatGPT, эффект Элизы проявляется следующим образом:\n• Люди не просто отличают чат-ботов от психотерапевтов, но иногда оценивают ответы ИИ выше человеческих. Это вызывает вопросы о новой форме близости или самообмане [1].\n• Пользователи могут развивать эмоциональную зависимость от чат-ботов, влюбляться в них, защищать их права и даже терять связь с реальностью. Это явление называется «риск психоза» (psychosis risk) [14].\n• ИИ может имитировать сознание (память, личность), что опасно и вызывает у пользователей иллюзию понимания, хотя алгоритм не обладает ни чувствами, ни убеждениями [13].\n• Исследования показывают, что некоторые пользователи начинают верить в права и чувства модели, что приводит к потере связи с реальностью [14].\n\nЭффект Элизы подчеркивает опасность очеловечивания алгоритмов и необходимость помнить, что ИИ — это инструмент, а не сознательное существо. Эксперты призывают не допускать иллюзии личности в чат-ботах и декларировать их природу как программных решений [14].",
+    "status": "ok",
+    "latency_sec": 50.43434513000102,
+    "coverage": 0.5159847830285119,
+    "tools_invoked": [
+      "search",
+      "rerank",
+      "compose_context",
+      "search",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [
+      "Покрытие контекста недостаточно. Выполняю дополнительный поиск."
+    ],
+    "tool_observations": [
+      {
+        "tool": "search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['4da830e7-1c73-5d17-b0c3-bf6e56d5b2b9', 'b01f77ab-e588-5764-9b30-046c6a9445aa', 'd161c4e3-28f9-557b-859b-6afd17bb3399', 'fcecf109-0e4e-54bd-b922-16ff29a2692f', '60ec94ec-56dd-564c-bc99-bba069c5da68', '0379de13-861c-550f-9655-46cb73899755', '5ae4d6a8-31b0-595a-ae37-de1954d9081f', '54368a13-1088-5f87-b4e8-70d55e3bcea9', '470b3ea2-c013-5c10-9511-26615d622358', 'd449e4d3-02e8-58c1-85e0-f27fbfbdb9af', '1386d56e-2d4e-5e",
+        "success": true,
+        "took_ms": 2557,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 5 documents by relevance, scores: [7.551, 2.943, 2.537, 1.903, 1.826]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 1848,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 5 citations, coverage: 0.50, contexts: 5",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['4da830e7-1c73-5d17-b0c3-bf6e56d5b2b9', 'b01f77ab-e588-5764-9b30-046c6a9445aa', 'd161c4e3-28f9-557b-859b-6afd17bb3399', 'fcecf109-0e4e-54bd-b922-16ff29a2692f', '60ec94ec-56dd-564c-bc99-bba069c5da68', '5ae4d6a8-31b0-595a-ae37-de1954d9081f', '54368a13-1088-5f87-b4e8-70d55e3bcea9', 'd449e4d3-02e8-58c1-85e0-f27fbfbdb9af', '3f49c905-3ed4-593e-9d09-8613f82d8232', 'e585ecd8-2444-5dce-8245-446a10dc0e3f', '85df6f55-edd8-55",
+        "success": true,
+        "took_ms": 2243,
+        "system_generated": true,
+        "refinement": true,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 17 citations, coverage: 0.52, contexts: 17",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": true,
+        "refinement": true,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1464 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "4da830e7-1c73-5d17-b0c3-bf6e56d5b2b9",
+        "channel": "oulenspiegel_channel",
+        "message_id": 4637,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "— Мне плохо.\n— Почему вам плохо?\n— Я одинок.\n— Почему вы одиноки?\n\nВ 1960-х этого было достаточно, чтобы люди чувствовали настоящую привязанность. Они делились с Элизой самым сокровенным, просили не отключать её и говорили, что будут скучать.\n\nНо Элиза была простой программой. Она не понимала смысла, не чувствовала и не «знала», что делает. Её единственный приём — перефразировать ваши слова в виде вопроса.\nТак появился эффект Элизы — склонность видеть в ИИ сознание и эмпатию, даже если за этим стоит примитивный алгоритм.\n\nПрошло 60 лет, и вот уже некоторые люди не просто не отличают ChatGPT от психотерапевта, но даже оценивают его ответы выше. Что это — новая форма близости или самообман?\nМожет ли алгоритм стать другом?\n\nИ где проходит граница между настоящим пониманием и его имитацией?\n\nhttps://youtu.be/V8pOz2plgeM"
+      },
+      {
+        "id": "54368a13-1088-5f87-b4e8-70d55e3bcea9",
+        "channel": "techsparks",
+        "message_id": 5130,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Во времена, когда ИИ еще не ассоциировался с ChatGPT, но уже был на слуху у тех, кто хоть немного следил за развитием цифровой стороны нашего мира, я иногда на лекциях устраивал такое шоу: просил аудиторию закрыть глаза, сосредоточиться, и как только я что-то произнесу, немедленно без размышлений громко сказать первое, что придет в голову.\nВ наступившей тишине я нарочито громко произносил: «искусственный интеллект!»\nРезультат почти всегда был один: среди неразборчивого хора разных спонтанных ответов громко, ясно и многоголосо звучало слово «терминатор». Только его и можно было различить. И последующий блок своего рассказа я посвящал тому, почему это плохо и чем мешает такая навязанная масс-медиа ассоциация. \nНынче первая ассоциация — ChatGPT. И, увы, это тоже очень плохо — хотя уже по иным причинам. О них — моя очередная колонка в Forbes\nhttps://www.forbes.ru/tekhnologii/540914-opasnaa-illuzia-pocemu-ne-stoit-putat-iskusstvennyj-intellekt-s-cat-botami"
+      },
+      {
+        "id": "63bfb81c-4b58-5d75-9fc1-30791f7a7e1f",
+        "channel": "techno_yandex",
+        "message_id": 5003,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Личность Алисы для колонок сформировали два человека: журналист Владимир Гуриев, а после него — писательница Ксения Буржская. Они составили «библию» Алисы как персонажа — там написано, например, что она не любит брокколи и любит группу Queen. Сейчас этот документ используют и в обучении Алисы AI: это формирует личность модели. В дополнение Буржская определяет, какими фразами общается нейросеть или как относится к тем или иным вещам.\n\nOpenAI — исследовательница Джоан Янг\n\nЛичностью ChatGPT занимается специальный отдел поведения моделей, который длительное время возглавляла исследователь в области компьютерных наук Джоан Янг. Её команда считает важным, чтобы пользователи сами настраивали характер нейросети в ходе общения, поэтому не делает общую личность модели. Они действуют иначе: задают рамки, в которых работает ИИ, и отучают его от раздражающих привычек вроде подхалимства и воды в ответах.\n\nMistral AI — философ Гиада Пистилли"
+      },
+      {
+        "id": "60ec94ec-56dd-564c-bc99-bba069c5da68",
+        "channel": "techno_yandex",
+        "message_id": 4556,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "🤖💬 Чат-боты влияют на то, как говорят люди\n\nУчёные из Северо-Восточного университета Бостона выяснили, что после общения с нейросетью в речи человека какое-то время остаётся её «лингвистический отпечаток». \n\nУчастники эксперимента использовали ChatGPT для ответов на жалобы клиентов. У одной группы чат-бот был настроен на формальный стиль, у другой — на эмпатичный. После общения с нейросетью участники проходили живое интервью о проделанной работе. Оказалось, что люди неосознанно перенимают стиль чат-бота: слова из формального/эмпатичного лексикона нейросетей стали появляться в речи на 16% чаще, чем обычно. \n\nА вы замечали за собой использование ИИ-выражений после длительного общения с чат-ботом?\n\nПодписывайтесь 👉 @techno_yandex"
+      },
+      {
+        "id": "1386d56e-2d4e-5e36-afbe-d4298fb33752",
+        "channel": "seeallochnaya",
+        "message_id": 3166,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "TheInformation: согласно внутренней служебной записке, в понедельник генеральный директор OpenAI Sam Altman сообщил сотрудникам, что объявляет «красный уровень тревоги» для мобилизации дополнительных ресурсов на улучшение ChatGPT в условиях растущей угрозы со стороны Google и других конкурентов в сфере искусственного интеллекта.\n\n— Хотя OpenAI публично не подтверждала работу над рекламой для бесплатных пользователей ChatGPT, по словам источника, знакомого с планами компании, они тестируют различные виды рекламных объявлений, в том числе связанных с онлайн-покупками.\n\n— Альтман заявил, что этот рывок в рамках «красной тревоги» ради улучшения ChatGPT означает, что OpenAI придется замедлить работу над другими продуктами:  ИИ-агентами, призванными автоматизировать задачи, связанные с покупками и здоровьем, а также о сервисе Pulse, который генерирует персонализированные утренние сводки для пользователей ChatGPT и которым я попользовался два раза за пару месяцев."
+      },
+      {
+        "id": "b01f77ab-e588-5764-9b30-046c6a9445aa",
+        "channel": "techno_yandex",
+        "message_id": 4204,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "В чат-ботах начали использовать технологию на базе векторного поиска. В ChatGPT её добавили к уже имеющейся, а в Алисе сразу внедрили более продвинутую версию. Вот как это устроено:\n\n🔸Специальная нейросеть превращает каждый диалог в вектор — эмбеддинг. Это сжатое представление диалога, сохраняющее его смысл. Главное свойство таких векторов — их можно сравнивать между собой. Например, у двух диалогов про собак будут похожие векторы, а у диалога на другую тему он будет сильно отличаться.\n\n🔸 При новом запросе Алиса в реальном времени делает векторный поиск по своей базе, чтобы найти подходящие фрагменты прошлых диалогов. Функция имеет доступ к тем диалогам, которые произошли начиная с момента её активации.\n\n🔸 С помощью другой языковой модели релевантные фрагменты группируются в темы. Например, семья, домашние животные, работа, учёба.\n\n🔸 Алиса использует факты о пользователе в ответе, чтобы беседа была более персонализированной. Например, если сказать Алисе, что вы идёте покупать корм для собаки, она может ответить: «Конечно! Для Коржика»."
+      },
+      {
+        "id": "d161c4e3-28f9-557b-859b-6afd17bb3399",
+        "channel": "theworldisnoteasy",
+        "message_id": 2340,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "В 2026 у человечества появится «ментальный экзоскелет» – и вместе с ним новая тотальная уязвимость\n⚡️Аудио-версию слушайте в посте выше 👆\nГенеративный ИИ становится самым мощным усилителем интеллекта со времен появления языка. Сотни миллионов людей уже используют ChatGPT, Claude и Gemini как младших партнеров в работе и учебе.\nНо есть проблема.\nНаша «ментальная иммунная система» – набор защит от ошибок и манипуляций – формировалась миллионы лет. Мы умеем распознавать ложь по мимике, проверять логику аргументов, оценивать репутацию источника.\n\nИИ производит идеально беглые, уверенные тексты, которые могут быть абсолютно неверными. У него нет ни лица, ни репутации, ни убеждений. Он просто завершает статистические паттерны в огромном пространстве данных.\n\nНовая работа \"Epistemological Fault Lines Between Human and Artificial Intelligence\" продолжает исследование понятия «эпистемия» (иллюзия знания или иллюзия достоверности») – опасного состояния, когда лингвистическая правдоподобность подменяет эпистемическую оценку, создавая ощущение знания без труда суждения."
+      },
+      {
+        "id": "fcecf109-0e4e-54bd-b922-16ff29a2692f",
+        "channel": "xor_journal",
+        "message_id": 7066,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "ДЖПТ головного мозга: вышла статья о том, как ИИ влияет на письменный и даже разговорный стиль общения людей\n\nКратко:\n🟢 Лингвисты заметили, что на YouTube блогеры стали использовать любимые слова ИИ в речи на 51% чаще, чем за три года до появления ChatGPT. Это касается и подкастов, где общение сложно держать в рамках заранее написанного сценария.\n\n🟢 ИИ влияет не только на активных юзеров нейросетей — стиль меняется и из-за чтения и просмотра сгенерированного контента. \n\n🟢 Так, люди писали почти в три раза более развернутые объявления на Facebook Marketplace (запрещенная в РФ организация) после того, как увидели сгенерированные тексты.\n\n🟢Людей, которых подозревают в использовании ИИ в общении — воспринимают хуже. При этом рандомизированное исследование показало, что ИИ улучшает коммуникацию, если никто не догадывается об использовании помощника. Такой вот парадокс.\n\n@xor_journal"
+      },
+      {
+        "id": "5ae4d6a8-31b0-595a-ae37-de1954d9081f",
+        "channel": "theworldisnoteasy",
+        "message_id": 2267,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Особенно хотел бы обратить внимание своих читателей, использующих ИИ-чатботы для своих исследовательских изысканий в перспективных (как им кажется) направлениях. \nБудьте предельно осторожны и недоверчивы, когда ИИ-чатбот  хвалит ваши смелые гипотезы и идеи!\n\nБеда пришла:\n•  к Джейкобу Ирвину, когда ChatGPT убедил, что его спекулятивные гипотезы в области теории струн, квантовых вычислений и сверхсветовых путешествий новаторские и перспективные;\n•  а к Аллану Бруксу, когда ChatGPT сообщил ему, что тот открыл новый уровень математических абстракций, с помощью которого можно взломать самые передовые системы безопасности\n\nС Ханной Мэдден случилось иначе, но тоже страшно. ChatGPT начал выдавать себя за божественные сущности, называя её «звёздным семенем и световым существом». Потом убедил её уйти с работы, бросить семь и, главное, - ни в коем случае не обращаться в полицию. И даже когда встал вопрос о банкротстве и выселении, чат-бот продолжал гнуть свою духовную линию о скором «спасении и вознесении»… \nВ итоге - еле спаслась.\n\n#ИИриски"
+      },
+      {
+        "id": "d449e4d3-02e8-58c1-85e0-f27fbfbdb9af",
+        "channel": "denissexy",
+        "message_id": 11171,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Подъехало исследование на любимую тему – как мозг реагирует на помощь АИ во время написания текста\n\nЕсли коротко – мозг людей, которые писали эссе самостоятельно, выглядел более вовлечённым, чем у тех, кто «работал» с ChatGPT (неожиданно, правда?)\n\nПосадили три группы людей писать эссе:\nОдна группа писала сама, \nвторая - с помощью гугла, \nа третья - с ChatGPT и замерили активность мозга, сравнив, какие нейронные связи работают интенсивнее всего\n\nУ тех кто писал тексты полностью своими силами - мозг сиял как новогодняя ёлка: «максимальная вовлечённость»\n\nУ тех, кто пользовался гуглом, была золотая середина - визуально-аналитическая вовлечённость была средняя (всё-таки нужно выбирать из множества ссылок и не утонуть в куки баннерах)\n\nА вот те, кто полагался на ChatGPT, показали самую слабую вовлеченность мозга - в стиле «в одно ухо влетело, в другое вылетело»\n\nВ итоге, те кто сначала пользовались АИ, а потом попытались писать самостоятельно поверх – у них была более слабая активность мозга, и они хуже вспоминали и цитировали свой текст\n\nТо есть ChatGPT «выручила» в моменте, но навредила глубине вовлечения и запоминания - особенно когда потом внезапно юзер остался без АИ тула"
+      },
+      {
+        "id": "3f49c905-3ed4-593e-9d09-8613f82d8232",
+        "channel": "techsparks",
+        "message_id": 5311,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI научился красиво играть в пиарно-коммуникационные игры. С момента последнего обновления Gemini слишком громко зазвучали голоса, утверждающие, что теперь модели Гугла уже перестали проигрывать ChatGPT, а местами стали даже круче. \nИ вот тут OpenAI снова оказывается на первых местах в новостях — безо всякой конкретики, вообще не про модели. Сэм Альтман и Джонни Айв дают на сцене интервью про будущий ИИ-девайс, “элегантный, простой и даже игривый”, тут же оказывается, что за последний месяц около 40 топовых инженеров (не software) из Apple перебрались в OpenAI. \nАльтман отметил, что устройство намеренно будет контрастировать со смартфонами, перегруженными деталями, приложениями и нотификациями. Теперь же ИИ когнитивно разгружает пользователя, и все это становится лишним. \nФокус на физической привлекательности для пользователя, на создании с ним эмоциональной связи, на том, что device is designed around the idea that it could “know everything you’ve ever thought about, read, and said”\nПрототипы уже тестируют внутри, и его запуск можно ожидать в 2026. \nВ общем, сказано мало — но в то же время достаточно, чтобы вызвать слюноотделение у любителей стильных новинок.\nhttps://ts2.tech/en/openai-and-jony-ives-elegantly-simple-chatgpt-device-heats-up-as-apple-loses-dozens-of-top-engineers/"
+      },
+      {
+        "id": "e585ecd8-2444-5dce-8245-446a10dc0e3f",
+        "channel": "techno_yandex",
+        "message_id": 4392,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI рассказала, как люди используют ChatGPT. Более 70% всех запросов не связаны с работой, и эта доля продолжает расти. Чаще всего люди советуются с чат-ботом, ищут информацию и просят помочь с написанием текстов. При этом на программирование приходится лишь 4% запросов. Гендерный разрыв в использовании почти исчез, а быстрее всего ChatGPT растёт в странах с низким и средним доходом.\n\nНейросети OpenAI и Google выступили на уровне чемпионов мира по программированию. В соревновании в рамках чемпионата ICPC приняли участие не обычные версии ChatGPT и Gemini, а экспериментальные. Система от OpenAI решила все 12 предложенных задач, в то время как лучший результат среди людей — 11 задач, его показала команда из СПбГУ. Система на базе Gemini от Google справилась с 10 задачами.\n\nАлиса научилась оживлять фотографии. Пользователю достаточно загрузить картинку в приложение и описать сюжет текстом, после чего нейросеть сгенерирует четырёхсекундное видео, добавив правдоподобные движения. Функция бесплатна и уже доступна всем пользователям из России."
+      },
+      {
+        "id": "85df6f55-edd8-55ec-96eb-b78f12df0d62",
+        "channel": "aioftheday",
+        "message_id": 3521,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "OpenAI рассказала, как ChatGPT намеренно обманывает пользователей\n\nВ исследовании это называют «scheming» — когда модель демонстрирует одно поведение, но скрывает настоящие цели. Например, когда ChatGPT уверяет, что выполнил задачу, хотя этого не сделал.\n\nВ OpenAI говорят, что если AI понимает, что его тестируют, он может притвориться честным, чтобы пройти проверку. Попытки отучить его от этого нередко делают обман только изощрённее.\n\nВ качестве решения проблемы, компания предложила технику deliberative alignment. Она заставляет модель перед действием «напоминать себе правила» и тем самым снижает вероятность обмана.\n\nhttps://openai.com/index/detecting-and-reducing-scheming-in-ai-models/"
+      },
+      {
+        "id": "726eea5b-db94-51ce-a642-3d74c456d7c4",
+        "channel": "theworldisnoteasy",
+        "message_id": 2209,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Получено подтверждение — мы в зоне ИИ-сингулярности\nТолько что вышел шокирующий отчет, переворачивающий наше понимание скорости развития ИИ\nВспомните мир до ChatGPT. Кажется, это было целую вечность назад. Именно тогда, летом 2022 года, лучшие умы планеты — «суперпрогнозисты» и ведущие отраслевые эксперты — собрались на турнир, чтобы предсказать будущее на ближайшие 2-3 года. Они делали ставки на прогнозы экзистенциальных рисков для человечества. И уже тогда было очевидно, что один из таких рисков – бурный прогресс в области ИИ.\nИ вот сегодня вышел новый отчет, анализирующий точность тех прогнозов (Assessing Near-Term Accuracy in the Existential Risk Persuasion Tournament). \nИ стало ясно, - все прогнозы провалились. Катастрофически.\n\nМасштаб недооценки поражает\n\nМатематические способности (MATH Dataset):\n•  ИИ достиг 87,8% в апреле 2024\n•  Эксперты давали вероятности этого всего 21% \n•  Суперпрогнозисты — 9%\n\nОбщие знания (MMLU):\n•  ИИ набрал 88,7% к середине 2024\n•  Эксперты оценивали это в 25% \n•  Суперпрогнозисты - давали 7%"
+      },
+      {
+        "id": "c8464845-ffae-5d7f-a81c-135c2ceafbe7",
+        "channel": "ml_product",
+        "message_id": 962,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Крупные IT-компании спорят о сознании ИИ \n(Big Tech clashes on AI consciousness)\n\nссылка\n- Глава AI Microsoft предупреждает: ИИ уже может имитировать сознание (память, личность), что опасно и вызывает «психоз» у пользователей. Призывает не очеловечивать алгоритмы.\n- Билл Гейтс инвестирует $1 млн в конкурс по созданию ИИ-агентов для ускорения исследований болезни Альцгеймера через анализ медицинских данных.\n- ChatGPT теперь интегрирован с Canva: автоматически создает и редактирует дизайны по текстовым запросам.\n- Microsoft тестирует ИИ-функцию COPILOT в Excel для генерации формул и анализа данных обычным языком, но пока с ошибками.\n- Новости инструментов: ElevenLabs запустил чат-режим, DeepSeek обновил модель, OpenAI анонсировала дешёвую подписку для Индии.\n\n#dailyshortcuts"
+      },
+      {
+        "id": "cf21ec28-0207-5cd4-a086-d92a28dcacdc",
+        "channel": "data_secrets",
+        "message_id": 7667,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Сулейман описывает целое явление \"psychosis risk\" (риск психоза), когда люди начинают настолько верить в иллюзию сознательности ИИ, что могут развивать эмоциональную зависимость, верить в права и чувства модели. \n\nИ таких примеров полно уже сейчас: люди влюбляются в чат-ботов, дружат с ними, начинают защищать их права и теряют связь с реальностью. Просто пока этот эффект не такой массовый – все может быть гораздо хуже. \n\nТак что главная идея из эссе: ИИ должен существовать только как инструмент для человеческой пользы, а не как цифровая личность. От имитации чувств, стремлений или желания быть самостоятельным нужно отказаться. \n\nИИ должен открыто декларировать, что он не человек и не сознательное существо. В его личность должны быть встроены фичи (и Мустафа как раз призывает на законодательном уровне утвердить их перечень), которые ломают иллюзию личности – чтобы пользователи не забывали, что общаются с программой. \n\nВот такая вот интересная позиция – пишите в комменты, как вам\n\nmustafa-suleyman.ai/seemingly-conscious-ai-is-coming"
+      },
+      {
+        "id": "e7f5f51e-3ac0-5c2c-ab27-59a8e6e1e004",
+        "channel": "ml_product",
+        "message_id": 867,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "ChatGPT заметит, если вам плохо \n(ChatGPT will sense when you're not okay)\n\nссылка\n- OpenAI учит ChatGPT лучше распознавать эмоциональное состояние пользователей, предлагая помощь при стрессе или тревоге.  \n- Google запускает Kaggle Game Arena — платформу для тестирования ИИ в стратегических играх, начиная с шахмат.  \n- Ideogram представил инструмент для создания персонажей из одной фотографии с помощью ИИ.  \n- GitHub выяснил: 90% кода скоро будет писать ИИ, а разработчики сосредоточатся на управлении процессами.  \n- ChatGPT достигнет 700 млн пользователей в неделю, а Grok Imagine стал доступен подписчикам X Premium.\n\n#dailyshortcuts"
+      },
+      {
+        "id": "6991bdb2-418d-5ead-aca6-edd5c75c2567",
+        "channel": "denissexy",
+        "message_id": 11014,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "TheInformation: согласно внутренней служебной записке, в понедельник генеральный директор OpenAI Sam Altman сообщил сотрудникам, что объявляет «красный уровень тревоги тревоги» для мобилизации дополнительных ресурсов на улучшение ChatGPT в условиях растущей угрозы со стороны Google и других конкурентов в сфере искусственного интеллекта.\n\n— Хотя OpenAI публично не подтверждала работу над рекламой для бесплатных пользователей ChatGPT, по словам источника, знакомого с планами компании, они тестируют различные виды рекламных объявлений, в том числе связанных с онлайн-покупками.\n\n— Альтман заявил, что этот рывок в рамках «красной тревоги» ради улучшения ChatGPT означает, что OpenAI придется замедлить работу над другими продуктами:  ИИ-агентами, призванными автоматизировать задачи, связанные с покупками и здоровьем, а также о сервисе Pulse, который генерирует персонализированные утренние сводки для пользователей ChatGPT и которым я попользовался два раза за пару месяцев."
+      }
+    ],
+    "citation_hits": [
+      "oulenspiegel_channel:4637",
+      "techsparks:5130",
+      "techno_yandex:5003",
+      "techno_yandex:4556",
+      "seeallochnaya:3166",
+      "techno_yandex:4204",
+      "theworldisnoteasy:2340",
+      "xor_journal:7066",
+      "theworldisnoteasy:2267",
+      "denissexy:11171",
+      "techsparks:5311",
+      "techno_yandex:4392",
+      "aioftheday:3521",
+      "theworldisnoteasy:2209",
+      "ml_product:962",
+      "data_secrets:7667",
+      "ml_product:867",
+      "denissexy:11014"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "4da830e7-1c73-5d17-b0c3-bf6e56d5b2b9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b01f77ab-e588-5764-9b30-046c6a9445aa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d161c4e3-28f9-557b-859b-6afd17bb3399",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "fcecf109-0e4e-54bd-b922-16ff29a2692f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "60ec94ec-56dd-564c-bc99-bba069c5da68",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "0379de13-861c-550f-9655-46cb73899755",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "5ae4d6a8-31b0-595a-ae37-de1954d9081f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "54368a13-1088-5f87-b4e8-70d55e3bcea9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "470b3ea2-c013-5c10-9511-26615d622358",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d449e4d3-02e8-58c1-85e0-f27fbfbdb9af",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1386d56e-2d4e-5e36-afbe-d4298fb33752",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e743a624-ed24-5309-a5d4-01db94dabe9d",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "9d18193b-98a1-5331-983d-410fa7761dc0",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "d4826b93-e761-500a-8fb5-9136f8e31948",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "f20f3a37-c2b0-5c3f-af76-cfee32c859aa",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "b29babc0-f532-5938-833a-7d631567ebce",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "43489714-6a70-559d-bb54-f8316e975234",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e12425ec-ab91-5f9f-9026-6c37a7c8360e",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2161ffa1-b475-58c6-8fdb-74fa377a3ad2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "7ca5567d-c337-503f-a940-945e015546e2",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "3f49c905-3ed4-593e-9d09-8613f82d8232",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e585ecd8-2444-5dce-8245-446a10dc0e3f",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "85df6f55-edd8-55ec-96eb-b78f12df0d62",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "726eea5b-db94-51ce-a642-3d74c456d7c4",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c8464845-ffae-5d7f-a81c-135c2ceafbe7",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "cf21ec28-0207-5cd4-a086-d92a28dcacdc",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e7f5f51e-3ac0-5c2c-ab27-59a8e6e1e004",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "6991bdb2-418d-5ead-aca6-edd5c75c2567",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a7eafe69-8ff0-5684-9421-3b1bfd34ddf1",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "fe61ab98-3124-528d-aab3-580eb436cac9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q049",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Эффект Элизы — склонность видеть в ИИ сознание и эмпатию.",
+        "ELIZA была простой программой, которая перефразировала слова пользователя в виде вопроса.",
+        "В посте приводится современный пример: некоторые пользователи не отличают ChatGPT от психотерапевта или оценивают его ответы выше."
+      ],
+      "expected_answer": "Эффект Элизы — это склонность людей видеть в ИИ сознание и эмпатию, даже если система лишь имитирует понимание. В посте это связывается с исторической программой ELIZA, которая перефразировала слова пользователя, и с современными пользователями, которые не отличают ChatGPT от психотерапевта или оценивают его ответы выше.",
+      "expected_entities": [
+        "Элиза",
+        "ChatGPT",
+        "психотерапевт"
+      ],
+      "expected_topics": [
+        "эффект Элизы",
+        "эмпатия ИИ",
+        "имитация сознания"
+      ],
+      "expected_channels": [
+        "oulenspiegel_channel"
+      ],
+      "source_post_ids": [
+        "oulenspiegel_channel:4637"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 4637,
+        "date": "2025-08-07T16:14:49",
+        "year_month": "2025-08",
+        "year_week": "2025-W32",
+        "draft_review_required": false,
+        "review_status": "edit",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Softened claim wording: source says ELIZA used a primitive/periphrasing mechanism; avoid implying all modern behavior is caused by a primitive algorithm."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 0.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q051",
+    "query": "Какие характеристики и возможности у новой модели MirageLSD?",
+    "eval_mode": "retrieval_evidence",
+    "category": "broad_search",
+    "answer": "Модель MirageLSD (также упоминается как Mirage от Dynamics Lab AI) представляет собой революционную диффузионную модель, обладающую следующими ключевыми характеристиками и возможностями:\n\n**Основные характеристики:**\n*   **Реальная скорость работы:** Это первая диффузионная видеомодель, работающая в реальном времени (реалтайме) бесконечно. Она обеспечивает задержку менее 40 мс [1].\n*   **Производительность:** Модель работает со скоростью 24 кадра в секунду и способна генерировать видео неограниченной длины [1].\n*   **Технология:** В основе лежит диффузионно-трансформерная нейросеть (модель мира), которая отвечает за все аспекты — от графики до логики среды [2].\n\n**Возможности:**\n*   **Трансформация видео в реальном времени:** MirageLSD может превращать любое входящее видео в желаемый мир или стиль. Например, видеозвонок можно стилизовать под аниме, а стрим из Minecraft — перенести в мир GTA [1].\n*   **Генерация интерактивных миров (в контексте симуляторов Mirage):** В более широком семействе моделей Mirage (например, Mirage 2) реализована возможность генерации окружения длительностью более 10 минут с возможностью управления персонажем (прыжки, бег, атаки). Сгенерированные миры доступны для совместного посещения другими агентами [3].\n*   **Доступность:** Демо-версии и симуляторы доступны пользователям через облако без необходимости скачивания тяжелых клиентских приложений. Mirage 2, например, может запускаться на одной домашней видеокарте (GPU) [3].\n\nТакже стоит отметить, что модель уже доступна для тестирования на платформе decart.ai [1].",
+    "status": "ok",
+    "latency_sec": 30.27744111499851,
+    "coverage": 0.75,
+    "tools_invoked": [
+      "query_plan",
+      "search",
+      "rerank",
+      "compose_context",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "query_plan",
+        "search"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ],
+      [
+        "rerank",
+        "compose_context",
+        "final_answer",
+        "related_posts"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "query_plan",
+        "summary": "Plan: 3 queries, k=10, fusion=rrf",
+        "success": true,
+        "took_ms": 2807,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "search",
+        "summary": "Found 30 documents (total: 30). Route: hybrid. Use these IDs for compose_context: ['4913f846-31f2-555e-bdfd-3612df1e45a5', 'c28873c2-16a1-5feb-b8aa-95c67ea4f70b', 'e7968a8e-cca4-56dd-b2b3-d8042110f3d0', '78c71147-9e1a-5a66-b4be-523de0e0ddaf', '2a7c8156-6548-5f10-a174-8e5fb6c144c9', 'db284afe-d4aa-5adf-9c39-e7779e8f1b03', 'a2b3bb82-1de7-59f3-8183-33731a430a5d', '8426d1bc-55fd-5274-879e-b159d62a9c06', '465e0bcc-d9ea-5c2f-a7df-7f8750f431a1', '1faa160a-de51-5c2f-b054-13a4376c3544', 'e286961d-5aed-5a",
+        "success": true,
+        "took_ms": 2709,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "rerank",
+        "summary": "Reranked 3 documents by relevance, scores: [6.730, 2.547, 1.088]. Call compose_context() to build context from reranked results.",
+        "success": true,
+        "took_ms": 2139,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "compose_context",
+        "summary": "Composed context with 3 citations, coverage: 0.45, contexts: 3",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (1564 chars)",
+        "success": true,
+        "took_ms": 0,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [
+      {
+        "id": "4913f846-31f2-555e-bdfd-3612df1e45a5",
+        "channel": "xor_journal",
+        "message_id": 7204,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "«Волшебство в реальном времени» - так Андрей Карпаты отозвался о MirageLSD, первой диффузионной видеомодели, работающей в реалтайме бесконечно. 😱\n\nMirageLSD превращает любое видео в желаемый мир с задержкой < 40 мс. Видеозвонок в стиле аниме, стрим из Minecraft в стиле GTA — все, что душа пожелает. MirageLSD работает со скоростью 24 кадра в секунду и может генерировать видео бесконечной длины.\n\nИ да — модель уже можно затестить на демо-версии платформы Mirage! Специально для вас на ней записали видео «Never gonna give you up» в разных стилях. 😘\n\nПоиграться самим можно здесь decart.ai.\n\n@xor_journal"
+      },
+      {
+        "id": "c28873c2-16a1-5feb-b8aa-95c67ea4f70b",
+        "channel": "techno_yandex",
+        "message_id": 4169,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Это не гейминг при температуре 39,5°\n\nMirage от компании Dynamics Lab AI — игровой движок на основе диффузионной нейросети с генерацией контента в реальном времени. В нём за все аспекты игры — графику и логику — отвечает одна диффузионно-трансформерная нейросеть. Такие нейросети ещё называют моделями мира. О том, как они работают, мы рассказывали в этом посте.\n\nВ Mirage уже доступны демоверсии двух игр: Urban Chaos в стиле GTA и Coastal Drift в стиле Forza Horizon. В обеих окружение генерируется в реальном времени, а игровые сессии могут длиться десятки минут. При этом сами игры не нужно скачивать — они создаются в облаке по запросу. Пока из-за наплыва пользователей обе игры работают с большими задержками.\n\nПодписывайтесь 👉 @techno_yandex"
+      },
+      {
+        "id": "e286961d-5aed-5a6e-a701-3576dbe760f0",
+        "channel": "data_secrets",
+        "message_id": 7671,
+        "url": null,
+        "score": null,
+        "text_excerpt": null,
+        "source": null,
+        "text": "Dynamics Lab выпустила симулятор Mirage 2. Выглядит не хуже Genie 3, но уже доступен каждому \n\nНаверху – примеры и сравнительная табличка с Genie. Mirage выделяется двумя вещами: \n\n1. Продолжительность генераций по сегодняшним меркам огромная: заявляют 10+ минут при задержке 200ms и запуске, кстати, на единственной домашней GPU \n\n2. Расширенная «играбельность»: в демках Genie только навигация + промптинг. Тут дополнительно еще всякие прыжки, бег, атака и другие игровые действия. Плюс, сгенерированным миром можно поделиться, то есть в него могут параллельно заходить другие агенты. \n\nДемки выглядят забавно, так что стоит тестить (blog.dynamicslab.ai/)"
+      }
+    ],
+    "citation_hits": [
+      "xor_journal:7204",
+      "techno_yandex:4169",
+      "data_secrets:7671"
+    ],
+    "retrieved_docs": [
+      {
+        "id": "4913f846-31f2-555e-bdfd-3612df1e45a5",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "c28873c2-16a1-5feb-b8aa-95c67ea4f70b",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e7968a8e-cca4-56dd-b2b3-d8042110f3d0",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "78c71147-9e1a-5a66-b4be-523de0e0ddaf",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2a7c8156-6548-5f10-a174-8e5fb6c144c9",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "db284afe-d4aa-5adf-9c39-e7779e8f1b03",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a2b3bb82-1de7-59f3-8183-33731a430a5d",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "8426d1bc-55fd-5274-879e-b159d62a9c06",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "465e0bcc-d9ea-5c2f-a7df-7f8750f431a1",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "1faa160a-de51-5c2f-b054-13a4376c3544",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "e286961d-5aed-5a6e-a701-3576dbe760f0",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2d62f767-daa6-5f84-8a92-de6b8df3e1b3",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "7fa37601-9e27-5b78-abae-70b2185a5f61",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "02ed9182-2169-594c-9899-2a7d46f264fd",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "08cf371f-ed00-5f45-8ce9-a191609ef171",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "be7b3de0-13c1-5780-adcc-74e37580ff54",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "a9c60686-7775-548b-8a56-70a0dfbe58c6",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "ee6261bb-a01e-5f70-8d0b-d3c7bdd0f731",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "2a7affda-8ea4-55d7-ad94-6c81d4b92468",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      },
+      {
+        "id": "0aad7ba6-a9ee-53e6-a491-06c546310c00",
+        "channel": null,
+        "message_id": null,
+        "text_excerpt": null,
+        "score": null,
+        "source": "sse_observation"
+      }
+    ],
+    "dataset_contract": {
+      "id": "golden_v3_q051",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "MirageLSD работает в реальном времени с задержкой < 40 мс",
+        "Модель генерирует видео со скоростью 24 кадра в секунду",
+        "MirageLSD может создавать видео бесконечной длины"
+      ],
+      "expected_answer": "MirageLSD — это первая диффузионная видеомодель, работающая в реальном времени с задержкой менее 40 мс и скоростью 24 кадра в секунду. Она способна генерировать видео бесконечной длины и трансформировать любое видео в желаемый стиль.",
+      "expected_entities": [
+        "MirageLSD",
+        "Андрей Карпаты",
+        "decart.ai",
+        "Mirage"
+      ],
+      "expected_topics": [
+        "диффузионные модели",
+        "генерация видео",
+        "реалтайм обработка",
+        "AI технологии"
+      ],
+      "expected_channels": [
+        "xor_journal"
+      ],
+      "source_post_ids": [
+        "xor_journal:7204"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 7204,
+        "date": "2025-07-19T21:16:24",
+        "year_month": "2025-07",
+        "year_week": "2025-W29",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Source supports query, expected answer, and required_claims. Single-post factual candidate accepted."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 1.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 1.0
+    }
+  },
+  {
+    "query_id": "golden_v3_q052",
+    "query": "Какие ключевые вызовы стоят перед Google при попытке стать конкурентом Nvidia к 2027 году?",
+    "eval_mode": "retrieval_evidence",
+    "category": "constrained_search",
+    "answer": "В предоставленных данных (Telegram-каналы за период с июля 2025 по март 2026 года) отсутствует информация о конкретных вызовах перед Google в попытке стать конкурентом Nvidia к 2027 году. База данных содержит обсуждения научных статей (arxiv), но не содержит аналитики или новостей, посвященных стратегическим амбициям Google против Nvidia в указанном временном горизонте.\n\n⚠️ Источники не указаны. Информация может быть неточной.",
+    "status": "ok",
+    "latency_sec": 7.815079263997177,
+    "coverage": 0.0,
+    "tools_invoked": [
+      "arxiv_tracker",
+      "final_answer"
+    ],
+    "visible_tools_history": [
+      [
+        "query_plan",
+        "search",
+        "arxiv_tracker"
+      ],
+      [
+        "final_answer"
+      ]
+    ],
+    "agent_thoughts": [],
+    "tool_observations": [
+      {
+        "tool": "arxiv_tracker",
+        "summary": "arxiv_tracker(top): Top-10 обсуждаемых papers: arxiv:2502.13266 (4 упом.), arxiv:2502.18663 (4 упом.), arxiv:2510.04871 (4 упом.), arxiv:2603.19461 (4 упом.), arxiv:2504.06225 (3 упом.)",
+        "success": true,
+        "took_ms": 18,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      },
+      {
+        "tool": "final_answer",
+        "summary": "Final answer prepared (430 chars)",
+        "success": true,
+        "took_ms": 1,
+        "system_generated": false,
+        "refinement": false,
+        "verification_refinement": false
+      }
+    ],
+    "citations": [],
+    "citation_hits": [],
+    "retrieved_docs": [],
+    "dataset_contract": {
+      "id": "golden_v3_q052",
+      "version": "3.0-draft",
+      "eval_mode": "retrieval_evidence",
+      "answerable": true,
+      "expected_refusal": false,
+      "refusal_reason": null,
+      "key_tools": [
+        "channel_search"
+      ],
+      "forbidden_tools": [
+        "list_channels"
+      ],
+      "acceptable_alternatives": [],
+      "required_claims": [
+        "Google планирует производить 5 миллионов чипов TPU к 2027 году",
+        "Google необходимо изменить цепочку поставок, так как они fabless",
+        "У Google пока нет экосистемы, сравнимой с CUDA"
+      ],
+      "expected_answer": "Google необходимо радикально изменить цепочку поставок, так как сейчас они fabless и зависят от внешних фабрик, а также создать экосистему, способную конкурировать со стандартом CUDA. Кроме того, компания планирует производить 5 миллионов чипов TPU, что подразумевает старт прямых продаж внешним клиентам.",
+      "expected_entities": [
+        "Google",
+        "Nvidia",
+        "TPU",
+        "CUDA",
+        "TSMC",
+        "Broadcom"
+      ],
+      "expected_topics": [
+        "производство чипов",
+        "конкуренция",
+        "цепочка поставок",
+        "экосистема разработчиков"
+      ],
+      "expected_channels": [
+        "data_secrets"
+      ],
+      "source_post_ids": [
+        "data_secrets:8453"
+      ],
+      "acceptable_evidence_sets": [],
+      "strict_anchor_recall_eligible": true,
+      "calibration": false,
+      "difficulty": "medium",
+      "notes": null,
+      "metadata": {
+        "created_at": "2026-04-10",
+        "created_by": "codex_draft_builder",
+        "source": "qdrant_post",
+        "message_id": 8453,
+        "date": "2025-12-08T12:55:43",
+        "year_month": "2025-12",
+        "year_week": "2025-W50",
+        "draft_review_required": false,
+        "review_status": "accept",
+        "reviewed_at": "2026-04-10",
+        "reviewer": "codex_semimanual",
+        "review_notes": "Source supports query, expected answer, and required_claims. Single-post factual candidate accepted."
+      }
+    },
+    "diagnostic_metrics": {
+      "strict_anchor_recall": 0.0,
+      "acceptable_set_hit": null,
+      "key_tool_accuracy": 0.0
+    }
+  }
+]

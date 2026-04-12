@@ -38,6 +38,8 @@ services:
       - ../../scripts:/app/scripts
       - ../../sessions:/app/sessions
       - ../../datasets:/app/datasets
+      - ../../experiments:/app/experiments
+      - ../../results:/app/results
     ports:
       - "8001:8000"
     depends_on:
@@ -61,8 +63,8 @@ services:
       # - WHITENING_PARAMS_PATH=datasets/whitening_params.npz
       # - COVERAGE_THRESHOLD=0.35
       # Coverage (DEC-0019)
-      - COVERAGE_THRESHOLD=0.65
-      - MAX_REFINEMENTS=2
+      - COVERAGE_THRESHOLD=0.75
+      - MAX_REFINEMENTS=1
       # FIX-05/09: dev mode — insecure JWT default + demo auth
       - RAG_ENV=dev
       - ENABLE_DEMO_AUTH=true
@@ -74,7 +76,9 @@ services:
     networks:
       - default
       - langfuse-net
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --loop uvloop --reload
+    # Eval-safe: --reload/watchfiles is unstable on Windows bind mounts and can
+    # terminate long runs with WatchfilesRustInternalError.
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --loop uvloop
 
   # ─── Ingest (on-demand) ───────────────────────────────────
 

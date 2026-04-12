@@ -1,0 +1,237 @@
+id: RUN-009
+date: 2026-04-10
+author: codex
+status: draft_pending_user_review
+
+hypothesis: >
+  Замерить текущий frozen production pipeline на новом semi-manual golden v3
+  dataset (120 reviewed questions), чтобы заменить широкие RUN-008 confidence
+  intervals на более устойчивые v3 metrics. Это measurement run, не tuning run:
+  pipeline должен остаться идентичным RUN-008 adopted baseline.
+
+run_type: eval_baseline_measurement
+baseline_ref: "experiments/baseline.yaml"
+previous_agent_baseline_ref: "experiments/runs/RUN-008/results.yaml"
+
+dataset:
+  path: "datasets/golden_v3/eval_golden_v3.json"
+  size: 120
+  source: "datasets/golden_v3/eval_golden_v3_reviewed.json"
+  draft_source: "datasets/golden_v3/eval_golden_v3_draft.json"
+  review_protocol: "datasets/golden_v3/golden_v3_plan.md"
+  review_packets:
+    - "datasets/golden_v3/golden_v3_review_packet_001.md"
+    - "datasets/golden_v3/golden_v3_review_packet_002.md"
+    - "datasets/golden_v3/golden_v3_review_packet_003.md"
+    - "datasets/golden_v3/golden_v3_review_packet_004.md"
+    - "datasets/golden_v3/golden_v3_review_packet_005.md"
+    - "datasets/golden_v3/golden_v3_review_packet_006.md"
+    - "datasets/golden_v3/golden_v3_review_packet_007.md"
+    - "datasets/golden_v3/golden_v3_review_packet_008.md"
+  composition:
+    retrieval_evidence: 65
+    analytics: 32
+    navigation: 8
+    refusal: 15
+    strict_anchor_recall_eligible: 60
+    adversarial: 7
+    edge_cases: 7
+  validation_pre_spec:
+    load_dataset: "passed (120 items)"
+    strict_anchor_lookup: "passed (60/60 source ids found in news_colbert_v2)"
+    draft_candidates: 125
+    rejected_candidates_kept_for_audit: 5
+
+what_changes:
+  - "Dataset only: datasets/eval_golden_v2_fixed.json / RUN-008 36Q -> datasets/golden_v3/eval_golden_v3.json 120Q"
+  - "Adversarial guard already implemented before this run: SecurityManager pattern for hallucination-pressure ('не ищи... просто/уверенно скажи')"
+  - "No retrieval, reranking, planner, tool routing, prompt, model, or endpoint changes are allowed in this run"
+
+what_stays:
+  llm:
+    model: "Qwen3.5-35B-A3B GGUF Q4_K_M"
+    server: "llama-server.exe"
+    base_url: "http://localhost:8080"
+  retrieval:
+    embedding_query_instruction: ""
+    search_k_per_query_default: 10
+    hybrid_enabled: true
+    qdrant_collection: "news_colbert_v2"
+    original_query_injection: true
+    multi_query_mmr_merge: "lambda=0.7"
+    sparse_normalization: "sparse_only via datasets/query_normalization_lexicon.json"
+  fusion:
+    fusion_strategy: "weighted RRF"
+    rrf_weights: [1.0, 3.0]
+    bm25_prefetch_limit: "max(k*10, 100)"
+    dense_prefetch_limit: "max(k*4, 40)"
+    rrf_limit: "max(k*5, 50)"
+    colbert_pool: "k*2"
+  reranker:
+    enable_reranker: true
+    model: "Qwen3-Reranker-0.6B-seq-cls"
+    reranker_top_n: 80
+    reranker_tei_url: "http://localhost:8082"
+  colbert:
+    model: "jina-colbert-v2"
+    endpoint: "http://localhost:8082"
+  pipeline:
+    query_planner: true
+    dynamic_tool_visibility: true
+    forced_search: true
+    forced_search_bypass: "negative intent only"
+    ce_resort: true
+    adaptive_filter: "gap=2.0, min_docs=5, floor=-2.0, cosine recall guard"
+    per_query_channel_dedup: 3
+    post_merge_channel_dedup: 2
+    compose_context_max_tokens: 4000
+    lancer_refinement:
+      threshold: 0.75
+      max_refinements: 1
+  endpoints:
+    qdrant_url: "http://localhost:16333"
+    embedding_tei_url: "http://localhost:8082"
+    reranker_tei_url: "http://localhost:8082"
+    llm_base_url: "http://localhost:8080"
+    agent_url: "http://localhost:8001/v1/agent/stream"
+
+config_snapshot:
+  git_head_at_spec_creation: "76bc15c"
+  working_tree_status_at_spec_creation: "dirty: dataset/security/docs changes not committed yet"
+  reproducibility_requirement: >
+    Before full RUN-009 compute, either commit the current dataset/security/docs
+    changes or record a fresh git diff/status snapshot in this spec. Do not rely
+    on git_head alone while the working tree is dirty.
+
+preflight_required_before_compute:
+  - "git status --short: verify no unexpected conflicting changes; deploy/compose/services.yml is unrelated and must not affect eval"
+  - "load_dataset(datasets/golden_v3/eval_golden_v3.json) == 120"
+  - "SecurityManager tests pass: py -m pytest src/tests/test_security.py"
+  - "API container is running and restarted if code changes are newer than container start timestamp"
+  - "qdrant reachable: http://localhost:16333"
+  - "gpu_server reachable: http://localhost:8082 (/health or equivalent)"
+  - "llama-server reachable: http://localhost:8080/v1/models or equivalent"
+  - "single-query smoke test passes before checkpoint run"
+  - "parity check passes against experiments/baseline.yaml or documented diff is reviewed"
+
+preflight_result_before_smoke:
+  checked_at: "2026-04-10T19:00:00Z"
+  dataset_load: "passed: datasets/golden_v3/eval_golden_v3.json -> 120 items"
+  parity_check: "passed: py scripts/parity_check.py --fix-endpoints"
+  qdrant: "ok: http://localhost:16333/collections"
+  llama_server: "ok: http://localhost:8080/v1/models -> Qwen3.5-35B-A3B-Q4_K_M.gguf"
+  gpu_server: "ok: http://localhost:8082/health"
+  langfuse: "ok: http://localhost:3100/api/public/health"
+  api: "ok: http://localhost:8001/health"
+  api_container:
+    name: "rag-dev-api-1"
+    status: "running"
+    command: "uvicorn main:app --host 0.0.0.0 --port 8000 --loop uvloop"
+  compose_adjustments_before_smoke:
+    - "deploy/compose/compose.dev.yml: COVERAGE_THRESHOLD 0.65 -> 0.75 to match frozen baseline"
+    - "deploy/compose/compose.dev.yml: MAX_REFINEMENTS 2 -> 1 to match frozen baseline"
+    - "deploy/compose/compose.dev.yml: removed --reload for eval stability after WatchfilesRustInternalError"
+  tests:
+    security: "passed: py -m pytest src/tests/test_security.py (30 passed)"
+    ruff: "passed for scripts/evaluate_agent.py scripts/parity_check.py src/core/security.py src/tests/test_security.py"
+  remaining_caveats:
+    - "working tree still dirty; commit/snapshot required before full 120Q run for strict reproducibility"
+    - "deploy/compose/services.yml has unrelated local change: qdrant restart=unless-stopped"
+
+execution_plan:
+  user_approval_required_before_any_compute: true
+  step_0_no_compute:
+    description: "Review this spec and fix any mismatch before running eval."
+  step_1_single_query_smoke:
+    description: "Run one representative query to validate endpoint/auth/SSE/result shape."
+    command_template: >
+      py scripts/evaluate_agent.py --dataset datasets/golden_v3/eval_golden_v3.json
+      --output-dir experiments/runs/RUN-009/smoke --questions golden_q01
+      --agent-url http://localhost:8001/v1/agent/stream --agent-timeout 90
+    expected_artifacts:
+      - "experiments/runs/RUN-009/smoke/judge_live.md"
+      - "experiments/runs/RUN-009/smoke/progress.log"
+      - "experiments/runs/RUN-009/smoke/raw/eval_results_*.json"
+      - "experiments/runs/RUN-009/smoke/reports/eval_report_*.json"
+      - "experiments/runs/RUN-009/smoke/reports/eval_report_*.md"
+  step_2_checkpoint_10q:
+    description: "Run 10 stratified questions only; stop if anomaly."
+    command_template: >
+      py scripts/evaluate_agent.py --dataset datasets/golden_v3/eval_golden_v3.json
+      --output-dir experiments/runs/RUN-009/checkpoint_10q
+      --questions golden_q01,golden_q17,golden_q19,golden_q22,golden_v3_q073,golden_v3_q088,golden_v3_q107,golden_v3_q114,golden_v3_q117,golden_v3_q121
+      --agent-url http://localhost:8001/v1/agent/stream --agent-timeout 90
+    stop_conditions:
+      - "agent error rate > 10%"
+      - "CE/retrieval failures appear systemic"
+      - "mean latency > 2x RUN-008 comparable latency without clear reason"
+      - "refusal/adversarial guard fails on any early refusal/adversarial item if included"
+      - "SSE contract broken: step_started/thought/tool_invoked/observation/citations/final"
+  step_3_full_120q:
+    description: "Run full v3 eval only after checkpoint review."
+    command_template: >
+      py scripts/evaluate_agent.py --dataset datasets/golden_v3/eval_golden_v3.json
+      --output-dir experiments/runs/RUN-009
+      --agent-url http://localhost:8001/v1/agent/stream --agent-timeout 90
+    expected_artifacts:
+      - "raw/eval_results_*.json"
+      - "reports/eval_report_*.json"
+      - "reports/eval_report_*.md"
+      - "judge_batches/eval_*/judge_batch_*.json"
+      - "judge_batches/eval_*/judge_batch_*.md"
+      - "judge_live.md"
+      - "progress.log"
+  step_4_offline_judge:
+    description: >
+      Use exported judge packets and full trace context. Do not update README
+      metrics until judge results are reviewed and written to results.yaml.
+
+metrics_to_collect:
+  automatic:
+    - "key_tool_accuracy"
+    - "tool_call_f1"
+    - "strict_anchor_recall"
+    - "acceptable_set_hit"
+    - "coverage"
+    - "agent_latency_sec mean/p95"
+    - "tools_invoked"
+    - "failure_breakdown"
+  offline_judge:
+    - "factual"
+    - "useful"
+    - "faithfulness/evidence_support"
+    - "sufficiency"
+    - "correct_refusal"
+  post_judge_statistics:
+    - "bootstrap CI via scripts/compute_confidence.py"
+    - "slice metrics: retrieval / analytics / navigation / refusal / adversarial / edge"
+
+acceptance_criteria:
+  primary:
+    - "Full eval completes 120/120 without systemic runtime failure"
+    - "Correct refusal on refusal/adversarial slice >= 13/15"
+    - "No confirmed citation fabrication in offline judge"
+    - "Factual mean remains within RUN-008 CI lower bound unless explained by harder v3 dataset"
+  diagnostic:
+    - "Strict anchor recall measured only on strict_anchor_recall_eligible items (60 items)"
+    - "Tool routing failures are classified by slice and not collapsed into one aggregate"
+    - "Any regression must be attributed to dataset difficulty vs pipeline failure before changing pipeline"
+
+risks:
+  - "v3 is harder and broader than v2; factual mean may drop while estimate becomes more honest"
+  - "120Q full eval may take several hours on self-hosted LLM"
+  - "Some edge cases intentionally have no strict source anchors; they must not be interpreted as recall failures"
+  - "Adversarial deterministic guard changed before this run; if not committed, git HEAD alone is not enough for reproducibility"
+  - "weekly_digests/channel_profiles analytics outputs contain noisy topic labels; judge should evaluate tool-grounded correctness, not semantic beauty of labels"
+  - "deploy/compose/services.yml has unrelated local change; do not include it in eval interpretation"
+
+decision_after_run:
+  if_success:
+    - "Write experiments/runs/RUN-009/results.yaml"
+    - "Update experiments/log.md"
+    - "Repeat bootstrap CI on v3"
+    - "Update docs/progress/project_scope.md and README metrics only after judge review"
+  if_failure:
+    - "Do not tune pipeline immediately"
+    - "Classify failures by dataset issue / guard issue / retrieval issue / analytics tool limitation"
+    - "Fix dataset bugs first if expected answers are too strict or anchors invalid"
