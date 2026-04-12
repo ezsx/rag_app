@@ -15,7 +15,7 @@ from .related_posts import related_posts
 from .rerank import rerank
 from .search import search
 from .summarize_channel import summarize_channel
-from .verify import verify
+from .verify import evidence_support_check, verify
 
 __all__ = [
     "arxiv_tracker",
@@ -23,6 +23,7 @@ __all__ = [
     "compose_context",
     "cross_channel_compare",
     "entity_tracker",
+    "evidence_support_check",
     "fetch_docs",
     "hot_topics",
     "list_channels",

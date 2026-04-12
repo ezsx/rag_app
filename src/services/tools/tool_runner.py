@@ -94,7 +94,7 @@ class ToolRunner:
             remaining = max(0.5, deadline - time.monotonic())
             effective_timeout = min(effective_timeout, remaining)
 
-        _system_tools = {"verify", "fetch_docs"}
+        _system_tools = {"verify", "evidence_support_check", "fetch_docs"}
         _tool_prefix = "tool:" if req.tool not in _system_tools else "tool[system]:"
         with observe_span(
             f"{_tool_prefix}{req.tool}", as_type="tool",

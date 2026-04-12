@@ -41,10 +41,10 @@ def _fmt_compose(d: dict) -> str:
     )
 
 
-def _fmt_verify(d: dict) -> str:
+def _fmt_evidence_support_check(d: dict) -> str:
     return (
-        f"Verification: {d.get('verified', False)} "
-        f"(confidence: {float(d.get('confidence', 0) or 0):.3f}, "
+        f"Support check: {d.get('supported', d.get('verified', False))} "
+        f"(confidence: {float(d.get('support_confidence', d.get('confidence', 0)) or 0):.3f}, "
         f"threshold: {d.get('threshold', 0.6)}, docs: {d.get('documents_found', 0)})"
     )
 
@@ -156,7 +156,8 @@ _FORMATTERS: dict[str, Any] = {
     "arxiv_tracker": _fmt_arxiv_tracker,
     "rerank": _fmt_rerank,
     "compose_context": _fmt_compose,
-    "verify": _fmt_verify,
+    "evidence_support_check": _fmt_evidence_support_check,
+    "verify": _fmt_evidence_support_check,
     "query_plan": _fmt_query_plan,
     "final_answer": _fmt_final_answer,
     "hot_topics": _fmt_hot_topics,

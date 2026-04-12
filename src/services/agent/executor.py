@@ -48,7 +48,10 @@ async def execute_action(
         # Pipeline-internal tools: payload содержит LLM output или Qdrant docs,
         # которые могут содержать HTML, кавычки, перечисления через ";".
         # Security validation только для user-facing input, не internal data.
-        _skip_security = {"rerank", "compose_context", "final_answer", "verify", "fetch_docs"}
+        _skip_security = {
+            "rerank", "compose_context", "final_answer",
+            "verify", "evidence_support_check", "fetch_docs",
+        }
         if tool_name not in _skip_security:
             serialized = json.dumps(normalized, ensure_ascii=False, default=str)
             is_valid, violations = security_manager.validate_input(serialized)
@@ -272,7 +275,7 @@ def normalize_tool_params(
                 normalized["answer"] = str(raw)
         return normalized
 
-    if tool_name == "verify":
+    if tool_name in {"verify", "evidence_support_check"}:
         if "k" in normalized and "top_k" not in normalized:
             normalized["top_k"] = normalized.pop("k")
         normalized.setdefault("query", ctx.query or "")

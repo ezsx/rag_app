@@ -1,13 +1,15 @@
-# rag_app — Production RAG with Agentic ReAct Pipeline
+# rag_app — Self-Hosted RAG with Agentic ReAct Pipeline
 
 > Most RAG portfolios show a LangChain demo. This project shows:
-> 1. A custom pipeline that **beats LlamaIndex by +0.30 factual** on identical data and model
-> 2. An evaluation framework with **57 runs, cross-family judge consensus** (Claude Opus + GPT-5.4), and NLI-verified faithfulness
+> 1. A custom end-to-end pipeline that **wins on a scoped LlamaIndex benchmark by +0.30 factual** on identical data and model
+> 2. An evaluation framework with **57 runs, published judge artifacts, manual hard-case calibration**, and NLI-audited faithfulness
 > 3. **39 ablation experiments** with honest reporting of what didn't work
 >
 > Self-hosted on two GPUs. No managed APIs. No frameworks.
 
 ![Factual](https://img.shields.io/badge/Factual-0.858-brightgreen) ![Useful](https://img.shields.io/badge/Useful-1.71%2F2-brightgreen) ![Faithfulness](https://img.shields.io/badge/Faithfulness-0.91-brightgreen) ![Robustness](https://img.shields.io/badge/Robustness-0.954-brightgreen) ![Recall@5](https://img.shields.io/badge/Recall%405-0.900-blue) ![Tools](https://img.shields.io/badge/Tools-15-blue) ![Docs](https://img.shields.io/badge/Docs-13K-blue) ![License](https://img.shields.io/badge/License-Apache%202.0-orange)
+
+Published baseline note: latest 36Q baseline is **0.803 raw** on the original dataset and **0.858 corrected** after auditing 7 overly narrow open-ended labels in `eval_golden_v2_fixed.json`.
 
 ---
 
@@ -16,7 +18,7 @@
 User asks a question about AI/ML news. ReAct agent plans sub-queries, runs hybrid retrieval (BM25 + dense + ColBERT) over 13K documents from 36 Russian-language Telegram channels, filters with cross-encoder + cosine recall guard, produces a grounded answer with citations via SSE streaming.
 
 ```
-Query → query_plan → multi-query search (BM25+Dense → RRF → ColBERT) → MMR merge → CE re-sort + adaptive filter → compose_context → answer
+Query → query_plan → multi-query search (BM25+Dense → RRF → ColBERT) → MMR-style merge → CE re-sort + adaptive filter → compose_context → answer
 ```
 
 15 LLM tools with phase-based dynamic visibility. Analytics tools (entity tracking, trend digests, channel expertise) short-circuit the search path when appropriate.
@@ -44,7 +46,7 @@ Sources: techsparks, ai_machinelearning_big_data, data_secrets
 
 </details>
 
-**Why 13K docs, not millions?** Small corpus is harder for retrieval — no redundancy to compensate for weak search. If the relevant document is one of three, not one of thousands, you need precision. HNSW search is sublinear; scaling to 1M+ docs adds single-digit milliseconds to retrieval, not orders of magnitude. The Telegram domain (mixed languages, emoji, slang, forwards, code snippets) is harder than clean Wikipedia/arxiv text — no ready benchmarks exist.
+**Why 13K docs, not millions?** Small corpora are harder for retrieval than they look: there is no redundancy to compensate for weak search. If the relevant document is one of three, not one of thousands, precision matters more. The Telegram domain (mixed languages, emoji, slang, forwards, code snippets) is also messier than clean Wikipedia/arXiv text, and there are no ready-made benchmarks for it. This repo focuses on measured retrieval quality in that domain, not on unmeasured scale claims.
 
 ---
 
@@ -83,16 +85,16 @@ V100 in TCC mode poisons NVML in WSL2 — Docker GPU unavailable. All GPU worklo
 
 ## Eval Results
 
-**Judge methodology**: cross-family consensus — Claude Opus 4.6 (Anthropic) + GPT-5.4 via Codex CLI (OpenAI) + manual calibration on hard cases. Eliminates single-judge bias. Granular scale: factual 0.0-1.0 (step 0.1), useful 0.0-2.0 (step 0.1). Independent NLI faithfulness verification via ruBERT.
+**Judge methodology**: published artifacts use Claude Opus 4.6 as the primary judge, with manual calibration on hard cases and internal cross-checking against GPT-5.4 on disputed examples. Granular scale: factual 0.0-1.0 (step 0.1), useful 0.0-2.0 (step 0.1). Independent NLI audit via ruBERT is used for claim-level faithfulness analysis.
 
 **LLM judge metrics** (36 Qs golden_v2, [latest run](experiments/runs/RUN-008/results.yaml)):
 
 | Metric | Value | Details |
 |--------|-------|---------|
-| **Factual correctness** | **0.858** | 95% CI **[0.792, 0.917]**, n=36, cross-family judge consensus |
+| **Factual correctness** | **0.858 corrected** | 95% CI **[0.792, 0.917]**, n=36, after dataset audit of 7 open-ended labels; raw latest score on original set: **0.803** |
 | **Usefulness** | **1.71 / 2** | 95% CI **[1.606, 1.803]**, n=36 |
 | **Key Tool Accuracy** | **1.000** | 36/36 correct tool selection |
-| **Faithfulness** | **0.91** | 17 retrieval Qs, 171 claims verified, **0 hallucinations** ([analysis](experiments/legacy/reports/nli_faithfulness_analysis_20260401.md)) |
+| **Faithfulness** | **0.91 adjudicated** | 17 retrieval Qs, 171 claims audited, **0 actual hallucinations after manual review of NLI false positives** ([analysis](experiments/legacy/reports/nli_faithfulness_analysis_20260401.md)) |
 | **Retrieval R@5** | **0.900** | 120 natural-language queries, 6 categories |
 | **Correct refusal** | **3/3** | Agent correctly refuses out-of-scope queries |
 | **Mean latency** | **~30s** | LLM inference 84% (self-hosted Qwen3.5-35B on V100), retrieval ~2.5s, CE rerank ~2s. With managed API: ~6-8s estimated |
@@ -105,8 +107,8 @@ We compute BERTScore F1, SummaC, Precision@5, MRR, nDCG@5 on every eval run ([SP
 
 | Proxy metric | Value | LLM Judge | Gap |
 |-------------|:---:|:---:|-----|
-| BERTScore F1 | 0.52 | Factual **0.858** | Can't distinguish refusal from answer — semantic similarity ≠ factual correctness |
-| SummaC faithfulness | 0.37 | **0.91** | Misses cross-lingual paraphrases ("Хуанг (Nvidia)" ≠ "гендиректор NVIDIA") |
+| BERTScore F1 | 0.52 | Factual **0.858 corrected** | Can't distinguish refusal from answer — semantic similarity ≠ factual correctness |
+| SummaC faithfulness | 0.37 | **0.91 adjudicated** | Misses cross-lingual paraphrases ("Хуанг (Nvidia)" ≠ "гендиректор NVIDIA") |
 | Precision@5 | 0.10 | acceptable_set_hit 0.47 | Agent cites 5-8 docs, many relevant but not in narrow expected set |
 
 19 raw NLI contradictions manually reviewed → **0 actual hallucinations** (12 ruBERT false positives on Russian paraphrases, 5 wrong-doc matches, 2 borderline). [Full analysis](experiments/legacy/reports/nli_faithfulness_analysis_20260401.md).
@@ -144,7 +146,7 @@ Built the same pipeline in LlamaIndex (best-effort) and measured against our cus
 | LlamaIndex maxed (weighted RRF + CE) | 0.54 | 1.21 | 0.48 | ~11s |
 | **Custom pipeline** | **0.84** | **1.77** | **0.88** | **~30s** |
 
-Custom wins by **+0.30 factual**, **+0.56 usefulness**, **+0.40 grounding** vs best framework config.
+On this scoped retrieval-evidence benchmark, custom wins by **+0.30 factual**, **+0.56 usefulness**, **+0.40 grounding** vs best framework config.
 
 **Retrieval-only** (100 auto-generated queries — exact text fragments from posts):
 
@@ -180,7 +182,7 @@ Full per-question breakdown in [judge_scores.md](experiments/legacy/benchmarks/j
 
 Systematic 5-day study: parameter sweep, diagnosis, new retrieval tracks, orchestration improvements. Full results: [ablation_study.md](docs/progress/ablation_study.md), artifacts: [experiments/](experiments/).
 
-**Progress**: R@5 0.833 → **0.900** (+8%), factual 0.842 → **0.858**, 8 formal experiment runs (RUN-001 through RUN-008).
+**Progress**: R@5 0.833 → **0.900** (+8%), factual 0.842 → **0.858 corrected**, 8 formal experiment runs (RUN-001 through RUN-008).
 
 | Phase | Experiments | Key result |
 |-------|:-:|-----------|
@@ -213,7 +215,7 @@ All rejected with measured evidence. Details in [experiment log](docs/progress/e
 | Pipeline v2 (RRF→CE→ColBERT) | +0.02 r@2 only | Not worth complexity |
 | BERTScore as robustness proxy | NDR off by 0.145 | Doesn't capture factual correctness |
 | XLM-RoBERTa for Russian NLI | ent=0.006 on obvious pairs | ruBERT 150x better on Russian |
-| Cosine-based coverage | 45% false refinements | Replaced with [LANCER nugget coverage](docs/architecture/11-decisions/decision-log.md) (DEC-0044) |
+| Cosine-based coverage | 45% false refinements | Replaced with [LANCER-inspired lexical nugget coverage](docs/architecture/11-decisions/decision-log.md) (DEC-0044) |
 
 ---
 
@@ -245,17 +247,17 @@ graph LR
     end
 
     OQ --> PER_Q
-    CB --> MMR["MMR merge<br/>λ=0.7"]
+    CB --> MMR["MMR-style merge<br/>λ=0.7"]
     MMR --> CE["CE re-sort +<br/>adaptive filter"]
     CE --> COS["Cosine recall<br/>guard"]
     COS --> DD["Channel dedup<br/>max 3/ch"]
     DD --> CTX["compose_context<br/>4000 tokens"]
 ```
 
-- **Multi-query**: LLM generates 3-5 sub-queries, each runs independent hybrid retrieval, **MMR merge** (balances relevance + diversity)
+- **Multi-query**: LLM generates 3-5 sub-queries, each runs independent hybrid retrieval, then a **MMR-style score-proxy merge** balances relevance and diversity without extra embedding calls
 - **Original query injection**: user query always in subqueries for BM25 keyword match
 - **Sparse normalization** (R2): BM25 query normalized via lexicon (slang/aliases), dense query stays raw
-- **LANCER nugget coverage**: query_plan subqueries as nuggets, targeted refinement on uncovered
+- **LANCER-inspired lexical nugget coverage**: query_plan subqueries act as nuggets; refinement triggers on uncovered aspects using term-overlap coverage rather than a semantic verifier
 - **CE re-sort + adaptive filter + cosine recall guard**: cross-encoder re-orders by relevance, gap detection (>2.0) + top-K guarantee (min 5). Cosine recall guard saves docs killed by CE but ranked high by bi-encoder — CE struggles with digest/bullet-list format ([sentence-transformers#2874](https://github.com/UKPLab/sentence-transformers/issues/2874)), cosine catches semantic relevance CE misses
 
 ## Agent Tools (15)
@@ -311,7 +313,7 @@ graph TD
     end
     PHASE4 --> FA
 
-    FA["final_answer + verify"] --> SSE["SSE Stream<br/>citations + answer"]
+    FA["final_answer + support_check"] --> SSE["SSE Stream<br/>citations + answer"]
 ```
 
 ---
@@ -334,7 +336,7 @@ agent_request (root)                          30.5s total
 ├── tool:compose_context                      0.002s (10 citations, coverage 0.79)
 ├── llm_step_4_final → llm_chat_completion    8.0s  (7453 in → 305 out tokens)
 ├── tool:final_answer
-└── tool[system]:verify → hybrid_retrieval    0.4s
+└── tool[system]:evidence_support_check → hybrid_retrieval  0.4s
 ```
 
 Rich output per span: hits_count, coverage, prompt_len, token usage. Error marking for failed tools. Root trace: plan, strategy, tokens, coverage, citations_count.
@@ -400,15 +402,15 @@ deploy/                 Docker compose (dev, langfuse, test, benchmark)
 
 ## Security Considerations
 
-15 LLM tools with dynamic visibility = attack surface. Current mitigations: `SecurityManager` sanitizes all external input before tool execution, `refusal_policy` with deterministic trim blocks out-of-scope queries, tool visibility is phase-gated (agent cannot call `final_answer` before search, cannot call `search` after analytics short-circuit). Rate limiting middleware with per-client tracking and exponential backoff. Formal adversarial eval (prompt injection, tool abuse scenarios) is planned for the expanded 200Q golden dataset — current refusal rate is 3/3 on known out-of-scope queries.
+15 LLM tools with dynamic visibility create a non-trivial misuse surface. Current guards are intentionally basic: `SecurityManager` validates direct user input patterns, `refusal_policy` with deterministic trim blocks known out-of-scope cases, tool visibility is phase-gated (agent cannot call `final_answer` before search, cannot call `search` after analytics short-circuit), and rate limiting applies per-client backoff. This is a portfolio-grade safety story, not a mature adversarially-evaluated agent security stack yet. Formal adversarial eval for prompt injection, tool abuse, and retrieved-context attacks is still future work.
 
 ## What I'd do with more resources
 
 **Fine-tuning the reranker** on domain-specific hard negatives. Qwen3-Reranker-0.6B struggles with digest/bullet-list format (CE=-5.8 on clearly relevant docs). LoRA fine-tuning on ~500 hard negative pairs from our eval logs — expected +3-7% on domain based on literature. ~1 hour on H100, ~$3 on cloud. The hard negatives already exist in our experiment artifacts.
 
-**Production deployment**: failure mode handling (gpu_server crash → graceful degradation to dense-only), cost model per query, multi-user rate limiting beyond current middleware. Architecture is ready — FastAPI + Docker + Qdrant all containerized, GPU processes are the only native components.
+**Production deployment**: failure mode handling (gpu_server crash → graceful degradation to dense-only), cost model per query, multi-user rate limiting beyond current middleware. The current architecture is a solid starting point for productionization, but failure-mode hardening and adversarial evaluation still need dedicated work.
 
-**Scaling to 1M+ docs**: add news wire collections alongside Telegram. HNSW is sublinear — retrieval latency stays flat. Main work: incremental reindex pipeline (already implemented for Telegram), Qdrant sharding config, stale document detection.
+**Scaling beyond the current corpus**: add news wire collections alongside Telegram and measure retrieval behavior under larger collection sizes. Main work: incremental reindex pipeline, Qdrant sharding config, stale document detection, and fresh latency benchmarks rather than extrapolation.
 
 ## License & Usage
 

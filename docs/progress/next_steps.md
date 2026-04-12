@@ -9,7 +9,7 @@
 
 ## Current State
 
-- Factual: **0.858** with **95% CI [0.792, 0.917]** (36 Qs, cross-family judge: Claude Opus + GPT-5.4 + manual calibration)
+- Factual: **0.858** with **95% CI [0.792, 0.917]** (36 Qs, published baseline: Claude Opus + manual calibration after dataset audit)
 - Useful: **1.71/2** with **95% CI [1.606, 1.803]**, Faithfulness: **0.91**, Robustness: **0.954**, R@5: **0.900**
 - Benchmark: **+0.30 factual** vs LlamaIndex on identical data
 - 39 ablation experiments, 8 formal runs (RUN-001–RUN-008)
@@ -117,10 +117,10 @@ LoRA fine-tuning Qwen3-Reranker-0.6B на domain-specific hard negatives.
 
 ## Tier 6 — Technical Writeup + Publication
 
-- [ ] **Статья 2500-3500 слов** — "Building a production RAG that beats LlamaIndex: lessons from 57 experiments"
+- [ ] **Статья 2500-3500 слов** — "Building a self-hosted RAG agent that wins on a scoped LlamaIndex benchmark: lessons from 57 experiments"
   - Hook: BERTScore failure as proxy metric
   - Core: ablation methodology, what worked and what didn't
-  - Insight: cross-family judge consensus, LLM judge calibration
+  - Insight: LLM judge calibration, proxy-metric failure, and artifact-driven evaluation
   - Practical: self-hosted stack tradeoffs
 - [ ] **Публикация**: Habr (русскоязычная аудитория), Medium (англоязычная), r/LocalLLaMA
 - [ ] **Ссылка в README** в хук сверху

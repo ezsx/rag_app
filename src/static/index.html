@@ -173,7 +173,7 @@ function showFinal(data) {
   const coverage = data.coverage;
   const refinements = data.refinements || 0;
   const totalSteps = data.total_steps || data.step || '?';
-  const verified = data.verification?.verified;
+  const supported = data.support_check?.supported ?? data.verification?.verified;
 
   let citationsHtml = '';
   if (citations.length) {
@@ -188,7 +188,7 @@ function showFinal(data) {
   if (coverage !== undefined) metaParts.push(`Coverage: ${(coverage*100).toFixed(0)}%`);
   if (refinements > 0) metaParts.push(`Refinements: ${refinements}`);
   metaParts.push(`Steps: ${totalSteps}`);
-  if (verified !== undefined) metaParts.push(verified ? 'Verified' : 'Unverified');
+  if (supported !== undefined) metaParts.push(supported ? 'Supported by retrieved docs' : 'Weak support');
   const metaHtml = `<div class="flex flex-wrap gap-3 mt-3 text-xs text-gray-500">${metaParts.map(p=>`<span>${esc(p)}</span>`).join('<span class="text-gray-700">|</span>')}</div>`;
 
   _ctx.finalEl.innerHTML = `<div class="final-answer card px-5 py-4 mt-3 fade-in"><div class="text-sm leading-relaxed">${formatAnswer(answer)}</div>${citationsHtml}${metaHtml}</div>`;

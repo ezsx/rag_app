@@ -422,7 +422,7 @@ class AgentService:
                                         and agent_state.refinement_count >= self.settings.max_refinements):
                                     agent_state.low_coverage_disclaimer = True
 
-                        # ── final_answer → verify + finalize ──
+                        # ── final_answer → support check + finalize ──
                         if tool_name == "final_answer":
                             answer = str(action.output.data.get("answer", "")).strip()
                             verify_res: dict[str, Any] = {}
@@ -442,7 +442,7 @@ class AgentService:
                                         messages, conversation_history,
                                         ctx=self._ctx, tool_runner=self.tool_runner,
                                         settings=self.settings,
-                                        label="verification_refinement",
+                                        label="support_check_refinement",
                                     )
                                     for evt in events:
                                         yield evt

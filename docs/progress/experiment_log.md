@@ -280,7 +280,7 @@ Langfuse v3 integration (SPEC-RAG-19). Qwen3 → Qwen3.5-35B-A3B swap (DEC-0039)
 
 ### SPEC-RAG-20d: Pipeline Cleanup + Coverage Redesign (2026-03-31 → 2026-04-01)
 
-32 code changes. LANCER nugget coverage (DEC-0044), CE confidence filter (DEC-0045), observability audit (15 findings), retrieval calibration (100 queries).
+32 code changes. LANCER-inspired lexical nugget coverage (DEC-0044), CE confidence filter (DEC-0045), observability audit (15 findings), retrieval calibration (100 queries).
 
 | Метрика | До | После |
 |---------|-----|-------|
@@ -308,7 +308,7 @@ SecurityManager.check_sql_injection() false positive: `text.count(";") > 2` бл
 | Factual | 0.847 | **0.875** |
 | Useful | 1.861 | **1.917** |
 
-Fix: добавлены `final_answer`, `verify`, `fetch_docs` в `_skip_security`.
+Fix: добавлены `final_answer`, `verify`, `fetch_docs` в `_skip_security`. Позже `verify` переосмыслен как retrieval-backed support check, `verify` сохранён как legacy alias.
 
 ### SPEC-RAG-21: NLI Citation Faithfulness (2026-04-01)
 
@@ -472,6 +472,19 @@ Validation:
 
 Следующий шаг: сделать full eval + judge на `eval_golden_v3.json`, затем повторить bootstrap CI и обновить README только после v3 judge.
 
+### External repo audit follow-up (2026-04-12)
+
+Независимый repo audit подтвердил, что ядро проекта sound для Applied LLM portfolio, но выделил несколько high-ROI fixes по claim hygiene и semantics:
+
+- README: явный `raw vs corrected` для baseline (`0.803 raw` → `0.858 corrected`)
+- README: сузить benchmark wording с general claim до scoped benchmark claim
+- README: убрать/ослабить extrapolation claims про `Production RAG` и `1M+ docs`
+- Runtime `verify`: переименовать в retrieval-backed support check, чтобы не звучало как strong factual verification
+- Coverage wording: явно говорить `LANCER-inspired lexical nugget coverage`
+- Security wording: описывать текущую реализацию как basic guards, а не mature adversarial security story
+
+Стратегия принята: сначала claim cleanup + naming fixes, без нового retrieval tuning.
+
 ### Корневые проблемы (обновлено 2026-04-10)
 
 | # | Проблема | Статус |
@@ -520,7 +533,7 @@ Validation:
 | bge-reranker-v2-m3 → Qwen3-Reranker | logit gap 8→18 | DEC-0043 |
 | Query classifier + strategy router | 15 tools, dynamic visibility, data-driven routing | SPEC-RAG-11/13 |
 | Entity extraction | 95 entities, 16 payload indexes, Facet API | SPEC-RAG-12 |
-| LANCER nugget coverage | -45% latency, 0 лишних refinements | DEC-0044 |
+| LANCER-inspired lexical nugget coverage | -45% latency, 0 лишних refinements | DEC-0044 |
 | CE confidence filter (CRAG-style) | keep 92% relevant, remove 55% irrelevant | DEC-0045 |
 | NLI citation faithfulness | faithfulness 0.91, 0 hallucinations | SPEC-RAG-21 |
 

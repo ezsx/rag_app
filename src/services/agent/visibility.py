@@ -106,7 +106,8 @@ def get_available_tools() -> dict[str, Any]:
 
     system_tools = {
         "fetch_docs": "Системная догрузка полных текстов по id",
-        "verify": "Системная верификация финального ответа",
+        "evidence_support_check": "Системный retrieval-backed support check финального ответа",
+        "verify": "Legacy alias for evidence_support_check",
     }
 
     return {

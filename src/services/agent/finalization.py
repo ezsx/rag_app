@@ -1,5 +1,5 @@
 """
-SPEC-RAG-20c Step 7: Final answer preparation — build payload, refusal trim, verify.
+SPEC-RAG-20c Step 7: Final answer preparation — build payload, refusal trim, support check.
 
 Responsible for preparing and validating the final answer before SSE yield.
 """
@@ -48,17 +48,17 @@ async def verify_answer(
     ctx: RequestContext,
     tool_runner,
 ) -> dict[str, Any]:
-    """Проверяет финальный ответ через verify tool."""
+    """Проверяет support финального ответа через retrieval-backed system tool."""
     try:
         original_query = conversation_history[0] if conversation_history else ""
         if not original_query.startswith("Human: "):
             original_query = "Human: " + original_query
 
         result = tool_runner.run(
-            ctx.request_id or "verify",
+            ctx.request_id or "support-check",
             ctx.step,
             ToolRequest(
-                tool="verify",
+                tool="evidence_support_check",
                 input={
                     "query": original_query,
                     "claim": final_answer,
@@ -78,7 +78,7 @@ async def verify_answer(
         }
     except Exception as exc:  # broad: agent loop safety
         logger.error("Error in verify_answer: %s", exc, exc_info=True)
-        return {"verified": False, "confidence": 0.0, "error": str(exc)}
+        return {"supported": False, "support_confidence": 0.0, "error": str(exc)}
 
 
 def build_final_payload(
@@ -110,10 +110,20 @@ def build_final_payload(
     final_payload["route"] = ctx.search_route
     final_payload["plan"] = ctx.plan_summary
     if verify_res:
-        final_payload["verification"] = {
-            "verified": verify_res.get("verified", False),
-            "confidence": verify_res.get("confidence", 0.0),
+        support_payload = {
+            "supported": verify_res.get("supported", verify_res.get("verified", False)),
+            "confidence": verify_res.get(
+                "support_confidence", verify_res.get("confidence", 0.0),
+            ),
             "documents_found": verify_res.get("documents_found", 0),
+        }
+        # New semantic field for future runs.
+        final_payload["support_check"] = support_payload
+        # Legacy alias kept for current frontend/older consumers.
+        final_payload["verification"] = {
+            "verified": support_payload["supported"],
+            "confidence": support_payload["confidence"],
+            "documents_found": support_payload["documents_found"],
         }
     final_payload.update(
         {

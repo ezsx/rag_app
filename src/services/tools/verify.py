@@ -1,4 +1,4 @@
-"""Инструмент verify — проверка утверждения через повторный поиск в базе знаний."""
+"""Support check для финального ответа через повторный поиск в базе знаний."""
 
 from __future__ import annotations
 
@@ -12,16 +12,23 @@ from schemas.search import SearchPlan
 logger = logging.getLogger(__name__)
 
 
-def verify(
+def evidence_support_check(
     query: str,
     claim: str,
     hybrid_retriever: HybridRetriever,
     top_k: int = 3,
     docs: Sequence[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Проверяет утверждение через повторный поиск в базе знаний."""
+    """Проверяет, есть ли support для финального ответа в найденных документах.
+
+    Это retrieval-backed heuristic, а не строгая factual verification.
+    Сохраняем legacy поля `verified` / `confidence` для совместимости со
+    старыми артефактами и UI.
+    """
     if not claim.strip():
         return {
+            "supported": False,
+            "support_confidence": 0.0,
             "verified": False,
             "confidence": 0.0,
             "evidence": [],
@@ -62,6 +69,8 @@ def verify(
 
         if not retrieved_docs:
             return {
+                "supported": False,
+                "support_confidence": 0.0,
                 "verified": False,
                 "confidence": 0.0,
                 "evidence": [],
@@ -78,10 +87,12 @@ def verify(
 
         avg_confidence = sum(confidences) / len(confidences)
         threshold = 0.6
-        verified = avg_confidence >= threshold
+        supported = avg_confidence >= threshold
 
         return {
-            "verified": verified,
+            "supported": supported,
+            "support_confidence": round(avg_confidence, 3),
+            "verified": supported,
             "confidence": round(avg_confidence, 3),
             "evidence": evidence,
             "threshold": threshold,
@@ -90,10 +101,29 @@ def verify(
         }
 
     except Exception as exc:  # broad: tool execution safety
-        logger.error("Ошибка при проверке утверждения: %s", exc)
+        logger.error("Ошибка при support check утверждения: %s", exc)
         return {
+            "supported": False,
+            "support_confidence": 0.0,
             "verified": False,
             "confidence": 0.0,
             "evidence": [],
             "error": f"Ошибка поиска: {exc!s}",
         }
+
+
+def verify(
+    query: str,
+    claim: str,
+    hybrid_retriever: HybridRetriever,
+    top_k: int = 3,
+    docs: Sequence[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Legacy alias for backward compatibility with old traces and artifacts."""
+    return evidence_support_check(
+        query=query,
+        claim=claim,
+        hybrid_retriever=hybrid_retriever,
+        top_k=top_k,
+        docs=docs,
+    )

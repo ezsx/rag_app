@@ -26,7 +26,7 @@ RAG-платформа с агентским ReAct-пайплайном над �
 | + q27 SecurityManager fix | **0.875** | **1.917** | 1.000 | — | 36 | Claude judge | 2026-04-01 | [judge](../../experiments/legacy/agent_eval/claude_judge_20260401.json) |
 | + NLI faithfulness (SPEC-RAG-21) | 0.842 | 1.778 | 1.000 | **0.91** | 36 | Claude + ruBERT NLI | 2026-04-01 | [eval](../../experiments/legacy/agent_eval/eval_results_20260401-091242.json), [nli](../../experiments/legacy/agent_eval/nli_scores_20260401_full.json), [analysis](../../experiments/legacy/reports/nli_faithfulness_analysis_20260401.md) |
 | **Benchmark SPEC-RAG-29** | **0.84** | **1.77** | — | — | 17 | Claude Opus 4.6 | 2026-04-03 | [scores](../../experiments/legacy/benchmarks/judge_scores.md), [artifact](../../experiments/legacy/benchmarks/judge_artifact.json) |
-| **RUN-008 corrected baseline** | **0.858** | **1.708** | **1.000** | **0.91** | 36 | Claude Opus + GPT-5.4 + manual calibration | 2026-04-08/10 | [results](../../experiments/runs/RUN-008/results.yaml), [`compute_confidence.py`](../../scripts/compute_confidence.py) |
+| **RUN-008 corrected baseline** | **0.858** | **1.708** | **1.000** | **0.91** | 36 | Claude Opus (published) + manual calibration | 2026-04-08/10 | [results](../../experiments/runs/RUN-008/results.yaml), [`compute_confidence.py`](../../scripts/compute_confidence.py) |
 
 Bootstrap CI для текущего baseline (`RUN-008`, 10K resamples): factual **0.858** with 95% CI **[0.792, 0.917]**, useful **1.708** with 95% CI **[1.606, 1.803]**. Retrieval factual: **0.888** [0.782, 0.965] on 17 retrieval questions. Analytics factual: **0.793** [0.679, 0.893] on 14 analytics questions.
 
@@ -75,7 +75,7 @@ CE reranking **degrades** R@3 (0.97→0.94) → заменён на confidence f
 | | retrieval_sufficiency | Достаточно ли документов для ответа (offline judge) |
 | | evidence_support | Подтверждён ли ответ документами (offline judge) |
 | **Diagnostic** | strict_anchor_recall | Exact match по expected document IDs |
-| | coverage | LANCER nugget coverage (query_plan subqueries) |
+| | coverage | LANCER-inspired lexical nugget coverage (query_plan subqueries) |
 | | latency (agent / baseline) | Время полного pipeline + p95 |
 
 Метрики retrieval_sufficiency и evidence_support требуют offline judge (Claude/Codex batch review). IR метрики (precision@5, MRR, nDCG@5, BERTScore, SummaC) добавлены в SPEC-RAG-22, доступны с 2026-04-01.
@@ -241,7 +241,7 @@ SSE tool tracking, key tool accuracy, failure attribution, LLM judge (Claude API
 
 **Observability**: Langfuse v3 self-hosted ([DEC-0040](../architecture/11-decisions/decision-log.md)). 7 instrumentation points. Double JSON fix, phase-aware step names, token aggregation.
 
-**Coverage redesign**: LANCER nugget coverage ([DEC-0044](../architecture/11-decisions/decision-log.md)) — query_plan subqueries как nuggets, threshold 0.75, max 1 targeted refinement. Latency −40-65%.
+**Coverage redesign**: LANCER-inspired lexical nugget coverage ([DEC-0044](../architecture/11-decisions/decision-log.md)) — query_plan subqueries как nuggets, threshold 0.75, max 1 targeted refinement. Latency −40-65%.
 
 **CE confidence filter** ([DEC-0045](../architecture/11-decisions/decision-log.md)): cross-encoder фильтрует irrelevant docs (keep 92% relevant, remove 55% irrelevant). ColBERT порядок сохраняется.
 

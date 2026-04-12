@@ -12,6 +12,7 @@ def final_answer(
     answer: str,
     sources: list[int] | None = None,
     citations: list[dict[str, Any]] | None = None,
+    support_check: dict[str, Any] | None = None,
     verification: dict[str, Any] | None = None,
     coverage: float | None = None,
     refinements: int | None = None,
@@ -64,6 +65,9 @@ def final_answer(
                 )
         if norm_citations:
             payload["citations"] = norm_citations
+
+    if support_check is not None:
+        payload["support_check"] = support_check
 
     if verification is not None:
         payload["verification"] = verification

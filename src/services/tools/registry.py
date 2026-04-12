@@ -48,7 +48,7 @@ def build_tool_runner(
     from services.tools.rerank import rerank
     from services.tools.search import search
     from services.tools.summarize_channel import summarize_channel
-    from services.tools.verify import verify
+    from services.tools.verify import evidence_support_check, verify
 
     runner = ToolRunner(default_timeout_sec=settings.agent_tool_timeout)
 
@@ -70,6 +70,10 @@ def build_tool_runner(
     )
     runner.register("fetch_docs", partial(fetch_docs, qdrant_store=qdrant_store))
     runner.register("compose_context", compose_context)
+    runner.register(
+        "evidence_support_check",
+        partial(evidence_support_check, hybrid_retriever=hybrid_retriever),
+    )
     runner.register("verify", partial(verify, hybrid_retriever=hybrid_retriever))
     runner.register("final_answer", final_answer)
 
