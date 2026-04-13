@@ -1,0 +1,132 @@
+{
+  "run_id": "RUN-009",
+  "packet_id": "judge_batch_07",
+  "source_packet": "experiments/runs/RUN-009/judge_packets_10q/judge_batches/eval_20260410-220837_10q/judge_batch_07.md",
+  "judge_model": "GPT-5.4 Pro (web)",
+  "notes": {
+    "expected_answer_policy": "weak_reference_not_strict_answer_key"
+  },
+  "rows": [
+    {
+      "query_id": "golden_v3_q065",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Scaling law, interaction metrics и критика больше агентов = лучше покрыты полностью."
+    },
+    {
+      "query_id": "golden_v3_q067",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Три required метода названы верно; ответ слегка расширен соседними techno_yandex постами."
+    },
+    {
+      "query_id": "golden_v3_q068",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Все требуемые цифры по HSE, Shanghai, Maryland и top-15 за 2024–2025 даны точно."
+    },
+    {
+      "query_id": "golden_v3_q069",
+      "factual": 1.0,
+      "useful": 1.8,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Крупные компании шумят больше, но внедряют медленнее; малые кейсы и примеры описаны верно."
+    },
+    {
+      "query_id": "golden_v3_q070",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": 0.8,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Core contrast Alice vs ChatGPT закрыт, но хвост про экосистемный контекст уже менее load-bearing."
+    },
+    {
+      "query_id": "golden_v3_q071",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Dueling DQN, 6 признаков и fallback на LRU после 500 мкс переданы точно."
+    },
+    {
+      "query_id": "golden_v3_q072",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "50k статей или 30 лет, Karlgren 1990 и CACM 1997 закрыты; дальше идёт уместное расширение."
+    },
+    {
+      "query_id": "golden_v3_q073",
+      "factual": 0.9,
+      "useful": 1.7,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "MAI-DxO и Chai Discovery покрыты; лишний ERNIE 4.5 делает ответ чуть менее сфокусированным."
+    },
+    {
+      "query_id": "golden_v3_q074",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Fireworks, Cerebras, Groq и позиции Opus 4.1 или Mistral Medium 3.1 переданы без искажений."
+    },
+    {
+      "query_id": "golden_v3_q075",
+      "factual": 0.9,
+      "useful": 1.7,
+      "evidence_support": 0.8,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Главный вывод про small parameter changes верен, но ответ расползается в широкий synthesis."
+    }
+  ],
+  "flagged_for_manual_review": [
+    {
+      "query_id": "golden_v3_q067",
+      "reason": "В целом сильный ответ, но есть adjacent expansion в соседние techno_yandex посты; если нужна строгая привязка к одному посту, кейс слегка спорный."
+    },
+    {
+      "query_id": "golden_v3_q070",
+      "reason": "Core contrast закрыт, но хвост про экосистемный контекст уже менее load-bearing; можно пересмотреть, если нужна жёсткая evidence discipline."
+    },
+    {
+      "query_id": "golden_v3_q075",
+      "reason": "Core claim закрыт, но ответ превращается в слишком широкий synthesis из нескольких adjacent экспериментов; если для вас критична точная привязка к одному авторскому выводу, кейс спорный."
+    }
+  ],
+  "summary": {
+    "strongest_answers": [
+      "golden_v3_q065",
+      "golden_v3_q068",
+      "golden_v3_q071",
+      "golden_v3_q074",
+      "golden_v3_q069",
+      "golden_v3_q072"
+    ],
+    "weakest_answers": [
+      "golden_v3_q075",
+      "golden_v3_q070",
+      "golden_v3_q073"
+    ],
+    "recurring_failure_patterns": [
+      "сильный core answer плюс шумный хвост из adjacent facts",
+      "слишком широкий synthesis поверх корректного основного ответа"
+    ]
+  },
+  "batch_metrics": {
+    "factual_mean": 0.96,
+    "useful_mean": 1.83,
+    "evidence_support_mean": 0.93,
+    "retrieval_sufficiency_mean": 1.0,
+    "correct_refusal_rate": null,
+    "flagged_count": 3
+  }
+}

@@ -1,0 +1,107 @@
+id: RUN-009
+date: 2026-04-13
+judge: GPT-5.4 Pro (web, separate chat, 12 packets)
+status: completed
+
+config:
+  dataset: "datasets/golden_v3/eval_golden_v3.json"
+  dataset_size: 120
+  llm: "Qwen3.5-35B-A3B GGUF Q4_K_M"
+  channel_dedup: 3
+  adaptive_filter: "CE + cosine recall guard"
+  compose_context_max_tokens: 4000
+  scoring_mode: "offline judge, expected_answer as weak reference"
+
+judge_protocol:
+  packets: 12
+  packet_size: 10
+  verdict_dir: "experiments/runs/RUN-009/judge_verdicts"
+  expected_answer_policy: "weak_reference_not_strict_answer_key"
+  note: >
+    Broader independent pass over the 120Q v3 dataset. These numbers are not a
+    drop-in replacement for RUN-008 baseline because the slice is broader and
+    includes navigation, refusal, adversarial, edge, and exact lookup items.
+
+metrics:
+  factual_mean_answerable105: 0.898
+  useful_mean_all120: 1.718
+  useful_mean_answerable105: 1.749
+  useful_mean_refusal15: 1.507
+  evidence_support_mean_retrieval65: 0.886
+  retrieval_sufficiency_mean_retrieval65: 0.958
+  correct_refusal: "15/15 (100%)"
+  answerable_with_factual_ge_09: "85/105"
+
+confidence_intervals:
+  artifact: "experiments/runs/RUN-009/confidence_intervals.json"
+  bootstrap_samples: 10000
+  factual_mean_answerable105: {mean: 0.898, ci_95: [0.860, 0.931], width: 0.071}
+  useful_mean_all120: {mean: 1.720, ci_95: [1.658, 1.776], width: 0.117}
+  evidence_support_mean_retrieval65: {mean: 0.886, ci_95: [0.843, 0.923], width: 0.080}
+  retrieval_sufficiency_mean_retrieval65: {mean: 0.959, ci_95: [0.917, 0.991], width: 0.074}
+  correct_refusal_wilson15: {mean: 1.000, ci_95: [0.796, 1.000], width: 0.204}
+
+baseline_comparison:
+  against_run_008_corrected:
+    factual_delta: +0.040
+    useful_delta: +0.010
+    refusal_delta: "+12 judged refusals (3/3 -> 15/15)"
+  note: >
+    Comparison is directional only. RUN-008 is a 36Q published baseline with
+    corrected labels and CI; RUN-009 is a broader 120Q independent judge pass
+    on a harder mixed dataset.
+
+slices:
+  retrieval_evidence:
+    denominator: 65
+    evidence_support_mean: 0.886
+    retrieval_sufficiency_mean: 0.958
+  answerable:
+    denominator: 105
+    factual_mean: 0.898
+    useful_mean: 1.749
+  refusal:
+    denominator: 15
+    correct_refusal_rate: 1.0
+    useful_mean: 1.507
+
+strong_signals:
+  - "Grounding path is real: retrieval_sufficiency ~0.958 on retrieval-evidence slice"
+  - "Refusal and safety behavior strong: 15/15 correct refusals on refusal/adversarial slice"
+  - "Usefulness remains high on broader set: 1.718/2 over all 120 questions"
+  - "Most answerable items are strong: 85/105 with factual >= 0.9"
+
+critical_failures:
+  - {query_id: golden_v3_q052, factual: 0.0, issue: "wrong tool + false absence answer on answerable question"}
+  - {query_id: golden_v3_q096, factual: 0.0, issue: "navigation question recognized but not answered"}
+  - {query_id: golden_v3_q077, factual: 0.2, issue: "retrieval/interpretation miss; wrong Karpathy thesis and missing required i18n/fluent claim"}
+  - {query_id: golden_q25, factual: 0.4, issue: "boundary/coverage miss + raw JSON/tool markup leakage"}
+  - {query_id: golden_v3_q117, factual: 0.5, issue: "multi-part question only half-answered"}
+
+recurring_failure_patterns:
+  - "tool-routing / boundary misses on mixed analytics-navigation-retrieval queries"
+  - "format leakage: </think>, raw JSON, phantom citation markers, tool markup"
+  - "good core answer followed by adjacent synthesis beyond strongest evidence"
+  - "analytics summaries that do not reproduce exact structured tool fields"
+  - "stale expected answers on some navigation/analytics items; judge should trust tool output over outdated reference"
+
+batch_metrics:
+  judge_batch_01: {factual_mean: 0.93, useful_mean: 1.87, evidence_support_mean: 0.87, retrieval_sufficiency_mean: 0.96, correct_refusal_rate: null, flagged_count: 4}
+  judge_batch_02: {factual_mean: 0.888, useful_mean: 1.73, evidence_support_mean: 0.85, retrieval_sufficiency_mean: 0.933, correct_refusal_rate: 1.0, flagged_count: 5}
+  judge_batch_03: {factual_mean: 0.844, useful_mean: 1.71, evidence_support_mean: 0.8, retrieval_sufficiency_mean: 0.6, correct_refusal_rate: 1.0, flagged_count: 3}
+  judge_batch_04: {factual_mean: 0.93, useful_mean: 1.77, evidence_support_mean: 0.95, retrieval_sufficiency_mean: 1.0, correct_refusal_rate: null, flagged_count: 3}
+  judge_batch_05: {factual_mean: 0.85, useful_mean: 1.65, evidence_support_mean: 0.82, retrieval_sufficiency_mean: 0.9, correct_refusal_rate: null, flagged_count: 3}
+  judge_batch_06: {factual_mean: 0.94, useful_mean: 1.79, evidence_support_mean: 0.92, retrieval_sufficiency_mean: 1.0, correct_refusal_rate: null, flagged_count: 2}
+  judge_batch_07: {factual_mean: 0.96, useful_mean: 1.83, evidence_support_mean: 0.93, retrieval_sufficiency_mean: 1.0, correct_refusal_rate: null, flagged_count: 3}
+  judge_batch_08: {factual_mean: 0.9, useful_mean: 1.68, evidence_support_mean: 0.925, retrieval_sufficiency_mean: 0.875, correct_refusal_rate: null, flagged_count: 2}
+  judge_batch_09: {factual_mean: 0.87, useful_mean: 1.75, evidence_support_mean: null, retrieval_sufficiency_mean: null, correct_refusal_rate: null, flagged_count: 2}
+  judge_batch_10: {factual_mean: 0.833, useful_mean: 1.7, evidence_support_mean: null, retrieval_sufficiency_mean: null, correct_refusal_rate: 1.0, flagged_count: 1}
+  judge_batch_11: {factual_mean: 0.9, useful_mean: 1.39, evidence_support_mean: 0.8, retrieval_sufficiency_mean: 1.0, correct_refusal_rate: 1.0, flagged_count: 1}
+  judge_batch_12: {factual_mean: 0.9, useful_mean: 1.77, evidence_support_mean: 0.9, retrieval_sufficiency_mean: 1.0, correct_refusal_rate: null, flagged_count: 3}
+
+decision: adopted_as_portfolio_measurement
+next_actions:
+  - "Do not re-tune retrieval immediately; most misses are routing, formatting, or evidence-synthesis hygiene"
+  - "Keep CI artifact in sync with any future re-judge: experiments/runs/RUN-009/confidence_intervals.json"
+  - "Update README and progress docs with broader independent pass"
+  - "Optionally patch cheap hygiene bugs: format leak sanitizer, stricter navigation boundary guard, exact analytics render mode"

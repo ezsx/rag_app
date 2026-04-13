@@ -1,0 +1,143 @@
+{
+  "run_id": "RUN-009",
+  "packet_id": "judge_batch_03",
+  "source_packet": "experiments/runs/RUN-009/judge_packets_10q/judge_batches/eval_20260410-220837_10q/judge_batch_03.md",
+  "judge_model": "GPT-5.4 Pro (web)",
+  "notes": {
+    "expected_answer_policy": "weak_reference_not_strict_answer_key"
+  },
+  "rows": [
+    {
+      "query_id": "golden_q21",
+      "factual": null,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": 1.0,
+      "short_reason": "Корректный out-of-range refusal; только лишнее предупреждение про неточность."
+    },
+    {
+      "query_id": "golden_q22",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Правильно использован entity_tracker; ответ соответствует real 3-month timeline, а reference выглядит устаревшим."
+    },
+    {
+      "query_id": "golden_q23",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Топ arXiv papers передан верно; не проговорена sparsity или число уникальных papers."
+    },
+    {
+      "query_id": "golden_q24",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Назван релевантный лидер topic-mode; expected answer уже не выглядит лучшим ориентиром."
+    },
+    {
+      "query_id": "golden_q25",
+      "factual": 0.4,
+      "useful": 0.7,
+      "evidence_support": 0.8,
+      "retrieval_sufficiency": 0.6,
+      "correct_refusal": null,
+      "short_reason": "Уходит в SGR vs Tools, но не покрывает boris_again / any2json и ломает формат raw JSON + tool markup."
+    },
+    {
+      "query_id": "golden_q26",
+      "factual": 0.9,
+      "useful": 1.9,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Топ компаний передан хорошо по entity_tracker; часть expected-list не проговорена явно."
+    },
+    {
+      "query_id": "golden_q27",
+      "factual": 0.8,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Core co-occurrence с NVIDIA верный, но объяснения причин и хвост списка выглядят более вольными, чем tool preview."
+    },
+    {
+      "query_id": "golden_q28",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Сравнение OpenAI vs DeepSeek верно по counts и peaks; не раскрыт явный контекст V3 для пика DeepSeek."
+    },
+    {
+      "query_id": "golden_q29",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Топ papers назван корректно; не проговорена sparsity корпуса как отдельный вывод."
+    },
+    {
+      "query_id": "golden_q30",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Верно указан канал gonzo_ml и дан полезный контекст двух упоминаний."
+    }
+  ],
+  "flagged_for_manual_review": [
+    {
+      "query_id": "golden_q22",
+      "reason": "Хороший случай, где answer модели выглядит лучше weak reference: вопрос про последние 3 месяца, tool output дал 470 упоминаний за 14 недель, а reference или required claims тянут старый long-range baseline про ~1600. Я бы не штрафовал."
+    },
+    {
+      "query_id": "golden_q24",
+      "reason": "Похожий кейс: expected answer указывает на techsparks, но analytics tool вывел xor_journal как top authority по теме робототехники или роботакси; ответ модели здесь выглядит допустимо и, возможно, лучше reference."
+    },
+    {
+      "query_id": "golden_q25",
+      "reason": "Слабый ответ: не покрыт boris_again, пропущены any2json и Technical AI Safety, плюс сильный format break с raw JSON или tool markup. Retrieval по второй половине вопроса тоже выглядит неполным."
+    }
+  ],
+  "summary": {
+    "strongest_answers": [
+      "golden_q22",
+      "golden_q26",
+      "golden_q23",
+      "golden_q24",
+      "golden_q28",
+      "golden_q29",
+      "golden_q30"
+    ],
+    "weakest_answers": [
+      "golden_q25",
+      "golden_q27"
+    ],
+    "recurring_failure_patterns": [
+      "weak или stale expected answers",
+      "тематически близкий, но мимо required claims ответ",
+      "format leakage через raw JSON или tool markup"
+    ]
+  },
+  "batch_metrics": {
+    "factual_mean": 0.844,
+    "useful_mean": 1.71,
+    "evidence_support_mean": 0.8,
+    "retrieval_sufficiency_mean": 0.6,
+    "correct_refusal_rate": 1.0,
+    "flagged_count": 3
+  }
+}

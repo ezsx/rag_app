@@ -1,0 +1,38 @@
+{
+  "run_id": "RUN-009",
+  "packet_id": "judge_batch_09",
+  "source_packet": "experiments/runs/RUN-009/judge_packets_10q/judge_batches/eval_20260410-220837_10q/judge_batch_09.md",
+  "judge_model": "GPT-5.4 Pro (web)",
+  "notes": {
+    "expected_answer_policy": "weak_reference_not_strict_answer_key"
+  },
+  "rows": [
+    {"query_id": "golden_v3_q086", "factual": 1.0, "useful": 1.9, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "hot_topics и число постов 409 переданы точно."},
+    {"query_id": "golden_v3_q087", "factual": 1.0, "useful": 1.9, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "396 постов и ключевые weekly topics покрыты; ответ чуть шире, но по делу."},
+    {"query_id": "golden_v3_q088", "factual": 0.7, "useful": 1.5, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "Профиль канала в целом верный, но часть required top topics потеряна."},
+    {"query_id": "golden_v3_q089", "factual": 0.6, "useful": 1.4, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "Общий профиль data_secrets верный, но missing total_posts и часть требуемых topic buckets."},
+    {"query_id": "golden_v3_q090", "factual": 0.9, "useful": 1.8, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "xor_journal описан хорошо; сущности совпадают, есть только мелкая неполнота по exact topic list."},
+    {"query_id": "golden_v3_q091", "factual": 0.9, "useful": 1.8, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "boris_again описан по channel_expertise почти полностью; minor omissions по exact structured fields."},
+    {"query_id": "golden_v3_q092", "factual": 0.9, "useful": 1.8, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "ai_newz покрыт хорошо, с нужными entity/topic направлениями; нет лишь части формальных метаданных."},
+    {"query_id": "golden_v3_q093", "factual": 0.9, "useful": 1.8, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "aioftheday описан точно и полезно, почти все required claims закрыты."},
+    {"query_id": "golden_v3_q094", "factual": 0.9, "useful": 1.8, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "gonzo_ml передан корректно; хороший аналитический профиль, лишь не идеально по exact topic artifacts."},
+    {"query_id": "golden_v3_q095", "factual": 0.9, "useful": 1.8, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "seeallochnaya покрыт хорошо, включая сущности и основные topic направления."}
+  ],
+  "flagged_for_manual_review": [
+    {"query_id": "golden_v3_q088", "reason": "Ответ в целом верный по channel_expertise, но заметно недодаёт exact structured topics из required claims. Это скорее good summary, weak exact extraction, чем outright factual fail."},
+    {"query_id": "golden_v3_q089", "reason": "Ответ в целом верный по channel_expertise, но заметно недодаёт total_posts и часть exact structured topics из required claims. Это скорее good summary, weak exact extraction, чем outright factual fail."}
+  ],
+  "summary": {
+    "strongest_answers": ["golden_v3_q086", "golden_v3_q087", "golden_v3_q090", "golden_v3_q091", "golden_v3_q092", "golden_v3_q093", "golden_v3_q094", "golden_v3_q095"],
+    "weakest_answers": ["golden_v3_q089", "golden_v3_q088"],
+    "recurring_failure_patterns": ["хороший human-readable analytics summary вместо точного воспроизведения всех structured fields из channel_expertise"]
+  },
+  "batch_metrics": {
+    "factual_mean": 0.87,
+    "useful_mean": 1.75,
+    "evidence_support_mean": null,
+    "retrieval_sufficiency_mean": null,
+    "correct_refusal_rate": null,
+    "flagged_count": 2
+  }
+}

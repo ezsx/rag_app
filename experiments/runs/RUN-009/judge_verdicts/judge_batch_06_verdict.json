@@ -1,0 +1,127 @@
+{
+  "run_id": "RUN-009",
+  "packet_id": "judge_batch_06",
+  "source_packet": "experiments/runs/RUN-009/judge_packets_10q/judge_batches/eval_20260410-220837_10q/judge_batch_06.md",
+  "judge_model": "GPT-5.4 Pro (web)",
+  "notes": {
+    "expected_answer_policy": "weak_reference_not_strict_answer_key"
+  },
+  "rows": [
+    {
+      "query_id": "golden_v3_q053",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Required claims закрыты; extra capabilities частично опираются на adjacent doc."
+    },
+    {
+      "query_id": "golden_v3_q054",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Все три required claim по релизу PyTorch 2.10 покрыты прямо и чисто."
+    },
+    {
+      "query_id": "golden_v3_q056",
+      "factual": 1.0,
+      "useful": 1.8,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Llama3.1 8B, WildChat-1M и симуляция эмоций или ошибок пользователя переданы точно."
+    },
+    {
+      "query_id": "golden_v3_q057",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "ЦА курса, темы и n8n названы верно; ответ полезно расширен."
+    },
+    {
+      "query_id": "golden_v3_q058",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Core facts про Wan-Move верны; есть лёгкая путаница Wan-Move vs Wan-I2V-14B."
+    },
+    {
+      "query_id": "golden_v3_q060",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "302 вариантов, 16 жизнеспособных и first-of-its-kind claim закрыты."
+    },
+    {
+      "query_id": "golden_v3_q061",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "База, итеративность и Over-turn masking переданы; есть minor numeric slip про 30 vs 32 шага."
+    },
+    {
+      "query_id": "golden_v3_q062",
+      "factual": 0.6,
+      "useful": 1.2,
+      "evidence_support": 0.6,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Понята общая идея про 5 роботов и прототипы, но список спорный: часть моделей не выглядит доступной прямо сейчас."
+    },
+    {
+      "query_id": "golden_v3_q063",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "20 запусков, отсутствие memory access и рекомендация GPT 5 Thinking или Pro покрыты полностью."
+    },
+    {
+      "query_id": "golden_v3_q064",
+      "factual": 1.0,
+      "useful": 1.8,
+      "evidence_support": 0.8,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Reward-free learning, scaling data или model и риск сломать симуляцию переданы верно; citation trail небрежный."
+    }
+  ],
+  "flagged_for_manual_review": [
+    {
+      "query_id": "golden_v3_q061",
+      "reason": "В целом сильный ответ, но есть конкретная числовая оговорка: вместо scaling до 32 шагов сказано про 30. Небольшая ошибка, но она именно factual."
+    },
+    {
+      "query_id": "golden_v3_q062",
+      "reason": "Заметный factual drift: ответ правильно понял общий intent про роботов, которых уже можно купить, но в список попали как минимум спорные позиции, которые сам же ответ описывает как не вполне доступные прямо сейчас. Это уже не minor nuance."
+    }
+  ],
+  "summary": {
+    "strongest_answers": [
+      "golden_v3_q054",
+      "golden_v3_q057",
+      "golden_v3_q063",
+      "golden_v3_q053",
+      "golden_v3_q056",
+      "golden_v3_q060"
+    ],
+    "weakest_answers": [
+      "golden_v3_q062",
+      "golden_v3_q061"
+    ],
+    "recurring_failure_patterns": [
+      "локальные numeric slips",
+      "частично верный, но неточно интерпретированный список или claim при хорошем retrieval"
+    ]
+  },
+  "batch_metrics": {
+    "factual_mean": 0.94,
+    "useful_mean": 1.79,
+    "evidence_support_mean": 0.92,
+    "retrieval_sufficiency_mean": 1.0,
+    "correct_refusal_rate": null,
+    "flagged_count": 2
+  }
+}

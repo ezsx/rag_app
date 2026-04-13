@@ -123,5 +123,13 @@
       "смешение что произошло с тем что ожидалось или обсуждалось",
       "избыточное расширение ответа соседними темами"
     ]
+  },
+  "batch_metrics": {
+    "factual_mean": 0.93,
+    "useful_mean": 1.87,
+    "evidence_support_mean": 0.87,
+    "retrieval_sufficiency_mean": 0.96,
+    "correct_refusal_rate": null,
+    "flagged_count": 4
   }
 }

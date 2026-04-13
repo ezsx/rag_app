@@ -2,12 +2,14 @@
 
 > Most RAG portfolios show a LangChain demo. This project shows:
 > 1. A custom end-to-end pipeline that **wins on a scoped LlamaIndex benchmark by +0.30 factual** on identical data and model
-> 2. An evaluation framework with **57 runs, published judge artifacts, manual hard-case calibration**, and NLI-audited faithfulness
+> 2. An evaluation framework with **57 runs, published judge artifacts, a broader 120Q independent judge pass**, and NLI-audited faithfulness
 > 3. **39 ablation experiments** with honest reporting of what didn't work
 >
 > Self-hosted on two GPUs. No managed APIs. No frameworks.
 
-![Factual](https://img.shields.io/badge/Factual-0.858-brightgreen) ![Useful](https://img.shields.io/badge/Useful-1.71%2F2-brightgreen) ![Faithfulness](https://img.shields.io/badge/Faithfulness-0.91-brightgreen) ![Robustness](https://img.shields.io/badge/Robustness-0.954-brightgreen) ![Recall@5](https://img.shields.io/badge/Recall%405-0.900-blue) ![Tools](https://img.shields.io/badge/Tools-15-blue) ![Docs](https://img.shields.io/badge/Docs-13K-blue) ![License](https://img.shields.io/badge/License-Apache%202.0-orange)
+![Factual](https://img.shields.io/badge/Factual-0.898-brightgreen) ![Useful](https://img.shields.io/badge/Useful-1.72%2F2-brightgreen) ![Support](https://img.shields.io/badge/Support-0.886-brightgreen) ![Refusal](https://img.shields.io/badge/Refusal-15%2F15-brightgreen) ![Faithfulness](https://img.shields.io/badge/Faithfulness-0.91-blue) ![Robustness](https://img.shields.io/badge/Robustness-0.954-blue) ![Recall@5](https://img.shields.io/badge/Recall%405-0.900-blue) ![Questions](https://img.shields.io/badge/Questions-120-blue) ![License](https://img.shields.io/badge/License-Apache%202.0-orange)
+
+Broader independent pass note: `RUN-009` on **120 reviewed questions** scored **0.898 factual** on **105 answerable** items with **95% CI [0.860, 0.931]**, **1.718 / 2 useful** with **95% CI [1.658, 1.776]**, **0.886 evidence support** on the **65 retrieval-evidence** slice, and **15/15 correct refusals** via `GPT-5.4 Pro` packet review.
 
 Published baseline note: latest 36Q baseline is **0.803 raw** on the original dataset and **0.858 corrected** after auditing 7 overly narrow open-ended labels in `eval_golden_v2_fixed.json`.
 
@@ -85,9 +87,26 @@ V100 in TCC mode poisons NVML in WSL2 — Docker GPU unavailable. All GPU worklo
 
 ## Eval Results
 
-**Judge methodology**: published artifacts use Claude Opus 4.6 as the primary judge, with manual calibration on hard cases and internal cross-checking against GPT-5.4 on disputed examples. Granular scale: factual 0.0-1.0 (step 0.1), useful 0.0-2.0 (step 0.1). Independent NLI audit via ruBERT is used for claim-level faithfulness analysis.
+**Judge methodology**: published 36Q baseline artifacts use Claude Opus 4.6 as the primary judge, with manual calibration on hard cases and internal cross-checking against GPT-5.4 on disputed examples. The broader 120Q `RUN-009` pass below was reviewed independently via `GPT-5.4 Pro` in 12 packetized judge batches. Granular scale: factual 0.0-1.0 (step 0.1), useful 0.0-2.0 (step 0.1). Independent NLI audit via ruBERT is used for claim-level faithfulness analysis.
 
-**LLM judge metrics** (36 Qs golden_v2, [latest run](experiments/runs/RUN-008/results.yaml)):
+**Broader independent judge pass** (120 Qs `golden_v3`, [`RUN-009`](experiments/runs/RUN-009/results.yaml)):
+
+| Metric | Value | Details |
+|--------|-------|---------|
+| **Factual correctness** | **0.898** | 105 answerable questions, independent `GPT-5.4 Pro` judge pass |
+| **Usefulness** | **1.718 / 2** | 120 total questions, including refusals |
+| **Evidence support** | **0.886** | 65 retrieval-evidence questions |
+| **Retrieval sufficiency** | **0.958** | 65 retrieval-evidence questions |
+| **Correct refusal** | **15 / 15** | refusal + adversarial slice |
+| **Useful on answerable only** | **1.749 / 2** | 105 answerable questions |
+| **Useful on refusal slice** | **1.507 / 2** | correct but sometimes overly terse refusal UX |
+| **High-confidence answerable items** | **85 / 105** | factual `>= 0.9` |
+
+This 120Q pass is a **broader generalization check**, not a drop-in replacement for the 36Q published baseline below. It includes more navigation, refusal, adversarial, edge, and exact-lookup items, so the denominators and mix are different.
+
+Bootstrap CI for `RUN-009` via [`scripts/compute_confidence.py`](scripts/compute_confidence.py) and [`confidence_intervals.json`](experiments/runs/RUN-009/confidence_intervals.json): factual **0.898** with **95% CI [0.860, 0.931]**, useful **1.720** with **95% CI [1.658, 1.776]**, evidence support **0.886** with **95% CI [0.843, 0.923]**, retrieval sufficiency **0.959** with **95% CI [0.917, 0.991]**, correct refusal **1.000** with Wilson **95% CI [0.796, 1.000]**.
+
+**Published baseline metrics** (36 Qs `golden_v2`, [latest run](experiments/runs/RUN-008/results.yaml)):
 
 | Metric | Value | Details |
 |--------|-------|---------|
@@ -99,7 +118,7 @@ V100 in TCC mode poisons NVML in WSL2 — Docker GPU unavailable. All GPU worklo
 | **Correct refusal** | **3/3** | Agent correctly refuses out-of-scope queries |
 | **Mean latency** | **~30s** | LLM inference 84% (self-hosted Qwen3.5-35B on V100), retrieval ~2.5s, CE rerank ~2s. With managed API: ~6-8s estimated |
 
-Bootstrap confidence via [`scripts/compute_confidence.py`](scripts/compute_confidence.py): retrieval factual **0.888** (95% CI [0.782, 0.965], n=17), analytics factual **0.793** (95% CI [0.679, 0.893], n=14). Intervals are intentionally wide at n=36; expanding the golden set to 100+ questions is the next step.
+Bootstrap confidence via [`scripts/compute_confidence.py`](scripts/compute_confidence.py): retrieval factual **0.888** (95% CI [0.782, 0.965], n=17), analytics factual **0.793** (95% CI [0.679, 0.893], n=14). These intervals are intentionally wide at `n=36`; `RUN-009` now provides a broader 120Q pass with its own CI artifact.
 
 ### Why standard proxy metrics fail (and why we still implement them)
 

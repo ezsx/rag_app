@@ -17,3 +17,5 @@
 | RUN-005 | 2026-04-08 | channel dedup 2→3 | q08: boris:3749 + techsparks:5439 вернулись | RUN-001 | dedup=2 убивал 3й doc из канала с ключевыми фактами | **adopted** |
 | RUN-006 | 2026-04-08 | dual scoring (norm_linear + rrf_ranks) | q08 деградация: 4 cit vs 10 | RUN-005 | пересортировка ломает CE gap detection | **rejected** |
 | RUN-007 | 2026-04-08 | cosine recall guard (CE precision + bi-encoder recall) | q08 10 cit, control stable | RUN-005 | CE фильтрует, cosine спасает false negatives | **adopted** |
+| RUN-008 | 2026-04-09 | frozen baseline measurement on corrected 36Q set | factual 0.858, useful 1.708, refusal 3/3 | RUN-007 | published baseline after dataset audit of 7 open-ended labels | **adopted → published baseline** |
+| RUN-009 | 2026-04-13 | broader independent 120Q validation on frozen pipeline | factual 0.898, useful 1.718, refusal 15/15 | RUN-008 | broader judge pass confirms baseline; remaining issues are routing/format hygiene, not retrieval tuning | **adopted → portfolio measurement** |

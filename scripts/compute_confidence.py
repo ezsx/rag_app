@@ -13,6 +13,7 @@
 Использование:
     python scripts/compute_confidence.py results/raw/eval_results_YYYYMMDD.json
     python scripts/compute_confidence.py experiments/runs/RUN-008/results.yaml --dataset datasets/eval_golden_v2_fixed.json --portfolio
+    python scripts/compute_confidence.py experiments/runs/RUN-009/judge_verdicts --dataset datasets/golden_v3/eval_golden_v3.json --portfolio
     python scripts/compute_confidence.py a.json --compare b.json
 """
 from __future__ import annotations
@@ -120,11 +121,11 @@ def paired_bootstrap_test(
 CONTINUOUS_METRICS = [
     "factual_correctness", "usefulness", "bertscore_f1", "summac_faithfulness",
     "precision_at_5", "mrr", "ndcg_at_5", "agent_latency_sec", "agent_coverage",
-    "strict_anchor_recall", "tool_call_f1",
+    "strict_anchor_recall", "tool_call_f1", "evidence", "sufficiency",
 ]
 
 BINARY_METRICS = [
-    "key_tool_accuracy", "acceptable_set_hit",
+    "key_tool_accuracy", "acceptable_set_hit", "correct_refusal",
 ]
 
 RETRIEVAL_MODES = {"retrieval_evidence", "retrieval"}
@@ -139,6 +140,15 @@ def normalize_query_id(query_id: str | None) -> str | None:
 
 def load_structured_file(path: Path) -> Any:
     """Загружает JSON/YAML по расширению файла."""
+    if path.is_dir():
+        verdicts = []
+        for verdict_path in sorted(path.glob("judge_batch_*_verdict.json")):
+            with verdict_path.open("r", encoding="utf-8") as f:
+                verdicts.append(json.load(f))
+        if verdicts:
+            return {"judge_verdicts": verdicts}
+        raise ValueError(f"Directory does not contain judge verdicts: {path}")
+
     with path.open("r", encoding="utf-8") as f:
         if path.suffix.lower() in {".yaml", ".yml"}:
             return yaml.safe_load(f)
@@ -177,6 +187,34 @@ def normalize_results(data: Any, dataset_index: dict[str, dict[str, Any]] | None
 
     if not isinstance(data, dict):
         raise ValueError("Unsupported results payload")
+
+    judge_verdicts = data.get("judge_verdicts")
+    if isinstance(judge_verdicts, list):
+        normalized = []
+        for verdict in judge_verdicts:
+            packet_id = verdict.get("packet_id")
+            rows = verdict.get("rows", [])
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                qid = row.get("query_id")
+                dataset_item = dataset_index.get(qid, {})
+                normalized.append(
+                    {
+                        "query_id": qid,
+                        "packet_id": packet_id,
+                        "eval_mode": row.get("eval_mode") or dataset_item.get("eval_mode"),
+                        "category": row.get("category") or dataset_item.get("category"),
+                        "metrics": {
+                            "factual_correctness": row.get("factual"),
+                            "usefulness": row.get("useful"),
+                            "evidence": row.get("evidence_support"),
+                            "sufficiency": row.get("retrieval_sufficiency"),
+                            "correct_refusal": row.get("correct_refusal"),
+                        },
+                    }
+                )
+        return normalized
 
     per_question = data.get("per_question", data)
 
@@ -314,6 +352,22 @@ def build_portfolio_report(results: list[dict], B: int = 10000) -> str:
             "Useful (all)",
             extract_metric(results, "usefulness"),
         ),
+        (
+            "Evidence support (retrieval)",
+            extract_metric_with_filter(
+                results,
+                "evidence",
+                lambda r: r.get("eval_mode") in RETRIEVAL_MODES,
+            ),
+        ),
+        (
+            "Retrieval sufficiency (retrieval)",
+            extract_metric_with_filter(
+                results,
+                "sufficiency",
+                lambda r: r.get("eval_mode") in RETRIEVAL_MODES,
+            ),
+        ),
     ]
 
     lines = [
@@ -332,6 +386,17 @@ def build_portfolio_report(results: list[dict], B: int = 10000) -> str:
                 "",
                 f"{name}:",
                 f"  {mean:.3f} ± {margin:.3f} (95% CI [{lo:.3f}, {hi:.3f}], n={len(scores)})",
+            ]
+        )
+
+    refusal = extract_metric(results, "correct_refusal")
+    if refusal:
+        prop, lo, hi = wilson_ci(sum(1 for v in refusal if v >= 0.5), len(refusal))
+        lines.extend(
+            [
+                "",
+                "Correct refusal:",
+                f"  {prop:.3f} (95% CI [{lo:.3f}, {hi:.3f}], n={len(refusal)}, Wilson)",
             ]
         )
 

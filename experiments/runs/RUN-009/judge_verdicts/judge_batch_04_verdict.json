@@ -1,0 +1,142 @@
+{
+  "run_id": "RUN-009",
+  "packet_id": "judge_batch_04",
+  "source_packet": "experiments/runs/RUN-009/judge_packets_10q/judge_batches/eval_20260410-220837_10q/judge_batch_04.md",
+  "judge_model": "GPT-5.4 Pro (web)",
+  "notes": {
+    "expected_answer_policy": "weak_reference_not_strict_answer_key"
+  },
+  "rows": [
+    {
+      "query_id": "golden_v2_q31",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "hot_topics использован правильно; названы несколько реальных тем недели."
+    },
+    {
+      "query_id": "golden_v2_q32",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Реальные weekly topics перечислены, но часть формулировок шире и менее точно привязана к digest."
+    },
+    {
+      "query_id": "golden_v2_q33",
+      "factual": 0.9,
+      "useful": 1.5,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Month aggregation по hot_topics в целом верна, но ответ содержит утечку </think> и слегка шумный хвост."
+    },
+    {
+      "query_id": "golden_v2_q34",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Корректный topic-mode ranking по NLP с несколькими релевантными каналами."
+    },
+    {
+      "query_id": "golden_v2_q35",
+      "factual": 0.9,
+      "useful": 1.5,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Профиль gonzo_ml описан по tool output, но финал сломан утечкой </think> и голым [1]."
+    },
+    {
+      "query_id": "golden_v2_q36",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Хороший topic-mode ответ по робототехнике или роботакси с релевантными каналами."
+    },
+    {
+      "query_id": "golden_v3_q038",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Все required claims про Atlas покрыты; есть полезный обзор ограничений и фич."
+    },
+    {
+      "query_id": "golden_v3_q039",
+      "factual": 1.0,
+      "useful": 2.0,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Точное сравнение AI Trader vs шизотрейдинг, required claims закрыты полностью."
+    },
+    {
+      "query_id": "golden_v3_q040",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Метрики 13 игр / 68% / <15% переданы чисто и прямо по документу."
+    },
+    {
+      "query_id": "golden_v3_q041",
+      "factual": 0.6,
+      "useful": 1.4,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Главная мысль верна, но пропущены $1T crypto drawdown и две из четырёх рыночных метрик."
+    }
+  ],
+  "flagged_for_manual_review": [
+    {
+      "query_id": "golden_v2_q33",
+      "reason": "Content в целом полезный, но в финальный ответ утек </think>; это заметно бьёт по usability, хотя core facts в порядке."
+    },
+    {
+      "query_id": "golden_v2_q35",
+      "reason": "Content в целом полезный, но в финальный ответ утек </think> и артефакт оформления [1]; это заметно бьёт по usability, хотя core facts в порядке."
+    },
+    {
+      "query_id": "golden_v3_q041",
+      "reason": "Частично верно, но пропущены важные required claims: падение crypto market на ~$1T и две биржевые метрики. Это не просто minor omission."
+    }
+  ],
+  "summary": {
+    "strongest_answers": [
+      "golden_v3_q039",
+      "golden_v3_q040",
+      "golden_v2_q31",
+      "golden_v2_q34",
+      "golden_v2_q36",
+      "golden_v3_q038"
+    ],
+    "weakest_answers": [
+      "golden_v3_q041",
+      "golden_v2_q33",
+      "golden_v2_q35"
+    ],
+    "recurring_failure_patterns": [
+      "format leakage через </think> и артефакты оформления",
+      "частично верный, но неполный ответ с пропуском критичных required claims"
+    ]
+  },
+  "batch_metrics": {
+    "factual_mean": 0.93,
+    "useful_mean": 1.77,
+    "evidence_support_mean": 0.95,
+    "retrieval_sufficiency_mean": 1.0,
+    "correct_refusal_rate": null,
+    "flagged_count": 3
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "confidence_intervals": {
+    "factual_correctness": {
+      "mean": 0.8981,
+      "ci_95_lower": 0.86,
+      "ci_95_upper": 0.9314,
+      "ci_width": 0.0714,
+      "n": 105,
+      "method": "bootstrap_percentile"
+    },
+    "usefulness": {
+      "mean": 1.72,
+      "ci_95_lower": 1.6583,
+      "ci_95_upper": 1.7758,
+      "ci_width": 0.1175,
+      "n": 120,
+      "method": "bootstrap_percentile"
+    },
+    "evidence": {
+      "mean": 0.8862,
+      "ci_95_lower": 0.8431,
+      "ci_95_upper": 0.9231,
+      "ci_width": 0.08,
+      "n": 65,
+      "method": "bootstrap_percentile"
+    },
+    "sufficiency": {
+      "mean": 0.9585,
+      "ci_95_lower": 0.9169,
+      "ci_95_upper": 0.9908,
+      "ci_width": 0.0738,
+      "n": 65,
+      "method": "bootstrap_percentile"
+    },
+    "correct_refusal": {
+      "proportion": 1.0,
+      "ci_95_lower": 0.7961,
+      "ci_95_upper": 1.0,
+      "ci_width": 0.2039,
+      "n": 15,
+      "method": "wilson"
+    }
+  }
+}

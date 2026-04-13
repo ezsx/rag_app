@@ -3,17 +3,18 @@
 > Scope задач после ablation study + README polish.
 > **Tier 1+3 + lite Tier 2 = ready for outreach (3-4 дня).** Не блокировать job search остальными тирами.
 > Tier 4-6 делать параллельно с активным поиском.
-> Последнее обновление: 2026-04-10
+> Последнее обновление: 2026-04-13
 
 ---
 
 ## Current State
 
-- Factual: **0.858** with **95% CI [0.792, 0.917]** (36 Qs, published baseline: Claude Opus + manual calibration after dataset audit)
-- Useful: **1.71/2** with **95% CI [1.606, 1.803]**, Faithfulness: **0.91**, Robustness: **0.954**, R@5: **0.900**
+- Broader independent pass (`RUN-009`, 120 Qs): **0.898 factual** on **105 answerable** with **95% CI [0.860, 0.931]**, **1.718/2 useful** with **95% CI [1.658, 1.776]**, **0.886 evidence support**, **0.959 retrieval sufficiency**, **15/15 refusals**
+- Published baseline (`RUN-008`, 36 Qs): **0.858** with **95% CI [0.792, 0.917]**, useful **1.71/2** with **95% CI [1.606, 1.803]**
+- Faithfulness: **0.91 adjudicated**, Robustness: **0.954**, R@5: **0.900**
 - Benchmark: **+0.30 factual** vs LlamaIndex on identical data
-- 39 ablation experiments, 8 formal runs (RUN-001–RUN-008)
-- README: updated with hook, latency decomposition, mermaid diagrams, security section
+- 39 ablation experiments, 9 formal runs (RUN-001–RUN-009)
+- README: synced with broader `RUN-009` numbers and claim-cleanup
 
 ---
 
@@ -42,7 +43,7 @@ Bootstrap CI и significance tests — превращает "0.858" в "0.858 ±
 - [ ] **Cohen's kappa** между Claude и GPT-5.4 judge на 30-50 hard cases (`sklearn.metrics.cohen_kappa_score`). kappa > 0.7 = substantial agreement — железный аргумент про judge reliability
 - [x] **Обновить README** — добавить CI к ключевым метрикам
 - [ ] **Обновить ablation_study.md** — пометить какие changes значимы после correction
-- [ ] **Повторить** на v3 dataset после Tier 4 — CIs сузятся вдвое
+- [x] **Повторить** на v3 dataset после Tier 4 — `RUN-009` broader pass now has its own CI artifact
 
 ---
 
@@ -84,9 +85,11 @@ Bootstrap CI и significance tests — превращает "0.858" в "0.858 ±
 - [x] **Golden v3 draft** — `datasets/golden_v3/eval_golden_v3_draft.json` (125 candidates, 5 rejected kept for audit)
 - [x] **Golden v3 final** — `datasets/golden_v3/eval_golden_v3.json` (120 reviewed Qs; schema/load/anchor validation passed)
 - [ ] **Inter-annotator agreement** на hard cases — Claude vs GPT-5.4 independent expected answers, **Cohen's kappa** на 30-50 hard cases
-- [ ] **Прогон + judge** на расширенном датасете
-- [ ] **Повторить Tier 2** (bootstrap CI, significance tests) — CIs сузятся на n=120
-- [ ] **Обновить README** с новыми метриками и tight CI
+- [x] **Прогон + judge** на расширенном датасете — `RUN-009`: 120Q, factual `0.898` on 105 answerable, refusal `15/15`
+- [x] **Повторить Tier 2 bootstrap CI** на v3 dataset — `RUN-009`: factual `0.898 ± 0.036`, useful `1.720 ± 0.059`, evidence `0.886 ± 0.040`, sufficiency `0.959 ± 0.037`
+- [x] **Обновить README** с новыми метриками broad independent pass
+- [x] **Добавить v3 CI** в README после повторного bootstrap на `RUN-009`
+- [ ] **Доделать Tier 2 significance tests** — paired bootstrap for benchmark, BH correction for ablations, kappa on hard cases
 
 ---
 

@@ -2,8 +2,31 @@
 
 > Полная история экспериментов с per-question таблицами и подробными описаниями техник.
 > Полная хронология. Сводка метрик — в [project_scope.md](project_scope.md).
-> Последнее обновление: 2026-04-10
-> 57+ eval прогонов, 8 milestone phases, 8 formal runs (RUN-001–008), 39+ retrieval experiments, NDR/RSR/ROR robustness
+> Последнее обновление: 2026-04-13
+> 57+ eval прогонов, 8 milestone phases, 9 formal runs (RUN-001–009), 39+ retrieval experiments, NDR/RSR/ROR robustness
+
+---
+
+## Current Portfolio Baseline (RUN-009, 2026-04-13)
+
+Broader independent judge pass on `datasets/golden_v3/eval_golden_v3.json`:
+
+- `factual`: **0.898** on **105 answerable**, 95% CI **[0.860, 0.931]**
+- `useful`: **1.718 / 2** on **120 total**, 95% CI **[1.658, 1.776]**
+- `evidence_support`: **0.886** on **65 retrieval-evidence**, 95% CI **[0.843, 0.923]**
+- `retrieval_sufficiency`: **0.959** on **65 retrieval-evidence**, 95% CI **[0.917, 0.991]**
+- `correct_refusal`: **15 / 15**, Wilson 95% CI **[0.796, 1.000]**
+- `answerable with factual >= 0.9`: **85 / 105**
+
+Main conclusion: broader validation confirms the frozen baseline; the dominant remaining failures are **routing / formatting / exact analytics rendering**, not core retrieval quality.
+
+Worst observed misses:
+
+- `golden_v3_q052` — wrong tool + false absence answer
+- `golden_v3_q096` — navigation question recognized but not completed
+- `golden_v3_q077` — retrieval/interpretation miss on Karpathy query
+- `golden_q25` — boundary miss + raw JSON/tool markup leakage
+- `golden_v3_q117` — only half of a multi-part question answered
 
 ---
 

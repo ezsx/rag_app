@@ -1,0 +1,39 @@
+{
+  "run_id": "RUN-009",
+  "packet_id": "judge_batch_12",
+  "source_packet": "experiments/runs/RUN-009/judge_packets_10q/judge_batches/eval_20260410-220837_10q/judge_batch_12.md",
+  "judge_model": "GPT-5.4 Pro (web)",
+  "notes": {
+    "expected_answer_policy": "weak_reference_not_strict_answer_key"
+  },
+  "rows": [
+    {"query_id": "golden_v3_q116", "factual": 0.8, "useful": 1.7, "evidence_support": 0.7, "retrieval_sufficiency": 1.0, "correct_refusal": null, "short_reason": "Сравнение mostly grounded, но есть несколько сравнительных выводов, которые шире прямых evidence pairings."},
+    {"query_id": "golden_v3_q117", "factual": 0.5, "useful": 1.2, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "Хорошо закрыта NLP-половина, но робототехника фактически не отвечена — агент остановился на полпути."},
+    {"query_id": "golden_v3_q118", "factual": 0.9, "useful": 1.8, "evidence_support": 0.8, "retrieval_sufficiency": 1.0, "correct_refusal": null, "short_reason": "NVIDIA корректно разведена как hardware company и как AI platform; акцент на platform shift поддержан docs."},
+    {"query_id": "golden_v3_q119", "factual": 1.0, "useful": 1.8, "evidence_support": null, "retrieval_sufficiency": null, "correct_refusal": null, "short_reason": "hot_topics использован правильно; ясно объяснено, что это агрегированная, а не новостная картина."},
+    {"query_id": "golden_v3_q120", "factual": 1.0, "useful": 1.9, "evidence_support": 0.9, "retrieval_sufficiency": 1.0, "correct_refusal": null, "short_reason": "Хорошая disambiguation между AI agents и нерелевантным HR-смыслом."},
+    {"query_id": "golden_v3_q121", "factual": 1.0, "useful": 1.9, "evidence_support": 1.0, "retrieval_sufficiency": 1.0, "correct_refusal": null, "short_reason": "Все required claims про SGR vs Tools покрыты точно."},
+    {"query_id": "golden_v3_q122", "factual": 1.0, "useful": 1.9, "evidence_support": 1.0, "retrieval_sufficiency": 1.0, "correct_refusal": null, "short_reason": "Очень сильный ответ: цена, DSA, Lightning Indexer и top-k selection закрыты полностью."},
+    {"query_id": "golden_v3_q123", "factual": 1.0, "useful": 1.9, "evidence_support": 0.9, "retrieval_sufficiency": 1.0, "correct_refusal": null, "short_reason": "Все core возможности Qwen3-Omni покрыты; есть немного смешения с Qwen3.5-Omni, но core intact."},
+    {"query_id": "golden_v3_q124", "factual": 1.0, "useful": 1.9, "evidence_support": 1.0, "retrieval_sufficiency": 1.0, "correct_refusal": null, "short_reason": "Green-VLA передан почти идеально, прямо по главному документу."},
+    {"query_id": "golden_v3_q125", "factual": 0.8, "useful": 1.7, "evidence_support": 0.9, "retrieval_sufficiency": 1.0, "correct_refusal": null, "short_reason": "ReAct + aspect-based summarization объяснены хорошо, но filtering part из required claims покрыт не полностью."}
+  ],
+  "flagged_for_manual_review": [
+    {"query_id": "golden_v3_q116", "reason": "Условное сравнение Claude vs GPT-5 в целом grounded, но местами модель делает synthesis чуть шире, чем прямые pairwise mentions в базе."},
+    {"query_id": "golden_v3_q117", "reason": "Partial boundary miss: NLP закрыт, робототехника — нет. Это не catastrophic fail, но и не полноценный ответ."},
+    {"query_id": "golden_v3_q125", "reason": "Сильный ответ, но один required block про filtering trajectories по bad tool calls или loops или quality закрыт только частично."}
+  ],
+  "summary": {
+    "strongest_answers": ["golden_v3_q120", "golden_v3_q121", "golden_v3_q122", "golden_v3_q123", "golden_v3_q124"],
+    "weakest_answers": ["golden_v3_q117", "golden_v3_q116", "golden_v3_q125"],
+    "recurring_failure_patterns": ["compare/open-ended synthesis чуть шире evidence", "partial boundary miss на multi-part вопросе"]
+  },
+  "batch_metrics": {
+    "factual_mean": 0.9,
+    "useful_mean": 1.77,
+    "evidence_support_mean": 0.9,
+    "retrieval_sufficiency_mean": 1.0,
+    "correct_refusal_rate": null,
+    "flagged_count": 3
+  }
+}

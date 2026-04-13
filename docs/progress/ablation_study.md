@@ -12,6 +12,8 @@
 
 **Production pipeline**: `BM25(100) + Dense(20) → RRF [1:3] → ColBERT MaxSim → CE filter(0.0) → channel dedup(2)`
 
+> Post-study validation (2026-04-13): broader independent `RUN-009` judge pass on 120 reviewed questions reached **0.898 factual** on **105 answerable** with **95% CI [0.860, 0.931]**, **1.718 / 2 useful** with **95% CI [1.658, 1.776]**, **0.886 evidence support** with **95% CI [0.843, 0.923]**, and **15 / 15 correct refusals** with Wilson **95% CI [0.796, 1.000]**. This confirms the adopted pipeline is already strong enough for portfolio/interview use; the main remaining issues are routing, formatting, and exact analytics rendering, not another large retrieval tuning cycle.
+
 ---
 
 ## Phase 1 — Parameter Sweep (2026-04-04)

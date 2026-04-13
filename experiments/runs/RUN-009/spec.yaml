@@ -1,7 +1,7 @@
 id: RUN-009
 date: 2026-04-10
 author: codex
-status: draft_pending_user_review
+status: completed
 
 hypothesis: >
   Замерить текущий frozen production pipeline на новом semi-manual golden v3
@@ -229,9 +229,23 @@ decision_after_run:
   if_success:
     - "Write experiments/runs/RUN-009/results.yaml"
     - "Update experiments/log.md"
-    - "Repeat bootstrap CI on v3"
+    - "Compute and save bootstrap CI for the broader v3 pass"
     - "Update docs/progress/project_scope.md and README metrics only after judge review"
   if_failure:
     - "Do not tune pipeline immediately"
     - "Classify failures by dataset issue / guard issue / retrieval issue / analytics tool limitation"
     - "Fix dataset bugs first if expected answers are too strict or anchors invalid"
+
+final_result:
+  results_file: "experiments/runs/RUN-009/results.yaml"
+  verdict_packets: 12
+  metrics:
+    factual_mean_answerable105: 0.898
+    useful_mean_all120: 1.718
+    evidence_support_mean_retrieval65: 0.886
+    retrieval_sufficiency_mean_retrieval65: 0.958
+    correct_refusal: "15/15"
+  conclusion: >
+    Broader independent 120Q judge pass validated the frozen baseline. Main
+    remaining issues are routing, formatting, and exact analytics rendering,
+    not core retrieval architecture.

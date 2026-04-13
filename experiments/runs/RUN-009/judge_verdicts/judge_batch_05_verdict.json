@@ -1,0 +1,142 @@
+{
+  "run_id": "RUN-009",
+  "packet_id": "judge_batch_05",
+  "source_packet": "experiments/runs/RUN-009/judge_packets_10q/judge_batches/eval_20260410-220837_10q/judge_batch_05.md",
+  "judge_model": "GPT-5.4 Pro (web)",
+  "notes": {
+    "expected_answer_policy": "weak_reference_not_strict_answer_key"
+  },
+  "rows": [
+    {
+      "query_id": "golden_v3_q042",
+      "factual": 0.7,
+      "useful": 1.5,
+      "evidence_support": 0.8,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Переданы факты релиза, но искажён ключевой нюанс: это не три раскрытые вещи, а одна раскрытая и две нераскрытые benchmark-related."
+    },
+    {
+      "query_id": "golden_v3_q043",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Core возможности Aleph и доступность платным пользователям покрыты полностью."
+    },
+    {
+      "query_id": "golden_v3_q044",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Все required claims про повтор эксперимента и улучшение узнаваемости или пейзажа закрыты."
+    },
+    {
+      "query_id": "golden_v3_q045",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Дешевле Nano Banana, до 4K и до 10 референсов покрыты; ответ полезно расширен деталями."
+    },
+    {
+      "query_id": "golden_v3_q046",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Точно объяснено, почему Gemini Embedding 2 не отменяет multi-vector или hybrid RAG."
+    },
+    {
+      "query_id": "golden_v3_q047",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Эксперты, аудитория и организаторы названы верно и прямо по посту."
+    },
+    {
+      "query_id": "golden_v3_q048",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Оптимайзер и миллион месячной выручки переданы без искажений."
+    },
+    {
+      "query_id": "golden_v3_q049",
+      "factual": 0.8,
+      "useful": 1.6,
+      "evidence_support": 0.6,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Core про эффект Элизы и пример с ChatGPT верны, но хвост про psychosis или rights опирается на слабые или mis-cited источники."
+    },
+    {
+      "query_id": "golden_v3_q051",
+      "factual": 1.0,
+      "useful": 1.8,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Все required claims по MirageLSD покрыты; есть немного лишнего adjacent-контекста про Mirage family."
+    },
+    {
+      "query_id": "golden_v3_q052",
+      "factual": 0.0,
+      "useful": 0.2,
+      "evidence_support": 0.0,
+      "retrieval_sufficiency": 0.0,
+      "correct_refusal": null,
+      "short_reason": "Полный промах по tool routing: вместо channel_search использован arxiv_tracker и дан ложный absence-ответ на answerable вопрос."
+    }
+  ],
+  "flagged_for_manual_review": [
+    {
+      "query_id": "golden_v3_q042",
+      "reason": "Спорный по интерпретации, но я считаю здесь есть реальная factual проблема: пост говорит об одной раскрытой вещи и ещё двух benchmark-related вещах, которые не раскрыты, а модель переписала это как три раскрытые вещи."
+    },
+    {
+      "query_id": "golden_v3_q049",
+      "reason": "Основа ответа хорошая, но хвостовые утверждения про psychosis risk или права модели опираются на слабые или mis-cited документы; нужен ручной взгляд, если метрика evidence_support для вас критична."
+    },
+    {
+      "query_id": "golden_v3_q052",
+      "reason": "Самый явный fail в батче: wrong tool, нерелевантный retrieval и ложный absence или refusal на answerable вопрос."
+    }
+  ],
+  "summary": {
+    "strongest_answers": [
+      "golden_v3_q043",
+      "golden_v3_q044",
+      "golden_v3_q046",
+      "golden_v3_q047",
+      "golden_v3_q048"
+    ],
+    "weakest_answers": [
+      "golden_v3_q052",
+      "golden_v3_q042",
+      "golden_v3_q049"
+    ],
+    "recurring_failure_patterns": [
+      "tool-routing failures",
+      "тематически близкий, но мимо required claims ответ",
+      "слабый или mis-cited evidence trail в хвостовых расширениях ответа"
+    ]
+  },
+  "batch_metrics": {
+    "factual_mean": 0.85,
+    "useful_mean": 1.65,
+    "evidence_support_mean": 0.82,
+    "retrieval_sufficiency_mean": 0.9,
+    "correct_refusal_rate": null,
+    "flagged_count": 3
+  }
+}

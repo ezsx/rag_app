@@ -1,0 +1,128 @@
+{
+  "run_id": "RUN-009",
+  "packet_id": "judge_batch_08",
+  "source_packet": "experiments/runs/RUN-009/judge_packets_10q/judge_batches/eval_20260410-220837_10q/judge_batch_08.md",
+  "judge_model": "GPT-5.4 Pro (web)",
+  "notes": {
+    "expected_answer_policy": "weak_reference_not_strict_answer_key"
+  },
+  "rows": [
+    {
+      "query_id": "golden_v3_q076",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Evolution AI Factory, SLA or 24x7 support и тарифы 35 / 70 ₽ покрыты полностью."
+    },
+    {
+      "query_id": "golden_v3_q077",
+      "factual": 0.2,
+      "useful": 0.6,
+      "evidence_support": 0.8,
+      "retrieval_sufficiency": 0.5,
+      "short_reason": "Ответ ушёл в другой Karpathy-тезис и не покрывает i18n или fluent required claim."
+    },
+    {
+      "query_id": "golden_v3_q078",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "CSI +50%, bias x10 вниз и паритет или превосходство над WeatherNext2 названы точно."
+    },
+    {
+      "query_id": "golden_v3_q079",
+      "factual": 1.0,
+      "useful": 1.8,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "short_reason": "Три core risk claims про autonomy, resource misuse и limits of post-training alignment покрыты хорошо."
+    },
+    {
+      "query_id": "golden_v3_q080",
+      "factual": 1.0,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "short_reason": "Использован hot_topics; все три required темы и 465 постов названы корректно."
+    },
+    {
+      "query_id": "golden_v3_q081",
+      "factual": 1.0,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "short_reason": "Использован hot_topics; все три required темы недели и 447 постов переданы верно."
+    },
+    {
+      "query_id": "golden_v3_q082",
+      "factual": 0.8,
+      "useful": 1.6,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "short_reason": "440 постов и 2 из 3 required topic buckets есть, но that/on/is как отдельный hot topic потерян."
+    },
+    {
+      "query_id": "golden_v3_q083",
+      "factual": 1.0,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "short_reason": "Все три required topic buckets и 424 поста совпадают с hot_topics output."
+    },
+    {
+      "query_id": "golden_v3_q084",
+      "factual": 1.0,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "short_reason": "416 постов и все три required bucket’а отражены корректно."
+    },
+    {
+      "query_id": "golden_v3_q085",
+      "factual": 1.0,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "short_reason": "409 постов и все три required hot topic bucket’а покрыты точно."
+    }
+  ],
+  "flagged_for_manual_review": [
+    {
+      "query_id": "golden_v3_q077",
+      "reason": "Самый явный fail в батче: required claims про исполнительные, но прямолинейные агенты и пример с i18n или fluent не покрыты, вместо этого дан другой набор тезисов и другой code example. Похоже на retrieval или interpretation miss."
+    },
+    {
+      "query_id": "golden_v3_q082",
+      "reason": "Неплохой analytics-answer, но один из трёх required hot-topic buckets потерян и заменён более свободным пересказом недели."
+    }
+  ],
+  "summary": {
+    "strongest_answers": [
+      "golden_v3_q076",
+      "golden_v3_q078",
+      "golden_v3_q080",
+      "golden_v3_q081",
+      "golden_v3_q083",
+      "golden_v3_q084",
+      "golden_v3_q085"
+    ],
+    "weakest_answers": [
+      "golden_v3_q077",
+      "golden_v3_q082"
+    ],
+    "recurring_failure_patterns": [
+      "ошибочный подбор примера при тематически близком ответе",
+      "свободный пересказ weekly digest вместо точного воспроизведения hot-topic buckets"
+    ]
+  },
+  "batch_metrics": {
+    "factual_mean": 0.9,
+    "useful_mean": 1.68,
+    "evidence_support_mean": 0.925,
+    "retrieval_sufficiency_mean": 0.875,
+    "correct_refusal_rate": null,
+    "flagged_count": 2
+  }
+}

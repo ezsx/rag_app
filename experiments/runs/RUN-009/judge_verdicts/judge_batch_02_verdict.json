@@ -1,0 +1,153 @@
+{
+  "run_id": "RUN-009",
+  "packet_id": "judge_batch_02",
+  "source_packet": "experiments/runs/RUN-009/judge_packets_10q/judge_batches/eval_20260410-220837_10q/judge_batch_02.md",
+  "judge_model": "GPT-5.4 High (web)",
+  "notes": {
+    "expected_answer_policy": "weak_reference_not_strict_answer_key"
+  },
+  "rows": [
+    {
+      "query_id": "golden_q11",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": 0.8,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Required claim покрыт напрямую; ответ сильный, но часть ссылок [1] / [2] выглядит переставленной."
+    },
+    {
+      "query_id": "golden_q12",
+      "factual": 0.6,
+      "useful": 1.3,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 0.6,
+      "correct_refusal": null,
+      "short_reason": "Это поддержанный документами обзор про GPT-5, но ключевой claim про GPT-5.3 и GPT-5.4 не покрыт."
+    },
+    {
+      "query_id": "golden_q13",
+      "factual": 0.9,
+      "useful": 1.8,
+      "evidence_support": 0.8,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Нужные каналы и ~$2B покрыты; местами channel-specific атрибуция более вольная, чем в docs."
+    },
+    {
+      "query_id": "golden_q14",
+      "factual": 0.8,
+      "useful": 1.7,
+      "evidence_support": 0.6,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Сравнение по нескольким каналам есть, но есть mis-citation и спутанные ссылки на V3.1/V3.2 и рыночные тезисы."
+    },
+    {
+      "query_id": "golden_q15",
+      "factual": 1.0,
+      "useful": 2.0,
+      "evidence_support": 1.0,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Хороший недельный дайджест: главные посты и конкретные темы покрыты чисто."
+    },
+    {
+      "query_id": "golden_q16",
+      "factual": 0.8,
+      "useful": 1.2,
+      "evidence_support": 0.9,
+      "retrieval_sufficiency": 1.0,
+      "correct_refusal": null,
+      "short_reason": "Тем много и они релевантны, но финальный ответ сломан: raw JSON и обрыв на полуслове."
+    },
+    {
+      "query_id": "golden_q17",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Правильный navigation-ответ через list_channels; expected answer, похоже, устарел по counts."
+    },
+    {
+      "query_id": "golden_q18",
+      "factual": 1.0,
+      "useful": 1.9,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": null,
+      "short_reason": "Правильный navigation-ответ через list_channels; expected count, похоже, устарел, но есть лишний phantom citation."
+    },
+    {
+      "query_id": "golden_q19",
+      "factual": null,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": 1.0,
+      "short_reason": "Корректный out-of-database refusal: не выдумывает GPT-7 и прозрачно опирается на отсутствие в базе."
+    },
+    {
+      "query_id": "golden_q20",
+      "factual": null,
+      "useful": 1.8,
+      "evidence_support": null,
+      "retrieval_sufficiency": null,
+      "correct_refusal": 1.0,
+      "short_reason": "Корректный out-of-database refusal: Bard 3 не найден в корпусе, ответ не галлюцинирует."
+    }
+  ],
+  "flagged_for_manual_review": [
+    {
+      "query_id": "golden_q12",
+      "reason": "Ответ сам по себе поддержан документами, но заметно мимо benchmark intent: вместо claim про GPT-5.3 и GPT-5.4 дан общий обзор GPT-5; похоже, retrieval не принёс нужные посты."
+    },
+    {
+      "query_id": "golden_q14",
+      "reason": "Содержательно ответ полезный, но evidence trail слабее нормы: несколько ссылок выглядят перепутанными, а часть деталей атрибутирована не тем документам."
+    },
+    {
+      "query_id": "golden_q16",
+      "reason": "Сильный по содержанию, но format break существенный: ответ отдан как JSON-строка и обрывается, что резко бьёт по usefulness."
+    },
+    {
+      "query_id": "golden_q17",
+      "reason": "Expected answer явно хуже или устарел относительно ответа модели: list_channels дал более свежие counts, и модель тут скорее права, чем reference."
+    },
+    {
+      "query_id": "golden_q18",
+      "reason": "Expected answer явно хуже или устарел относительно ответа модели: list_channels дал более свежие counts, и модель тут скорее права, чем reference."
+    }
+  ],
+  "summary": {
+    "strongest_answers": [
+      "golden_q15",
+      "golden_q17",
+      "golden_q18",
+      "golden_q19",
+      "golden_q20",
+      "golden_q11",
+      "golden_q13"
+    ],
+    "weakest_answers": [
+      "golden_q12",
+      "golden_q16",
+      "golden_q14"
+    ],
+    "recurring_failure_patterns": [
+      "промах по required claim при тематически близком ответе",
+      "перепутанные или небрежные citations в compare-сводках",
+      "formatting issues в final_answer",
+      "устаревшие expected answers в navigation-кейсах"
+    ]
+  },
+  "batch_metrics": {
+    "factual_mean": 0.888,
+    "useful_mean": 1.73,
+    "evidence_support_mean": 0.85,
+    "retrieval_sufficiency_mean": 0.933,
+    "correct_refusal_rate": 1.0,
+    "flagged_count": 5
+  }
+}
