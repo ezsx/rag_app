@@ -1,32 +1,31 @@
 # rag_app — Self-Hosted RAG with Agentic ReAct Pipeline
 
 > Most RAG portfolios show a LangChain demo. This project shows:
-> 1. A custom end-to-end pipeline that **wins on a scoped LlamaIndex benchmark by +0.30 factual** on identical data and model
-> 2. An evaluation framework with **57 runs, published judge artifacts, a broader 120Q independent judge pass**, and NLI-audited faithfulness
-> 3. **39 ablation experiments** with honest reporting of what didn't work
+> 1. A custom end-to-end pipeline that **wins on a scoped [LlamaIndex benchmark](docs/specifications/completed/SPEC-RAG-29-framework-comparison-benchmark.md) by +0.30 factual** on identical data and model
+> 2. An evaluation framework with **[57 runs](docs/progress/experiment_log.md), [published judge artifacts](experiments/runs/RUN-009/judge_verdicts/), a broader [120Q independent judge pass](experiments/runs/RUN-009/results.yaml)**, and [NLI-audited faithfulness](experiments/legacy/reports/nli_faithfulness_analysis_20260401.md)
+> 3. **[39 ablation experiments](docs/progress/ablation_study.md)** with honest reporting of what didn't work
 >
 > Self-hosted on two GPUs. No managed APIs. No frameworks.
 
 ![Factual](https://img.shields.io/badge/Factual-0.898-brightgreen) ![Useful](https://img.shields.io/badge/Useful-1.72%2F2-brightgreen) ![Support](https://img.shields.io/badge/Support-0.886-brightgreen) ![Refusal](https://img.shields.io/badge/Refusal-15%2F15-brightgreen) ![Faithfulness](https://img.shields.io/badge/Faithfulness-0.91-blue) ![Robustness](https://img.shields.io/badge/Robustness-0.954-blue) ![Recall@5](https://img.shields.io/badge/Recall%405-0.900-blue) ![Questions](https://img.shields.io/badge/Questions-120-blue) ![License](https://img.shields.io/badge/License-Apache%202.0-orange)
 
-Broader independent pass note: `RUN-009` on **120 reviewed questions** scored **0.898 factual** on **105 answerable** items with **95% CI [0.860, 0.931]**, **1.718 / 2 useful** with **95% CI [1.658, 1.776]**, **0.886 evidence support** on the **65 retrieval-evidence** slice, and **15/15 correct refusals** via `GPT-5.4 Pro` packet review.
+Broader independent pass note: [`RUN-009`](experiments/runs/RUN-009/results.yaml) on [`120 reviewed questions`](datasets/golden_v3/eval_golden_v3.json) scored **0.898 factual** on **105 answerable** items with **95% CI [0.860, 0.931]**, **1.718 / 2 useful** with **95% CI [1.658, 1.776]**, **0.886 evidence support** on the **65 retrieval-evidence** slice with **95% CI [0.843, 0.923]**, and **15/15 correct refusals** via `GPT-5.4 Pro` packet review with human review on flagged cases ([CI artifact](experiments/runs/RUN-009/confidence_intervals.json), [judge packets](experiments/runs/RUN-009/judge_verdicts/)).
 
-Published baseline note: latest 36Q baseline is **0.803 raw** on the original dataset and **0.858 corrected** after auditing 7 overly narrow open-ended labels in `eval_golden_v2_fixed.json`.
+Published baseline note: latest [`36Q baseline`](experiments/runs/RUN-008/results.yaml) is **0.803 raw** on the original dataset and **0.858 corrected** after auditing 7 overly narrow open-ended labels in [`eval_golden_v2_fixed.json`](datasets/eval_golden_v2_fixed.json); baseline judging used `GPT-5.4` + `Claude Opus 4.6` with human review on hard cases.
 
 ---
 
 ## What it does
 
-User asks a question about AI/ML news. ReAct agent plans sub-queries, runs hybrid retrieval (BM25 + dense + ColBERT) over 13K documents from 36 Russian-language Telegram channels, filters with cross-encoder + cosine recall guard, produces a grounded answer with citations via SSE streaming.
+User asks a question about AI/ML news. ReAct agent plans sub-queries, runs hybrid retrieval (BM25 + dense + ColBERT) over [13K documents from 36 Russian-language Telegram channels](docs/research/reports/R09-telegram-channels-collection.md), filters with cross-encoder + cosine recall guard, produces a grounded answer with citations via SSE streaming.
 
 ```
 Query → query_plan → multi-query search (BM25+Dense → RRF → ColBERT) → MMR-style merge → CE re-sort + adaptive filter → compose_context → answer
 ```
 
-15 LLM tools with phase-based dynamic visibility. Analytics tools (entity tracking, trend digests, channel expertise) short-circuit the search path when appropriate.
+[15 LLM tools](#agent-tools-15) with phase-based dynamic visibility. Analytics tools (entity tracking, trend digests, channel expertise) short-circuit the search path when appropriate.
 
-<!-- TODO: GIF of live SSE-streaming response (10-15 sec) -->
-<!-- TODO: place demo.gif here -->
+![Pipeline SSE demo](docs/assets/readme/pipeline-sse-demo.gif)
 
 <details>
 <summary><b>Example: real query trace</b> (from eval RUN-008)</summary>
@@ -36,14 +35,34 @@ User: "Кого Financial Times назвала человеком года в 20
 → query_plan: 3 subqueries (k=10, fusion=rrf)                    3.7s
 → search: 28 docs retrieved (hybrid BM25+dense, 3 subqueries)    2.5s
 → rerank: CE scores [6.6, 5.2, 3.5, 2.5, 2.4] → 5 docs kept    1.9s
-→ compose_context: 5 citations from 3 channels, coverage 0.70    0.002s
-→ final_answer: 845 chars with inline [1][2][3] citations
+→ compose_context: 5 citations from 3 channels, coverage 1.00    0.002s
+→ final_answer: 5 source refs, supported by retrieved docs
 Total: 31.7s (LLM inference ~25s = 84%, retrieval+rerank ~8s)
 
-Answer: "Financial Times назвала «Человеком года» в 2025 году Дженсена Хуанга,
-основателя и генерального директора NVIDIA [1][2]. Издание отметило ключевую
-роль Хуанга в трансформации полупроводниковой индустрии..."
-Sources: techsparks, ai_machinelearning_big_data, data_secrets
+Журнал Financial Times назвал «Человеком года» в 2025 году Дженсена Хуанга
+(Jensen Huang), основателя и генерального директора NVIDIA [1][2].
+
+Издание отметило ключевую роль Хуанга в трансформации полупроводниковой
+индустрии и глобальном распространении искусственного интеллекта. Именно
+благодаря его усилиям NVIDIA стала самой дорогой компанией в мире с рыночной
+капитализацией более $5 трлн, а дата-центры окончательно закрепились как
+критически важная инфраструктура [2].
+
+Стоит отметить, что Дженсен Хуанг получил эту награду практически одновременно
+с признанием «Архитектором года» по версии журнала Time, где человеком года
+была объявлена группа из восьми лидеров ИИ-индустрии под общим названием
+«Архитекторы ИИ» [1][3].
+
+Sources
+[1] techsparks — 2025-12-12
+[2] ai_machinelearning_big_data — 2025-12-13
+[3] techsparks — 2025-12-11
+[4] data_secrets — 2025-12-11
+[5] ai_machinelearning_big_data — 2025-12-11
+
+Coverage: 100%
+Steps: 5
+Supported by retrieved docs
 ```
 
 </details>
@@ -341,22 +360,9 @@ graph TD
 
 Self-hosted Langfuse v3. Every agent request produces a trace tree with per-span timing, token usage, and tool outputs.
 
-<!-- TODO: screenshot of Langfuse trace tree with real query (replace ASCII below) -->
-<!-- Langfuse UI: http://localhost:3100, pick a retrieval_evidence trace like q01 or q02 -->
+![Langfuse trace](docs/assets/readme/langfuse-trace-q02.jpg)
 
-```
-agent_request (root)                          30.5s total
-├── llm_step_1 → llm_chat_completion         1.7s  (1144 in → 38 out tokens)
-├── tool:query_plan                           2.7s
-├── llm_step_2 → llm_chat_completion         1.4s
-├── tool:search → hybrid_retrieval            2.5s  (30 docs, 3 subqueries)
-├── llm_step_3 → llm_chat_completion         11.0s
-├── tool:rerank → CE filter                   2.1s  (scores: 9.4, 9.3, 9.1...)
-├── tool:compose_context                      0.002s (10 citations, coverage 0.79)
-├── llm_step_4_final → llm_chat_completion    8.0s  (7453 in → 305 out tokens)
-├── tool:final_answer
-└── tool[system]:evidence_support_check → hybrid_retrieval  0.4s
-```
+Example trace (`q02`-style retrieval flow): root span + LLM steps + `query_plan` / `search` / `rerank` / `compose_context` / `final_answer` + support check, with latency, token counts, and tool payloads visible in one tree.
 
 Rich output per span: hits_count, coverage, prompt_len, token usage. Error marking for failed tools. Root trace: plan, strategy, tokens, coverage, citations_count.
 

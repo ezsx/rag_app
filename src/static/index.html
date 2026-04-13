@@ -5,72 +5,327 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAG Agent</title>
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #0f172a; --card: #1e293b; --border: #334155; --accent: #3b82f6; --green: #10b981; --amber: #f59e0b; --text: #e2e8f0; --muted: #94a3b8; }
-  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
-  .step-card { border-left: 3px solid var(--border); transition: all 0.3s; }
-  .step-card.active { border-left-color: var(--accent); }
-  .step-card.done { border-left-color: var(--green); }
-  .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-  .badge-tool { background: rgba(59,130,246,0.15); color: #60a5fa; }
-  .badge-thought { background: rgba(168,85,247,0.15); color: #c084fc; }
-  .badge-obs { background: rgba(16,185,129,0.15); color: #34d399; }
-  .badge-final { background: rgba(245,158,11,0.15); color: #fbbf24; }
-  .badge-cite { background: rgba(59,130,246,0.15); color: #60a5fa; }
-  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+  :root {
+    --bg: #050505;
+    --bg-elevated: #0b0b0b;
+    --panel: rgba(18, 18, 18, 0.88);
+    --panel-strong: rgba(22, 22, 22, 0.96);
+    --border: rgba(255, 255, 255, 0.1);
+    --border-strong: rgba(255, 255, 255, 0.18);
+    --text: #f5f5f5;
+    --muted: rgba(255, 255, 255, 0.52);
+    --muted-strong: rgba(255, 255, 255, 0.7);
+    --accent: #ffffff;
+    --ok: #dbdbdb;
+    --warn: #9d9d9d;
+    --danger: #6d6d6d;
+    --shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: linear-gradient(180deg, #090909 0%, #050505 100%);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .matrix-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.62;
+  }
+  .shell {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .mono-ui { font-family: 'IBM Plex Mono', monospace; }
+  .display-ui { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.04em; }
+  .frame {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(16px);
+  }
+  .step-card {
+    border-left: 2px solid var(--border);
+    transition: border-color 0.25s ease, transform 0.25s ease, background 0.25s ease;
+  }
+  .step-card.active {
+    border-left-color: rgba(255,255,255,0.88);
+    background: rgba(255,255,255,0.03);
+  }
+  .step-card.done {
+    border-left-color: rgba(255,255,255,0.46);
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.66rem;
+    padding: 0.32rem 0.62rem;
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    color: var(--muted-strong);
+  }
+  .badge-tool,
+  .badge-thought,
+  .badge-obs,
+  .badge-final,
+  .badge-cite {
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+  }
+  .tool-mark {
+    width: 1.55rem;
+    height: 1.55rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.03);
+    color: rgba(255,255,255,0.88);
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
+    flex-shrink: 0;
+  }
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.12);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+  }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .fade-in { animation: fadeIn 0.3s ease-out; }
-  .final-answer { background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(59,130,246,0.08)); border: 1px solid rgba(16,185,129,0.3); }
-  .citation-ref { color: #60a5fa; font-weight: 600; cursor: help; }
-  textarea:focus, input:focus { outline: none; box-shadow: 0 0 0 2px var(--accent); }
-  .coverage-bar { height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+  .final-answer {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 100%),
+      var(--panel-strong);
+    border: 1px solid var(--border-strong);
+  }
+  .citation-ref { color: #ffffff; font-weight: 600; cursor: help; }
+  textarea:focus, input:focus { outline: none; box-shadow: 0 0 0 2px rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.24); }
+  .coverage-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
   .coverage-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease-out; }
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  #chat-area { scroll-behavior: smooth; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 3px; }
+  #chat-area {
+    scroll-behavior: smooth;
+    min-height: 0;
+  }
+  .panel-header {
+    background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+  }
+  .brand-mark {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: #111111;
+    position: relative;
+    overflow: hidden;
+  }
+  .brand-mark::before,
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    background: #f5f5f5;
+  }
+  .brand-mark::before {
+    width: 18px;
+    height: 18px;
+    clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+  }
+  .brand-mark::after {
+    width: 4px;
+    height: 22px;
+    border-radius: 99px;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--muted-strong);
+  }
+  .status-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 999px;
+    background: #f5f5f5;
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.06);
+  }
+  .hero-card {
+    position: relative;
+    padding: 3.2rem 1.6rem 2.6rem;
+    text-align: center;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: "";
+    position: absolute;
+    inset: 18px;
+    border: 1px dashed rgba(255,255,255,0.06);
+    border-radius: 20px;
+    pointer-events: none;
+  }
+  .hero-glyph {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 1.5rem;
+    position: relative;
+    border-radius: 28px;
+    background:
+      radial-gradient(circle, rgba(255,255,255,0.92) 0 4px, transparent 4px 100%),
+      #0f0f0f;
+    background-size: 22px 22px, auto;
+    mask-image: radial-gradient(circle at 34% 34%, black 0 28%, transparent 29%),
+      radial-gradient(circle at 68% 68%, black 0 28%, transparent 29%),
+      linear-gradient(135deg, transparent 43%, black 44% 56%, transparent 57%);
+    -webkit-mask-image: radial-gradient(circle at 34% 34%, black 0 28%, transparent 29%),
+      radial-gradient(circle at 68% 68%, black 0 28%, transparent 29%),
+      linear-gradient(135deg, transparent 43%, black 44% 56%, transparent 57%);
+  }
+  .hero-title {
+    font-size: clamp(1.9rem, 4vw, 3rem);
+    line-height: 0.95;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.06em;
+    margin-bottom: 0.8rem;
+  }
+  .hero-sub {
+    max-width: 40rem;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+  .query-shell {
+    border-radius: 22px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .query-input {
+    background: transparent;
+    color: var(--text);
+  }
+  .query-input::placeholder { color: rgba(255,255,255,0.34); }
+  .send-btn {
+    border-radius: 18px;
+    background: #f5f5f5;
+    color: #080808;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    transition: transform 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+  }
+  .send-btn:hover { transform: translateY(-1px); background: #ffffff; }
+  .send-btn:disabled { opacity: 0.38; transform: none; }
+  .user-bubble {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+  }
+  .ghost-copy { color: rgba(255,255,255,0.34); }
+  .source-line { color: rgba(255,255,255,0.58); }
+  @media (max-width: 768px) {
+    .panel-header { border-radius: 0 0 22px 22px; }
+    .frame { max-width: 100%; }
+    .hero-card { padding-top: 2.6rem; }
+  }
 </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="shell">
+<canvas id="matrix-bg" class="matrix-bg" aria-hidden="true"></canvas>
+<div class="frame">
 
 <!-- Header -->
-<header class="border-b border-gray-800 px-6 py-4 flex items-center justify-between flex-shrink-0">
+<header class="panel-header mx-3 mt-3 px-5 py-4 flex items-center justify-between flex-shrink-0">
   <div class="flex items-center gap-3">
-    <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-sm">R</div>
+    <div class="brand-mark"></div>
     <div>
-      <h1 class="text-lg font-semibold">RAG Agent</h1>
-      <p class="text-xs text-gray-500">Telegram News Intelligence</p>
+      <h1 class="display-ui text-lg font-semibold">rag_app</h1>
+      <p class="text-xs ghost-copy mono-ui">Self-hosted Telegram intelligence over a grounded corpus</p>
     </div>
   </div>
-  <div id="status-indicator" class="flex items-center gap-2 text-xs text-gray-500">
-    <span class="w-2 h-2 rounded-full bg-green-500"></span> Ready
+  <div id="status-indicator" class="status-pill mono-ui text-xs">
+    <span class="status-dot"></span><span>Ready</span>
   </div>
 </header>
 
 <!-- Chat area -->
-<main id="chat-area" class="flex-1 overflow-y-auto px-4 py-6 space-y-4 max-w-4xl mx-auto w-full">
-  <div id="welcome" class="text-center py-20 text-gray-500">
-    <div class="text-5xl mb-4 opacity-30">?</div>
-    <p class="text-lg mb-2">Ask anything about AI & LLM news</p>
-    <p class="text-sm">Data from Telegram channels: protechietich, data_secrets, ai_machinelearning_big_data, data_easy, xor_journal</p>
+<main id="chat-area" class="flex-1 overflow-y-auto px-3 py-5 space-y-4 w-full">
+  <div id="welcome" class="max-w-4xl mx-auto hero-card card">
+    <div class="hero-glyph"></div>
+    <p class="hero-title">Strict retrieval.<br>Readable traces.</p>
+    <p class="hero-sub mono-ui">Ask about AI and LLM news across a grounded Telegram corpus. The agent plans subqueries, searches the archive, shows its steps, and answers with citations instead of intuition.</p>
+    <div class="mt-8 flex flex-wrap justify-center gap-2 text-xs">
+      <span class="badge">36 channels</span>
+      <span class="badge">13K documents</span>
+      <span class="badge">Hybrid retrieval</span>
+      <span class="badge">SSE trace</span>
+    </div>
   </div>
-  <div id="messages"></div>
+  <div id="messages" class="max-w-4xl mx-auto"></div>
 </main>
 
 <!-- Input -->
-<footer class="border-t border-gray-800 px-4 py-4 flex-shrink-0">
-  <form id="query-form" class="max-w-4xl mx-auto flex gap-3">
+<footer class="px-3 pb-4 pt-2 flex-shrink-0">
+  <form id="query-form" class="max-w-4xl mx-auto flex gap-3 items-stretch query-shell p-2">
     <input id="query-input" type="text" placeholder="Ask a question..."
-      class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm placeholder-gray-500"
+      class="query-input flex-1 rounded-2xl px-4 py-3 text-sm"
       autocomplete="off" />
     <button type="submit" id="send-btn"
-      class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+      class="send-btn px-6 py-3 text-sm disabled:cursor-not-allowed">
       Send
     </button>
   </form>
 </footer>
+</div>
 
 <script>
 const API = window.location.origin;
@@ -95,7 +350,7 @@ function addMessage(role, html) {
   const div = document.createElement('div');
   div.className = 'fade-in mb-4 mt-6';
   if (role === 'user') {
-    div.innerHTML = `<div class="flex justify-end"><div class="card px-4 py-3 max-w-lg" style="background:#2563eb22;border-color:#2563eb44"><p class="text-sm">${esc(html)}</p></div></div>`;
+    div.innerHTML = `<div class="flex justify-end"><div class="user-bubble px-4 py-3 max-w-lg"><p class="text-sm mono-ui">${esc(html)}</p></div></div>`;
   }
   container.appendChild(div);
   return div;
@@ -110,7 +365,7 @@ function createAgentBlock() {
   div.className = 'fade-in space-y-2';
 
   const statusRow = document.createElement('div');
-  statusRow.className = 'flex items-center gap-2 mb-2 text-xs text-gray-500';
+  statusRow.className = 'flex items-center gap-2 mb-3 text-xs ghost-copy mono-ui';
   statusRow.innerHTML = '<div class="spinner"></div><span>Thinking...</span>';
 
   const stepsEl = document.createElement('div');
@@ -132,8 +387,8 @@ function addStep(type, data) {
 
   if (type === 'tool_invoked') {
     const tool = data.tool;
-    const icons = {query_plan:'\u{1F4CB}', search:'\u{1F50D}', rerank:'\u{1F4CA}', compose_context:'\u{1F4DD}', final_answer:'\u2705'};
-    const icon = icons[tool] || '\u{1F527}';
+    const marks = {query_plan:'QP', search:'SR', rerank:'RR', compose_context:'CX', final_answer:'FN'};
+    const mark = marks[tool] || 'TL';
     let detail = '';
     if (tool === 'query_plan') detail = `Query: ${esc(data.input?.query || '')}`;
     else if (tool === 'search') detail = `Queries: ${(data.input?.queries||[]).map(q=>esc(q)).join(', ')}`;
@@ -141,20 +396,20 @@ function addStep(type, data) {
     else if (tool === 'compose_context') detail = 'Building context...';
     else if (tool === 'final_answer') detail = '';
     div.className += ' active';
-    div.innerHTML = `<div class="flex items-center gap-2 mb-1"><span>${icon}</span><span class="badge badge-tool">${esc(tool)}</span>${data.system_generated?'<span class="badge" style="background:rgba(245,158,11,0.15);color:#fbbf24">refinement</span>':''}</div>${detail?`<p class="text-xs text-gray-400 mt-1">${detail}</p>`:''}`;
+    div.innerHTML = `<div class="flex items-center gap-2 mb-1"><span class="tool-mark">${mark}</span><span class="badge badge-tool">${esc(tool)}</span>${data.system_generated?'<span class="badge">refinement</span>':''}</div>${detail?`<p class="text-xs source-line mt-1">${detail}</p>`:''}`;
   }
   else if (type === 'observation') {
     div.className += ' done';
     const ok = data.success;
     const ms = data.took_ms || 0;
-    div.innerHTML = `<div class="flex items-center gap-2"><span class="badge badge-obs">${ok?'OK':'FAIL'}</span><span class="text-xs text-gray-500">${ms}ms</span></div><p class="text-xs text-gray-400 mt-1">${esc((data.content||'').substring(0,200))}</p>`;
+    div.innerHTML = `<div class="flex items-center gap-2"><span class="badge badge-obs">${ok?'OK':'FAIL'}</span><span class="text-xs ghost-copy">${ms}ms</span></div><p class="text-xs source-line mt-1">${esc((data.content||'').substring(0,200))}</p>`;
   }
   else if (type === 'thought') {
-    div.innerHTML = `<div class="flex items-center gap-2"><span class="badge badge-thought">thought</span></div><p class="text-xs text-gray-300 mt-1 italic">${esc(data.content||'')}</p>`;
+    div.innerHTML = `<div class="flex items-center gap-2"><span class="badge badge-thought">thought</span></div><p class="text-xs mt-1 italic" style="color:rgba(255,255,255,0.78)">${esc(data.content||'')}</p>`;
   }
   else if (type === 'citations') {
     const cov = (data.coverage * 100).toFixed(0);
-    const color = data.coverage >= 0.65 ? '#10b981' : data.coverage >= 0.45 ? '#f59e0b' : '#ef4444';
+    const color = data.coverage >= 0.65 ? '#f5f5f5' : data.coverage >= 0.45 ? '#b5b5b5' : '#6d6d6d';
     div.innerHTML = `<div class="flex items-center gap-3"><span class="badge badge-cite">coverage</span><div class="flex-1"><div class="coverage-bar"><div class="coverage-fill" style="width:${cov}%;background:${color}"></div></div></div><span class="text-xs font-mono" style="color:${color}">${cov}%</span></div>`;
   }
 
@@ -166,7 +421,7 @@ function showFinal(data) {
   if (!_ctx) return;
 
   // Stop spinner
-  _ctx.statusRow.innerHTML = '<span class="text-green-500 text-xs font-medium">Done</span>';
+  _ctx.statusRow.innerHTML = '<span class="text-xs mono-ui" style="color:rgba(255,255,255,0.82)">Done</span>';
 
   const answer = data.answer || '';
   const citations = data.citations || [];
@@ -177,10 +432,10 @@ function showFinal(data) {
 
   let citationsHtml = '';
   if (citations.length) {
-    citationsHtml = `<div class="mt-4 pt-3 border-t border-gray-700"><p class="text-xs text-gray-500 mb-2 font-medium">Sources</p><div class="space-y-1">${citations.map(c => {
+    citationsHtml = `<div class="mt-4 pt-3" style="border-top:1px solid rgba(255,255,255,0.08)"><p class="text-xs mb-2 font-medium ghost-copy">Sources</p><div class="space-y-1">${citations.map(c => {
       const ch = c.metadata?.channel || '?';
       const dt = (c.metadata?.date || '').substring(0, 10);
-      return `<div class="text-xs text-gray-400 flex gap-2"><span class="citation-ref">[${c.index}]</span><span>${esc(ch)}</span><span class="text-gray-600">${dt}</span></div>`;
+      return `<div class="text-xs source-line flex gap-2"><span class="citation-ref">[${c.index}]</span><span>${esc(ch)}</span><span class="ghost-copy">${dt}</span></div>`;
     }).join('')}</div></div>`;
   }
 
@@ -189,9 +444,9 @@ function showFinal(data) {
   if (refinements > 0) metaParts.push(`Refinements: ${refinements}`);
   metaParts.push(`Steps: ${totalSteps}`);
   if (supported !== undefined) metaParts.push(supported ? 'Supported by retrieved docs' : 'Weak support');
-  const metaHtml = `<div class="flex flex-wrap gap-3 mt-3 text-xs text-gray-500">${metaParts.map(p=>`<span>${esc(p)}</span>`).join('<span class="text-gray-700">|</span>')}</div>`;
+  const metaHtml = `<div class="flex flex-wrap gap-3 mt-3 text-xs ghost-copy">${metaParts.map(p=>`<span>${esc(p)}</span>`).join('<span style="color:rgba(255,255,255,0.14)">|</span>')}</div>`;
 
-  _ctx.finalEl.innerHTML = `<div class="final-answer card px-5 py-4 mt-3 fade-in"><div class="text-sm leading-relaxed">${formatAnswer(answer)}</div>${citationsHtml}${metaHtml}</div>`;
+  _ctx.finalEl.innerHTML = `<div class="final-answer card px-5 py-4 mt-3 fade-in"><div class="text-sm leading-relaxed mono-ui">${formatAnswer(answer)}</div>${citationsHtml}${metaHtml}</div>`;
   _ctx = null; // Закрываем контекст — следующий вопрос создаст новый
   document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
 }
@@ -246,7 +501,7 @@ async function sendQuery(query) {
 
   document.getElementById('send-btn').disabled = false;
   document.getElementById('query-input').disabled = false;
-  document.getElementById('status-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500"></span> Ready';
+  document.getElementById('status-indicator').innerHTML = '<span class="status-dot"></span><span>Ready</span>';
 }
 
 document.getElementById('query-form').addEventListener('submit', async (e) => {
@@ -268,6 +523,95 @@ document.getElementById('query-form').addEventListener('submit', async (e) => {
 });
 
 // Focus input on load
+function setupMatrixBackground() {
+  const canvas = document.getElementById('matrix-bg');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const state = {
+    cols: 0,
+    rows: 0,
+    spacing: 18,
+    width: 0,
+    height: 0,
+    points: [],
+  };
+
+  function rebuild() {
+    const dpr = window.devicePixelRatio || 1;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    state.width = width;
+    state.height = height;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    state.spacing = width < 768 ? 16 : 18;
+    state.cols = Math.ceil(width / state.spacing) + 2;
+    state.rows = Math.ceil(height / state.spacing) + 2;
+    state.points = [];
+
+    for (let row = 0; row < state.rows; row += 1) {
+      for (let col = 0; col < state.cols; col += 1) {
+        const x = col * state.spacing;
+        const y = row * state.spacing;
+        const drift = ((row * 17 + col * 13) % 9) / 9;
+        const seed = ((row * 37 + col * 19) % 23) / 23;
+        state.points.push({ x, y, drift, seed });
+      }
+    }
+  }
+
+  function draw(ts) {
+    const t = ts * 0.001;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const point of state.points) {
+      const nx = point.x / Math.max(state.width, 1);
+      const ny = point.y / Math.max(state.height, 1);
+
+      const wavePrimary =
+        Math.sin(point.x * 0.016 + t * 0.82 + point.drift * 4.1) * 0.55 +
+        Math.cos(point.y * 0.021 - t * 0.58 + point.seed * 5.2) * 0.45;
+
+      const waveDiagonal =
+        Math.sin((point.x + point.y) * 0.010 + t * 0.46 + point.seed * 6.0) * 0.5 +
+        Math.cos((point.x - point.y) * 0.008 - t * 0.33 + point.drift * 5.0) * 0.5;
+
+      const waveMicro = Math.sin((point.x * 0.031) + (point.y * 0.017) - t * 0.95 + point.seed * 8.0);
+
+      const leftCluster = Math.exp(-(((nx - 0.24) ** 2) / 0.015 + ((ny - 0.34) ** 2) / 0.02));
+      const rightCluster = Math.exp(-(((nx - 0.76) ** 2) / 0.02 + ((ny - 0.68) ** 2) / 0.024));
+      const bridgeBand = Math.exp(-(((ny - (0.18 + nx * 0.62)) ** 2) / 0.01));
+
+      const regionalField =
+        wavePrimary * (0.42 + leftCluster * 0.7) +
+        waveDiagonal * (0.34 + rightCluster * 0.75) +
+        waveMicro * (0.12 + bridgeBand * 0.35);
+
+      const wave = Math.max(0, Math.min(1, (regionalField + 1.9) / 3.8));
+      const alpha = 0.05 + wave * 0.31;
+      const radius = 0.78 + wave * 1.75 + (leftCluster + rightCluster) * 0.5;
+
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  rebuild();
+  requestAnimationFrame(draw);
+  window.addEventListener('resize', rebuild);
+}
+
+setupMatrixBackground();
 document.getElementById('query-input').focus();
 </script>
 </body>
