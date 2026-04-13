@@ -27,8 +27,8 @@ def _err_resp(error: str = "timeout") -> ToolResponse:
     ("rerank", {"scores": [0.95, 0.8], "indices": [0, 1], "kept": 2, "filtered_out": 0}, "reranked"),
     # _fmt_compose: "Composed context with N citations"
     ("compose_context", {"citations": [{"id": "c1"}], "citation_coverage": 0.85, "contexts": ["a"]}, "composed context"),
-    # _fmt_verify: "Verification:"
-    ("verify", {"verified": True, "confidence": 0.9, "threshold": 0.6, "documents_found": 3}, "verification"),
+    # _fmt_verify: legacy alias -> "Support check:"
+    ("verify", {"verified": True, "confidence": 0.9, "threshold": 0.6, "documents_found": 3}, "support check"),
     # _fmt_query_plan: "Plan: N queries"
     ("query_plan", {"plan": {"normalized_queries": ["q1", "q2"], "k_per_query": 5, "fusion": "rrf"}}, "plan: 2 queries"),
     # _fmt_final_answer: "Final answer prepared (N chars)"
